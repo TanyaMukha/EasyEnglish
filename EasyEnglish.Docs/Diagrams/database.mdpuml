@@ -1,0 +1,247 @@
+@startuml Database Diagram
+
+<style>
+title {
+  HorizontalAlignment right
+  FontSize 24
+'   FontColor blue
+}
+
+header {
+  HorizontalAlignment center
+  FontSize 16
+'   FontColor purple
+  FontStyle bold
+}
+
+' footer {
+'   HorizontalAlignment left
+'   FontSize 28
+'   FontColor red
+' }
+
+legend {
+  FontSize 30
+  BackGroundColor yellow
+  Margin 30
+  Padding 50
+}
+
+caption {
+  FontSize 32
+}
+</style>
+
+' Определение стилей для элементов базы данных с одинаковыми отступами
+!define PK(x)     <b><color:#b8861b>PK</color>   x</b>
+!define FK(x)     <b><color:#aaaaaa>FK</color>   x</b>
+!define FPK(x)    <b><color:#b8861b>FPK</color> x</b>
+!define column(x) <b><color:#efefef><&media-record></color>     x</b>
+!define table(x)  entity x << (T, white) >>
+
+' Настройка стилей для всей диаграммы
+skinparam {
+    PackageStyle rectangle
+    ArrowColor #2688d4
+    ArrowThickness 1.5
+    EntityBorderThickness 1.5
+    EntityBorderColor #2688d4
+    EntityBackgroundColor white
+    EntityFontColor black
+    EntityFontSize 14
+    padding 4
+    roundCorner 10
+    defaultTextAlignment left
+    shadowing false
+}
+
+' header some header
+
+' footer some footer
+
+title Database Diagram
+
+' caption This is caption
+
+' legend
+' The legend
+' end legend
+
+' Определение таблиц базы данных
+table(dictionaries) {
+    PK(id): INT AUTO_INCREMENT
+    column(guid): TEXT NOT NULL
+    column(title): TEXT NOT NULL
+    column(description): TEXT
+    column(created_at): TEXT NULL
+    column(updated_at): TEXT NULL
+}
+
+table(dictionary_items) {
+    PK(id): INT AUTO_INCREMENT
+    column(guid): TEXT NOT NULL
+    column(word): TEXT NOT NULL
+    column(transcription): TEXT
+    column(translation): TEXT
+    column(explanation): TEXT
+    column(definition): TEXT
+    column(part_of_speech): TEXT NOT NULL
+    column(language): TEXT NOT NULL DEFAULT 'en'
+    column(level): TEXT NOT NULL DEFAULT 'A1'
+    column(is_irregular): BOOLEAN
+    column(pronunciation): BLOB
+    column(last_review_date): TIMESTAMP
+    column(review_count): INT
+    column(rate): INT
+    column(created_at): TEXT NULL
+    column(updated_at): TEXT NULL
+    --
+    FK(dictionary_id): INT
+}
+
+table(word_lists) {
+    PK(id): INT AUTO_INCREMENT
+    column(guid): TEXT NOT NULL
+    column(title): TEXT NOT NULL
+    column(description): TEXT
+    column(last_review_date): TIMESTAMP
+    column(review_count): INT
+    column(created_at): TEXT NULL
+    column(updated_at): TEXT NULL    
+}
+
+table(word_list_items) {
+  FPK(list_id): INT NOT NULL
+  FPK(word_id): INT NOT NULL
+}
+
+table(tags) {
+  PK(id): INT AUTO_INCREMENT
+  column(title): TEXT NOT NULL
+  column(created_at): TEXT NULL
+  column(updated_at): TEXT NULL
+}
+
+table(word_tags) {
+  FPK(word_id): INT NOT NULL
+  FPK(tag_id): INT NOT NULL
+}
+
+table(irregular_forms) {
+  FPK(first_form_id): INT NOT NULL
+  FPK(second_form_id): INT NOT NULL
+  FPK(third_form_id): INT
+}
+
+table(examples) {
+  PK(id): INT AUTO_INCREMENT
+  column(sentence): TEXT NOT NULL
+  column(translation): TEXT
+  --
+  FK(word_id): INT
+}
+
+table(study_cards) {
+  PK(id): INT AUTO_INCREMENT
+  column(guid): TEXT NOT NULL
+  column(title): TEXT NOT NULL
+  column(description): TEXT
+  column(dialogue): TEXT
+  column(last_review_date): TIMESTAMP
+  column(review_count): INT
+  column(rate): INT
+  column(created_at): TEXT NULL
+  column(updated_at): TEXT NULL
+  --
+  FK(unit_id): INT
+}
+
+table(study_card_items) {
+  FPK(card_id): INT NOT NULL
+  FPK(word_id): INT NOT NULL
+}
+
+table(test_cards) {
+  PK(id): INT AUTO_INCREMENT
+  column(guid): TEXT NOT NULL
+  column(testType): TEXT
+  column(title): TEXT NOT NULL
+  column(description): TEXT
+  column(text): TEXT
+  column(mask): TEXT
+  column(options): TEXT
+  column(correct_answers): TEXT
+  column(last_review_date): TIMESTAMP
+  column(review_count): INT
+  column(rate): INT
+  column(created_at): TEXT NULL
+  column(updated_at): TEXT NULL
+  --
+  FK(test_id): INT
+}
+
+table(units) {
+    PK(id): INT AUTO_INCREMENT
+    column(guid): TEXT NOT NULL
+    column(title): TEXT NOT NULL
+    column(description): TEXT
+    column(last_review_date): TIMESTAMP
+    column(review_count): INT
+    column(created_at): TEXT NULL
+    column(updated_at): TEXT NULL
+}
+
+table(grammar_tests) {
+    PK(id): INT AUTO_INCREMENT
+    column(guid): TEXT NOT NULL
+    column(title): TEXT NOT NULL
+    column(description): TEXT
+    column(last_review_date): TIMESTAMP
+    column(review_count): INT
+    column(created_at): TEXT NULL
+    column(updated_at): TEXT NULL
+}
+
+table(grammar_topics) {
+    PK(id): INT AUTO_INCREMENT
+    column(guid): TEXT NOT NULL
+    column(title): TEXT NOT NULL
+    column(description): TEXT
+    column(content): TEXT NOT NULL
+    column(language): TEXT NOT NULL DEFAULT 'en'
+    column(last_review_date): TIMESTAMP
+    column(review_count): INT
+    column(created_at): TEXT NULL
+    column(updated_at): TEXT NULL
+    --
+    FK(topic_id): INT
+}
+
+table(grammar_topic_tests) {
+    FPK(topic_id): INT NOT NULL
+    FPK(test_id): INT NOT NULL
+}
+
+' Определение связей между таблицами
+dictionaries ||--o{ dictionary_items
+
+units ||--o{ study_cards
+
+dictionary_items ||--o{ examples
+word_tags ||--o{ tags
+word_tags ||--o{ dictionary_items
+
+study_card_items ||--o{ study_cards
+study_card_items ||--o{ dictionary_items
+
+irregular_forms ||--o{ dictionary_items
+
+word_list_items ||--o{ dictionary_items
+word_list_items ||--o{ word_lists
+
+grammar_tests ||--o{ test_cards
+grammar_topic_tests ||--o{ grammar_tests
+grammar_topic_tests ||--o{ grammar_topics
+grammar_topics ||--o{ grammar_topics : parent > child
+
+@enduml

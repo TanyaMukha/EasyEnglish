@@ -1,0 +1,262 @@
+﻿@startuml EasyEnglish Entities
+
+' Определение стилей для полей интерфейсов
+!define AUDIT(x)    <b><color:#4A90E2>x 🕐</color></b>
+!define REVIEW(x)   <b><color:#7ED321>x 🔄</color></b>
+!define RATE(x)     <b><color:#F5A623>x ⭐</color></b>
+!define FIELD(x)    <color:#50555C>x</color>
+!define FK_FIELD(x) <b><color:#999999>x FK 🔗</color></b>
+!define PFK_FIELD(x) <b><color:#BD10E0>x PFK 🔗🔑</color></b>
+!define INHERITED(x) <i><color:#999999>x</color></i>
+!define INHERITED_PK(x) <i><color:#999999>x 🔑</color></i>
+!define PK(x)       <b><color:#b8861b>x 🔑</color></b>
+
+' Настройка стилей для всей диаграммы
+skinparam {
+    PackageStyle rectangle
+    ArrowColor #2688d4
+    ArrowThickness 1.5
+    EntityBorderThickness 1.5
+    EntityBorderColor #2688d4
+    EntityBackgroundColor white
+    EntityFontColor black
+    EntityFontSize 12
+    padding 4
+    roundCorner 8
+    defaultTextAlignment left
+    shadowing false
+    direction top to bottom
+}
+
+title EasyEnglish Entities
+
+legend top left
+
+**IRecordReviewInfo**
+    LastReviewDate : DateTime? 🔄
+    ReviewCount : int 🔄
+
+**IRecordRateInfo**
+    Rate : float ⭐
+
+**IRecordAuditInfo**
+    CreatedAt : DateTime 🕐
+    UpdatedAt : DateTime? 🕐
+
+end legend
+
+entity "Dictionary<AbstractMainEntity>" as Dictionary {
+    INHERITED_PK(+ Id : int)
+    INHERITED(+ RecordGuid : Guid)
+    FIELD(+ Title : string)
+    FIELD(+ Description : string?)
+    AUDIT(+ CreatedAt : DateTime)
+    AUDIT(+ UpdatedAt : DateTime?)
+    --
+    FIELD(+ Words : List<DictionaryItem>)
+}
+
+entity "DictionaryItem<AbstractMainEntity>" as DictionaryItem {
+    INHERITED_PK(+ Id : int)
+    INHERITED(+ RecordGuid : Guid)
+    FIELD(+ Word : string)
+    FIELD(+ Transcription : string?)
+    FIELD(+ Translation : string?)
+    FIELD(+ Explanation : string?)
+    FIELD(+ Definition : string?)
+    FIELD(+ PartOfSpeech : string)
+    FIELD(+ Language : string)
+    FIELD(+ Level : string)
+    FIELD(+ IsIrregular : bool)
+    FIELD(+ Pronunciation : byte[]?)
+    REVIEW(+ LastReviewDate : DateTime?)
+    REVIEW(+ ReviewCount : int)
+    RATE(+ Rate : float)
+    AUDIT(+ CreatedAt : DateTime)
+    AUDIT(+ UpdatedAt : DateTime?)
+    FK_FIELD(+ DictionaryId : int)
+    --
+    FIELD(+ Dictionary : Dictionary?)
+    FIELD(+ Examples : List<Example>)
+    FIELD(+ WordTags : List<WordTag>)
+    FIELD(+ WordLists : List<WordListItem>)
+}
+
+entity "Example<AbstractEntity>" as Example {
+    INHERITED_PK(+ Id : int)
+    FIELD(+ Sentence : string)
+    FIELD(+ Translation : string?)
+    FK_FIELD(+ WordId : int)
+    --
+    FIELD(+ Word : DictionaryItem?)
+}
+
+entity "Tag<AbstractEntity>" as Tag {
+    INHERITED_PK(+ Id : int)
+    FIELD(+ Title : string)
+    AUDIT(+ CreatedAt : DateTime)
+    AUDIT(+ UpdatedAt : DateTime?)
+    --
+    FIELD(+ WordTags : List<WordTag>)
+}
+
+entity "WordTag" as WordTag {
+    PFK_FIELD(+ WordId : int)
+    PFK_FIELD(+ TagId : int)
+    --
+    FIELD(+ Word : DictionaryItem?)
+    FIELD(+ Tag : Tag?)
+}
+
+entity "WordList<AbstractMainEntity>" as WordList {
+    INHERITED_PK(+ Id : int)
+    INHERITED(+ RecordGuid : Guid)
+    FIELD(+ Title : string)
+    FIELD(+ Description : string?)
+    REVIEW(+ LastReviewDate : DateTime?)
+    REVIEW(+ ReviewCount : int)
+    AUDIT(+ CreatedAt : DateTime)
+    AUDIT(+ UpdatedAt : DateTime?)
+    --
+    FIELD(+ Words : List<DictionaryItem>)
+}
+
+entity "WordListItem" as WordListItem {
+    PFK_FIELD(+ ListId : int)
+    PFK_FIELD(+ WordId : int)
+    --
+    FIELD(+ List : WordList?)
+    FIELD(+ Word : DictionaryItem?)
+}
+
+entity "IrregularForm" as IrregularForm {
+    PFK_FIELD(+ FirstFormId : int)
+    PFK_FIELD(+ SecondFormId : int)
+    PFK_FIELD(+ ThirdFormId : int?)
+    --
+    FIELD(+ FirstForm : DictionaryItem?)
+    FIELD(+ SecondForm : DictionaryItem?)
+    FIELD(+ ThirdForm : DictionaryItem?)
+}
+
+entity "Unit<AbstractMainEntity>" as Unit {
+    INHERITED_PK(+ Id : int)
+    INHERITED(+ RecordGuid : Guid)
+    FIELD(+ Title : string)
+    FIELD(+ Description : string?)
+    REVIEW(+ LastReviewDate : DateTime?)
+    REVIEW(+ ReviewCount : int)
+    AUDIT(+ CreatedAt : DateTime)
+    AUDIT(+ UpdatedAt : DateTime?)
+    --
+    FIELD(+ StudyCards : List<StudyCard>)
+}
+
+entity "StudyCard<AbstractMainEntity>" as StudyCard {
+    INHERITED_PK(+ Id : int)
+    INHERITED(+ RecordGuid : Guid)
+    FIELD(+ Title : string)
+    FIELD(+ Description : string?)
+    FIELD(+ Dialogue : string?)
+    REVIEW(+ LastReviewDate : DateTime?)
+    REVIEW(+ ReviewCount : int)
+    RATE(+ Rate : float)
+    AUDIT(+ CreatedAt : DateTime)
+    AUDIT(+ UpdatedAt : DateTime?)
+    FK_FIELD(+ UnitId : int)
+    --
+    FIELD(+ Unit : Unit?)
+    FIELD(+ StudyCardItems : List<StudyCardItem>)
+}
+
+entity "StudyCardItem" as StudyCardItem {
+    PFK_FIELD(+ CardId : int)
+    PFK_FIELD(+ WordId : int)
+    --
+    FIELD(+ StudyCard : StudyCard?)
+    FIELD(+ Word : DictionaryItem?)
+}
+
+entity "GrammarTopic<AbstractMainEntity>" as GrammarTopic {
+    INHERITED_PK(+ Id : int)
+    INHERITED(+ RecordGuid : Guid)
+    FIELD(+ Title : string)
+    FIELD(+ Description : string?)
+    FIELD(+ Content : string)
+    FIELD(+ Language : string)
+    REVIEW(+ LastReviewDate : DateTime?)
+    REVIEW(+ ReviewCount : int)
+    AUDIT(+ CreatedAt : DateTime)
+    AUDIT(+ UpdatedAt : DateTime?)
+    FK_FIELD(+ TopicId : int?)
+    --
+    FIELD(+ ParentTopic : GrammarTopic?)
+    FIELD(+ ChildTopics : List<GrammarTopic>)
+    FIELD(+ GrammarTopicTests : List<GrammarTopicTest>)
+}
+
+entity "GrammarTest<AbstractMainEntity>" as GrammarTest {
+    INHERITED_PK(+ Id : int)
+    INHERITED(+ RecordGuid : Guid)
+    FIELD(+ Title : string)
+    FIELD(+ Description : string?)
+    REVIEW(+ LastReviewDate : DateTime?)
+    REVIEW(+ ReviewCount : int)
+    AUDIT(+ CreatedAt : DateTime)
+    AUDIT(+ UpdatedAt : DateTime?)
+    --
+    FIELD(+ TestCards : List<TestCard>)
+    FIELD(+ GrammarTopicTests : List<GrammarTopicTest>)
+}
+
+entity "GrammarTopicTest" as GrammarTopicTest {
+    PFK_FIELD(+ TopicId : int)
+    PFK_FIELD(+ TestId : int)
+    --
+    FIELD(+ GrammarTopic : GrammarTopic?)
+    FIELD(+ GrammarTest : GrammarTest?)
+}
+
+entity "TestCard<AbstractMainEntity>" as TestCard {
+    INHERITED_PK(+ Id : int)
+    INHERITED(+ RecordGuid : Guid)
+    FIELD(+ TestType : string?)
+    FIELD(+ Title : string)
+    FIELD(+ Description : string?)
+    FIELD(+ Text : string?)
+    FIELD(+ Mask : string?)
+    FIELD(+ Options : string?)
+    FIELD(+ CorrectAnswers : string?)
+    REVIEW(+ LastReviewDate : DateTime?)
+    REVIEW(+ ReviewCount : int)
+    RATE(+ Rate : float)
+    AUDIT(+ CreatedAt : DateTime)
+    AUDIT(+ UpdatedAt : DateTime?)
+    FK_FIELD(+ TestId : int)
+    --
+    FIELD(+ GrammarTest : GrammarTest?)
+}
+
+' Inheritance relationships
+' (Inheritance links removed as requested)
+
+' Relationships
+Dictionary ||--o{ DictionaryItem : "has words"
+DictionaryItem ||--o{ Example : "has examples"
+DictionaryItem ||--o{ WordTag : "has tags"
+DictionaryItem ||--o{ WordListItem : "in word lists"
+DictionaryItem ||--o{ StudyCardItem : "in study cards"
+DictionaryItem ||--o{ IrregularForm : "irregular forms"
+
+Tag ||--o{ WordTag : "tagged words"
+WordList ||--o{ WordListItem : "contains words"
+
+Unit ||--o{ StudyCard : "has study cards"
+StudyCard ||--o{ StudyCardItem : "contains words"
+
+GrammarTopic ||--o{ GrammarTopic : "parent/child"
+GrammarTopic ||--o{ GrammarTopicTest : "tested by"
+GrammarTest ||--o{ GrammarTopicTest : "tests topics"
+GrammarTest ||--o{ TestCard : "has test cards"
+
+@enduml

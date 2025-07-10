@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="15.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.7" />
+    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MukhaLib.SelectQueryParameters\MukhaLib.SelectQueryParameters.csproj" />
+  </ItemGroup>
+
+</Project>

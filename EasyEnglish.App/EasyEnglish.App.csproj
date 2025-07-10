@@ -62,13 +62,13 @@
 
     <ItemGroup>
         <!-- .NET MAUI -->
-		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.81" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.81" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="9.0.81" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.7" />
 		
 		<!-- Entity Framework for app -->
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.7" />
     </ItemGroup>
 
 	<ItemGroup>
