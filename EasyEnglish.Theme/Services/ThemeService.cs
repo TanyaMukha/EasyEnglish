@@ -55,17 +55,17 @@ public class ThemeService : IThemeService
         [SpacingSize.Xxxl] = 64
     };
 
-    private readonly Dictionary<FontSize, int> _fontSizes = new()
+    private readonly Dictionary<ThemeFontSize, int> _fontSizes = new()
     {
-        [FontSize.Xs] = 12,
-        [FontSize.Sm] = 14,
-        [FontSize.Base] = 16,
-        [FontSize.Lg] = 18,
-        [FontSize.Xl] = 20,
-        [FontSize.Xl2] = 24,
-        [FontSize.Xl3] = 30,
-        [FontSize.Xl4] = 36,
-        [FontSize.Xl5] = 48
+        [ThemeFontSize.Xs] = 12,
+        [ThemeFontSize.Sm] = 14,
+        [ThemeFontSize.Base] = 16,
+        [ThemeFontSize.Lg] = 18,
+        [ThemeFontSize.Xl] = 20,
+        [ThemeFontSize.Xl2] = 24,
+        [ThemeFontSize.Xl3] = 30,
+        [ThemeFontSize.Xl4] = 36,
+        [ThemeFontSize.Xl5] = 48
     };
 
     public string GetColorByPartOfSpeech(string partOfSpeech)
@@ -96,7 +96,7 @@ public class ThemeService : IThemeService
         return _spacingValues[size];
     }
 
-    public int GetFontSize(FontSize size)
+    public int GetFontSize(ThemeFontSize size)
     {
         return _fontSizes[size];
     }

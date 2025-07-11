@@ -8,7 +8,7 @@ public interface IThemeService
     bool IsTablet { get; }
     bool IsDesktop { get; }
     int GetSpacing(SpacingSize size);
-    int GetFontSize(FontSize size);
+    int GetFontSize(ThemeFontSize size); // Перейменовано для уникнення конфлікту
     string GetShadowClass(ShadowSize size);
     Task InitializeAsync();
 }
@@ -18,7 +18,8 @@ public enum SpacingSize
     Xs, Sm, Md, Lg, Xl, Xxl, Xxxl
 }
 
-public enum FontSize
+// Перейменовано enum для уникнення конфлікту з Microsoft.Maui.FontSize
+public enum ThemeFontSize
 {
     Xs, Sm, Base, Lg, Xl, Xl2, Xl3, Xl4, Xl5
 }

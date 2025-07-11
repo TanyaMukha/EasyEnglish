@@ -1,27 +1,45 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+	<PropertyGroup>
+		<TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<UseMaui>true</UseMaui>
+		<SingleProject>true</SingleProject>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components" Version="9.0.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.7" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.7" />
-    <PackageReference Include="Microsoft.JSInterop" Version="9.0.7" />
-  </ItemGroup>
+		<!-- Вимкнути автоматичне включення Content елементів -->
+		<EnableDefaultContentItems>false</EnableDefaultContentItems>
 
-  <!-- Include all Razor components -->
-  <ItemGroup>
-	<Content Include="wwwroot\**" Pack="true" PackagePath="staticwebassets\" />
-  </ItemGroup>
+		<!-- Пропустити валідацію MAUI пакетів -->
+		<SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
 
-  <!-- Include all CSS and JS files -->
-  <ItemGroup>
-	<EmbeddedResource Include="wwwroot\css\**\*.css" />
-	<EmbeddedResource Include="wwwroot\js\**\*.js" />
-  </ItemGroup>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Основні MAUI пакети -->
+		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.14" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="9.0.14" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.7" />
+		<PackageReference Include="Microsoft.JSInterop" Version="9.0.7" />
+	</ItemGroup>
+
+	<!-- Явно включити wwwroot файли для NuGet пакета -->
+	<ItemGroup>
+		<Content Include="wwwroot\css\AppTheme.css" Pack="true" PackagePath="staticwebassets\" />
+		<Content Include="wwwroot\js\theme-utils.js" Pack="true" PackagePath="staticwebassets\" />
+		<!-- Додайте інші специфічні файли якщо потрібно -->
+	</ItemGroup>
+
+	<!-- Якщо є інші CSS/JS файли, включіть їх окремо -->
+	<ItemGroup>
+		<EmbeddedResource Include="wwwroot\css\**\*.css" Exclude="wwwroot\css\AppTheme.css" />
+		<EmbeddedResource Include="wwwroot\js\**\*.js" Exclude="wwwroot\js\theme-utils.js" />
+	</ItemGroup>
 
 </Project>
