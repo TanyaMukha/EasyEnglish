@@ -1,0 +1,10 @@
+﻿@using EasyEnglish.Theme.Constants
+@using EasyEnglish.Theme.Types
+
+<div class="@GetCardClasses()" @attributes="AdditionalAttributes">
+    @if (!string.IsNullOrEmpty(Title))
+    {
+        <h3 class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.Margin.BottomMd">@Title</h3>
+    }
+    @ChildContent
+</div>

@@ -1,0 +1,111 @@
+﻿@page "/colors"
+@using EasyEnglish.Theme.Components
+@using EasyEnglish.Theme.Constants
+@using EasyEnglish.Theme.Demo.Interfaces
+@using EasyEnglish.Theme.Demo.Services
+@inject IDemoService DemoService
+
+<PageTitle>Colors - Theme Demo</PageTitle>
+
+<div class="@ThemeConstants.CssClasses.FlexColumn">
+    <H1 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">
+        Color System
+    </H1>
+    
+    <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomXl">
+        Comprehensive color palette designed for modern dark UI with semantic meaning and accessibility in mind.
+    </p>
+
+    @foreach (var palette in colorPalettes)
+    {
+        <Card Title="@palette.Name" CssClass="@ThemeConstants.CssClasses.Margin.BottomXl">
+            <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                @palette.Description
+            </p>
+            
+            <div class="color-grid">
+                @foreach (var color in palette.Colors)
+                {
+                    <div class="color-item">
+                        <div class="color-swatch" style="background-color: @color.Hex"></div>
+                        <div class="color-info">
+                            <div class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.Margin.BottomXs">
+                                <strong>@color.Name</strong>
+                            </div>
+                            <div class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomXs">
+                                @color.Hex
+                            </div>
+                            <div class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextTertiary @ThemeConstants.CssClasses.Margin.BottomXs">
+                                @color.CssVar
+                            </div>
+                            <div class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextMuted">
+                                @color.Usage
+                            </div>
+                        </div>
+                        <div class="color-actions">
+                            <Button Variant="ButtonVariant.Ghost" 
+                                    CssClass="copy-button" 
+                                    OnClick="@(() => CopyToClipboard(color.Hex))">
+                                Copy
+                            </Button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </Card>
+    }
+</div>
+
+<style>
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.color-item {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-md);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.color-swatch {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--border-radius-md);
+    margin-right: var(--spacing-md);
+    border: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
+
+.color-info {
+    flex: 1;
+}
+
+.color-actions {
+    margin-left: var(--spacing-md);
+}
+
+.copy-button {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+}
+</style>
+
+@code {
+    private List<ColorPaletteModel> colorPalettes = new();
+
+    protected override void OnInitialized()
+    {
+        colorPalettes = DemoService.GetColorPalettes();
+    }
+
+    private async Task CopyToClipboard(string text)
+    {
+        // In a real app, you would use JSInterop to copy to clipboard
+        Console.WriteLine($"Copied to clipboard: {text}");
+    }
+}

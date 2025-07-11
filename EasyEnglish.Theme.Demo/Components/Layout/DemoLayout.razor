@@ -1,0 +1,160 @@
+﻿@inherits LayoutComponentBase
+
+@using EasyEnglish.Theme.Components
+@using EasyEnglish.Theme.Constants
+@using EasyEnglish.Theme.Demo.Components.Pages
+@using EasyEnglish.Theme.Demo.Interfaces
+@using EasyEnglish.Theme.Demo.Services
+
+@inject IDemoService DemoService
+@inject NavigationManager Navigation
+
+<div class="demo-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="demo-sidebar">
+        <div class="@ThemeConstants.CssClasses.Padding.Lg">
+            <H3 CssClass="@ThemeConstants.CssClasses.Margin.BottomLg">
+                Theme Demo
+            </H3>
+            
+            <!-- Navigation Menu -->
+            <nav class="demo-nav">
+                <div class="demo-nav-section">
+                    <h4 class="@ThemeConstants.CssClasses.H4 @ThemeConstants.CssClasses.Margin.BottomSm">
+                        Overview
+                    </h4>
+                    <ul class="demo-nav-list">
+                        <li><a href="/" class="@GetNavClass("/")">Home</a></li>
+                        <li><a href="/colors" class="@GetNavClass("/colors")">Colors</a></li>
+                        <li><a href="/typography" class="@GetNavClass("/typography")">Typography</a></li>
+                        <li><a href="/spacing" class="@GetNavClass("/spacing")">Spacing</a></li>
+                    </ul>
+                </div>
+
+                <div class="demo-nav-section">
+                    <h4 class="@ThemeConstants.CssClasses.H4 @ThemeConstants.CssClasses.Margin.BottomSm">
+                        Components
+                    </h4>
+                    <ul class="demo-nav-list">
+                        @foreach (var demo in componentDemos.GroupBy(d => d.Category))
+                        {
+                            <li class="demo-nav-category">
+                                <span class="demo-nav-category-title">@demo.Key</span>
+                                <ul class="demo-nav-sublist">
+                                    @foreach (var component in demo)
+                                    {
+                                        <li>
+                                            <a href="/component/@component.Id" class="@GetNavClass($"/component/{component.Id}")">
+                                                @component.Name
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="demo-content">
+        <div class="@ThemeConstants.CssClasses.Padding.Lg">
+            @Body
+        </div>
+    </main>
+</div>
+
+<style>
+.demo-layout {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--color-background);
+}
+
+.demo-sidebar {
+    width: 280px;
+    background-color: var(--color-surface);
+    border-right: 1px solid var(--color-border);
+    overflow-y: auto;
+}
+
+.demo-content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.demo-nav-section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.demo-nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.demo-nav-list li {
+    margin-bottom: var(--spacing-xs);
+}
+
+.demo-nav-list a {
+    display: block;
+    padding: var(--spacing-sm) var(--spacing-md);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    border-radius: var(--border-radius-md);
+    transition: all 0.2s ease;
+}
+
+.demo-nav-list a:hover {
+    background-color: var(--color-background-tertiary);
+    color: var(--color-text-primary);
+}
+
+.demo-nav-list a.active {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.demo-nav-category-title {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--spacing-xs);
+    display: block;
+}
+
+.demo-nav-sublist {
+    padding-left: var(--spacing-md);
+}
+
+@@media (max-width: 768px) {
+    .demo-layout {
+        flex-direction: column;
+    }
+    
+    .demo-sidebar {
+        width: 100%;
+        position: static;
+    }
+}
+</style>
+
+@code {
+    private List<ComponentDemoModel> componentDemos = new();
+    
+    protected override void OnInitialized()
+    {
+        componentDemos = DemoService.GetComponentDemos();
+    }
+    
+    private string GetNavClass(string path)
+    {
+        var currentPath = Navigation.ToBaseRelativePath(Navigation.Uri);
+        return currentPath == path.TrimStart('/') ? "active" : "";
+    }
+}

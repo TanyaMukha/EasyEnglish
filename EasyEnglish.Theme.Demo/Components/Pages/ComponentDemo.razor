@@ -1,0 +1,449 @@
+﻿@page "/component/{ComponentId}"
+@using EasyEnglish.Theme.Components
+@using EasyEnglish.Theme.Constants
+@using EasyEnglish.Theme.Types
+@using EasyEnglish.Theme.Demo.Services
+@using EasyEnglish.Theme.Demo.Interfaces
+@using EasyEnglish.Theme.Demo.Models
+@inject IDemoService DemoService
+@inject ICodeSnippetService CodeSnippetService
+
+<PageTitle>@componentDemo?.Name - Components</PageTitle>
+
+@if (componentDemo != null)
+{
+    <div class="@ThemeConstants.CssClasses.FlexColumn">
+        <H1 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">
+            @componentDemo.Name
+        </H1>
+        
+        <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomXl">
+            @componentDemo.Description
+        </p>
+
+        <!-- Component Variants -->
+        @foreach (var variant in componentDemo.Variants)
+        {
+            <Card Title="@variant.Name" CssClass="@ThemeConstants.CssClasses.Margin.BottomXl">
+                
+                <!-- Live Preview -->
+                <div class="demo-preview">
+                    <h4 class="@ThemeConstants.CssClasses.H4 @ThemeConstants.CssClasses.Margin.BottomMd">Preview</h4>
+                    <div class="preview-container">
+                        @RenderComponentVariant(componentDemo.Id, variant)
+                    </div>
+                </div>
+
+                <!-- Code Examples -->
+                <div class="demo-code @ThemeConstants.CssClasses.Margin.TopLg">
+                    <div class="code-tabs">
+                        <button class="code-tab @(selectedTab == "razor" ? "active" : "")" 
+                                @onclick="@(() => selectedTab = "razor")">
+                            Razor
+                        </button>
+                        <button class="code-tab @(selectedTab == "csharp" ? "active" : "")" 
+                                @onclick="@(() => selectedTab = "csharp")">
+                            C#
+                        </button>
+                    </div>
+                    
+                    <div class="code-content">
+                        @if (selectedTab == "razor")
+                        {
+                            <pre class="code-block"><code>@variant.Code</code></pre>
+                        }
+                        else
+                        {
+                            <pre class="code-block"><code>@CodeSnippetService.GetCSharpCode(componentDemo.Name, variant.Props)</code></pre>
+                        }
+                    </div>
+                    
+                    <div class="code-actions">
+                        <Button Variant="ButtonVariant.Ghost" 
+                                OnClick="@(() => CopyCode(selectedTab == "razor" ? variant.Code : CodeSnippetService.GetCSharpCode(componentDemo.Name, variant.Props)))">
+                            Copy Code
+                        </Button>
+                    </div>
+                </div>
+                
+            </Card>
+        }
+
+        <!-- Props Documentation -->
+        <Card Title="Properties" CssClass="@ThemeConstants.CssClasses.Margin.BottomXl">
+            @RenderPropsDocumentation(componentDemo.Id)
+        </Card>
+    </div>
+}
+else
+{
+    <Container Type="ContainerType.ScreenCentered">
+        <Card CssClass="@ThemeConstants.CssClasses.TextCenter">
+            <H3 CssClass="@($"{ThemeConstants.CssClasses.TextError} {ThemeConstants.CssClasses.Margin.BottomMd}")">
+                Component Not Found
+            </H3>
+            <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary">
+                The component "@ComponentId" doesn't exist in our demo.
+            </p>
+        </Card>
+    </Container>
+}
+
+<style>
+.demo-preview {
+    margin-bottom: var(--spacing-lg);
+}
+
+.preview-container {
+    padding: var(--spacing-xl);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+}
+
+.demo-code {
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--spacing-lg);
+}
+
+.code-tabs {
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-md);
+}
+
+.code-tab {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--color-background-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.code-tab:hover {
+    background-color: var(--color-background-tertiary);
+    color: var(--color-text-primary);
+}
+
+.code-tab.active {
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
+    border-bottom-color: var(--color-surface);
+}
+
+.code-content {
+    position: relative;
+}
+
+.code-block {
+    background-color: var(--color-surface);
+    padding: var(--spacing-lg);
+    border-radius: 0 var(--border-radius-md) var(--border-radius-md) var(--border-radius-md);
+    border: 1px solid var(--color-border);
+    overflow-x: auto;
+    margin: 0;
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    color: var(--color-text-primary);
+}
+
+.code-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: var(--spacing-md);
+}
+
+.props-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: var(--spacing-md);
+}
+
+.props-table th,
+.props-table td {
+    padding: var(--spacing-sm) var(--spacing-md);
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.props-table th {
+    background-color: var(--color-background-secondary);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+}
+
+.props-table td {
+    color: var(--color-text-secondary);
+}
+
+.props-table tr:hover {
+    background-color: var(--color-background-tertiary);
+}
+</style>
+
+@code {
+    [Parameter] public string ComponentId { get; set; } = "";
+    
+    private ComponentDemoModel? componentDemo;
+    private string selectedTab = "razor";
+
+    protected override void OnInitialized()
+    {
+        componentDemo = DemoService.GetDemoById(ComponentId);
+    }
+
+    protected override void OnParametersSet()
+    {
+        componentDemo = DemoService.GetDemoById(ComponentId);
+    }
+
+    private RenderFragment RenderComponentVariant(string componentId, ComponentVariantModel variant)
+    {
+        return componentId switch
+        {
+            "button" => RenderButtonVariant(variant),
+            "card" => RenderCardVariant(variant),
+            "input" => RenderInputVariant(variant),
+            "badge" => RenderBadgeVariant(variant),
+            "loading" => RenderLoadingVariant(variant),
+            "progressbar" => RenderProgressBarVariant(variant),
+            _ => builder => builder.AddContent(0, "Component preview not available")
+        };
+    }
+
+    private RenderFragment RenderButtonVariant(ComponentVariantModel variant) => builder =>
+    {
+        builder.OpenComponent<EasyEnglish.Theme.Components.Button>(0);
+        
+        if (variant.Props.ContainsKey("Variant"))
+        {
+            var variantValue = Enum.Parse<ButtonVariant>(variant.Props["Variant"].ToString()!);
+            builder.AddAttribute(1, "Variant", variantValue);
+        }
+        if (variant.Props.ContainsKey("Disabled"))
+            builder.AddAttribute(2, "Disabled", (bool)variant.Props["Disabled"]);
+        if (variant.Props.ContainsKey("Icon"))
+            builder.AddAttribute(3, "Icon", variant.Props["Icon"].ToString());
+            
+        builder.AddAttribute(4, "ChildContent", (RenderFragment)(childBuilder =>
+        {
+            childBuilder.AddContent(0, variant.Name);
+        }));
+        
+        builder.CloseComponent();
+    };
+
+    private RenderFragment RenderCardVariant(ComponentVariantModel variant) => builder =>
+    {
+        builder.OpenComponent<EasyEnglish.Theme.Components.Card>(0);
+        
+        if (variant.Props.ContainsKey("Size"))
+        {
+            var sizeValue = Enum.Parse<CardSize>(variant.Props["Size"].ToString()!);
+            builder.AddAttribute(1, "Size", sizeValue);
+        }
+        if (variant.Props.ContainsKey("Title"))
+            builder.AddAttribute(2, "Title", variant.Props["Title"].ToString());
+            
+        builder.AddAttribute(3, "ChildContent", (RenderFragment)(childBuilder =>
+        {
+            childBuilder.AddContent(0, "This is card content demonstrating the component.");
+        }));
+        
+        builder.CloseComponent();
+    };
+
+    private RenderFragment RenderInputVariant(ComponentVariantModel variant) => builder =>
+    {
+        builder.OpenComponent<EasyEnglish.Theme.Components.Input>(0);
+        
+        foreach (var prop in variant.Props)
+        {
+            if (prop.Key == "Multiline" && prop.Value is bool boolValue)
+                builder.AddAttribute(1, prop.Key, boolValue);
+            else if (prop.Key == "HasError" && prop.Value is bool errorValue)
+                builder.AddAttribute(1, prop.Key, errorValue);
+            else if (prop.Key == "Disabled" && prop.Value is bool disabledValue)
+                builder.AddAttribute(1, prop.Key, disabledValue);
+            else if (prop.Key == "Rows" && prop.Value is int rowsValue)
+                builder.AddAttribute(1, prop.Key, rowsValue);
+            else
+                builder.AddAttribute(1, prop.Key, prop.Value?.ToString());
+        }
+        
+        builder.CloseComponent();
+    };
+
+    private RenderFragment RenderBadgeVariant(ComponentVariantModel variant) => builder =>
+    {
+        builder.OpenComponent<EasyEnglish.Theme.Components.Badge>(0);
+        
+        if (variant.Props.ContainsKey("Variant"))
+        {
+            var variantValue = Enum.Parse<BadgeVariant>(variant.Props["Variant"].ToString()!);
+            builder.AddAttribute(1, "Variant", variantValue);
+        }
+        if (variant.Props.ContainsKey("Level"))
+            builder.AddAttribute(2, "Level", variant.Props["Level"].ToString());
+        if (variant.Props.ContainsKey("PartOfSpeech"))
+            builder.AddAttribute(3, "PartOfSpeech", variant.Props["PartOfSpeech"].ToString());
+            
+        builder.AddAttribute(4, "ChildContent", (RenderFragment)(childBuilder =>
+        {
+            var content = variant.Props.ContainsKey("Level") ? variant.Props["Level"].ToString() : 
+                         variant.Props.ContainsKey("PartOfSpeech") ? variant.Props["PartOfSpeech"].ToString() : 
+                         variant.Name;
+            childBuilder.AddContent(0, content);
+        }));
+        
+        builder.CloseComponent();
+    };
+
+    private RenderFragment RenderLoadingVariant(ComponentVariantModel variant) => builder =>
+    {
+        builder.OpenComponent<EasyEnglish.Theme.Components.Loading>(0);
+        
+        if (variant.Props.ContainsKey("Message"))
+            builder.AddAttribute(1, "Message", variant.Props["Message"].ToString());
+        
+        builder.CloseComponent();
+    };
+
+    private RenderFragment RenderProgressBarVariant(ComponentVariantModel variant) => builder =>
+    {
+        builder.OpenComponent<EasyEnglish.Theme.Components.ProgressBar>(0);
+        
+        if (variant.Props.ContainsKey("Progress"))
+        {
+            if (double.TryParse(variant.Props["Progress"].ToString(), out var progress))
+                builder.AddAttribute(1, "Progress", progress);
+        }
+        if (variant.Props.ContainsKey("Min"))
+        {
+            if (double.TryParse(variant.Props["Min"].ToString(), out var min))
+                builder.AddAttribute(2, "Min", min);
+        }
+        if (variant.Props.ContainsKey("Max"))
+        {
+            if (double.TryParse(variant.Props["Max"].ToString(), out var max))
+                builder.AddAttribute(3, "Max", max);
+        }
+        
+        builder.CloseComponent();
+    };
+
+    private RenderFragment RenderPropsDocumentation(string componentId) => builder =>
+    {
+        var propsData = GetPropsDocumentation(componentId);
+        
+        if (propsData.Any())
+        {
+            builder.OpenElement(0, "table");
+            builder.AddAttribute(1, "class", "props-table");
+            
+            // Header
+            builder.OpenElement(2, "thead");
+            builder.OpenElement(3, "tr");
+            builder.OpenElement(4, "th"); builder.AddContent(5, "Property"); builder.CloseElement();
+            builder.OpenElement(6, "th"); builder.AddContent(7, "Type"); builder.CloseElement();
+            builder.OpenElement(8, "th"); builder.AddContent(9, "Default"); builder.CloseElement();
+            builder.OpenElement(10, "th"); builder.AddContent(11, "Description"); builder.CloseElement();
+            builder.CloseElement();
+            builder.CloseElement();
+            
+            // Body
+            builder.OpenElement(12, "tbody");
+            var sequence = 13;
+            foreach (var prop in propsData)
+            {
+                builder.OpenElement(sequence++, "tr");
+                builder.OpenElement(sequence++, "td"); builder.AddContent(sequence++, prop.Name); builder.CloseElement();
+                builder.OpenElement(sequence++, "td"); builder.AddContent(sequence++, prop.Type); builder.CloseElement();
+                builder.OpenElement(sequence++, "td"); builder.AddContent(sequence++, prop.Default); builder.CloseElement();
+                builder.OpenElement(sequence++, "td"); builder.AddContent(sequence++, prop.Description); builder.CloseElement();
+                builder.CloseElement();
+            }
+            builder.CloseElement();
+            
+            builder.CloseElement();
+        }
+        else
+        {
+            builder.AddContent(0, "No properties documentation available.");
+        }
+    };
+
+    private List<(string Name, string Type, string Default, string Description)> GetPropsDocumentation(string componentId)
+    {
+        return componentId switch
+        {
+            "button" => new List<(string, string, string, string)>
+            {
+                ("Variant", "ButtonVariant", "Primary", "Visual style variant of the button"),
+                ("Size", "ButtonSize", "Medium", "Size of the button"),
+                ("Disabled", "bool", "false", "Whether the button is disabled"),
+                ("Icon", "string?", "null", "Icon to display in the button"),
+                ("Type", "string", "button", "HTML button type"),
+                ("OnClick", "EventCallback<MouseEventArgs>", "-", "Click event handler"),
+                ("ChildContent", "RenderFragment?", "null", "Content of the button"),
+                ("CssClass", "string?", "null", "Additional CSS classes")
+            },
+            "card" => new List<(string, string, string, string)>
+            {
+                ("Size", "CardSize", "Medium", "Size variant of the card"),
+                ("Title", "string?", "null", "Optional title for the card"),
+                ("CssClass", "string?", "null", "Additional CSS classes"),
+                ("ChildContent", "RenderFragment?", "null", "Content of the card")
+            },
+            "input" => new List<(string, string, string, string)>
+            {
+                ("Value", "string?", "null", "Current value of the input"),
+                ("ValueChanged", "EventCallback<string>", "-", "Event fired when value changes"),
+                ("Label", "string?", "null", "Label text for the input"),
+                ("Placeholder", "string?", "null", "Placeholder text"),
+                ("Type", "string", "text", "HTML input type"),
+                ("Multiline", "bool", "false", "Whether input supports multiple lines"),
+                ("Rows", "int", "3", "Number of rows for multiline input"),
+                ("HasError", "bool", "false", "Whether input has validation error"),
+                ("ErrorMessage", "string?", "null", "Error message to display"),
+                ("Disabled", "bool", "false", "Whether input is disabled"),
+                ("CssClass", "string?", "null", "Additional CSS classes")
+            },
+            "badge" => new List<(string, string, string, string)>
+            {
+                ("Variant", "BadgeVariant", "Default", "Visual variant of the badge"),
+                ("Level", "string?", "null", "Language level (A1, A2, B1, B2, C1, C2)"),
+                ("PartOfSpeech", "string?", "null", "Part of speech for color coding"),
+                ("CssClass", "string?", "null", "Additional CSS classes"),
+                ("ChildContent", "RenderFragment?", "null", "Content of the badge")
+            },
+            "loading" => new List<(string, string, string, string)>
+            {
+                ("Message", "string?", "null", "Optional loading message to display")
+            },
+            "progressbar" => new List<(string, string, string, string)>
+            {
+                ("Progress", "double", "0", "Current progress value"),
+                ("Min", "double", "0", "Minimum value"),
+                ("Max", "double", "100", "Maximum value")
+            },
+            _ => new List<(string, string, string, string)>()
+        };
+    }
+
+    private async Task CopyCode(string code)
+    {
+        // In a real app, use JSInterop to copy to clipboard
+        Console.WriteLine($"Copied: {code}");
+    }
+}

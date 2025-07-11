@@ -1,0 +1,8 @@
+﻿@using EasyEnglish.Theme.Constants
+@using EasyEnglish.Theme.Services
+@using EasyEnglish.Theme.Types
+@inject IThemeService ThemeService
+
+<span class="@GetBadgeClasses()" style="@GetBadgeStyle()" @attributes="AdditionalAttributes">
+    @ChildContent
+</span>

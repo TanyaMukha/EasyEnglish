@@ -1,0 +1,30 @@
+﻿@using EasyEnglish.Theme.Components
+@inject NavigationManager Navigation
+
+<ThemeProvider LoadingMessage="Loading Theme Demo...">
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <RouteData Context="context">
+                <DemoLayout />
+            </RouteData>
+        </Found>
+        <NotFound>
+            <PageTitle>Not found</PageTitle>
+            <LayoutView Layout="@typeof(Layout.DemoLayout)">
+                <Container Type="ContainerType.ScreenCentered">
+                    <Card Size="CardSize.Large" CssClass="@ThemeConstants.CssClasses.TextCenter">
+                        <H3 CssClass="@($"{ThemeConstants.CssClasses.TextError} {ThemeConstants.CssClasses.Margin.BottomMd}")">
+                            Page Not Found
+                        </H3>
+                        <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                            The demo page you're looking for doesn't exist.
+                        </p>
+                        <ThemeButton Variant="ButtonVariant.Primary" OnClick="@(() => Navigation.NavigateTo("/"))">
+                            Back to Demo Home
+                        </ThemeButton>
+                    </Card>
+                </Container>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</ThemeProvider>

@@ -1,0 +1,15 @@
+﻿@using EasyEnglish.Theme.Constants
+@using EasyEnglish.Theme.Types
+
+<button class="@GetButtonClasses()"
+        type="@Type"
+        disabled="@Disabled"
+        @onclick="OnClick"
+        @onclick:preventDefault="PreventDefault"
+        @attributes="AdditionalAttributes">
+    @if (!string.IsNullOrEmpty(Icon))
+    {
+        <i class="@Icon"></i>
+    }
+    @ChildContent
+</button>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EasyEnglish Theme Demo</title>
+    <base href="/" />
+
+    <!-- Inline critical CSS to avoid loading issues -->
+    <style>
+        /* Critical CSS for loading state */
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #0F0F23;
+            flex-direction: column;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #252653;
+            border-top: 4px solid #6366F1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .body-medium {
+            font-size: 16px;
+            font-weight: 400;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        }
+
+        .text-secondary {
+            color: #CBD5E1;
+        }
+
+        .mt-md {
+            margin-top: 16px;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0F0F23;
+            color: #F8FAFC;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        }
+
+        #blazor-error-ui {
+            background: lightyellow;
+            bottom: 0;
+            box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+            display: none;
+            left: 0;
+            padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+        }
+
+            #blazor-error-ui .dismiss {
+                cursor: pointer;
+                position: absolute;
+                right: 0.75rem;
+                top: 0.5rem;
+            }
+    </style>
+
+</head>
+
+<body>
+    <div id="app">
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <div class="body-medium text-secondary mt-md">Loading Theme Demo...</div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred in the theme demo.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <!-- Inline theme utilities to avoid loading issues -->
+    <script>
+        window.themeUtils = {
+            getScreenWidth: () => window.innerWidth,
+            getScreenHeight: () => window.innerHeight,
+            isMobile: () => window.innerWidth < 768,
+            isTablet: () => window.innerWidth >= 768 && window.innerWidth < 1024,
+            isDesktop: () => window.innerWidth >= 1024,
+            setTheme: (theme) => {
+                document.documentElement.setAttribute('data-theme', theme);
+            },
+            getTheme: () => {
+                return document.documentElement.getAttribute('data-theme') || 'dark';
+            },
+            setCssVariable: (name, value) => {
+                document.documentElement.style.setProperty(`--${name}`, value);
+            },
+            getCssVariable: (name) => {
+                return getComputedStyle(document.documentElement).getPropertyValue(`--${name}`);
+            },
+            subscribeToResize: (dotNetRef) => {
+                window.themeUtils._dotNetRef = dotNetRef;
+                window.addEventListener('resize', window.themeUtils._handleResize);
+            },
+            unsubscribeFromResize: () => {
+                window.removeEventListener('resize', window.themeUtils._handleResize);
+                window.themeUtils._dotNetRef = null;
+            },
+            _handleResize: () => {
+                if (window.themeUtils._dotNetRef) {
+                    try {
+                        window.themeUtils._dotNetRef.invokeMethodAsync(
+                            'OnWindowResize',
+                            window.innerWidth,
+                            window.innerHeight
+                        );
+                    } catch (error) {
+                        console.warn('Error calling resize handler:', error);
+                    }
+                }
+            },
+            hexToRgb: (hex) => {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? {
+                    r: parseInt(result[1], 16),
+                    g: parseInt(result[2], 16),
+                    b: parseInt(result[3], 16)
+                } : null;
+            },
+            rgbToHex: (r, g, b) => {
+                return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+            }
+        };
+
+        // Blazor initialization with safety checks
+        window.blazorUtils = {
+            isStarted: false,
+            startBlazor: async () => {
+                try {
+                    // Check if Blazor is already started
+                    if (window.blazorUtils.isStarted) {
+                        console.warn('Blazor is already started');
+                        return;
+                    }
+
+                    // Check if Blazor object exists and is not already started
+                    if (window.Blazor && !window.Blazor._internal) {
+                        await window.Blazor.start();
+                        window.blazorUtils.isStarted = true;
+                        console.log('Blazor started successfully');
+                    } else if (window.Blazor && window.Blazor._internal) {
+                        console.warn('Blazor already has internal state - likely already started');
+                        window.blazorUtils.isStarted = true;
+                    }
+                } catch (error) {
+                    console.error('Error starting Blazor:', error);
+                    if (error.message && error.message.includes('already started')) {
+                        window.blazorUtils.isStarted = true;
+                    }
+                }
+            },
+            loadBlazorScript: () => {
+                return new Promise((resolve, reject) => {
+                    // Check if script is already loaded
+                    if (document.querySelector('script[src*="blazor.webview.js"]')) {
+                        resolve();
+                        return;
+                    }
+
+                    const script = document.createElement('script');
+                    script.src = '_framework/blazor.webview.js';
+                    script.onload = () => {
+                        console.log('Blazor script loaded');
+                        resolve();
+                    };
+                    script.onerror = (error) => {
+                        console.error('Error loading Blazor script:', error);
+                        reject(error);
+                    };
+                    document.head.appendChild(script);
+                });
+            }
+        };
+
+        // Set default theme
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.themeUtils.getTheme()) {
+                window.themeUtils.setTheme('dark');
+            }
+        });
+
+        // Initialize Blazor when page loads
+        window.addEventListener('load', async () => {
+            try {
+                // Load Blazor script if not already loaded
+                await window.blazorUtils.loadBlazorScript();
+
+                // Wait a bit for the script to initialize
+                setTimeout(async () => {
+                    await window.blazorUtils.startBlazor();
+                }, 100);
+            } catch (error) {
+                console.error('Failed to initialize Blazor:', error);
+            }
+
+            // Load external CSS after page load to avoid blocking
+            const themeCSS = document.createElement('link');
+            themeCSS.rel = 'stylesheet';
+            themeCSS.href = 'css/theme.css';
+            themeCSS.onerror = () => console.warn('Could not load theme.css');
+            document.head.appendChild(themeCSS);
+
+            const demoCSS = document.createElement('link');
+            demoCSS.rel = 'stylesheet';
+            demoCSS.href = 'css/demo.css';
+            demoCSS.onerror = () => console.warn('Could not load demo.css');
+            document.head.appendChild(demoCSS);
+        });
+
+        // Handle page visibility changes to prevent multiple starts
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Page is hidden, no action needed
+            } else {
+                // Page is visible again, but don't restart Blazor
+                console.log('Page is visible, Blazor status:', window.blazorUtils.isStarted);
+            }
+        });
+    </script>
+</body>
+</html>

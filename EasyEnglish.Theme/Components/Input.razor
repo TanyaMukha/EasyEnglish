@@ -1,0 +1,42 @@
+﻿@using EasyEnglish.Theme.Constants
+
+<div class="input-wrapper">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.Margin.BottomSm">@Label</label>
+    }
+
+    @if (Multiline)
+    {
+        <textarea class="@GetInputClasses()"
+                  value="@Value"
+                  placeholder="@Placeholder"
+                  disabled="@Disabled"
+                  rows="@Rows"
+                  @oninput="OnValueChanged"
+                  @attributes="AdditionalAttributes"></textarea>
+    }
+    else
+    {
+        <input class="@GetInputClasses()"
+               type="@Type"
+               value="@Value"
+               placeholder="@Placeholder"
+               disabled="@Disabled"
+               @oninput="OnValueChanged"
+               @attributes="AdditionalAttributes" />
+    }
+
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="@ThemeConstants.CssClasses.TextError @ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.Margin.TopSm">
+            @ErrorMessage
+        </div>
+    }
+</div>
+
+<style>
+    .input-wrapper {
+        width: 100%;
+    }
+</style>

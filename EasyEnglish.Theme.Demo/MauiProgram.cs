@@ -1,7 +1,9 @@
-﻿using EasyEnglish.Theme.Extensions;
+﻿using EasyEnglish.Theme.Demo.Interfaces;
+using EasyEnglish.Theme.Demo.Services;
+using EasyEnglish.Theme.Extensions;
 using Microsoft.Extensions.Logging;
 
-namespace EasyEnglish.App
+namespace EasyEnglish.Theme.Demo
 {
     public static class MauiProgram
     {
@@ -13,30 +15,21 @@ namespace EasyEnglish.App
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                    fonts.AddFont("MaterialIcons-Regular.ttf", "MaterialIcons");
                 });
 
             builder.Services.AddMauiBlazorWebView();
 
-            // Додаємо тему з кастомною конфігурацією
+            // Add theme with demo configuration
             builder.Services.AddEasyEnglishTheme(options =>
             {
                 options.EnableDebugMode = true;
                 options.AutoInitializeResponsive = true;
-                options.CssPrefix = "easyenglish-";
-
-                // Кастомні кольори
-                options.CustomColors.Add("color-primary", "#FF6B35");
-                options.CustomColors.Add("color-secondary", "#004E89");
-
-                // Кастомні breakpoints
-                options.Breakpoints = new CustomBreakpoints
-                {
-                    Mobile = 480,
-                    Tablet = 768,
-                    Desktop = 1200,
-                    LargeDesktop = 1600
-                };
             });
+
+            // Add demo-specific services
+            builder.Services.AddScoped<IDemoService, DemoService>();
+            builder.Services.AddScoped<ICodeSnippetService, CodeSnippetService>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
