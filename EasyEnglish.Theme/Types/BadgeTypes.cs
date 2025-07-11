@@ -8,5 +8,7 @@ public enum BadgeVariant
     Error,
     Info,
     Level,
-    PartOfSpeech
+    PartOfSpeech,
+    Primary,
+    Secondary
 }

@@ -1,0 +1,304 @@
+﻿@page "/"
+@using EasyEnglish.Theme.Components
+@using EasyEnglish.Theme.Constants
+@using EasyEnglish.Theme.Interfaces
+@inject IThemeService ThemeService
+@inject IResponsiveService ResponsiveService
+@inject IColorService ColorService
+@inject NavigationManager Navigation
+
+<PageTitle>Theme Demo - Home</PageTitle>
+
+<Container Type="ContainerType.Screen">
+    <div class="@ThemeConstants.CssClasses.Padding.Lg">
+        
+        <!-- Header Section -->
+        <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
+            <H1 CssClass="@ThemeConstants.CssClasses.TextPrimary @ThemeConstants.CssClasses.Margin.BottomMd">
+                🎨 EasyEnglish Theme Demo
+            </H1>
+            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                Comprehensive theme system for .NET MAUI Blazor applications with modern dark UI and responsive design.
+            </p>
+            
+            <!-- Theme Status -->
+            <div class="theme-status @ThemeConstants.CssClasses.Margin.BottomLg">
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Theme Provider</span>
+                        <Badge Variant="BadgeVariant.Success">Active</Badge>
+                    </div>
+                    <div class="status-item">
+                        <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Screen Size</span>
+                        <Badge Variant="BadgeVariant.Info">@currentScreenSize</Badge>
+                    </div>
+                    <div class="status-item">
+                        <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Responsive</span>
+                        <Badge Variant="BadgeVariant.Primary">@GetResponsiveStatus()</Badge>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Overview Cards -->
+        <div class="demo-grid @ThemeConstants.CssClasses.Margin.BottomXl">
+            <div class="demo-overview-card" @onclick="@(() => NavigateToPage("/colors"))">
+                <Card Title="🎨 Colors" Size="CardSize.Large">
+                    <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.Margin.BottomMd">
+                        Explore the complete color palette including semantic colors, language levels, and part-of-speech colors.
+                    </p>
+                    <Button Variant="ButtonVariant.Outline">View Colors</Button>
+                </Card>
+            </div>
+
+            <div class="demo-overview-card" @onclick="@(() => NavigateToPage("/typography"))">
+                <Card Title="📝 Typography" Size="CardSize.Large">
+                    <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.Margin.BottomMd">
+                        Typography system with headings, body text, and responsive font sizes.
+                    </p>
+                    <Button Variant="ButtonVariant.Outline">View Typography</Button>
+                </Card>
+            </div>
+
+            <div class="demo-overview-card" @onclick="@(() => NavigateToPage("/components"))">
+                <Card Title="🧩 Components" Size="CardSize.Large">
+                    <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.Margin.BottomMd">
+                        Interactive components including buttons, inputs, cards, badges, and more.
+                    </p>
+                    <Button Variant="ButtonVariant.Outline">View Components</Button>
+                </Card>
+            </div>
+
+            <div class="demo-overview-card" @onclick="@(() => NavigateToPage("/spacing"))">
+                <Card Title="📐 Spacing" Size="CardSize.Large">
+                    <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.Margin.BottomMd">
+                        8pt grid system with consistent spacing utilities for margins and padding.
+                    </p>
+                    <Button Variant="ButtonVariant.Outline">View Spacing</Button>
+                </Card>
+            </div>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="features-grid @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="🎨 Modern Design" Size="CardSize.Medium">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary">
+                    Professional dark theme with carefully crafted colors and typography.
+                </p>
+            </Card>
+            
+            <Card Title="📱 Responsive" Size="CardSize.Medium">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary">
+                    Automatic adaptation to different screen sizes and devices.
+                </p>
+            </Card>
+            
+            <Card Title="🧩 Rich Components" Size="CardSize.Medium">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary">
+                    Comprehensive component library ready for production use.
+                </p>
+            </Card>
+            
+            <Card Title="🌐 Language Support" Size="CardSize.Medium">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary">
+                    Special colors and components for language learning applications.
+                </p>
+            </Card>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
+            <H3 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Quick Actions</H3>
+            <div class="actions-grid">
+                <Button Variant="ButtonVariant.Primary" 
+                        Icon="fas fa-palette" 
+                        OnClick="@(() => Navigation.NavigateTo("/colors"))">
+                    View Colors
+                </Button>
+                <Button Variant="ButtonVariant.Secondary" 
+                        Icon="fas fa-font" 
+                        OnClick="@(() => Navigation.NavigateTo("/typography"))">
+                    Typography
+                </Button>
+                <Button Variant="ButtonVariant.Outline" 
+                        Icon="fas fa-cubes" 
+                        OnClick="@(() => Navigation.NavigateTo("/components"))">
+                    Components
+                </Button>
+                <Button Variant="ButtonVariant.Success" 
+                        Icon="fas fa-mobile-alt" 
+                        OnClick="@(() => Navigation.NavigateTo("/spacing"))">
+                    Spacing
+                </Button>
+            </div>
+        </div>
+
+        <!-- Language Levels Demo -->
+        <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
+            <H3 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Language Levels</H3>
+            <div class="levels-demo">
+                <Badge Variant="BadgeVariant.Level" Level="A1">A1 Beginner</Badge>
+                <Badge Variant="BadgeVariant.Level" Level="A2">A2 Elementary</Badge>
+                <Badge Variant="BadgeVariant.Level" Level="B1">B1 Intermediate</Badge>
+                <Badge Variant="BadgeVariant.Level" Level="B2">B2 Upper-Intermediate</Badge>
+                <Badge Variant="BadgeVariant.Level" Level="C1">C1 Advanced</Badge>
+                <Badge Variant="BadgeVariant.Level" Level="C2">C2 Proficient</Badge>
+            </div>
+        </div>
+
+        <!-- Parts of Speech Demo -->
+        <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
+            <H3 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Parts of Speech</H3>
+            <div class="parts-demo">
+                <Badge PartOfSpeech="noun">Noun</Badge>
+                <Badge PartOfSpeech="verb">Verb</Badge>
+                <Badge PartOfSpeech="adjective">Adjective</Badge>
+                <Badge PartOfSpeech="adverb">Adverb</Badge>
+                <Badge PartOfSpeech="preposition">Preposition</Badge>
+                <Badge PartOfSpeech="conjunction">Conjunction</Badge>
+            </div>
+        </div>
+
+    </div>
+</Container>
+
+<style>
+    .theme-status {
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--border-radius-lg);
+        padding: var(--spacing-lg);
+    }
+
+    .status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--spacing-md);
+    }
+
+    .status-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-sm);
+        background-color: var(--color-background-secondary);
+        border-radius: var(--border-radius-md);
+    }
+
+    .demo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--spacing-lg);
+    }
+
+    .demo-overview-card {
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .demo-overview-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--spacing-lg);
+    }
+
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: var(--spacing-md);
+    }
+
+    .levels-demo {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
+    }
+
+    .parts-demo {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .status-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .actions-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .actions-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@code {
+    private string currentScreenSize = "Unknown";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await UpdateScreenInfo();
+        
+        // Subscribe to responsive changes
+        ResponsiveService.ScreenSizeChanged += OnScreenSizeChanged;
+    }
+
+    private async Task UpdateScreenInfo()
+    {
+        try
+        {
+            currentScreenSize = ResponsiveService.CurrentScreenSize.ToString();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating screen info: {ex.Message}");
+            currentScreenSize = "Unknown";
+        }
+    }
+
+    private string GetResponsiveStatus()
+    {
+        return ResponsiveService.IsMobile ? "Mobile" :
+               ResponsiveService.IsTablet ? "Tablet" :
+               ResponsiveService.IsDesktop ? "Desktop" :
+               ResponsiveService.IsLargeDesktop ? "Large Desktop" : "Unknown";
+    }
+
+    private async void OnScreenSizeChanged(ScreenSize newSize)
+    {
+        currentScreenSize = newSize.ToString();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task NavigateTo(string path)
+    {
+        await Task.Delay(100); // Small delay for better UX
+        Navigation.NavigateTo(path);
+    }
+
+    private void NavigateToPage(string path)
+    {
+        Navigation.NavigateTo(path);
+    }
+
+    public void Dispose()
+    {
+        ResponsiveService.ScreenSizeChanged -= OnScreenSizeChanged;
+    }
+}

@@ -1,4 +1,4 @@
-﻿@page "/components"
+﻿@page "/themed-buttons"
 @using EasyEnglish.Theme.Components
 @using EasyEnglish.Theme.Constants
 @inject IThemeService ThemeService
@@ -16,28 +16,28 @@
             </p>
         </div>
 
-        <!-- Typography Section -->
+        <!-- Buttons Section -->
         <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
-            <H2 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Typography</H2>
-            <div class="typography-demo">
-                <H1>Heading 1 - Large Title</H1>
-                <H2>Heading 2 - Section Title</H2>
-                <H3>Heading 3 - Subsection</H3>
-                <H4>Heading 4 - Small Heading</H4>
-                
-                <p class="@ThemeConstants.CssClasses.BodyLarge">
-                    Body Large - This is larger body text for important content.
-                </p>
-                <p class="@ThemeConstants.CssClasses.BodyMedium">
-                    Body Medium - This is the standard body text size.
-                </p>
-                <p class="@ThemeConstants.CssClasses.BodySmall">
-                    Body Small - This is smaller body text for secondary information.
-                </p>
-                
-                <span class="@ThemeConstants.CssClasses.BodyLarge">Label Large</span><br/>
-                <span class="@ThemeConstants.CssClasses.BodyMedium">Label Medium</span><br/>
-                <span class="@ThemeConstants.CssClasses.Caption">Label Small</span>
+            <H2 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Buttons</H2>
+            <div class="component-demo">
+                <div class="demo-row">
+                    <Button Variant="ButtonVariant.Primary">Primary Button</Button>
+                    <Button Variant="ButtonVariant.Secondary">Secondary Button</Button>
+                    <Button Variant="ButtonVariant.Outline">Outline Button</Button>
+                    <Button Variant="ButtonVariant.Success">Success Button</Button>
+                    <Button Variant="ButtonVariant.Warning">Warning Button</Button>
+                    <Button Variant="ButtonVariant.Error">Error Button</Button>
+                </div>
+                <div class="demo-row">
+                    <Button Variant="ButtonVariant.Primary" Size="ButtonSize.Small">Small</Button>
+                    <Button Variant="ButtonVariant.Primary" Size="ButtonSize.Medium">Medium</Button>
+                    <Button Variant="ButtonVariant.Primary" Size="ButtonSize.Large">Large</Button>
+                </div>
+                <div class="demo-row">
+                    <Button Variant="ButtonVariant.Primary" Icon="fas fa-star">With Icon</Button>
+                    <Button Variant="ButtonVariant.Primary" Disabled="true">Disabled</Button>
+                    <Button Variant="ButtonVariant.Primary" Loading="true">Loading</Button>
+                </div>
             </div>
         </div>
 

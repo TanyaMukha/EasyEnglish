@@ -1,4 +1,4 @@
-﻿@page "/components"
+﻿@page "/progress-and-loading"
 @using EasyEnglish.Theme.Components
 @using EasyEnglish.Theme.Constants
 @inject IThemeService ThemeService
@@ -16,29 +16,58 @@
             </p>
         </div>
 
-        <!-- Typography Section -->
+        <!-- Progress & Loading Section -->
         <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
-            <H2 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Typography</H2>
-            <div class="typography-demo">
-                <H1>Heading 1 - Large Title</H1>
-                <H2>Heading 2 - Section Title</H2>
-                <H3>Heading 3 - Subsection</H3>
-                <H4>Heading 4 - Small Heading</H4>
+            <H2 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Progress & Loading</H2>
+            <div class="progress-demo">
+                <div class="progress-section">
+                    <H3 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Progress Bars</H3>
+                    @* Label="25% Complete" *@
+                    <ProgressBar Progress="25" />
+                    @* Label="50% Complete" *@
+                    <ProgressBar Progress="50" />
+                    @* Label="75% Complete" *@
+                    <ProgressBar Progress="75" />
+                    @* Label="100% Complete" *@
+                    <ProgressBar Progress="100" />
+                </div>
                 
-                <p class="@ThemeConstants.CssClasses.BodyLarge">
-                    Body Large - This is larger body text for important content.
-                </p>
-                <p class="@ThemeConstants.CssClasses.BodyMedium">
-                    Body Medium - This is the standard body text size.
-                </p>
-                <p class="@ThemeConstants.CssClasses.BodySmall">
-                    Body Small - This is smaller body text for secondary information.
-                </p>
-                
-                <span class="@ThemeConstants.CssClasses.BodyLarge">Label Large</span><br/>
-                <span class="@ThemeConstants.CssClasses.BodyMedium">Label Medium</span><br/>
-                <span class="@ThemeConstants.CssClasses.Caption">Label Small</span>
+                <div class="loading-section">
+                    <H3 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Loading States</H3>
+                    <Loading Message="Loading your data..." />
+                </div>
             </div>
+        </div>
+
+        <!-- Interactive Demo -->
+        <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
+            <H2 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Interactive Demo</H2>
+            <Card Title="Component Interaction Demo">
+                <div class="interactive-demo">
+                    <div class="demo-controls">
+                        <EasyEnglish.Theme.Components.Button Variant="ButtonVariant.Primary" OnClick="HandleDemoAction">
+                            @buttonText
+                        </EasyEnglish.Theme.Components.Button>
+                        <EasyEnglish.Theme.Components.Button Variant="ButtonVariant.Secondary" OnClick="ToggleLoading">
+                            @(isLoading ? "Stop Loading" : "Start Loading")
+                        </EasyEnglish.Theme.Components.Button>
+                    </div>
+                    
+                    @if (isLoading)
+                    {
+                        <div class="@ThemeConstants.CssClasses.Margin.TopMd">
+                            <Loading Message="Processing your request..." />
+                        </div>
+                    }
+                    
+                    @if (!string.IsNullOrEmpty(demoMessage))
+                    {
+                        <div class="@ThemeConstants.CssClasses.Margin.TopMd">
+                            <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Success">@demoMessage</EasyEnglish.Theme.Components.Badge>
+                        </div>
+                    }
+                </div>
+            </Card>
         </div>
 
     </div>

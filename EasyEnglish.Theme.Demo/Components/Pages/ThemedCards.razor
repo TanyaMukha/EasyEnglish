@@ -1,4 +1,4 @@
-﻿@page "/components"
+﻿@page "/themed-cards"
 @using EasyEnglish.Theme.Components
 @using EasyEnglish.Theme.Constants
 @inject IThemeService ThemeService
@@ -16,28 +16,31 @@
             </p>
         </div>
 
-        <!-- Typography Section -->
+        <!-- Cards Section -->
         <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
-            <H2 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Typography</H2>
-            <div class="typography-demo">
-                <H1>Heading 1 - Large Title</H1>
-                <H2>Heading 2 - Section Title</H2>
-                <H3>Heading 3 - Subsection</H3>
-                <H4>Heading 4 - Small Heading</H4>
+            <H2 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Cards</H2>
+            <div class="cards-demo">
+                <Card Title="Simple Card">
+                    <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary">
+                        This is a simple card with basic content.
+                    </p>
+                </Card>
                 
-                <p class="@ThemeConstants.CssClasses.BodyLarge">
-                    Body Large - This is larger body text for important content.
-                </p>
-                <p class="@ThemeConstants.CssClasses.BodyMedium">
-                    Body Medium - This is the standard body text size.
-                </p>
-                <p class="@ThemeConstants.CssClasses.BodySmall">
-                    Body Small - This is smaller body text for secondary information.
-                </p>
+                <Card Title="Card with Actions" Size="CardSize.Medium">
+                    <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomMd">
+                        This card includes action buttons at the bottom.
+                    </p>
+                    <div class="card-actions">
+                        <Button Variant="ButtonVariant.Primary" Size="ButtonSize.Small">Accept</Button>
+                        <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small">Cancel</Button>
+                    </div>
+                </Card>
                 
-                <span class="@ThemeConstants.CssClasses.BodyLarge">Label Large</span><br/>
-                <span class="@ThemeConstants.CssClasses.BodyMedium">Label Medium</span><br/>
-                <span class="@ThemeConstants.CssClasses.Caption">Label Small</span>
+                <Card Title="Large Card" Size="CardSize.Large">
+                    <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary">
+                        This is a large card with more padding and space for content.
+                    </p>
+                </Card>
             </div>
         </div>
 

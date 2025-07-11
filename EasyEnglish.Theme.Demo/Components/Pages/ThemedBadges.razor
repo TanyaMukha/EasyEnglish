@@ -1,0 +1,152 @@
+﻿@page "/themed-badges"
+@using EasyEnglish.Theme.Components
+@using EasyEnglish.Theme.Constants
+@inject IThemeService ThemeService
+
+<Container Type="ContainerType.Screen">
+    <div class="@ThemeConstants.CssClasses.Padding.Lg">
+        
+        <!-- Header -->
+        <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
+            <H1 CssClass="@ThemeConstants.CssClasses.TextPrimary @ThemeConstants.CssClasses.Margin.BottomMd">
+                🧩 Components Demo
+            </H1>
+            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary">
+                Explore the comprehensive component library provided by EasyEnglish.Theme.
+            </p>
+        </div>
+
+        <!-- Badges Section -->
+        <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
+            <H2 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Badges</H2>
+            <div class="badges-demo">
+                <div class="badge-section">
+                    <H3 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Status Badges</H3>
+                    <div class="badge-row">
+                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Primary">Primary</EasyEnglish.Theme.Components.Badge>
+                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Secondary">Secondary</EasyEnglish.Theme.Components.Badge>
+                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Success">Success</EasyEnglish.Theme.Components.Badge>
+                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Warning">Warning</EasyEnglish.Theme.Components.Badge>
+                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Error">Error</EasyEnglish.Theme.Components.Badge>
+                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Info">Info</EasyEnglish.Theme.Components.Badge>
+                    </div>
+                </div>
+                
+                <div class="badge-section">
+                    <H3 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Language Levels</H3>
+                    <div class="badge-row">
+                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Level" Level="A1">A1</EasyEnglish.Theme.Components.Badge>
+                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Level" Level="A2">A2</EasyEnglish.Theme.Components.Badge>
+                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Level" Level="B1">B1</EasyEnglish.Theme.Components.Badge>
+                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Level" Level="B2">B2</EasyEnglish.Theme.Components.Badge>
+                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Level" Level="C1">C1</EasyEnglish.Theme.Components.Badge>
+                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Level" Level="C2">C2</EasyEnglish.Theme.Components.Badge>
+                    </div>
+                </div>
+                
+                <div class="badge-section">
+                    <H3 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Parts of Speech</H3>
+                    <div class="badge-row">
+                        <EasyEnglish.Theme.Components.Badge PartOfSpeech="noun">Noun</EasyEnglish.Theme.Components.Badge>
+                        <EasyEnglish.Theme.Components.Badge PartOfSpeech="verb">Verb</EasyEnglish.Theme.Components.Badge>
+                        <EasyEnglish.Theme.Components.Badge PartOfSpeech="adjective">Adjective</EasyEnglish.Theme.Components.Badge>
+                        <EasyEnglish.Theme.Components.Badge PartOfSpeech="adverb">Adverb</EasyEnglish.Theme.Components.Badge>
+                        <EasyEnglish.Theme.Components.Badge PartOfSpeech="preposition">Preposition</EasyEnglish.Theme.Components.Badge>
+                        <EasyEnglish.Theme.Components.Badge PartOfSpeech="conjunction">Conjunction</EasyEnglish.Theme.Components.Badge>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</Container>
+
+<style>
+    .component-demo {
+        border: 1px solid var(--color-border);
+        border-radius: var(--border-radius-lg);
+        padding: var(--spacing-lg);
+    }
+
+    .progress-section {
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .progress-section > * {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .loading-section {
+        text-align: center;
+    }
+
+    .typography-demo {
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--border-radius-lg);
+        padding: var(--spacing-lg);
+    }
+
+    .typography-demo > * {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .interactive-demo {
+        padding: var(--spacing-md);
+    }
+
+    .demo-controls {
+        display: flex;
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .demo-row {
+            flex-direction: column;
+        }
+        
+        .cards-demo {
+            grid-template-columns: 1fr;
+        }
+        
+        .input-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .demo-controls {
+            flex-direction: column;
+        }
+    }
+</style>
+
+@code {
+    private string textValue = "";
+    private string passwordValue = "";
+    private string emailValue = "";
+    private string numberValue = "";
+    private string textareaValue = "";
+    private string errorValue = "";
+    
+    private bool isLoading = false;
+    private string demoMessage = "";
+    private string buttonText = "Click Me!";
+    private int clickCount = 0;
+
+    private async Task HandleDemoAction()
+    {
+        clickCount++;
+        buttonText = $"Clicked {clickCount} times!";
+        demoMessage = $"Button clicked at {DateTime.Now:HH:mm:ss}";
+        
+        await Task.Delay(1000);
+        demoMessage = "";
+        StateHasChanged();
+    }
+
+    private void ToggleLoading()
+    {
+        isLoading = !isLoading;
+    }
+}

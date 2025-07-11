@@ -1,4 +1,4 @@
-﻿@page "/components"
+﻿@page "/themed-inputs"
 @using EasyEnglish.Theme.Components
 @using EasyEnglish.Theme.Constants
 @inject IThemeService ThemeService
@@ -16,28 +16,49 @@
             </p>
         </div>
 
-        <!-- Typography Section -->
+        <!-- Input Fields Section -->
         <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
-            <H2 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Typography</H2>
-            <div class="typography-demo">
-                <H1>Heading 1 - Large Title</H1>
-                <H2>Heading 2 - Section Title</H2>
-                <H3>Heading 3 - Subsection</H3>
-                <H4>Heading 4 - Small Heading</H4>
-                
-                <p class="@ThemeConstants.CssClasses.BodyLarge">
-                    Body Large - This is larger body text for important content.
-                </p>
-                <p class="@ThemeConstants.CssClasses.BodyMedium">
-                    Body Medium - This is the standard body text size.
-                </p>
-                <p class="@ThemeConstants.CssClasses.BodySmall">
-                    Body Small - This is smaller body text for secondary information.
-                </p>
-                
-                <span class="@ThemeConstants.CssClasses.BodyLarge">Label Large</span><br/>
-                <span class="@ThemeConstants.CssClasses.BodyMedium">Label Medium</span><br/>
-                <span class="@ThemeConstants.CssClasses.Caption">Label Small</span>
+            <H2 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Input Fields</H2>
+            <div class="inputs-demo">
+                <div class="input-row">
+                    <Input Label="Text Input" 
+                           Placeholder="Enter some text"
+                           Value="@textValue"
+                           ValueChanged="@((string value) => textValue = value)" />
+                    <Input Label="Password Input" 
+                           Type="password"
+                           Placeholder="Enter password"
+                           Value="@passwordValue"
+                           ValueChanged="@((string value) => passwordValue = value)" />
+                </div>
+                <div class="input-row">
+                    <Input Label="Email Input" 
+                           Type="email"
+                           Placeholder="Enter email"
+                           Value="@emailValue"
+                           ValueChanged="@((string value) => emailValue = value)" />
+                    <Input Label="Number Input" 
+                           Type="number"
+                           Placeholder="Enter number"
+                           Value="@numberValue"
+                           ValueChanged="@((string value) => numberValue = value)" />
+                </div>
+                <div class="input-row">
+                    <Input Label="Textarea" 
+                           Multiline="true"
+                           Rows="4"
+                           Placeholder="Enter multiple lines..."
+                           Value="@textareaValue"
+                           ValueChanged="@((string value) => textareaValue = value)" />
+                </div>
+                <div class="input-row">
+                    <Input Label="Input with Error" 
+                           Placeholder="This field has an error"
+                           HasError="true"
+                           ErrorMessage="This field is required"
+                           Value="@errorValue"
+                           ValueChanged="@((string value) => errorValue = value)" />
+                </div>
             </div>
         </div>
 

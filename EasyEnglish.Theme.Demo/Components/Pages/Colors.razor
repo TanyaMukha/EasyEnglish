@@ -8,9 +8,9 @@
 <PageTitle>Colors - Theme Demo</PageTitle>
 
 <div class="@ThemeConstants.CssClasses.FlexColumn">
-    <H1 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">
+    <EasyEnglish.Theme.Components.H1 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">
         Color System
-    </H1>
+    </EasyEnglish.Theme.Components.H1>
     
     <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomXl">
         Comprehensive color palette designed for modern dark UI with semantic meaning and accessibility in mind.
@@ -18,7 +18,7 @@
 
     @foreach (var palette in colorPalettes)
     {
-        <Card Title="@palette.Name" CssClass="@ThemeConstants.CssClasses.Margin.BottomXl">
+        <EasyEnglish.Theme.Components.Card Title="@palette.Name" CssClass="@ThemeConstants.CssClasses.Margin.BottomXl">
             <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
                 @palette.Description
             </p>
@@ -43,16 +43,16 @@
                             </div>
                         </div>
                         <div class="color-actions">
-                            <Button Variant="ButtonVariant.Ghost" 
+                            <EasyEnglish.Theme.Components.Button Variant="ButtonVariant.Ghost" 
                                     CssClass="copy-button" 
                                     OnClick="@(() => CopyToClipboard(color.Hex))">
                                 Copy
-                            </Button>
+                            </EasyEnglish.Theme.Components.Button>
                         </div>
                     </div>
                 }
             </div>
-        </Card>
+        </EasyEnglish.Theme.Components.Card>
     }
 </div>
 

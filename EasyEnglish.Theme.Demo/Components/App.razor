@@ -1,74 +1,104 @@
-﻿@inject NavigationManager Navigation
+﻿@using EasyEnglish.Theme.Components
+@using EasyEnglish.Theme.Constants
+@inject NavigationManager Navigation
 
-@* Простий wrapper замість ThemeProvider *@
-<div class="theme-app" style="background-color: #0F0F23; color: #F8FAFC; min-height: 100vh; font-family: Arial, sans-serif;">
-
+<EasyEnglish.Theme.Components.ThemeProvider LoadingMessage="Loading Theme Demo...">
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
-            <div style="display: flex; min-height: 100vh;">
+            <div class="demo-layout">
 
                 <!-- Sidebar Navigation -->
-                <aside style="width: 280px; background-color: #1E1F42; border-right: 1px solid #334155; overflow-y: auto;">
-                    <div style="padding: 24px;">
-                        <h3 style="color: #6366F1; margin-bottom: 24px;">
+                <aside class="demo-sidebar">
+                    <div class="@ThemeConstants.CssClasses.Padding.Lg">
+                        <h3 class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextPrimary @ThemeConstants.CssClasses.Margin.BottomLg">
                             🎨 Theme Demo
                         </h3>
 
                         <!-- Navigation Menu -->
                         <nav>
-                            <div style="margin-bottom: 24px;">
-                                <h4 style="font-size: 14px; color: #94A3B8; text-transform: uppercase; margin-bottom: 8px; font-weight: 600;">
-                                    Overview
+                            <div class="@ThemeConstants.CssClasses.Margin.BottomLg">
+                                <h4 class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomSm">
+                                    OVERVIEW
                                 </h4>
-                                <ul style="list-style: none; padding: 0; margin: 0;">
-                                    <li style="margin-bottom: 4px;">
+                                <ul class="nav-menu">
+                                    <li class="nav-item">
                                         <a href="/" class="nav-link @GetNavClass("/")"
-                                           style="display: block; padding: 8px 16px; color: #CBD5E1; text-decoration: none; border-radius: 8px; transition: all 0.2s;">
+                                           title="Home">
                                             🏠 Home
                                         </a>
                                     </li>
-                                    <li style="margin-bottom: 4px;">
+                                    <li class="nav-item">
                                         <a href="/colors" class="nav-link @GetNavClass("/colors")"
-                                           style="display: block; padding: 8px 16px; color: #CBD5E1; text-decoration: none; border-radius: 8px; transition: all 0.2s;">
+                                           title="Colors">
                                             🎨 Colors
                                         </a>
                                     </li>
-                                    <li style="margin-bottom: 4px;">
+                                    <li class="nav-item">
                                         <a href="/typography" class="nav-link @GetNavClass("/typography")"
-                                           style="display: block; padding: 8px 16px; color: #CBD5E1; text-decoration: none; border-radius: 8px; transition: all 0.2s;">
+                                           title="Typography">
                                             📝 Typography
                                         </a>
                                     </li>
-                                    <li style="margin-bottom: 4px;">
-                                        <a href="/spacing" class="nav-link @GetNavClass("/spacing")"
-                                           style="display: block; padding: 8px 16px; color: #CBD5E1; text-decoration: none; border-radius: 8px; transition: all 0.2s;">
-                                            📐 Spacing
+                                    <li class="nav-item">
+                                        <a href="/components" class="nav-link @GetNavClass("/components")"
+                                           title="Components">
+                                            🧩 Components
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="/themed-buttons" class="nav-link @GetNavClass("/themed-buttons")"
+                                           title="Buttons">
+                                            🔲 Buttons
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="/themed-inputs" class="nav-link @GetNavClass("/themed-inputs")"
+                                           title="Inputs">
+                                            📝 Inputs
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="/themed-badges" class="nav-link @GetNavClass("/themed-badges")"
+                                           title="Badges">
+                                            🏷️ Badges
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="/themed-cards" class="nav-link @GetNavClass("/themed-cards")"
+                                           title="Cards">
+                                            📄 Cards
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="/progress-and-loading" class="nav-link @GetNavClass("/progress-and-loading")"
+                                           title="Progress and Loading">
+                                            📄 Progress and Loading
                                         </a>
                                     </li>
                                 </ul>
                             </div>
 
-                            <div style="margin-bottom: 24px;">
-                                <h4 style="font-size: 14px; color: #94A3B8; text-transform: uppercase; margin-bottom: 8px; font-weight: 600;">
-                                    Components
+                            <div class="@ThemeConstants.CssClasses.Margin.BottomLg">
+                                <h4 class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomSm">
+                                    UTILITIES
                                 </h4>
-                                <ul style="list-style: none; padding: 0; margin: 0;">
-                                    <li style="margin-bottom: 4px;">
-                                        <a href="/component/button" class="nav-link @GetNavClass("/component/button")"
-                                           style="display: block; padding: 8px 16px; color: #CBD5E1; text-decoration: none; border-radius: 8px; transition: all 0.2s;">
-                                            🔘 Button
+                                <ul class="nav-menu">
+                                    <li class="nav-item">
+                                        <a href="/spacing" class="nav-link @GetNavClass("/spacing")"
+                                           title="Spacing">
+                                            📏 Spacing
                                         </a>
                                     </li>
-                                    <li style="margin-bottom: 4px;">
-                                        <a href="/component/card" class="nav-link @GetNavClass("/component/card")"
-                                           style="display: block; padding: 8px 16px; color: #CBD5E1; text-decoration: none; border-radius: 8px; transition: all 0.2s;">
-                                            🗃️ Card
+                                    <li class="nav-item">
+                                        <a href="/responsive" class="nav-link @GetNavClass("/responsive")"
+                                           title="Responsive">
+                                            📱 Responsive
                                         </a>
                                     </li>
-                                    <li style="margin-bottom: 4px;">
-                                        <a href="/component/input" class="nav-link @GetNavClass("/component/input")"
-                                           style="display: block; padding: 8px 16px; color: #CBD5E1; text-decoration: none; border-radius: 8px; transition: all 0.2s;">
-                                            📝 Input
+                                    <li class="nav-item">
+                                        <a href="/layout" class="nav-link @GetNavClass("/layout")"
+                                           title="Layout">
+                                            📐 Layout
                                         </a>
                                     </li>
                                 </ul>
@@ -78,50 +108,124 @@
                 </aside>
 
                 <!-- Main Content -->
-                <main style="flex: 1; overflow-y: auto;">
-                    <div style="padding: 24px;">
-                        @* Показуємо яка сторінка завантажилася *@
-                        <div style="margin-bottom: 16px; padding: 12px; background-color: #252653; border-radius: 8px; font-size: 14px;">
-                            <strong style="color: #10B981;">✅ @routeData.PageType.Name</strong> |
-                            Path: <code style="color: #06B6D4;">/@Navigation.ToBaseRelativePath(Navigation.Uri)</code>
-                        </div>
-
-                        @* Рендеримо сторінку *@
+                <main class="demo-content">
+                    <div class="@ThemeConstants.CssClasses.Padding.Lg">
                         <RouteView RouteData="@routeData" />
                     </div>
                 </main>
+
             </div>
         </Found>
         <NotFound>
-            <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; flex-direction: column;">
-                <h1 style="color: #EF4444; margin-bottom: 16px;">❌ Page Not Found</h1>
-                <p style="margin-bottom: 24px;">Could not find: /@Navigation.ToBaseRelativePath(Navigation.Uri)</p>
-                <button onclick="window.location.href='/'"
-                        style="padding: 12px 24px; background: #6366F1; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                    🏠 Back to Demo Home
-                </button>
+            <div class="@ThemeConstants.CssClasses.ScreenCentered">
+                <div class="@ThemeConstants.CssClasses.TextCenter">
+                    <h1 class="@ThemeConstants.CssClasses.H1 @ThemeConstants.CssClasses.TextError @ThemeConstants.CssClasses.Margin.BottomMd">
+                        404
+                    </h1>
+                    <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                        The page you're looking for doesn't exist.
+                    </p>
+                    <a href="/" class="@ThemeConstants.CssClasses.Button">
+                        Go Home
+                    </a>
+                </div>
             </div>
         </NotFound>
     </Router>
-</div>
+</EasyEnglish.Theme.Components.ThemeProvider>
 
 <style>
-    /* Hover effects for navigation */
+    .demo-layout {
+        display: flex;
+        min-height: 100vh;
+        background-color: var(--color-background);
+    }
+
+    .demo-sidebar {
+        width: 280px;
+        background-color: var(--color-surface);
+        border-right: 1px solid var(--color-border);
+        overflow-y: auto;
+    }
+
+    .demo-content {
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .nav-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .nav-item {
+        margin-bottom: 4px;
+    }
+
+    .nav-link {
+        display: block;
+        padding: 8px 16px;
+        color: var(--color-text-secondary);
+        text-decoration: none;
+        border-radius: var(--border-radius-md);
+        transition: all 0.2s ease;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
     .nav-link:hover {
-        background-color: #252653 !important;
-        color: #F8FAFC !important;
+        background-color: var(--color-background-tertiary);
+        color: var(--color-text-primary);
     }
 
     .nav-link.active {
-        background-color: #6366F1 !important;
-        color: white !important;
+        background-color: var(--color-primary);
+        color: var(--color-white);
+    }
+
+    .nav-link.active:hover {
+        background-color: var(--color-primary-light);
+    }
+
+    /* Responsive navigation */
+    @@media (max-width: 768px) {
+        .demo-layout {
+            flex-direction: column;
+        }
+        
+        .demo-sidebar {
+            width: 100%;
+            border-right: none;
+            border-bottom: 1px solid var(--color-border);
+        }
+        
+        .nav-menu {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .nav-item {
+            margin-bottom: 0;
+        }
+        
+        .nav-link {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
     }
 </style>
 
 @code {
     private string GetNavClass(string path)
     {
-        var currentPath = Navigation.ToBaseRelativePath(Navigation.Uri);
-        return currentPath == path.TrimStart('/') ? "active" : "";
+        var currentPath = Navigation.Uri.Replace(Navigation.BaseUri, "/").TrimEnd('/');
+        if (string.IsNullOrEmpty(currentPath))
+        {
+            currentPath = "/";
+        }
+
+        return currentPath == path ? "active" : "";
     }
 }
