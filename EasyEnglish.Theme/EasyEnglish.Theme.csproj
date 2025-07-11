@@ -2,31 +2,37 @@
 	<PropertyGroup>
 		<TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
-
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<UseMaui>true</UseMaui>
-		<SingleProject>true</SingleProject>
-
+		
+		<!-- Це Razor Class Library -->
+		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+		
 		<!-- Вимкнути автоматичне включення Content елементів -->
 		<EnableDefaultContentItems>false</EnableDefaultContentItems>
-
-		<!-- Пропустити валідацію MAUI пакетів -->
-		<SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
+		
+		<!-- Для створення NuGet пакета -->
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<PackageId>EasyEnglish.Theme</PackageId>
+		<PackageVersion>1.0.0</PackageVersion>
+		<Authors>Your Name</Authors>
+		<Description>Theme library for EasyEnglish applications</Description>
 
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- Основні MAUI пакети -->
-		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.14" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="9.0.14" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.7" />
+		<!-- Основні пакети для Razor Class Library, що працює з MAUI -->
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.7" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.7" />
 		<PackageReference Include="Microsoft.JSInterop" Version="9.0.7" />
+		
+		<!-- Додаткові пакети для підтримки статичних ресурсів -->
 	</ItemGroup>
 
 	<!-- Явно включити wwwroot файли для NuGet пакета -->
@@ -36,10 +42,15 @@
 		<!-- Додайте інші специфічні файли якщо потрібно -->
 	</ItemGroup>
 
-	<!-- Якщо є інші CSS/JS файли, включіть їх окремо -->
+	<!-- Якщо потрібні інші ресурси -->
 	<ItemGroup>
-		<EmbeddedResource Include="wwwroot\css\**\*.css" Exclude="wwwroot\css\AppTheme.css" />
-		<EmbeddedResource Include="wwwroot\js\**\*.js" Exclude="wwwroot\js\theme-utils.js" />
+		<EmbeddedResource Include="wwwroot\**\*" Exclude="wwwroot\css\**\*;wwwroot\js\**\*" />
+	</ItemGroup>
+
+	<!-- Явно включити Razor компоненти -->
+	<ItemGroup>
+		<Content Include="Components\**\*.razor" />
+		<Content Include="Components\_Imports.razor" />
 	</ItemGroup>
 
 </Project>
