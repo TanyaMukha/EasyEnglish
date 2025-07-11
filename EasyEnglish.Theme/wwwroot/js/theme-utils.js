@@ -1,113 +1,171 @@
-﻿<script>
+﻿// theme-utils.js - Скопійовано з EasyEnglish.Theme для MAUI сумісності
+// Utilities для роботи з темою в MAUI Blazor WebView
+
+console.log('🎨 EasyEnglish Theme Utilities Loading...');
+
 window.themeUtils = {
-    // Screen utilities
-    getScreenWidth: () => window.innerWidth,
-    getScreenHeight: () => window.innerHeight,
-    
-    // Device type detection
-    isMobile: () => window.innerWidth < 768,
-    isTablet: () => window.innerWidth >= 768 && window.innerWidth < 1024,
-    isDesktop: () => window.innerWidth >= 1024,
-    
-    // Theme management
+    /**
+     * Встановлює тему додатку
+     * @param {string} theme - Назва теми ('light' або 'dark')
+     */
     setTheme: (theme) => {
+        console.log(`🎨 Setting theme to: ${theme}`);
+
+        // Встановлюємо атрибут для CSS селекторів
         document.documentElement.setAttribute('data-theme', theme);
+
+        // Зберігаємо в localStorage якщо доступно
+        try {
+            localStorage.setItem('app-theme', theme);
+            console.log(`💾 Theme ${theme} saved to localStorage`);
+        } catch (e) {
+            console.warn('⚠️ localStorage not available:', e.message);
+        }
+
+        // Диспатчимо подію для компонентів
+        window.dispatchEvent(new CustomEvent('themeChanged', {
+            detail: { theme }
+        }));
     },
-    
+
+    /**
+     * Отримує поточну тему
+     * @returns {string} Назва поточної теми
+     */
     getTheme: () => {
-        return document.documentElement.getAttribute('data-theme') || 'dark';
-    },
-    
-    // CSS variable utilities
-    setCssVariable: (name, value) => {
-        document.documentElement.style.setProperty(`--${name}`, value);
-    },
-    
-    getCssVariable: (name) => {
-        return getComputedStyle(document.documentElement).getPropertyValue(`--${name}`);
-    },
-    
-    // Responsive utilities
-    subscribeToResize: (dotNetRef) => {
-        window.themeUtils._dotNetRef = dotNetRef;
-        window.addEventListener('resize', window.themeUtils._handleResize);
-    },
-    
-    unsubscribeFromResize: () => {
-        window.removeEventListener('resize', window.themeUtils._handleResize);
-        window.themeUtils._dotNetRef = null;
-    },
-    
-    _handleResize: () => {
-        if (window.themeUtils._dotNetRef) {
-            window.themeUtils._dotNetRef.invokeMethodAsync(
-                'OnWindowResize', 
-                window.innerWidth, 
-                window.innerHeight
-            );
+        try {
+            const savedTheme = localStorage.getItem('app-theme');
+            const currentTheme = savedTheme || 'dark'; // За замовчуванням темна тема
+            console.log(`🔍 Current theme: ${currentTheme}`);
+            return currentTheme;
+        } catch (e) {
+            console.warn('⚠️ localStorage read failed:', e.message);
+            return 'dark';
         }
     },
-    
-    // Color utilities
-    hexToRgb: (hex) => {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result ? {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-        } : null;
+
+    /**
+     * Перемикає між світлою та темною темою
+     */
+    toggleTheme: () => {
+        const currentTheme = window.themeUtils.getTheme();
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        window.themeUtils.setTheme(newTheme);
+        console.log(`🔄 Theme toggled: ${currentTheme} → ${newTheme}`);
+        return newTheme;
     },
-    
-    rgbToHex: (r, g, b) => {
-        return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+
+    /**
+     * Ініціалізує тему при завантаженні
+     */
+    initTheme: () => {
+        const savedTheme = window.themeUtils.getTheme();
+        window.themeUtils.setTheme(savedTheme);
+        console.log(`🚀 Theme initialized: ${savedTheme}`);
     },
-    
-    // Animation utilities
-    fadeIn: (element, duration = 300) => {
-        element.style.opacity = 0;
-        element.style.display = 'block';
-        
-        let start = performance.now();
-        
-        function animate(time) {
-            let progress = (time - start) / duration;
-            if (progress > 1) progress = 1;
-            
-            element.style.opacity = progress;
-            
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            }
+
+    /**
+     * Отримує CSS змінну теми
+     * @param {string} varName - Назва CSS змінної (без --)
+     * @returns {string} Значення CSS змінної
+     */
+    getCSSVariable: (varName) => {
+        const fullVarName = varName.startsWith('--') ? varName : `--${varName}`;
+        const value = getComputedStyle(document.documentElement)
+            .getPropertyValue(fullVarName)
+            .trim();
+
+        console.log(`🎨 CSS Variable ${fullVarName}: ${value}`);
+        return value;
+    },
+
+    /**
+     * Встановлює CSS змінну теми
+     * @param {string} varName - Назва CSS змінної (без --)
+     * @param {string} value - Значення змінної
+     */
+    setCSSVariable: (varName, value) => {
+        const fullVarName = varName.startsWith('--') ? varName : `--${varName}`;
+        document.documentElement.style.setProperty(fullVarName, value);
+        console.log(`🎨 CSS Variable set: ${fullVarName} = ${value}`);
+    },
+
+    /**
+     * Перевіряє чи тема завантажена
+     * @returns {boolean} true якщо тема завантажена
+     */
+    isThemeLoaded: () => {
+        const primaryColor = window.themeUtils.getCSSVariable('color-primary');
+        const isLoaded = primaryColor !== '';
+        console.log(`✅ Theme loaded: ${isLoaded}`);
+        return isLoaded;
+    },
+
+    /**
+     * Отримує всі доступні кольори теми
+     * @returns {object} Об'єкт з кольорами теми
+     */
+    getThemeColors: () => {
+        const colors = {
+            primary: window.themeUtils.getCSSVariable('color-primary'),
+            secondary: window.themeUtils.getCSSVariable('color-secondary'),
+            accent: window.themeUtils.getCSSVariable('color-accent'),
+            background: window.themeUtils.getCSSVariable('color-background'),
+            surface: window.themeUtils.getCSSVariable('color-surface'),
+            textPrimary: window.themeUtils.getCSSVariable('color-text-primary'),
+            textSecondary: window.themeUtils.getCSSVariable('color-text-secondary'),
+            success: window.themeUtils.getCSSVariable('color-success'),
+            warning: window.themeUtils.getCSSVariable('color-warning'),
+            error: window.themeUtils.getCSSVariable('color-error'),
+            info: window.themeUtils.getCSSVariable('color-info')
+        };
+
+        console.log('🎨 Theme colors:', colors);
+        return colors;
+    },
+
+    /**
+     * Встановлює системну тему (автоматично відповідно до OS)
+     */
+    setSystemTheme: () => {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            window.themeUtils.setTheme('dark');
+            console.log('🌙 System theme: dark');
+        } else {
+            window.themeUtils.setTheme('light');
+            console.log('☀️ System theme: light');
         }
-        
-        requestAnimationFrame(animate);
     },
-    
-    fadeOut: (element, duration = 300) => {
-        let start = performance.now();
-        
-        function animate(time) {
-            let progress = (time - start) / duration;
-            if (progress > 1) progress = 1;
-            
-            element.style.opacity = 1 - progress;
-            
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            } else {
-                element.style.display = 'none';
-            }
+
+    /**
+     * Слухає зміни системної теми
+     */
+    watchSystemTheme: () => {
+        if (window.matchMedia) {
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            mediaQuery.addEventListener('change', (e) => {
+                const newTheme = e.matches ? 'dark' : 'light';
+                window.themeUtils.setTheme(newTheme);
+                console.log(`🔄 System theme changed to: ${newTheme}`);
+            });
+            console.log('👁️ Watching system theme changes...');
         }
-        
-        requestAnimationFrame(animate);
     }
 };
 
-// Initialize theme on load
-document.addEventListener('DOMContentLoaded', () => {
-    // Set default theme if none exists
-    if (!window.themeUtils.getTheme()) {
-        window.themeUtils.setTheme('dark');
-    }
-});
-</script>
+// Автоматична ініціалізація при завантаженні
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        window.themeUtils.initTheme();
+    });
+} else {
+    // DOM вже завантажений
+    window.themeUtils.initTheme();
+}
+
+// Експорт для ES модулів (якщо потрібно)
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = window.themeUtils;
+}
+
+console.log('✅ EasyEnglish Theme Utilities Ready!');
