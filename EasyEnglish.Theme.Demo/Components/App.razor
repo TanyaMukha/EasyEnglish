@@ -1,28 +1,127 @@
-﻿@using EasyEnglish.Theme.Components
-@inject NavigationManager Navigation
+﻿@inject NavigationManager Navigation
 
-<ThemeProvider LoadingMessage="Loading Theme Demo...">
+@* Простий wrapper замість ThemeProvider *@
+<div class="theme-app" style="background-color: #0F0F23; color: #F8FAFC; min-height: 100vh; font-family: Arial, sans-serif;">
+
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
-            <RouteView RouteData="@routeData" DefaultLayout="@typeof(Components.Layout.DemoLayout)" />
+            <div style="display: flex; min-height: 100vh;">
+
+                <!-- Sidebar Navigation -->
+                <aside style="width: 280px; background-color: #1E1F42; border-right: 1px solid #334155; overflow-y: auto;">
+                    <div style="padding: 24px;">
+                        <h3 style="color: #6366F1; margin-bottom: 24px;">
+                            🎨 Theme Demo
+                        </h3>
+
+                        <!-- Navigation Menu -->
+                        <nav>
+                            <div style="margin-bottom: 24px;">
+                                <h4 style="font-size: 14px; color: #94A3B8; text-transform: uppercase; margin-bottom: 8px; font-weight: 600;">
+                                    Overview
+                                </h4>
+                                <ul style="list-style: none; padding: 0; margin: 0;">
+                                    <li style="margin-bottom: 4px;">
+                                        <a href="/" class="nav-link @GetNavClass("/")"
+                                           style="display: block; padding: 8px 16px; color: #CBD5E1; text-decoration: none; border-radius: 8px; transition: all 0.2s;">
+                                            🏠 Home
+                                        </a>
+                                    </li>
+                                    <li style="margin-bottom: 4px;">
+                                        <a href="/colors" class="nav-link @GetNavClass("/colors")"
+                                           style="display: block; padding: 8px 16px; color: #CBD5E1; text-decoration: none; border-radius: 8px; transition: all 0.2s;">
+                                            🎨 Colors
+                                        </a>
+                                    </li>
+                                    <li style="margin-bottom: 4px;">
+                                        <a href="/typography" class="nav-link @GetNavClass("/typography")"
+                                           style="display: block; padding: 8px 16px; color: #CBD5E1; text-decoration: none; border-radius: 8px; transition: all 0.2s;">
+                                            📝 Typography
+                                        </a>
+                                    </li>
+                                    <li style="margin-bottom: 4px;">
+                                        <a href="/spacing" class="nav-link @GetNavClass("/spacing")"
+                                           style="display: block; padding: 8px 16px; color: #CBD5E1; text-decoration: none; border-radius: 8px; transition: all 0.2s;">
+                                            📐 Spacing
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div style="margin-bottom: 24px;">
+                                <h4 style="font-size: 14px; color: #94A3B8; text-transform: uppercase; margin-bottom: 8px; font-weight: 600;">
+                                    Components
+                                </h4>
+                                <ul style="list-style: none; padding: 0; margin: 0;">
+                                    <li style="margin-bottom: 4px;">
+                                        <a href="/component/button" class="nav-link @GetNavClass("/component/button")"
+                                           style="display: block; padding: 8px 16px; color: #CBD5E1; text-decoration: none; border-radius: 8px; transition: all 0.2s;">
+                                            🔘 Button
+                                        </a>
+                                    </li>
+                                    <li style="margin-bottom: 4px;">
+                                        <a href="/component/card" class="nav-link @GetNavClass("/component/card")"
+                                           style="display: block; padding: 8px 16px; color: #CBD5E1; text-decoration: none; border-radius: 8px; transition: all 0.2s;">
+                                            🗃️ Card
+                                        </a>
+                                    </li>
+                                    <li style="margin-bottom: 4px;">
+                                        <a href="/component/input" class="nav-link @GetNavClass("/component/input")"
+                                           style="display: block; padding: 8px 16px; color: #CBD5E1; text-decoration: none; border-radius: 8px; transition: all 0.2s;">
+                                            📝 Input
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </nav>
+                    </div>
+                </aside>
+
+                <!-- Main Content -->
+                <main style="flex: 1; overflow-y: auto;">
+                    <div style="padding: 24px;">
+                        @* Показуємо яка сторінка завантажилася *@
+                        <div style="margin-bottom: 16px; padding: 12px; background-color: #252653; border-radius: 8px; font-size: 14px;">
+                            <strong style="color: #10B981;">✅ @routeData.PageType.Name</strong> |
+                            Path: <code style="color: #06B6D4;">/@Navigation.ToBaseRelativePath(Navigation.Uri)</code>
+                        </div>
+
+                        @* Рендеримо сторінку *@
+                        <RouteView RouteData="@routeData" />
+                    </div>
+                </main>
+            </div>
         </Found>
         <NotFound>
-            <PageTitle>Not found</PageTitle>
-            <LayoutView Layout="@typeof(Components.Layout.DemoLayout)">
-                <Container Type="ContainerType.ScreenCentered">
-                    <Card Size="CardSize.Large" CssClass="@ThemeConstants.CssClasses.TextCenter">
-                        <H3 CssClass="@($"{ThemeConstants.CssClasses.TextError} {ThemeConstants.CssClasses.Margin.BottomMd}")">
-                            Page Not Found
-                        </H3>
-                        <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
-                            The demo page you're looking for doesn't exist.
-                        </p>
-                        <ThemeButton Variant="ButtonVariant.Primary" OnClick="@(() => Navigation.NavigateTo("/"))">
-                            Back to Demo Home
-                        </ThemeButton>
-                    </Card>
-                </Container>
-            </LayoutView>
+            <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; flex-direction: column;">
+                <h1 style="color: #EF4444; margin-bottom: 16px;">❌ Page Not Found</h1>
+                <p style="margin-bottom: 24px;">Could not find: /@Navigation.ToBaseRelativePath(Navigation.Uri)</p>
+                <button onclick="window.location.href='/'"
+                        style="padding: 12px 24px; background: #6366F1; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                    🏠 Back to Demo Home
+                </button>
+            </div>
         </NotFound>
     </Router>
-</ThemeProvider>
+</div>
+
+<style>
+    /* Hover effects for navigation */
+    .nav-link:hover {
+        background-color: #252653 !important;
+        color: #F8FAFC !important;
+    }
+
+    .nav-link.active {
+        background-color: #6366F1 !important;
+        color: white !important;
+    }
+</style>
+
+@code {
+    private string GetNavClass(string path)
+    {
+        var currentPath = Navigation.ToBaseRelativePath(Navigation.Uri);
+        return currentPath == path.TrimStart('/') ? "active" : "";
+    }
+}

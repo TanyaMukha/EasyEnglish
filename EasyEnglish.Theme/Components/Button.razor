@@ -1,15 +1,79 @@
 ﻿@using EasyEnglish.Theme.Constants
 @using EasyEnglish.Theme.Types
+@namespace EasyEnglish.Theme.Components
 
-<button class="@GetButtonClasses()"
-        type="@Type"
-        disabled="@Disabled"
-        @onclick="OnClick"
-        @onclick:preventDefault="PreventDefault"
-        @attributes="AdditionalAttributes">
+<button class="@GetButtonClasses()" type="@Type" disabled="@Disabled" @onclick="OnClick" @attributes="AdditionalAttributes">
     @if (!string.IsNullOrEmpty(Icon))
     {
         <i class="@Icon"></i>
     }
     @ChildContent
 </button>
+
+@code {
+    [Parameter] public ButtonVariant Variant { get; set; } = ButtonVariant.Primary;
+    [Parameter] public ButtonSize Size { get; set; } = ButtonSize.Medium;
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public string Type { get; set; } = "button";
+    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? CssClass { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string GetButtonClasses()
+    {
+        var classes = new List<string> { "button" };
+
+        // Add variant classes
+        switch (Variant)
+        {
+            case ButtonVariant.Primary:
+                classes.Add("button-primary");
+                break;
+            case ButtonVariant.Secondary:
+                classes.Add("button-secondary");
+                break;
+            case ButtonVariant.Accent:
+                classes.Add("button-accent");
+                break;
+            case ButtonVariant.Success:
+                classes.Add("button-success");
+                break;
+            case ButtonVariant.Warning:
+                classes.Add("button-warning");
+                break;
+            case ButtonVariant.Error:
+                classes.Add("button-error");
+                break;
+            case ButtonVariant.Outline:
+                classes.Add("button-outline");
+                break;
+            case ButtonVariant.Ghost:
+                classes.Add("button-ghost");
+                break;
+        }
+
+        // Add size classes
+        switch (Size)
+        {
+            case ButtonSize.Small:
+                classes.Add("button-small");
+                break;
+            case ButtonSize.Large:
+                classes.Add("button-large");
+                break;
+            default:
+                // Medium is default
+                break;
+        }
+
+        if (Disabled)
+            classes.Add("button-disabled");
+
+        if (!string.IsNullOrEmpty(CssClass))
+            classes.Add(CssClass);
+
+        return string.Join(" ", classes);
+    }
+}

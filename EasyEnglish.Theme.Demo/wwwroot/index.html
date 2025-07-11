@@ -6,9 +6,16 @@
     <title>EasyEnglish Theme Demo</title>
     <base href="/" />
 
-    <!-- Inline critical CSS to avoid loading issues -->
+    <!-- Inline CSS для основних стилів -->
     <style>
-        /* Critical CSS for loading state */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0F0F23;
+            color: #F8FAFC;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        }
+
         .loading-container {
             display: flex;
             justify-content: center;
@@ -40,7 +47,6 @@
         .body-medium {
             font-size: 16px;
             font-weight: 400;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
         }
 
         .text-secondary {
@@ -51,12 +57,124 @@
             margin-top: 16px;
         }
 
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #0F0F23;
-            color: #F8FAFC;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        /* Основні CSS змінні */
+        :root {
+            --color-primary: #6366F1;
+            --color-primary-light: #8B8CF8;
+            --color-primary-dark: #4F46E5;
+            --color-secondary: #EC4899;
+            --color-accent: #06B6D4;
+            --color-background: #0F0F23;
+            --color-background-secondary: #1A1B3A;
+            --color-background-tertiary: #252653;
+            --color-surface: #1E1F42;
+            --color-text-primary: #F8FAFC;
+            --color-text-secondary: #CBD5E1;
+            --color-text-tertiary: #94A3B8;
+            --color-success: #10B981;
+            --color-warning: #F59E0B;
+            --color-error: #EF4444;
+            --color-info: #3B82F6;
+            --color-border: #334155;
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --spacing-xxl: 48px;
+            --border-radius-sm: 4px;
+            --border-radius-md: 8px;
+            --border-radius-lg: 12px;
+            --border-radius-xl: 16px;
+        }
+
+        /* Основні utility класи */
+        .flex {
+            display: flex;
+        }
+
+        .flex-column {
+            flex-direction: column;
+        }
+
+        .flex-row {
+            flex-direction: row;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-primary {
+            color: var(--color-text-primary);
+        }
+
+        .text-secondary {
+            color: var(--color-text-secondary);
+        }
+
+        .text-success {
+            color: var(--color-success);
+        }
+
+        .text-error {
+            color: var(--color-error);
+        }
+
+        /* Spacing utilities */
+        .m-xs {
+            margin: var(--spacing-xs);
+        }
+
+        .m-sm {
+            margin: var(--spacing-sm);
+        }
+
+        .m-md {
+            margin: var(--spacing-md);
+        }
+
+        .m-lg {
+            margin: var(--spacing-lg);
+        }
+
+        .mt-md {
+            margin-top: var(--spacing-md);
+        }
+
+        .mb-md {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .mb-lg {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .mb-xl {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .p-lg {
+            padding: var(--spacing-lg);
+        }
+
+        /* Layout */
+        .demo-layout {
+            display: flex;
+            min-height: 100vh;
+            background-color: var(--color-background);
+        }
+
+        .demo-sidebar {
+            width: 280px;
+            background-color: var(--color-surface);
+            border-right: 1px solid var(--color-border);
+            overflow-y: auto;
+        }
+
+        .demo-content {
+            flex: 1;
+            overflow-y: auto;
         }
 
         #blazor-error-ui {
@@ -78,10 +196,6 @@
                 top: 0.5rem;
             }
     </style>
-
-    <!-- CSS Links -->
-    <link rel="stylesheet" href="css/theme.css" />
-    <link rel="stylesheet" href="css/demo.css" />
 </head>
 
 <body>
@@ -95,36 +209,44 @@
     <div id="blazor-error-ui">
         An unhandled error has occurred in the theme demo.
         <a href class="reload">Reload</a>
-        <a class="dismiss">X</a>
+        <a class="dismiss">×</a>
     </div>
 
     <!-- КРИТИЧНО: Blazor скрипт для MAUI WebView -->
     <script src="_framework/blazor.webview.js"></script>
 
-    <!-- Theme utilities script -->
+    <!-- ВАЖЛИВО: НЕ викликати Blazor.start() в MAUI! -->
     <script>
-        // Basic theme utilities
+        console.log('Theme Demo: HTML loaded');
+
+        // Тільки базові utilities без автозапуску Blazor
         window.themeUtils = {
             setTheme: (theme) => {
                 document.documentElement.setAttribute('data-theme', theme);
-                localStorage.setItem('app-theme', theme);
+                try {
+                    localStorage.setItem('app-theme', theme);
+                } catch (e) {
+                    console.log('localStorage not available');
+                }
             },
             getTheme: () => {
-                return localStorage.getItem('app-theme') || 'dark';
-            },
-            toggleTheme: () => {
-                const current = window.themeUtils.getTheme();
-                const next = current === 'dark' ? 'light' : 'dark';
-                window.themeUtils.setTheme(next);
-                return next;
+                try {
+                    return localStorage.getItem('app-theme') || 'dark';
+                } catch (e) {
+                    return 'dark';
+                }
             }
         };
 
-        // Set default theme
+        // Встановити темну тему за замовчуванням
         document.addEventListener('DOMContentLoaded', () => {
-            if (!window.themeUtils.getTheme()) {
-                window.themeUtils.setTheme('dark');
-            }
+            window.themeUtils.setTheme('dark');
+            console.log('Theme Demo: Theme initialized');
+        });
+
+        // Логування для діагностики
+        window.addEventListener('error', (e) => {
+            console.error('Theme Demo Error:', e.error);
         });
     </script>
 </body>

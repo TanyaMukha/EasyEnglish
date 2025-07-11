@@ -7,5 +7,6 @@ public enum BadgeVariant
     Warning,
     Error,
     Info,
-    Level
+    Level,
+    PartOfSpeech
 }

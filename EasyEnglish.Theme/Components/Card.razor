@@ -1,10 +1,43 @@
 ﻿@using EasyEnglish.Theme.Constants
 @using EasyEnglish.Theme.Types
+@namespace EasyEnglish.Theme.Components
 
 <div class="@GetCardClasses()" @attributes="AdditionalAttributes">
     @if (!string.IsNullOrEmpty(Title))
     {
-        <h3 class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.Margin.BottomMd">@Title</h3>
+        <h3 class="card-title">@Title</h3>
     }
     @ChildContent
 </div>
+
+@code {
+    [Parameter] public CardSize Size { get; set; } = CardSize.Medium;
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? CssClass { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string GetCardClasses()
+    {
+        var classes = new List<string> { "card" };
+
+        // Add size classes
+        switch (Size)
+        {
+            case CardSize.Small:
+                classes.Add("card-small");
+                break;
+            case CardSize.Large:
+                classes.Add("card-large");
+                break;
+            default:
+                // Medium is default, no additional class needed
+                break;
+        }
+
+        if (!string.IsNullOrEmpty(CssClass))
+            classes.Add(CssClass);
+
+        return string.Join(" ", classes);
+    }
+}

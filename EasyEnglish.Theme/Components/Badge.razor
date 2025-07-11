@@ -1,8 +1,97 @@
 ﻿@using EasyEnglish.Theme.Constants
-@using EasyEnglish.Theme.Services
 @using EasyEnglish.Theme.Types
-@inject IThemeService ThemeService
+@namespace EasyEnglish.Theme.Components
 
 <span class="@GetBadgeClasses()" style="@GetBadgeStyle()" @attributes="AdditionalAttributes">
     @ChildContent
 </span>
+
+@code {
+    [Parameter] public BadgeVariant Variant { get; set; } = BadgeVariant.Default;
+    [Parameter] public string? Level { get; set; }
+    [Parameter] public string? PartOfSpeech { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? CssClass { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string GetBadgeClasses()
+    {
+        var classes = new List<string> { "badge" };
+
+        // Add variant classes
+        switch (Variant)
+        {
+            case BadgeVariant.Level:
+                classes.Add("badge-level");
+                if (!string.IsNullOrEmpty(Level))
+                    classes.Add($"badge-level-{Level.ToLower()}");
+                break;
+            case BadgeVariant.PartOfSpeech:
+                classes.Add("badge-part-of-speech");
+                if (!string.IsNullOrEmpty(PartOfSpeech))
+                    classes.Add($"badge-pos-{PartOfSpeech.ToLower()}");
+                break;
+            case BadgeVariant.Success:
+                classes.Add("badge-success");
+                break;
+            case BadgeVariant.Warning:
+                classes.Add("badge-warning");
+                break;
+            case BadgeVariant.Error:
+                classes.Add("badge-error");
+                break;
+            case BadgeVariant.Info:
+                classes.Add("badge-info");
+                break;
+            default:
+                classes.Add("badge-default");
+                break;
+        }
+
+        if (!string.IsNullOrEmpty(CssClass))
+            classes.Add(CssClass);
+
+        return string.Join(" ", classes);
+    }
+
+    private string GetBadgeStyle()
+    {
+        var styles = new List<string>();
+
+        // Level-specific colors
+        if (Variant == BadgeVariant.Level && !string.IsNullOrEmpty(Level))
+        {
+            var color = Level.ToUpper() switch
+            {
+                "A1" => "var(--color-level-a1)",
+                "A2" => "var(--color-level-a2)",
+                "B1" => "var(--color-level-b1)",
+                "B2" => "var(--color-level-b2)",
+                "C1" => "var(--color-level-c1)",
+                "C2" => "var(--color-level-c2)",
+                _ => "var(--color-primary)"
+            };
+            styles.Add($"background-color: {color}");
+        }
+
+        // Part of speech colors
+        if (Variant == BadgeVariant.PartOfSpeech && !string.IsNullOrEmpty(PartOfSpeech))
+        {
+            var color = PartOfSpeech.ToLower() switch
+            {
+                "noun" => "var(--color-noun)",
+                "verb" => "var(--color-verb)",
+                "adjective" => "var(--color-adjective)",
+                "adverb" => "var(--color-adverb)",
+                "preposition" => "var(--color-preposition)",
+                "phrase" => "var(--color-phrase)",
+                "phrasal-verb" => "var(--color-phrasal-verb)",
+                "idiom" => "var(--color-idiom)",
+                _ => "var(--color-primary)"
+            };
+            styles.Add($"background-color: {color}");
+        }
+
+        return string.Join("; ", styles);
+    }
+}

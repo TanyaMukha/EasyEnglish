@@ -1,45 +1,9 @@
 ﻿@namespace EasyEnglish.Theme.Components
-@inherits EasyEnglish.Theme.Components.ThemeProvider
 
-<CascadingValue Value="@ThemeService">
-    <CascadingValue Value="@ResponsiveService">
-        <CascadingValue Value="@ColorService">
-            @if (IsInitialized)
-            {
-                @ChildContent
-            }
-            else
-            {
-                <div class="@ThemeConstants.CssClasses.LoadingContainer">
-                    <div class="loading-spinner"></div>
-                    <div class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.TopMd">
-                        @LoadingMessage
-                    </div>
-                </div>
-            }
-        </CascadingValue>
-    </CascadingValue>
-</CascadingValue>
+@* Максимально спрощений ThemeProvider *@
+@ChildContent
 
-<style>
-.loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid var(--color-background-tertiary);
-    border-top: 4px solid var(--color-primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string LoadingMessage { get; set; } = "Loading Theme Demo...";
 }
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-@media (min-width: 768px) {
-    .loading-spinner {
-        width: 48px;
-        height: 48px;
-    }
-}
-</style>

@@ -1,3 +1,10 @@
 ﻿@using EasyEnglish.Theme.Constants
+@namespace EasyEnglish.Theme.Components.Typography
 
 <h1 class="@ThemeConstants.CssClasses.H1 @CssClass" @attributes="AdditionalAttributes">@ChildContent</h1>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? CssClass { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

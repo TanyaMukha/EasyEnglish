@@ -1,6 +1,41 @@
 ﻿@using EasyEnglish.Theme.Constants
 @using EasyEnglish.Theme.Types
+@namespace EasyEnglish.Theme.Components
 
 <div class="@GetContainerClasses()" @attributes="AdditionalAttributes">
     @ChildContent
 </div>
+
+@code {
+    [Parameter] public ContainerType Type { get; set; } = ContainerType.Default;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? CssClass { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string GetContainerClasses()
+    {
+        var classes = new List<string>();
+
+        // Add type-specific classes
+        switch (Type)
+        {
+            case ContainerType.Screen:
+                classes.Add("screen");
+                break;
+            case ContainerType.ScreenCentered:
+                classes.Add("screen-centered");
+                break;
+            case ContainerType.Padded:
+                classes.Add("container-padded");
+                break;
+            default:
+                classes.Add("container");
+                break;
+        }
+
+        if (!string.IsNullOrEmpty(CssClass))
+            classes.Add(CssClass);
+
+        return string.Join(" ", classes);
+    }
+}

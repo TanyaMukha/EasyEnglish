@@ -1,4 +1,5 @@
 ﻿@using EasyEnglish.Theme.Constants
+@namespace EasyEnglish.Theme.Components
 
 <div class="@ThemeConstants.CssClasses.LoadingContainer">
     <div class="loading-spinner"></div>
@@ -20,7 +21,7 @@
         animation: spin 1s linear infinite;
     }
 
-    @keyframes spin {
+    @@keyframes spin {
         0%
 
     {
@@ -33,7 +34,7 @@
 
     }
 
-    @media (min-width: 768px) {
+    @@media (min-width: 768px) {
         .loading-spinner
 
     {
@@ -43,3 +44,7 @@
 
     }
 </style>
+
+@code {
+    [Parameter] public string? Message { get; set; }
+}

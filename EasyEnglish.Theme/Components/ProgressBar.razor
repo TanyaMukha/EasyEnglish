@@ -1,5 +1,14 @@
 ﻿@using EasyEnglish.Theme.Constants
+@namespace EasyEnglish.Theme.Components
 
 <div class="@ThemeConstants.CssClasses.ProgressBarContainer">
     <div class="@ThemeConstants.CssClasses.ProgressBarFill" style="width: @(CalculatedProgress)%"></div>
 </div>
+
+@code {
+    [Parameter] public double Progress { get; set; }
+    [Parameter] public double Min { get; set; } = 0;
+    [Parameter] public double Max { get; set; } = 100;
+
+    private double CalculatedProgress => ((Math.Max(Min, Math.Min(Max, Progress)) - Min) / (Max - Min)) * 100;
+}
