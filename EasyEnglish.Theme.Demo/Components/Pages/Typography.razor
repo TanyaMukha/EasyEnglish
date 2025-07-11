@@ -1,0 +1,130 @@
+﻿@page "/typography"
+@using EasyEnglish.Theme.Components
+@using EasyEnglish.Theme.Constants
+
+<PageTitle>Typography - Theme Demo</PageTitle>
+
+<Container>
+    <H1 CssClass="@ThemeConstants.CssClasses.Margin.BottomLg">
+        Typography System
+    </H1>
+    
+    <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomXl">
+        Complete typography scale with consistent spacing and responsive font sizes.
+    </p>
+
+    <!-- Headings -->
+    <Card Title="Headings" CssClass="@ThemeConstants.CssClasses.Margin.BottomXl">
+        <div class="typography-examples">
+            <div class="typography-example">
+                <H1>Heading 1 (H1)</H1>
+                <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                    Primary page titles, font-size: 48px, font-weight: 700
+                </p>
+            </div>
+            
+            <div class="typography-example">
+                <H2>Heading 2 (H2)</H2>
+                <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                    Section titles, font-size: 36px, font-weight: 600
+                </p>
+            </div>
+            
+            <div class="typography-example">
+                <H3>Heading 3 (H3)</H3>
+                <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                    Subsection titles, font-size: 28px, font-weight: 600
+                </p>
+            </div>
+            
+            <div class="typography-example">
+                <H4>Heading 4 (H4)</H4>
+                <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                    Component titles, font-size: 24px, font-weight: 600
+                </p>
+            </div>
+        </div>
+    </Card>
+
+    <!-- Body Text -->
+    <Card Title="Body Text" CssClass="@ThemeConstants.CssClasses.Margin.BottomXl">
+        <div class="typography-examples">
+            <div class="typography-example">
+                <p class="@ThemeConstants.CssClasses.BodyLarge">
+                    Large body text - used for introductory paragraphs and important content.
+                </p>
+                <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                    font-size: 20px, line-height: 1.6
+                </p>
+            </div>
+            
+            <div class="typography-example">
+                <p class="@ThemeConstants.CssClasses.BodyMedium">
+                    Medium body text - the default text size for most content and descriptions.
+                </p>
+                <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                    font-size: 16px, line-height: 1.5
+                </p>
+            </div>
+            
+            <div class="typography-example">
+                <p class="@ThemeConstants.CssClasses.BodySmall">
+                    Small body text - used for captions, metadata, and secondary information.
+                </p>
+                <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                    font-size: 14px, line-height: 1.4
+                </p>
+            </div>
+        </div>
+    </Card>
+
+    <!-- Text Colors -->
+    <Card Title="Text Colors">
+        <div class="typography-examples">
+            <div class="typography-example">
+                <p class="@ThemeConstants.CssClasses.BodyMedium">
+                    Primary text - main content color for optimal readability.
+                </p>
+            </div>
+            
+            <div class="typography-example">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary">
+                    Secondary text - used for descriptions and supporting content.
+                </p>
+            </div>
+            
+            <div class="typography-example">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSuccess">
+                    Success text - for positive status messages and confirmations.
+                </p>
+            </div>
+            
+            <div class="typography-example">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextWarning">
+                    Warning text - for caution and attention-required messages.
+                </p>
+            </div>
+            
+            <div class="typography-example">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextError">
+                    Error text - for error states and validation messages.
+                </p>
+            </div>
+        </div>
+    </Card>
+</Container>
+
+<style>
+.typography-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.typography-example {
+    padding: var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    background-color: var(--color-background);
+}
+</style>

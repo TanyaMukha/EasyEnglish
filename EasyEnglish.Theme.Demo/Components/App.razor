@@ -4,13 +4,11 @@
 <ThemeProvider LoadingMessage="Loading Theme Demo...">
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
-            <RouteData Context="context">
-                <DemoLayout />
-            </RouteData>
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(Components.Layout.DemoLayout)" />
         </Found>
         <NotFound>
             <PageTitle>Not found</PageTitle>
-            <LayoutView Layout="@typeof(Layout.DemoLayout)">
+            <LayoutView Layout="@typeof(Components.Layout.DemoLayout)">
                 <Container Type="ContainerType.ScreenCentered">
                     <Card Size="CardSize.Large" CssClass="@ThemeConstants.CssClasses.TextCenter">
                         <H3 CssClass="@($"{ThemeConstants.CssClasses.TextError} {ThemeConstants.CssClasses.Margin.BottomMd}")">
