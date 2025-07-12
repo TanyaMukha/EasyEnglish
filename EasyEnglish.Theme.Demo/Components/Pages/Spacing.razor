@@ -1,203 +1,544 @@
 ﻿@page "/spacing"
 @using EasyEnglish.Theme.Components
 @using EasyEnglish.Theme.Constants
+@using EasyEnglish.Theme.Demo.Interfaces
+@inject IDemoService DemoService
+@inject IJSRuntime JS
 
-<PageTitle>Spacing - Theme Demo</PageTitle>
+<PageTitle>Spacing - EasyEnglish Theme Demo</PageTitle>
 
-<Container>
-    <H1 CssClass="@ThemeConstants.CssClasses.Margin.BottomLg">
-        Spacing System
-    </H1>
-
-    <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomXl">
-        8-point grid system providing consistent spacing throughout the application.
-    </p>
-
-    <!-- Spacing Scale -->
-    <Card Title="Spacing Scale" CssClass="@ThemeConstants.CssClasses.Margin.BottomXl">
-        <div class="spacing-examples">
-            <div class="spacing-example">
-                <div class="spacing-visual" style="height: 4px;"></div>
-                <div class="spacing-info">
-                    <div class="spacing-name">XS (Extra Small)</div>
-                    <div class="spacing-value">4px</div>
-                    <div class="spacing-usage">Used for: Component internal spacing, icon gaps</div>
+<Container Type="ContainerType.Screen">
+    <div class="@ThemeConstants.CssClasses.Padding.Lg">
+        
+        <!-- Header -->
+        <div class="page-header @ThemeConstants.CssClasses.Margin.BottomXl">
+            <H1 CssClass="@ThemeConstants.CssClasses.TextPrimary @ThemeConstants.CssClasses.Margin.BottomMd">
+                📐 Spacing System
+            </H1>
+            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                Consistent 8-point grid system providing harmony and rhythm throughout the application interface.
+            </p>
+            
+            <!-- Spacing Stats -->
+            <div class="spacing-stats @ThemeConstants.CssClasses.Margin.BottomLg">
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H2 @ThemeConstants.CssClasses.TextPrimary">8px</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Base Unit</span>
                 </div>
-            </div>
-
-            <div class="spacing-example">
-                <div class="spacing-visual" style="height: 8px;"></div>
-                <div class="spacing-info">
-                    <div class="spacing-name">SM (Small)</div>
-                    <div class="spacing-value">8px</div>
-                    <div class="spacing-usage">Used for: Button padding, form field spacing</div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H2 @ThemeConstants.CssClasses.TextPrimary">6</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Scale Steps</span>
                 </div>
-            </div>
-
-            <div class="spacing-example">
-                <div class="spacing-visual" style="height: 16px;"></div>
-                <div class="spacing-info">
-                    <div class="spacing-name">MD (Medium)</div>
-                    <div class="spacing-value">16px</div>
-                    <div class="spacing-usage">Used for: Card padding, component gaps</div>
-                </div>
-            </div>
-
-            <div class="spacing-example">
-                <div class="spacing-visual" style="height: 24px;"></div>
-                <div class="spacing-info">
-                    <div class="spacing-name">LG (Large)</div>
-                    <div class="spacing-value">24px</div>
-                    <div class="spacing-usage">Used for: Section spacing, layout gaps</div>
-                </div>
-            </div>
-
-            <div class="spacing-example">
-                <div class="spacing-visual" style="height: 32px;"></div>
-                <div class="spacing-info">
-                    <div class="spacing-name">XL (Extra Large)</div>
-                    <div class="spacing-value">32px</div>
-                    <div class="spacing-usage">Used for: Major section separation</div>
-                </div>
-            </div>
-
-            <div class="spacing-example">
-                <div class="spacing-visual" style="height: 48px;"></div>
-                <div class="spacing-info">
-                    <div class="spacing-name">XXL (Double Extra Large)</div>
-                    <div class="spacing-value">48px</div>
-                    <div class="spacing-usage">Used for: Page section breaks</div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H2 @ThemeConstants.CssClasses.TextPrimary">50+</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Utility Classes</span>
                 </div>
             </div>
         </div>
-    </Card>
 
-    <!-- Margin Utilities -->
-    <Card Title="Margin Utilities" CssClass="@ThemeConstants.CssClasses.Margin.BottomXl">
-        <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.Margin.BottomMd">
-            Apply consistent margins using utility classes:
-        </p>
-
-        <div class="utility-examples">
-            <div class="utility-example">
-                <code>@ThemeConstants.CssClasses.Margin.BottomSm</code>
-                <span>margin-bottom: 8px</span>
-            </div>
-            <div class="utility-example">
-                <code>@ThemeConstants.CssClasses.Margin.TopMd</code>
-                <span>margin-top: 16px</span>
-            </div>
-            <div class="utility-example">
-                <code>@ThemeConstants.CssClasses.Margin.HorizontalLg</code>
-                <span>margin-left & margin-right: 24px</span>
-            </div>
-            <div class="utility-example">
-                <code>@ThemeConstants.CssClasses.Margin.VerticalXl</code>
-                <span>margin-top & margin-bottom: 32px</span>
-            </div>
+        <!-- Spacing Scale -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="🎯 Spacing Scale" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Our spacing system follows an 8-point grid for consistent visual rhythm and easy developer implementation.
+                </p>
+                
+                <div class="spacing-scale">
+                    @foreach (var spacing in GetSpacingScale())
+                    {
+                        <div class="spacing-item" @onclick="@(() => CopySpacingClass(spacing.CssClass))">
+                            <div class="spacing-visual-container">
+                                <div class="spacing-visual" style="width: @(spacing.Value)px; height: @(spacing.Value)px;"></div>
+                                <div class="spacing-visual-line" style="width: @(Math.Max(spacing.Value, 24))px;"></div>
+                            </div>
+                            
+                            <div class="spacing-info">
+                                <div class="spacing-name">
+                                    <span class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">@spacing.Name</span>
+                                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextTertiary">(@spacing.Size)</span>
+                                </div>
+                                <div class="spacing-value">@(spacing.Value)px</div>
+                                <div class="spacing-usage @ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">
+                                    @spacing.Usage
+                                </div>
+                            </div>
+                            
+                            <div class="spacing-actions">
+                                <Button Variant="ButtonVariant.Ghost" 
+                                        Size="ButtonSize.Small"
+                                        Icon="fas fa-copy"
+                                        OnClick="@(() => CopySpacingClass(spacing.CssClass))">
+                                </Button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </Card>
         </div>
-    </Card>
 
-    <!-- Padding Utilities -->
-    <Card Title="Padding Utilities">
-        <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.Margin.BottomMd">
-            Apply consistent padding using utility classes:
-        </p>
-
-        <div class="utility-examples">
-            <div class="utility-example">
-                <code>@ThemeConstants.CssClasses.Padding.Sm</code>
-                <span>padding: 8px</span>
-            </div>
-            <div class="utility-example">
-                <code>@ThemeConstants.CssClasses.Padding.HorizontalMd</code>
-                <span>padding-left & padding-right: 16px</span>
-            </div>
-            <div class="utility-example">
-                <code>@ThemeConstants.CssClasses.Padding.VerticalLg</code>
-                <span>padding-top & padding-bottom: 24px</span>
-            </div>
-            <div class="utility-example">
-                <code>@ThemeConstants.CssClasses.Padding.Xl</code>
-                <span>padding: 32px</span>
-            </div>
+        <!-- Margin Utilities -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📦 Margin Utilities" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Apply consistent margins using our utility classes. All margins follow the 8-point grid system.
+                </p>
+                
+                <div class="utility-grid">
+                    @foreach (var utility in GetMarginUtilities())
+                    {
+                        <div class="utility-item" @onclick="@(() => CopyUtilityClass(utility.ClassName))">
+                            <div class="utility-demo">
+                                <div class="margin-demo-box">
+                                    <div class="margin-demo-content" style="@utility.Style">
+                                        Content
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="utility-info">
+                                <code class="utility-class">@utility.ClassName</code>
+                                <span class="utility-description @ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">
+                                    @utility.Description
+                                </span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </Card>
         </div>
-    </Card>
+
+        <!-- Padding Utilities -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📋 Padding Utilities" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Internal spacing utilities for consistent padding across components and layouts.
+                </p>
+                
+                <div class="utility-grid">
+                    @foreach (var utility in GetPaddingUtilities())
+                    {
+                        <div class="utility-item" @onclick="@(() => CopyUtilityClass(utility.ClassName))">
+                            <div class="utility-demo">
+                                <div class="padding-demo-box" style="@utility.Style">
+                                    <div class="padding-demo-content">
+                                        Content
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="utility-info">
+                                <code class="utility-class">@utility.ClassName</code>
+                                <span class="utility-description @ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">
+                                    @utility.Description
+                                </span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </Card>
+        </div>
+
+        <!-- Usage Examples -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="💡 Usage Examples" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Common spacing patterns and how to implement them using our utility classes.
+                </p>
+                
+                <div class="usage-examples">
+                    <div class="usage-example">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Card Layout</H4>
+                        <div class="example-demo">
+                            <Card Title="Example Card" CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">
+                                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.Margin.BottomSm">
+                                    This card uses margin bottom medium spacing.
+                                </p>
+                                <Button Variant="ButtonVariant.Primary">Action</Button>
+                            </Card>
+                        </div>
+                        <div class="example-code">
+                            <code>CssClass="@ThemeConstants.CssClasses.Margin.BottomMd"</code>
+                        </div>
+                    </div>
+                    
+                    <div class="usage-example">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Form Spacing</H4>
+                        <div class="example-demo">
+                            <div class="@ThemeConstants.CssClasses.Margin.BottomMd">
+                                <Input Label="Name" Placeholder="Enter your name" />
+                            </div>
+                            <div class="@ThemeConstants.CssClasses.Margin.BottomLg">
+                                <Input Label="Email" Placeholder="Enter your email" />
+                            </div>
+                            <Button Variant="ButtonVariant.Primary">Submit</Button>
+                        </div>
+                        <div class="example-code">
+                            <code>class="@ThemeConstants.CssClasses.Margin.BottomMd"</code>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Guidelines -->
+        <div class="section">
+            <Card Title="📋 Spacing Guidelines" Size="CardSize.Large" CssClass="demo-card">
+                <div class="guidelines-grid">
+                    <div class="guideline-item">
+                        <div class="guideline-icon">⚡</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">8-Point Grid</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            All spacing values are multiples of 8px for consistent visual rhythm and easier implementation.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">🎯</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Semantic Naming</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Use size names (XS, SM, MD, LG, XL) instead of pixel values for better maintainability.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">📐</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Responsive Spacing</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Spacing scales appropriately across different screen sizes while maintaining visual hierarchy.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">🔄</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Consistency</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Use spacing utilities consistently throughout the application for a cohesive user experience.
+                        </p>
+                    </div>
+                </div>
+            </Card>
+        </div>
+    </div>
 </Container>
 
+@code {
+    private string selectedSpacing = "";
+    private bool showCopiedMessage = false;
+
+    public class SpacingItem
+    {
+        public string Name { get; set; } = "";
+        public string Size { get; set; } = "";
+        public int Value { get; set; }
+        public string Usage { get; set; } = "";
+        public string CssClass { get; set; } = "";
+    }
+
+    public class UtilityItem
+    {
+        public string ClassName { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Style { get; set; } = "";
+    }
+
+    private List<SpacingItem> GetSpacingScale()
+    {
+        return new List<SpacingItem>
+        {
+            new() { Name = "Extra Small", Size = "XS", Value = 4, Usage = "Component internal spacing, icon gaps", CssClass = ThemeConstants.CssClasses.Margin.BottomXs },
+            new() { Name = "Small", Size = "SM", Value = 8, Usage = "Button padding, form field spacing", CssClass = ThemeConstants.CssClasses.Margin.BottomSm },
+            new() { Name = "Medium", Size = "MD", Value = 16, Usage = "Card padding, component gaps", CssClass = ThemeConstants.CssClasses.Margin.BottomMd },
+            new() { Name = "Large", Size = "LG", Value = 24, Usage = "Section spacing, layout gaps", CssClass = ThemeConstants.CssClasses.Margin.BottomLg },
+            new() { Name = "Extra Large", Size = "XL", Value = 32, Usage = "Major section separation", CssClass = ThemeConstants.CssClasses.Margin.BottomXl },
+            new() { Name = "Double XL", Size = "XXL", Value = 48, Usage = "Page section breaks", CssClass = ThemeConstants.CssClasses.Margin.BottomXl }
+        };
+    }
+
+    private List<UtilityItem> GetMarginUtilities()
+    {
+        return new List<UtilityItem>
+        {
+            new() { ClassName = ThemeConstants.CssClasses.Margin.BottomSm, Description = "margin-bottom: 8px", Style = "margin-bottom: 8px; background-color: var(--color-primary-bg);" },
+            new() { ClassName = ThemeConstants.CssClasses.Margin.TopMd, Description = "margin-top: 16px", Style = "margin-top: 16px; background-color: var(--color-primary-bg);" },
+            new() { ClassName = ThemeConstants.CssClasses.Margin.BottomLg, Description = "margin-bottom: 24px", Style = "margin-bottom: 24px; background-color: var(--color-primary-bg);" },
+            new() { ClassName = ThemeConstants.CssClasses.Margin.BottomXl, Description = "margin-bottom: 32px", Style = "margin-bottom: 32px; background-color: var(--color-primary-bg);" }
+        };
+    }
+
+    private List<UtilityItem> GetPaddingUtilities()
+    {
+        return new List<UtilityItem>
+        {
+            new() { ClassName = ThemeConstants.CssClasses.Padding.Sm, Description = "padding: 8px", Style = "padding: 8px; background-color: var(--color-success-bg); border: 1px dashed var(--color-success);" },
+            new() { ClassName = ThemeConstants.CssClasses.Padding.Md, Description = "padding: 16px", Style = "padding: 16px; background-color: var(--color-success-bg); border: 1px dashed var(--color-success);" },
+            new() { ClassName = ThemeConstants.CssClasses.Padding.Lg, Description = "padding: 24px", Style = "padding: 24px; background-color: var(--color-success-bg); border: 1px dashed var(--color-success);" },
+            new() { ClassName = ThemeConstants.CssClasses.Padding.HorizontalMd, Description = "padding-left/right: 16px", Style = "padding-left: 16px; padding-right: 16px; background-color: var(--color-success-bg); border: 1px dashed var(--color-success);" }
+        };
+    }
+
+    private async Task CopySpacingClass(string cssClass)
+    {
+        selectedSpacing = cssClass;
+        await CopyToClipboard(cssClass);
+        await ShowCopiedMessage();
+    }
+
+    private async Task CopyUtilityClass(string className)
+    {
+        await CopyToClipboard(className);
+        await ShowCopiedMessage();
+    }
+
+    private async Task CopyToClipboard(string text)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+        }
+        catch
+        {
+            // Fallback for older browsers
+            await JS.InvokeVoidAsync("prompt", "Copy this text:", text);
+        }
+    }
+
+    private async Task ShowCopiedMessage()
+    {
+        showCopiedMessage = true;
+        StateHasChanged();
+        await Task.Delay(2000);
+        showCopiedMessage = false;
+        StateHasChanged();
+    }
+}
+
 <style>
-    .spacing-examples {
-        display: flex;
-        flex-direction: column;
-        gap: var(--spacing-lg);
-    }
+/* Page Header */
+.page-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
 
-    .spacing-example {
-        display: flex;
-        align-items: center;
-        padding: var(--spacing-md);
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius-md);
-        background-color: var(--color-background);
-    }
+/* Spacing Stats */
+.spacing-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    flex-wrap: wrap;
+}
 
-    .spacing-visual {
-        width: 120px;
-        background-color: var(--color-primary);
-        border-radius: var(--border-radius-sm);
-        margin-right: var(--spacing-lg);
-        flex-shrink: 0;
-    }
+.stat-item {
+    text-align: center;
+}
 
-    .spacing-info {
-        flex: 1;
-    }
+.stat-item span:first-child {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
 
-    .spacing-name {
-        font-weight: var(--font-weight-semibold);
-        color: var(--color-text-primary);
-        margin-bottom: var(--spacing-xs);
-    }
+/* Demo Card */
+.demo-card {
+    border: 1px solid var(--color-border);
+    transition: all 0.2s ease;
+}
 
-    .spacing-value {
-        font-family: 'Courier New', Consolas, monospace;
-        color: var(--color-accent);
-        font-size: var(--font-size-sm);
-        margin-bottom: var(--spacing-xs);
-    }
+.demo-card:hover {
+    border-color: var(--color-primary-bg);
+    box-shadow: var(--shadow-md);
+}
 
-    .spacing-usage {
-        font-size: var(--font-size-sm);
-        color: var(--color-text-secondary);
-    }
+/* Spacing Scale */
+.spacing-scale {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
 
-    .utility-examples {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: var(--spacing-md);
-    }
+.spacing-item {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
 
-    .utility-example {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: var(--spacing-md);
-        background-color: var(--color-background-secondary);
-        border-radius: var(--border-radius-md);
-        border: 1px solid var(--color-border);
-    }
+.spacing-item:hover {
+    border-color: var(--color-primary-bg);
+    box-shadow: var(--shadow-sm);
+}
 
-        .utility-example code {
-            font-family: 'Courier New', Consolas, monospace;
-            background-color: var(--color-surface);
-            padding: var(--spacing-xs) var(--spacing-sm);
-            border-radius: var(--border-radius-sm);
-            color: var(--color-accent);
-            font-size: var(--font-size-sm);
-        }
+.spacing-visual-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: var(--spacing-lg);
+    min-width: 100px;
+}
 
-        .utility-example span {
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-sm);
-        }
+.spacing-visual {
+    background-color: var(--color-primary);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: var(--spacing-sm);
+    flex-shrink: 0;
+}
+
+.spacing-visual-line {
+    height: 2px;
+    background-color: var(--color-primary-bg);
+    border-radius: 1px;
+}
+
+.spacing-info {
+    flex: 1;
+}
+
+.spacing-name {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
+}
+
+.spacing-value {
+    color: var(--color-accent);
+    font-family: 'Courier New', Consolas, monospace;
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-xs);
+}
+
+.spacing-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+/* Utility Grid */
+.utility-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.utility-item {
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.utility-item:hover {
+    border-color: var(--color-primary-bg);
+    box-shadow: var(--shadow-sm);
+}
+
+.utility-demo {
+    margin-bottom: var(--spacing-md);
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.margin-demo-box {
+    background-color: var(--color-background-tertiary);
+    border: 1px dashed var(--color-border);
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-md);
+}
+
+.margin-demo-content {
+    background-color: var(--color-background);
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    text-align: center;
+    font-size: var(--font-size-sm);
+}
+
+.padding-demo-box {
+    border-radius: var(--border-radius-md);
+    text-align: center;
+}
+
+.padding-demo-content {
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+}
+
+.utility-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.utility-class {
+    background-color: var(--color-background-tertiary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-accent);
+    font-size: var(--font-size-sm);
+    font-family: 'Courier New', Consolas, monospace;
+}
+
+/* Usage Examples */
+.usage-examples {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: var(--spacing-xl);
+}
+
+.usage-example {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.example-demo {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+    border: 1px dashed var(--color-border);
+    margin-bottom: var(--spacing-md);
+}
+
+.example-code {
+    text-align: center;
+}
+
+.example-code code {
+    background-color: var(--color-background-tertiary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-accent);
+    font-size: var(--font-size-sm);
+    font-family: 'Courier New', Consolas, monospace;
+}
+
+/* Guidelines */
+.guidelines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.guideline-item {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.guideline-icon {
+    font-size: 48px;
+    margin-bottom: var(--spacing-md);
+    display: block;
+}
 </style>

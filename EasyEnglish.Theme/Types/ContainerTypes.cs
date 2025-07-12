@@ -5,5 +5,6 @@ public enum ContainerType
     Default,
     Padded,
     Screen,
-    ScreenCentered
+    ScreenCentered,
+    Content
 }

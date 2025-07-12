@@ -1,0 +1,1239 @@
+﻿@page "/layout"
+@using EasyEnglish.Theme.Components
+@using EasyEnglish.Theme.Constants
+@using EasyEnglish.Theme.Demo.Interfaces
+@using EasyEnglish.Theme.Types
+@inject IDemoService DemoService
+@inject IJSRuntime JS
+
+<PageTitle>Layout - EasyEnglish Theme Demo</PageTitle>
+
+<Container Type="ContainerType.Screen">
+    <div class="@ThemeConstants.CssClasses.Padding.Lg">
+        
+        <!-- Header -->
+        <div class="page-header @ThemeConstants.CssClasses.Margin.BottomXl">
+            <H1 CssClass="@ThemeConstants.CssClasses.TextPrimary @ThemeConstants.CssClasses.Margin.BottomMd">
+                📐 Layout System
+            </H1>
+            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                Flexible and responsive layout components built with CSS Grid and Flexbox for creating consistent, scalable interfaces.
+            </p>
+            
+            <!-- Layout Stats -->
+            <div class="layout-stats @ThemeConstants.CssClasses.Margin.BottomLg">
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H2 @ThemeConstants.CssClasses.TextPrimary">4</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Container Types</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H2 @ThemeConstants.CssClasses.TextPrimary">12</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Grid Columns</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H2 @ThemeConstants.CssClasses.TextPrimary">20+</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Utility Classes</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Container Types -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📦 Container Types" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Different container types for various layout needs with consistent spacing and responsive behavior.
+                </p>
+                
+                <div class="container-examples">
+                    @foreach (var container in GetContainerTypes())
+                    {
+                        <div class="container-demo">
+                            <div class="container-header">
+                                <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">@container.Name</H4>
+                                <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomMd">
+                                    @container.Description
+                                </p>
+                            </div>
+                            
+                            <div class="container-preview">
+                                <div class="container-wrapper @container.CssClass">
+                                    <div class="container-content">
+                                        <div class="container-inner">
+                                            @container.Name Content
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="container-code">
+                                <code class="code-snippet">
+                                    &lt;Container Type="@container.Type"&gt;
+                                    &lt;/Container&gt;
+                                </code>
+                                <Button Variant="ButtonVariant.Ghost" 
+                                        Size="ButtonSize.Small"
+                                        Icon="fas fa-copy"
+                                        OnClick="@(() => CopyCode($"<Container Type=\"{container.Type}\"></Container>"))">
+                                </Button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </Card>
+        </div>
+
+        <!-- Grid System -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="🔲 Grid System" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Responsive 12-column grid system with flexible layouts and breakpoint-specific behavior.
+                </p>
+                
+                <div class="grid-examples">
+                    <div class="grid-demo-section">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Basic Grid Layouts</H4>
+                        
+                        <div class="grid-demo">
+                            <div class="grid-label">Equal Columns (3x4)</div>
+                            <div class="demo-grid grid-cols-3">
+                                <div class="grid-item">1</div>
+                                <div class="grid-item">2</div>
+                                <div class="grid-item">3</div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid-demo">
+                            <div class="grid-label">Equal Columns (4x3)</div>
+                            <div class="demo-grid grid-cols-4">
+                                <div class="grid-item">1</div>
+                                <div class="grid-item">2</div>
+                                <div class="grid-item">3</div>
+                                <div class="grid-item">4</div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid-demo">
+                            <div class="grid-label">Auto-fit Layout</div>
+                            <div class="demo-grid grid-auto-fit">
+                                <div class="grid-item">Auto</div>
+                                <div class="grid-item">Responsive</div>
+                                <div class="grid-item">Columns</div>
+                                <div class="grid-item">Layout</div>
+                                <div class="grid-item">System</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid-demo-section">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Asymmetric Layouts</H4>
+                        
+                        <div class="grid-demo">
+                            <div class="grid-label">Sidebar Layout (1:3)</div>
+                            <div class="demo-grid grid-sidebar">
+                                <div class="grid-item grid-sidebar-nav">Sidebar</div>
+                                <div class="grid-item grid-main-content">Main Content</div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid-demo">
+                            <div class="grid-label">Article Layout (2:1)</div>
+                            <div class="demo-grid grid-article">
+                                <div class="grid-item grid-article-content">Article Content</div>
+                                <div class="grid-item grid-article-aside">Aside</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Flexbox Utilities -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="💪 Flexbox Utilities" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Comprehensive flexbox utilities for creating flexible and responsive layouts.
+                </p>
+                
+                <div class="flex-examples">
+                    @foreach (var flexDemo in GetFlexDemos())
+                    {
+                        <div class="flex-demo-section">
+                            <div class="flex-demo-header">
+                                <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">@flexDemo.Title</H4>
+                                <p class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomMd">
+                                    @flexDemo.Description
+                                </p>
+                            </div>
+                            
+                            <div class="flex-demo-container">
+                                <div class="demo-flex @flexDemo.CssClass">
+                                    @foreach (var item in flexDemo.Items)
+                                    {
+                                        <div class="flex-item">@item</div>
+                                    }
+                                </div>
+                            </div>
+                            
+                            <div class="flex-demo-code">
+                                <code class="code-snippet">@flexDemo.Code</code>
+                                <Button Variant="ButtonVariant.Ghost" 
+                                        Size="ButtonSize.Small"
+                                        Icon="fas fa-copy"
+                                        OnClick="@(() => CopyCode(flexDemo.Code))">
+                                </Button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </Card>
+        </div>
+
+        <!-- Layout Patterns -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="🎨 Common Layout Patterns" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Ready-to-use layout patterns for common interface designs.
+                </p>
+                
+                <div class="pattern-examples">
+                    <div class="pattern-demo">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Dashboard Layout</H4>
+                        <div class="layout-preview dashboard-layout">
+                            <div class="layout-header">Header</div>
+                            <div class="layout-sidebar">Sidebar</div>
+                            <div class="layout-main">
+                                <div class="layout-content">Main Content</div>
+                                <div class="layout-widgets">
+                                    <div class="widget">Widget 1</div>
+                                    <div class="widget">Widget 2</div>
+                                    <div class="widget">Widget 3</div>
+                                    <div class="widget">Widget 4</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pattern-demo">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Article Layout</H4>
+                        <div class="layout-preview article-layout">
+                            <div class="article-header">Article Header</div>
+                            <div class="article-content">
+                                <div class="article-text">Article Content</div>
+                                <div class="article-aside">Sidebar</div>
+                            </div>
+                            <div class="article-footer">Article Footer</div>
+                        </div>
+                    </div>
+                    
+                    <div class="pattern-demo">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Card Grid Layout</H4>
+                        <div class="layout-preview card-grid-layout">
+                            <div class="card-grid">
+                                <div class="card-item">Card 1</div>
+                                <div class="card-item">Card 2</div>
+                                <div class="card-item">Card 3</div>
+                                <div class="card-item">Card 4</div>
+                                <div class="card-item">Card 5</div>
+                                <div class="card-item">Card 6</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Responsive Behavior -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📱 Responsive Behavior" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    How layouts adapt across different screen sizes with mobile-first responsive design.
+                </p>
+                
+                <div class="responsive-demo">
+                    <div class="responsive-controls @ThemeConstants.CssClasses.Margin.BottomLg">
+                        <Button Variant="@(selectedViewport == "mobile" ? ButtonVariant.Primary : ButtonVariant.Outline)"
+                                OnClick="@(() => selectedViewport = "mobile")"
+                                Icon="fas fa-mobile-alt">
+                            Mobile
+                        </Button>
+                        <Button Variant="@(selectedViewport == "tablet" ? ButtonVariant.Primary : ButtonVariant.Outline)"
+                                OnClick="@(() => selectedViewport = "tablet")"
+                                Icon="fas fa-tablet-alt">
+                            Tablet
+                        </Button>
+                        <Button Variant="@(selectedViewport == "desktop" ? ButtonVariant.Primary : ButtonVariant.Outline)"
+                                OnClick="@(() => selectedViewport = "desktop")"
+                                Icon="fas fa-desktop">
+                            Desktop
+                        </Button>
+                    </div>
+                    
+                    <div class="viewport-demo @selectedViewport-viewport">
+                        <div class="responsive-layout">
+                            <div class="responsive-header">Header</div>
+                            <div class="responsive-nav">Navigation</div>
+                            <div class="responsive-main">Main Content</div>
+                            <div class="responsive-aside">Sidebar</div>
+                            <div class="responsive-footer">Footer</div>
+                        </div>
+                    </div>
+                    
+                    <div class="viewport-info @ThemeConstants.CssClasses.Margin.TopMd">
+                        <div class="info-item">
+                            <strong>Current Viewport:</strong> @selectedViewport.ToUpper()
+                        </div>
+                        <div class="info-item">
+                            <strong>Layout:</strong> @GetViewportDescription(selectedViewport)
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Implementation Guide -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="💻 Implementation Guide" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Code examples showing how to implement layouts in your Razor components.
+                </p>
+                
+                <div class="implementation-examples">
+                    <div class="example-section">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Basic Container Usage</H4>
+                        <div class="code-example">
+                            <div class="demo-result">
+                                <Container Type="ContainerType.Content">
+                                    <p class="@ThemeConstants.CssClasses.BodyMedium">Content in a standard container</p>
+                                </Container>
+                            </div>
+                            <code class="code-block">
+&lt;Container Type="ContainerType.Content"&gt;
+    &lt;p&gt;Content in a standard container&lt;/p&gt;
+&lt;/Container&gt;
+                            </code>
+                        </div>
+                    </div>
+                    
+                    <div class="example-section">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Grid Layout with CSS Classes</H4>
+                        <div class="code-example">
+                            <div class="demo-result">
+                                <div class="demo-grid grid-cols-2">
+                                    <Card Title="Card 1" Size="CardSize.Small">Content</Card>
+                                    <Card Title="Card 2" Size="CardSize.Small">Content</Card>
+                                </div>
+                            </div>
+                            <code class="code-block">
+&lt;div class="demo-grid grid-cols-2"&gt;
+    &lt;Card Title="Card 1" Size="CardSize.Small"&gt;Content&lt;/Card&gt;
+    &lt;Card Title="Card 2" Size="CardSize.Small"&gt;Content&lt;/Card&gt;
+&lt;/div&gt;
+
+&lt;style&gt;
+.demo-grid {
+    display: grid;
+    gap: var(--spacing-md);
+}
+
+.grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+&lt;/style&gt;
+                            </code>
+                        </div>
+                    </div>
+                    
+                    <div class="example-section">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Responsive Layout</H4>
+                        <div class="code-example">
+                            <code class="code-block">
+&lt;div class="responsive-grid"&gt;
+    &lt;div class="grid-item"&gt;Item 1&lt;/div&gt;
+    &lt;div class="grid-item"&gt;Item 2&lt;/div&gt;
+    &lt;div class="grid-item"&gt;Item 3&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;style&gt;
+.responsive-grid {
+    display: grid;
+    gap: var(--spacing-md);
+    grid-template-columns: 1fr;
+}
+
+/* Tablet and up */
+@@media (min-width: 768px) {
+    .responsive-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Desktop and up */
+@@media (min-width: 1024px) {
+    .responsive-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+&lt;/style&gt;
+                            </code>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Guidelines -->
+        <div class="section">
+            <Card Title="📋 Layout Guidelines" Size="CardSize.Large" CssClass="demo-card">
+                <div class="guidelines-grid">
+                    <div class="guideline-item">
+                        <div class="guideline-icon">📱</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Mobile First</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Always design layouts for mobile devices first, then enhance for larger screens using media queries.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">📐</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Consistent Spacing</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Use the spacing system consistently throughout layouts to maintain visual rhythm and hierarchy.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">🔄</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Flexible Content</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Design layouts that can accommodate varying content lengths and different types of content.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">⚡</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Performance</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Use CSS Grid and Flexbox efficiently to minimize layout shifts and improve rendering performance.
+                        </p>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Copy Feedback -->
+        @if (showCopyFeedback)
+        {
+            <div class="copy-feedback">
+                <div class="feedback-message">
+                    <i class="fas fa-check-circle"></i>
+                    Code copied to clipboard!
+                </div>
+            </div>
+        }
+    </div>
+</Container>
+
+@code {
+    private string selectedViewport = "desktop";
+    private bool showCopyFeedback = false;
+    
+    public class ContainerTypeInfo
+    {
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Type { get; set; } = "";
+        public string CssClass { get; set; } = "";
+    }
+    
+    public class FlexDemo
+    {
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string CssClass { get; set; } = "";
+        public string Code { get; set; } = "";
+        public List<string> Items { get; set; } = new();
+    }
+    
+    private List<ContainerTypeInfo> GetContainerTypes()
+    {
+        return new List<ContainerTypeInfo>
+        {
+            new() { 
+                Name = "Screen Container", 
+                Description = "Full-width container that spans the entire viewport width", 
+                Type = "ContainerType.Screen",
+                CssClass = "container-screen"
+            },
+            new() { 
+                Name = "Content Container", 
+                Description = "Standard content container with max-width and responsive padding", 
+                Type = "ContainerType.Content",
+                CssClass = "container-content"
+            },
+            new() { 
+                Name = "Centered Container", 
+                Description = "Centered container with constrained width for focused content", 
+                Type = "ContainerType.ScreenCentered",
+                CssClass = "container-centered"
+            },
+            new() { 
+                Name = "Fluid Container", 
+                Description = "Flexible container that adapts to content with minimal constraints", 
+                Type = "ContainerType.Fluid",
+                CssClass = "container-fluid"
+            }
+        };
+    }
+    
+    private List<FlexDemo> GetFlexDemos()
+    {
+        return new List<FlexDemo>
+        {
+            new() {
+                Title = "Horizontal Layout",
+                Description = "Items arranged horizontally with equal spacing",
+                CssClass = "flex-horizontal",
+                Code = "display: flex; gap: var(--spacing-md);",
+                Items = new() { "Item 1", "Item 2", "Item 3" }
+            },
+            new() {
+                Title = "Space Between",
+                Description = "Items with maximum space between them",
+                CssClass = "flex-space-between",
+                Code = "display: flex; justify-content: space-between;",
+                Items = new() { "Start", "Middle", "End" }
+            },
+            new() {
+                Title = "Center Alignment",
+                Description = "Items centered both horizontally and vertically",
+                CssClass = "flex-center",
+                Code = "display: flex; justify-content: center; align-items: center;",
+                Items = new() { "Centered" }
+            },
+            new() {
+                Title = "Column Layout",
+                Description = "Items stacked vertically",
+                CssClass = "flex-column",
+                Code = "display: flex; flex-direction: column; gap: var(--spacing-sm);",
+                Items = new() { "Top", "Middle", "Bottom" }
+            },
+            new() {
+                Title = "Wrap Layout",
+                Description = "Items wrap to new lines when space is limited",
+                CssClass = "flex-wrap",
+                Code = "display: flex; flex-wrap: wrap; gap: var(--spacing-sm);",
+                Items = new() { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" }
+            }
+        };
+    }
+    
+    private string GetViewportDescription(string viewport)
+    {
+        return viewport switch
+        {
+            "mobile" => "Single column layout with stacked navigation",
+            "tablet" => "Two column layout with collapsible sidebar",
+            "desktop" => "Multi-column layout with full navigation",
+            _ => "Unknown viewport"
+        };
+    }
+    
+    private async Task CopyCode(string code)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", code);
+            await ShowCopyFeedback();
+        }
+        catch
+        {
+            await JS.InvokeVoidAsync("prompt", "Copy this code:", code);
+        }
+    }
+    
+    private async Task ShowCopyFeedback()
+    {
+        showCopyFeedback = true;
+        StateHasChanged();
+        await Task.Delay(2000);
+        showCopyFeedback = false;
+        StateHasChanged();
+    }
+}
+
+<style>
+/* Page Header */
+.page-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Layout Stats */
+.layout-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-item span:first-child {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
+
+/* Demo Card */
+.demo-card {
+    border: 1px solid var(--color-border);
+    transition: all 0.2s ease;
+}
+
+.demo-card:hover {
+    border-color: var(--color-primary-bg);
+    box-shadow: var(--shadow-md);
+}
+
+/* Container Examples */
+.container-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+.container-demo {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.container-preview {
+    margin: var(--spacing-lg) 0;
+}
+
+.container-wrapper {
+    border: 2px dashed var(--color-primary-bg);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-sm);
+}
+
+.container-screen { max-width: 100%; }
+.container-content { max-width: 1200px; margin: 0 auto; }
+.container-centered { max-width: 800px; margin: 0 auto; }
+.container-fluid { width: 100%; }
+
+.container-content {
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-md);
+}
+
+.container-inner {
+    background-color: var(--color-primary-bg);
+    color: var(--color-primary);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    text-align: center;
+    font-weight: var(--font-weight-medium);
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.grid-sidebar-nav {
+    background-color: var(--color-secondary-bg);
+    color: var(--color-secondary);
+}
+
+.grid-main-content {
+    background-color: var(--color-success-bg);
+    color: var(--color-success);
+}
+
+.grid-article-content {
+    background-color: var(--color-info-bg);
+    color: var(--color-info);
+}
+
+.grid-article-aside {
+    background-color: var(--color-warning-bg);
+    color: var(--color-warning);
+}
+
+/* Flexbox Examples */
+.flex-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+.flex-demo-section {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.flex-demo-container {
+    margin: var(--spacing-lg) 0;
+    padding: var(--spacing-md);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+    border: 1px dashed var(--color-border);
+}
+
+.demo-flex {
+    min-height: 80px;
+}
+
+.flex-horizontal {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.flex-space-between {
+    display: flex;
+    justify-content: space-between;
+}
+
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100px;
+}
+
+.flex-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.flex-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+}
+
+.flex-item {
+    background-color: var(--color-accent-bg);
+    color: var(--color-accent);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    font-weight: var(--font-weight-medium);
+    text-align: center;
+    min-width: 80px;
+}
+
+.flex-demo-code {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background-color: var(--color-background-tertiary);
+    border-radius: var(--border-radius-md);
+}
+
+/* Layout Patterns */
+.pattern-examples {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xl);
+}
+
+@@media (min-width: 1024px) {
+    .pattern-examples {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.pattern-demo {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.layout-preview {
+    margin-top: var(--spacing-lg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    background-color: var(--color-background);
+}
+
+/* Dashboard Layout */
+.dashboard-layout {
+    display: grid;
+    grid-template-areas:
+        "header header"
+        "sidebar main";
+    grid-template-columns: 150px 1fr;
+    grid-template-rows: 40px 1fr;
+    height: 200px;
+}
+
+.layout-header {
+    grid-area: header;
+    background-color: var(--color-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 0 var(--spacing-md);
+    font-weight: var(--font-weight-medium);
+}
+
+.layout-sidebar {
+    grid-area: sidebar;
+    background-color: var(--color-secondary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--font-weight-medium);
+}
+
+.layout-main {
+    grid-area: main;
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.layout-content {
+    background-color: var(--color-background-secondary);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--font-weight-medium);
+}
+
+.layout-widgets {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+}
+
+.widget {
+    background-color: var(--color-info-bg);
+    color: var(--color-info);
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    text-align: center;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+}
+
+/* Article Layout */
+.article-layout {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    height: 200px;
+}
+
+.article-header {
+    background-color: var(--color-primary);
+    color: white;
+    padding: var(--spacing-md);
+    text-align: center;
+    font-weight: var(--font-weight-medium);
+}
+
+.article-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+}
+
+.article-text {
+    background-color: var(--color-background-secondary);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--font-weight-medium);
+}
+
+.article-aside {
+    background-color: var(--color-warning-bg);
+    color: var(--color-warning);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--font-weight-medium);
+}
+
+.article-footer {
+    background-color: var(--color-background-tertiary);
+    padding: var(--spacing-md);
+    text-align: center;
+    font-weight: var(--font-weight-medium);
+}
+
+/* Card Grid Layout */
+.card-grid-layout {
+    padding: var(--spacing-md);
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: var(--spacing-sm);
+}
+
+.card-item {
+    background-color: var(--color-success-bg);
+    color: var(--color-success);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    text-align: center;
+    font-weight: var(--font-weight-medium);
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Responsive Demo */
+.responsive-demo {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.responsive-controls {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.viewport-demo {
+    border: 2px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    margin: 0 auto;
+}
+
+.mobile-viewport {
+    max-width: 375px;
+}
+
+.tablet-viewport {
+    max-width: 768px;
+}
+
+.desktop-viewport {
+    max-width: 100%;
+}
+
+.responsive-layout {
+    display: grid;
+    min-height: 200px;
+}
+
+/* Mobile layout */
+.mobile-viewport .responsive-layout {
+    grid-template-areas:
+        "header"
+        "nav"
+        "main"
+        "aside"
+        "footer";
+    grid-template-rows: auto auto 1fr auto auto;
+}
+
+/* Tablet layout */
+.tablet-viewport .responsive-layout {
+    grid-template-areas:
+        "header header"
+        "nav main"
+        "nav aside"
+        "footer footer";
+    grid-template-columns: 120px 1fr;
+    grid-template-rows: auto 1fr auto auto;
+}
+
+/* Desktop layout */
+.desktop-viewport .responsive-layout {
+    grid-template-areas:
+        "header header header"
+        "nav main aside"
+        "footer footer footer";
+    grid-template-columns: 150px 2fr 1fr;
+    grid-template-rows: auto 1fr auto;
+}
+
+.responsive-header {
+    grid-area: header;
+    background-color: var(--color-primary);
+    color: white;
+    padding: var(--spacing-sm) var(--spacing-md);
+    display: flex;
+    align-items: center;
+    font-weight: var(--font-weight-medium);
+}
+
+.responsive-nav {
+    grid-area: nav;
+    background-color: var(--color-secondary);
+    color: white;
+    padding: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--font-weight-medium);
+}
+
+.responsive-main {
+    grid-area: main;
+    background-color: var(--color-background-secondary);
+    padding: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--font-weight-medium);
+}
+
+.responsive-aside {
+    grid-area: aside;
+    background-color: var(--color-warning-bg);
+    color: var(--color-warning);
+    padding: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--font-weight-medium);
+}
+
+.responsive-footer {
+    grid-area: footer;
+    background-color: var(--color-background-tertiary);
+    padding: var(--spacing-sm) var(--spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--font-weight-medium);
+}
+
+.viewport-info {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+
+.info-item {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+/* Implementation Examples */
+.implementation-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+.example-section {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.code-example {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.demo-result {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+    border: 1px dashed var(--color-border);
+}
+
+.code-block {
+    display: block;
+    width: 100%;
+    padding: var(--spacing-md);
+    background-color: var(--color-background-tertiary);
+    border-radius: var(--border-radius-md);
+    color: var(--color-text-primary);
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-x: auto;
+}
+
+.code-snippet {
+    background-color: var(--color-background-tertiary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-accent);
+    font-size: var(--font-size-sm);
+    font-family: 'Courier New', Consolas, monospace;
+    flex: 1;
+}
+
+/* Guidelines */
+.guidelines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.guideline-item {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.guideline-icon {
+    font-size: 48px;
+    margin-bottom: var(--spacing-md);
+    display: block;
+}
+
+/* Copy Feedback */
+.copy-feedback {
+    position: fixed;
+    bottom: var(--spacing-lg);
+    right: var(--spacing-lg);
+    z-index: 1000;
+    animation: slideInUp 0.3s ease;
+}
+
+.feedback-message {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
+    background-color: var(--color-success);
+    color: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    font-weight: var(--font-weight-medium);
+}
+
+@@keyframes slideInUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@@media (max-width: 768px) {
+    .layout-stats {
+        gap: var(--spacing-md);
+    }
+    
+    .container-examples {
+        gap: var(--spacing-lg);
+    }
+    
+    .grid-examples {
+        gap: var(--spacing-lg);
+    }
+    
+    .grid-cols-3,
+    .grid-cols-4 {
+        grid-template-columns: 1fr;
+    }
+    
+    .grid-sidebar,
+    .grid-article {
+        grid-template-columns: 1fr;
+    }
+    
+    .flex-examples {
+        gap: var(--spacing-lg);
+    }
+    
+    .flex-horizontal {
+        flex-direction: column;
+    }
+    
+    .flex-space-between {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .pattern-examples {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard-layout {
+        grid-template-areas:
+            "header"
+            "sidebar"
+            "main";
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr;
+        height: 250px;
+    }
+    
+    .article-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .responsive-controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .viewport-info {
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+    
+    .guidelines-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@@media (max-width: 480px) {
+    .copy-feedback {
+        bottom: var(--spacing-md);
+        right: var(--spacing-md);
+        left: var(--spacing-md);
+    }
+    
+    .feedback-message {
+        justify-content: center;
+    }
+    
+    .container-code,
+    .flex-demo-code {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+}
+</style>

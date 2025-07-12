@@ -1,0 +1,861 @@
+﻿@page "/icons"
+@using EasyEnglish.Theme.Components
+@using EasyEnglish.Theme.Constants
+@using EasyEnglish.Theme.Demo.Interfaces
+@inject IDemoService DemoService
+@inject IJSRuntime JS
+
+<PageTitle>Icons - EasyEnglish Theme Demo</PageTitle>
+
+<Container Type="ContainerType.Screen">
+    <div class="@ThemeConstants.CssClasses.Padding.Lg">
+        
+        <!-- Header -->
+        <div class="page-header @ThemeConstants.CssClasses.Margin.BottomXl">
+            <H1 CssClass="@ThemeConstants.CssClasses.TextPrimary @ThemeConstants.CssClasses.Margin.BottomMd">
+                ✨ Icon System
+            </H1>
+            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                Comprehensive icon library using Font Awesome with consistent sizing, colors, and accessibility features.
+            </p>
+            
+            <!-- Icon Stats -->
+            <div class="icon-stats @ThemeConstants.CssClasses.Margin.BottomLg">
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H2 @ThemeConstants.CssClasses.TextPrimary">2000+</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Available Icons</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H2 @ThemeConstants.CssClasses.TextPrimary">5</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Size Variants</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H2 @ThemeConstants.CssClasses.TextPrimary">8</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Color Options</span>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="icon-search @ThemeConstants.CssClasses.Margin.BottomLg">
+                <Input @bind-Value="searchTerm" 
+                       Placeholder="Search icons (e.g., 'user', 'home', 'edit')..." 
+                       Icon="fas fa-search"
+                       OnInput="@FilterIcons" />
+            </div>
+        </div>
+
+        <!-- Icon Categories -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📂 Icon Categories" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Browse icons by category to quickly find what you need for your interface.
+                </p>
+                
+                <div class="category-filters @ThemeConstants.CssClasses.Margin.BottomLg">
+                    @foreach (var category in iconCategories.Keys)
+                    {
+                        <Button Variant="@(selectedCategory == category ? ButtonVariant.Primary : ButtonVariant.Ghost)"
+                                OnClick="@(() => SelectCategory(category))">
+                            @category (@iconCategories[category].Count)
+                        </Button>
+                    }
+                </div>
+                
+                <div class="icons-grid">
+                    @foreach (var icon in GetFilteredIcons())
+                    {
+                        <div class="icon-item" @onclick="@(() => CopyIconClass(icon.Class))">
+                            <div class="icon-preview">
+                                <i class="@icon.Class icon-size-lg"></i>
+                            </div>
+                            <div class="icon-info">
+                                <div class="icon-name">@icon.Name</div>
+                                <code class="icon-class">@icon.Class</code>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </Card>
+        </div>
+
+        <!-- Icon Sizes -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📏 Icon Sizes" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Consistent icon sizing across different contexts and components.
+                </p>
+                
+                <div class="size-examples">
+                    @foreach (var size in GetIconSizes())
+                    {
+                        <div class="size-item">
+                            <div class="size-preview">
+                                <i class="fas fa-star @size.CssClass"></i>
+                            </div>
+                            <div class="size-info">
+                                <div class="size-name">@size.Name</div>
+                                <div class="size-value">@size.Size</div>
+                                <code class="size-class">@size.CssClass</code>
+                            </div>
+                            <div class="size-usage @ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">
+                                @size.Usage
+                            </div>
+                        </div>
+                    }
+                </div>
+            </Card>
+        </div>
+
+        <!-- Icon Colors -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="🎨 Icon Colors" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Semantic color variants for different states and contexts.
+                </p>
+                
+                <div class="color-examples">
+                    @foreach (var color in GetIconColors())
+                    {
+                        <div class="color-item">
+                            <div class="color-preview">
+                                <i class="fas fa-heart icon-size-lg @color.CssClass"></i>
+                            </div>
+                            <div class="color-info">
+                                <div class="color-name">@color.Name</div>
+                                <code class="color-class">@color.CssClass</code>
+                                <div class="color-usage @ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">
+                                    @color.Usage
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </Card>
+        </div>
+
+        <!-- Usage in Components -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="🧩 Usage in Components" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Examples of how icons integrate with theme components.
+                </p>
+                
+                <div class="component-examples">
+                    <div class="example-section">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Buttons with Icons</H4>
+                        <div class="example-demo">
+                            <Button Variant="ButtonVariant.Primary" Icon="fas fa-save">Save Changes</Button>
+                            <Button Variant="ButtonVariant.Secondary" Icon="fas fa-download">Download</Button>
+                            <Button Variant="ButtonVariant.Outline" Icon="fas fa-edit">Edit</Button>
+                            <Button Variant="ButtonVariant.Ghost" Icon="fas fa-trash">Delete</Button>
+                        </div>
+                    </div>
+                    
+                    <div class="example-section">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Input Fields with Icons</H4>
+                        <div class="example-demo">
+                            <div class="input-demo">
+                                <Input Label="Search" Placeholder="Search..." Icon="fas fa-search" />
+                            </div>
+                            <div class="input-demo">
+                                <Input Label="Email" Placeholder="Enter email" Icon="fas fa-envelope" Type="email" />
+                            </div>
+                            <div class="input-demo">
+                                <Input Label="Password" Placeholder="Enter password" Icon="fas fa-lock" Type="password" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="example-section">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Status Indicators</H4>
+                        <div class="example-demo">
+                            <div class="status-item">
+                                <i class="fas fa-check-circle @ThemeConstants.CssClasses.TextSuccess"></i>
+                                <span>Completed Task</span>
+                            </div>
+                            <div class="status-item">
+                                <i class="fas fa-exclamation-triangle @ThemeConstants.CssClasses.TextWarning"></i>
+                                <span>Warning Message</span>
+                            </div>
+                            <div class="status-item">
+                                <i class="fas fa-times-circle @ThemeConstants.CssClasses.TextError"></i>
+                                <span>Error Occurred</span>
+                            </div>
+                            <div class="status-item">
+                                <i class="fas fa-info-circle @ThemeConstants.CssClasses.TextInfo"></i>
+                                <span>Information</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="example-section">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Navigation Icons</H4>
+                        <div class="example-demo">
+                            <div class="nav-demo">
+                                <Button Variant="ButtonVariant.Ghost" Icon="fas fa-home">Home</Button>
+                                <Button Variant="ButtonVariant.Ghost" Icon="fas fa-user">Profile</Button>
+                                <Button Variant="ButtonVariant.Ghost" Icon="fas fa-cog">Settings</Button>
+                                <Button Variant="ButtonVariant.Ghost" Icon="fas fa-bell">Notifications</Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Implementation Guide -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="💻 Implementation Guide" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Code examples showing how to use icons in your components.
+                </p>
+                
+                <div class="implementation-examples">
+                    <div class="example-section">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Basic Icon Usage</H4>
+                        <div class="code-example">
+                            <div class="demo-result">
+                                <i class="fas fa-star icon-size-lg @ThemeConstants.CssClasses.TextPrimary"></i>
+                            </div>
+                            <code class="code-block">
+&lt;i class="fas fa-star icon-size-lg @@ThemeConstants.CssClasses.TextPrimary"&gt;&lt;/i&gt;
+                            </code>
+                        </div>
+                    </div>
+                    
+                    <div class="example-section">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Icons in Buttons</H4>
+                        <div class="code-example">
+                            <div class="demo-result">
+                                <Button Variant="ButtonVariant.Primary" Icon="fas fa-download">Download</Button>
+                            </div>
+                            <code class="code-block">
+&lt;Button Variant="ButtonVariant.Primary" Icon="fas fa-download"&gt;
+    Download
+&lt;/Button&gt;
+                            </code>
+                        </div>
+                    </div>
+                    
+                    <div class="example-section">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Icon-Only Buttons</H4>
+                        <div class="code-example">
+                            <div class="demo-result">
+                                <Button Variant="ButtonVariant.Ghost" Icon="fas fa-heart" AriaLabel="Add to favorites"></Button>
+                            </div>
+                            <code class="code-block">
+&lt;Button Variant="ButtonVariant.Ghost" 
+        Icon="fas fa-heart" 
+        AriaLabel="Add to favorites"&gt;
+&lt;/Button&gt;
+                            </code>
+                        </div>
+                    </div>
+
+                    <div class="example-section">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Custom Icon Styling</H4>
+                        <div class="code-example">
+                            <div class="demo-result">
+                                <i class="fas fa-exclamation-circle icon-size-xl custom-warning-icon"></i>
+                            </div>
+                            <code class="code-block">
+&lt;i class="fas fa-exclamation-circle icon-size-xl custom-warning-icon"&gt;&lt;/i&gt;
+
+&lt;style&gt;
+.custom-warning-icon {
+    color: var(--color-warning);
+    animation: pulse 2s infinite;
+}
+
+@@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+&lt;/style&gt;
+                            </code>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Guidelines -->
+        <div class="section">
+            <Card Title="📋 Icon Guidelines" Size="CardSize.Large" CssClass="demo-card">
+                <div class="guidelines-grid">
+                    <div class="guideline-item">
+                        <div class="guideline-icon">🎯</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Consistent Usage</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Use icons consistently throughout the application. Same actions should use the same icons.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">📐</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Proper Sizing</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Choose appropriate icon sizes based on context. Use larger icons for primary actions.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">♿</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Accessibility</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Always provide alt text or labels for icons, especially when used without accompanying text.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">🎨</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Color Meaning</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Use semantic colors purposefully: green for success, red for errors, blue for information.
+                        </p>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Copy Feedback -->
+        @if (showCopyFeedback)
+        {
+            <div class="copy-feedback">
+                <div class="feedback-message">
+                    <i class="fas fa-check-circle"></i>
+                    Icon class copied to clipboard!
+                </div>
+            </div>
+        }
+    </div>
+</Container>
+
+@code {
+    private string searchTerm = "";
+    private string selectedCategory = "All";
+    private bool showCopyFeedback = false;
+    
+    private Dictionary<string, List<IconItem>> iconCategories = new();
+    
+    public class IconItem
+    {
+        public string Name { get; set; } = "";
+        public string Class { get; set; } = "";
+        public string Category { get; set; } = "";
+    }
+    
+    public class SizeItem
+    {
+        public string Name { get; set; } = "";
+        public string Size { get; set; } = "";
+        public string CssClass { get; set; } = "";
+        public string Usage { get; set; } = "";
+    }
+    
+    public class ColorItem
+    {
+        public string Name { get; set; } = "";
+        public string CssClass { get; set; } = "";
+        public string Usage { get; set; } = "";
+    }
+    
+    protected override void OnInitialized()
+    {
+        InitializeIconCategories();
+    }
+    
+    private void InitializeIconCategories()
+    {
+        iconCategories = new Dictionary<string, List<IconItem>>
+        {
+            ["Navigation"] = new()
+            {
+                new() { Name = "Home", Class = "fas fa-home", Category = "Navigation" },
+                new() { Name = "Back", Class = "fas fa-arrow-left", Category = "Navigation" },
+                new() { Name = "Forward", Class = "fas fa-arrow-right", Category = "Navigation" },
+                new() { Name = "Up", Class = "fas fa-arrow-up", Category = "Navigation" },
+                new() { Name = "Down", Class = "fas fa-arrow-down", Category = "Navigation" },
+                new() { Name = "Menu", Class = "fas fa-bars", Category = "Navigation" },
+                new() { Name = "Close", Class = "fas fa-times", Category = "Navigation" },
+                new() { Name = "More", Class = "fas fa-ellipsis-h", Category = "Navigation" },
+                new() { Name = "Search", Class = "fas fa-search", Category = "Navigation" },
+                new() { Name = "Filter", Class = "fas fa-filter", Category = "Navigation" }
+            },
+            ["Actions"] = new()
+            {
+                new() { Name = "Save", Class = "fas fa-save", Category = "Actions" },
+                new() { Name = "Edit", Class = "fas fa-edit", Category = "Actions" },
+                new() { Name = "Delete", Class = "fas fa-trash", Category = "Actions" },
+                new() { Name = "Copy", Class = "fas fa-copy", Category = "Actions" },
+                new() { Name = "Download", Class = "fas fa-download", Category = "Actions" },
+                new() { Name = "Upload", Class = "fas fa-upload", Category = "Actions" },
+                new() { Name = "Print", Class = "fas fa-print", Category = "Actions" },
+                new() { Name = "Share", Class = "fas fa-share", Category = "Actions" },
+                new() { Name = "Add", Class = "fas fa-plus", Category = "Actions" },
+                new() { Name = "Remove", Class = "fas fa-minus", Category = "Actions" }
+            },
+            ["Status"] = new()
+            {
+                new() { Name = "Success", Class = "fas fa-check-circle", Category = "Status" },
+                new() { Name = "Warning", Class = "fas fa-exclamation-triangle", Category = "Status" },
+                new() { Name = "Error", Class = "fas fa-times-circle", Category = "Status" },
+                new() { Name = "Info", Class = "fas fa-info-circle", Category = "Status" },
+                new() { Name = "Loading", Class = "fas fa-spinner", Category = "Status" },
+                new() { Name = "Check", Class = "fas fa-check", Category = "Status" },
+                new() { Name = "Star", Class = "fas fa-star", Category = "Status" },
+                new() { Name = "Heart", Class = "fas fa-heart", Category = "Status" },
+                new() { Name = "Bookmark", Class = "fas fa-bookmark", Category = "Status" },
+                new() { Name = "Flag", Class = "fas fa-flag", Category = "Status" }
+            },
+            ["User"] = new()
+            {
+                new() { Name = "User", Class = "fas fa-user", Category = "User" },
+                new() { Name = "Users", Class = "fas fa-users", Category = "User" },
+                new() { Name = "Profile", Class = "fas fa-user-circle", Category = "User" },
+                new() { Name = "Settings", Class = "fas fa-cog", Category = "User" },
+                new() { Name = "Lock", Class = "fas fa-lock", Category = "User" },
+                new() { Name = "Unlock", Class = "fas fa-unlock", Category = "User" },
+                new() { Name = "Key", Class = "fas fa-key", Category = "User" },
+                new() { Name = "Shield", Class = "fas fa-shield-alt", Category = "User" },
+                new() { Name = "Crown", Class = "fas fa-crown", Category = "User" },
+                new() { Name = "ID Card", Class = "fas fa-id-card", Category = "User" }
+            },
+            ["Communication"] = new()
+            {
+                new() { Name = "Email", Class = "fas fa-envelope", Category = "Communication" },
+                new() { Name = "Phone", Class = "fas fa-phone", Category = "Communication" },
+                new() { Name = "Message", Class = "fas fa-comment", Category = "Communication" },
+                new() { Name = "Chat", Class = "fas fa-comments", Category = "Communication" },
+                new() { Name = "Bell", Class = "fas fa-bell", Category = "Communication" },
+                new() { Name = "Microphone", Class = "fas fa-microphone", Category = "Communication" },
+                new() { Name = "Video", Class = "fas fa-video", Category = "Communication" },
+                new() { Name = "Calendar", Class = "fas fa-calendar", Category = "Communication" },
+                new() { Name = "At Symbol", Class = "fas fa-at", Category = "Communication" },
+                new() { Name = "Paperclip", Class = "fas fa-paperclip", Category = "Communication" }
+            },
+            ["Files"] = new()
+            {
+                new() { Name = "File", Class = "fas fa-file", Category = "Files" },
+                new() { Name = "Folder", Class = "fas fa-folder", Category = "Files" },
+                new() { Name = "Image", Class = "fas fa-image", Category = "Files" },
+                new() { Name = "PDF", Class = "fas fa-file-pdf", Category = "Files" },
+                new() { Name = "Word", Class = "fas fa-file-word", Category = "Files" },
+                new() { Name = "Excel", Class = "fas fa-file-excel", Category = "Files" },
+                new() { Name = "Archive", Class = "fas fa-file-archive", Category = "Files" },
+                new() { Name = "Code", Class = "fas fa-file-code", Category = "Files" },
+                new() { Name = "Video File", Class = "fas fa-file-video", Category = "Files" },
+                new() { Name = "Audio File", Class = "fas fa-file-audio", Category = "Files" }
+            }
+        };
+        
+        iconCategories["All"] = iconCategories.Skip(1).SelectMany(x => x.Value).ToList();
+    }
+    
+    private List<SizeItem> GetIconSizes()
+    {
+        return new List<SizeItem>
+        {
+            new() { Name = "Extra Small", Size = "12px", CssClass = "icon-size-xs", Usage = "Inline text, small indicators" },
+            new() { Name = "Small", Size = "14px", CssClass = "icon-size-sm", Usage = "Form inputs, compact buttons" },
+            new() { Name = "Medium", Size = "16px", CssClass = "icon-size-md", Usage = "Standard buttons, menu items" },
+            new() { Name = "Large", Size = "20px", CssClass = "icon-size-lg", Usage = "Primary actions, headers" },
+            new() { Name = "Extra Large", Size = "24px", CssClass = "icon-size-xl", Usage = "Feature highlights, empty states" }
+        };
+    }
+    
+    private List<ColorItem> GetIconColors()
+    {
+        return new List<ColorItem>
+        {
+            new() { Name = "Primary", CssClass = ThemeConstants.CssClasses.TextPrimary, Usage = "Default state, main content" },
+            new() { Name = "Secondary", CssClass = ThemeConstants.CssClasses.TextSecondary, Usage = "Supporting content, less important actions" },
+            new() { Name = "Success", CssClass = ThemeConstants.CssClasses.TextSuccess, Usage = "Completed actions, positive feedback" },
+            new() { Name = "Warning", CssClass = ThemeConstants.CssClasses.TextWarning, Usage = "Caution, attention needed" },
+            new() { Name = "Error", CssClass = ThemeConstants.CssClasses.TextError, Usage = "Errors, destructive actions" },
+            new() { Name = "Info", CssClass = ThemeConstants.CssClasses.TextInfo, Usage = "Information, neutral feedback" },
+            new() { Name = "Accent", CssClass = ThemeConstants.CssClasses.TextAccent, Usage = "Highlights, special emphasis" },
+            new() { Name = "Muted", CssClass = ThemeConstants.CssClasses.TextTertiary, Usage = "Disabled states, placeholder text" }
+        };
+    }
+    
+    private void SelectCategory(string category)
+    {
+        selectedCategory = category;
+        StateHasChanged();
+    }
+    
+    private void FilterIcons()
+    {
+        StateHasChanged();
+    }
+    
+    private List<IconItem> GetFilteredIcons()
+    {
+        var icons = iconCategories[selectedCategory];
+        
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            icons = icons.Where(i => i.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                                   i.Class.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+        }
+        
+        return icons.Take(50).ToList(); // Limit to prevent UI overload
+    }
+    
+    private async Task CopyIconClass(string iconClass)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", iconClass);
+            await ShowCopyFeedback();
+        }
+        catch
+        {
+            await JS.InvokeVoidAsync("prompt", "Copy this icon class:", iconClass);
+        }
+    }
+
+    private async Task ShowCopyFeedback()
+    {
+        showCopyFeedback = true;
+        StateHasChanged();
+        await Task.Delay(2000);
+        showCopyFeedback = false;
+        StateHasChanged();
+    }
+}
+
+<style>
+/* Page Header */
+.page-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Icon Stats */
+.icon-class {
+    background-color: var(--color-background-tertiary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-accent);
+    font-size: var(--font-size-xs);
+    font-family: 'Courier New', Consolas, monospace;
+}
+
+/* Size Examples */
+.size-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.size-item {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.size-preview {
+    margin-right: var(--spacing-lg);
+    color: var(--color-primary);
+    min-width: 60px;
+    text-align: center;
+}
+
+.size-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.size-name {
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-medium);
+}
+
+.size-value {
+    color: var(--color-accent);
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: var(--font-size-sm);
+}
+
+.size-class {
+    background-color: var(--color-background-tertiary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-accent);
+    font-size: var(--font-size-xs);
+    font-family: 'Courier New', Consolas, monospace;
+    width: fit-content;
+}
+
+.size-usage {
+    margin-left: var(--spacing-lg);
+    min-width: 200px;
+}
+
+/* Color Examples */
+.color-examples {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.color-item {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.color-preview {
+    margin-right: var(--spacing-md);
+    min-width: 40px;
+    text-align: center;
+}
+
+.color-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.color-name {
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-medium);
+}
+
+.color-class {
+    background-color: var(--color-background-tertiary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-accent);
+    font-size: var(--font-size-xs);
+    font-family: 'Courier New', Consolas, monospace;
+    width: fit-content;
+}
+
+/* Component Examples */
+.component-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+.example-section {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.example-demo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+    border: 1px dashed var(--color-border);
+}
+
+.input-demo {
+    flex: 1;
+    min-width: 250px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+}
+
+.nav-demo {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+/* Implementation Examples */
+.implementation-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+.code-example {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.demo-result {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+    border: 1px dashed var(--color-border);
+    text-align: center;
+}
+
+.code-block {
+    display: block;
+    width: 100%;
+    padding: var(--spacing-md);
+    background-color: var(--color-background-tertiary);
+    border-radius: var(--border-radius-md);
+    color: var(--color-text-primary);
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-x: auto;
+}
+
+.custom-warning-icon {
+    color: var(--color-warning);
+    animation: pulse 2s infinite;
+}
+
+@@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Guidelines */
+.guidelines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.guideline-item {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.guideline-icon {
+    font-size: 48px;
+    margin-bottom: var(--spacing-md);
+    display: block;
+}
+
+/* Copy Feedback */
+.copy-feedback {
+    position: fixed;
+    bottom: var(--spacing-lg);
+    right: var(--spacing-lg);
+    z-index: 1000;
+    animation: slideInUp 0.3s ease;
+}
+
+.feedback-message {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
+    background-color: var(--color-success);
+    color: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    font-weight: var(--font-weight-medium);
+}
+
+@@keyframes slideInUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@@media (max-width: 768px) {
+    .icon-stats {
+        gap: var(--spacing-md);
+    }
+    
+    .icons-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: var(--spacing-sm);
+    }
+    
+    .icon-item {
+        padding: var(--spacing-md);
+    }
+    
+    .size-item {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-md);
+    }
+    
+    .size-usage {
+        margin-left: 0;
+        min-width: auto;
+    }
+    
+    .color-item {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-md);
+    }
+    
+    .color-preview {
+        margin-right: 0;
+    }
+    
+    .example-demo {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .nav-demo {
+        justify-content: center;
+    }
+    
+    .guidelines-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@@media (max-width: 480px) {
+    .category-filters {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .icons-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+    
+    .copy-feedback {
+        bottom: var(--spacing-md);
+        right: var(--spacing-md);
+        left: var(--spacing-md);
+    }
+    
+    .feedback-message {
+        justify-content: center;
+    }
+}
+</style>

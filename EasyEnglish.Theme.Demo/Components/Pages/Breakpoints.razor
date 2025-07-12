@@ -1,0 +1,711 @@
+﻿@page "/breakpoints"
+@using EasyEnglish.Theme.Components
+@using EasyEnglish.Theme.Constants
+@using EasyEnglish.Theme.Demo.Interfaces
+@using EasyEnglish.Theme.Services
+@inject IDemoService DemoService
+@inject IJSRuntime JS
+@inject IResponsiveService ResponsiveService
+
+<PageTitle>Breakpoints - EasyEnglish Theme Demo</PageTitle>
+
+<Container Type="ContainerType.Screen">
+    <div class="@ThemeConstants.CssClasses.Padding.Lg">
+        
+        <!-- Header -->
+        <div class="page-header @ThemeConstants.CssClasses.Margin.BottomXl">
+            <H1 CssClass="@ThemeConstants.CssClasses.TextPrimary @ThemeConstants.CssClasses.Margin.BottomMd">
+                📱 Responsive Breakpoints
+            </H1>
+            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                Mobile-first responsive design system with consistent breakpoints for optimal user experience across all devices.
+            </p>
+            
+            <!-- Current Screen Info -->
+            <div class="current-screen @ThemeConstants.CssClasses.Margin.BottomLg">
+                <Card Title="📊 Current Screen Information" CssClass="screen-info-card">
+                    <div class="screen-stats">
+                        <div class="stat-item">
+                            <span class="@ThemeConstants.CssClasses.H2 @ThemeConstants.CssClasses.TextPrimary">@currentScreenSize</span>
+                            <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Current Size</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="@ThemeConstants.CssClasses.H2 @ThemeConstants.CssClasses.TextPrimary">@currentScreenWidth px</span>
+                            <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Screen Width</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="@ThemeConstants.CssClasses.H2 @ThemeConstants.CssClasses.TextPrimary">@(ResponsiveService.IsMobile ? "Yes" : "No")</span>
+                            <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Is Mobile</span>
+                        </div>
+                    </div>
+                </Card>
+            </div>
+        </div>
+
+        <!-- Breakpoint Scale -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📏 Breakpoint Scale" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Our responsive system uses mobile-first approach with carefully chosen breakpoints based on common device sizes.
+                </p>
+                
+                <div class="breakpoint-scale">
+                    @foreach (var breakpoint in GetBreakpoints())
+                    {
+                        <div class="breakpoint-item @(IsCurrentBreakpoint(breakpoint) ? "active" : "")">
+                            <div class="breakpoint-visual">
+                                <div class="device-icon">@breakpoint.Icon</div>
+                                <div class="breakpoint-bar" style="width: @GetBarWidth(breakpoint)%;"></div>
+                            </div>
+                            
+                            <div class="breakpoint-info">
+                                <div class="breakpoint-header">
+                                    <span class="breakpoint-name @ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">
+                                        @breakpoint.Name
+                                    </span>
+                                    @if (IsCurrentBreakpoint(breakpoint))
+                                    {
+                                        <Badge Variant="BadgeVariant.Success">Current</Badge>
+                                    }
+                                </div>
+                                <div class="breakpoint-range">@breakpoint.Range</div>
+                                <div class="breakpoint-description @ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">
+                                    @breakpoint.Description
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </Card>
+        </div>
+
+        <!-- Responsive Utilities -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="🛠️ Responsive Utilities" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    CSS utility classes and programmatic helpers for responsive design implementation.
+                </p>
+                
+                <div class="utilities-grid">
+                    @foreach (var utility in GetResponsiveUtilities())
+                    {
+                        <div class="utility-item">
+                            <div class="utility-header">
+                                <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">@utility.Category</H4>
+                                <div class="utility-examples">
+                                    @foreach (var example in utility.Examples)
+                                    {
+                                        <div class="utility-example" @onclick="@(() => CopyUtility(example.Class))">
+                                            <code class="utility-class">@example.Class</code>
+                                            <span class="utility-description @ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">
+                                                @example.Description
+                                            </span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </Card>
+        </div>
+
+        <!-- Live Responsive Demo -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="🎬 Live Responsive Demo" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Interactive demonstration showing how components adapt to different screen sizes. Resize your browser to see changes.
+                </p>
+                
+                <div class="responsive-demo">
+                    <div class="demo-grid">
+                        <div class="demo-item mobile-col-1 tablet-col-2 desktop-col-3">
+                            <Card Title="Responsive Card" Size="CardSize.Small">
+                                <p class="@ThemeConstants.CssClasses.BodySmall">
+                                    This card adapts its layout based on screen size.
+                                </p>
+                                <div class="responsive-content">
+                                    <div class="mobile-stack tablet-row desktop-row">
+                                        <Button Variant="ButtonVariant.Primary" Size="ButtonSize.Small">Action</Button>
+                                        <Button Variant="ButtonVariant.Secondary" Size="ButtonSize.Small">Cancel</Button>
+                                    </div>
+                                </div>
+                            </Card>
+                        </div>
+                        
+                        <div class="demo-item mobile-col-1 tablet-col-1 desktop-col-1">
+                            <Card Title="Navigation Demo" Size="CardSize.Small">
+                                <div class="nav-demo">
+                                    <div class="mobile-hamburger tablet-hidden desktop-hidden">
+                                        <Button Variant="ButtonVariant.Ghost" Icon="fas fa-bars"></Button>
+                                    </div>
+                                    <div class="mobile-hidden tablet-inline desktop-inline">
+                                        <div class="nav-items">
+                                            <Button Variant="ButtonVariant.Ghost">Home</Button>
+                                            <Button Variant="ButtonVariant.Ghost">About</Button>
+                                            <Button Variant="ButtonVariant.Ghost">Contact</Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Card>
+                        </div>
+                        
+                        <div class="demo-item mobile-col-1 tablet-col-2 desktop-col-2">
+                            <Card Title="Typography Demo" Size="CardSize.Small">
+                                <H3 CssClass="mobile-h4 tablet-h3 desktop-h2">Responsive Heading</H3>
+                                <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                                    Font sizes adapt to provide optimal readability across devices.
+                                </p>
+                            </Card>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Implementation Guide -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="💻 Implementation Guide" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Code examples showing how to implement responsive design in your components.
+                </p>
+                
+                <div class="implementation-examples">
+                    <div class="example-section">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">CSS Media Queries</H4>
+                        <div class="code-example">
+                            <code class="code-block">
+/* Mobile first approach */
+.my-component {
+    padding: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+}
+
+/* Tablet and up */
+@@media (min-width: 768px) {
+    .my-component {
+        padding: var(--spacing-md);
+        font-size: var(--font-size-md);
+    }
+}
+
+/* Desktop and up */
+@@media (min-width: 1024px) {
+    .my-component {
+        padding: var(--spacing-lg);
+        font-size: var(--font-size-lg);
+    }
+}
+                            </code>
+                        </div>
+                    </div>
+                    
+                    <div class="example-section">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Responsive Service Usage</H4>
+                        <div class="code-example">
+                            <code class="code-block">
+@@inject IResponsiveService ResponsiveService
+
+&lt;div class="@@ResponsiveService.GetResponsiveClass("mobile-layout", "tablet-layout", "desktop-layout")"&gt;
+    @@if (ResponsiveService.IsMobile)
+    {
+        &lt;MobileComponent /&gt;
+    }
+    else
+    {
+        &lt;DesktopComponent /&gt;
+    }
+&lt;/div&gt;
+
+@@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await ResponsiveService.InitializeAsync();
+        ResponsiveService.ScreenSizeChanged += OnScreenSizeChanged;
+    }
+    
+    private void OnScreenSizeChanged(ScreenSize newSize)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+}
+                            </code>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Guidelines -->
+        <div class="section">
+            <Card Title="📋 Responsive Guidelines" Size="CardSize.Large" CssClass="demo-card">
+                <div class="guidelines-grid">
+                    <div class="guideline-item">
+                        <div class="guideline-icon">📱</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Mobile First</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Always design and develop for mobile devices first, then progressively enhance for larger screens.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">⚡</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Performance</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Optimize for mobile performance with minimal JavaScript and efficient CSS media queries.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">🎯</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Touch Targets</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Ensure interactive elements are at least 44px in size for comfortable touch interaction.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">📐</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Content Priority</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Prioritize the most important content and features for smaller screens.
+                        </p>
+                    </div>
+                </div>
+            </Card>
+        </div>
+    </div>
+</Container>
+
+@code {
+    private string currentScreenSize = "Desktop";
+    private int currentScreenWidth = 1200;
+    
+    public class BreakpointItem
+    {
+        public string Name { get; set; } = "";
+        public string Range { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public int MinWidth { get; set; }
+        public int MaxWidth { get; set; }
+    }
+    
+    public class ResponsiveUtility
+    {
+        public string Category { get; set; } = "";
+        public List<UtilityExample> Examples { get; set; } = new();
+    }
+    
+    public class UtilityExample
+    {
+        public string Class { get; set; } = "";
+        public string Description { get; set; } = "";
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await ResponsiveService.InitializeAsync();
+        ResponsiveService.ScreenSizeChanged += OnScreenSizeChanged;
+        
+        // Get current screen info
+        UpdateScreenInfo();
+        
+        // Get screen width from JS
+        try
+        {
+            currentScreenWidth = await JS.InvokeAsync<int>("window.innerWidth");
+        }
+        catch
+        {
+            currentScreenWidth = 1200; // Fallback
+        }
+    }
+    
+    private void OnScreenSizeChanged(ScreenSize newSize)
+    {
+        UpdateScreenInfo();
+        InvokeAsync(StateHasChanged);
+    }
+    
+    private void UpdateScreenInfo()
+    {
+        currentScreenSize = ResponsiveService.CurrentScreenSize.ToString();
+    }
+    
+    private List<BreakpointItem> GetBreakpoints()
+    {
+        return new List<BreakpointItem>
+        {
+            new() { Name = "Mobile", Range = "< 768px", Description = "Phones, small tablets", Icon = "📱", MinWidth = 0, MaxWidth = 767 },
+            new() { Name = "Tablet", Range = "768px - 1023px", Description = "Tablets, small laptops", Icon = "📊", MinWidth = 768, MaxWidth = 1023 },
+            new() { Name = "Desktop", Range = "1024px - 1439px", Description = "Laptops, desktop monitors", Icon = "💻", MinWidth = 1024, MaxWidth = 1439 },
+            new() { Name = "Large Desktop", Range = "> 1440px", Description = "Large monitors, wide screens", Icon = "🖥️", MinWidth = 1440, MaxWidth = 9999 }
+        };
+    }
+    
+    private List<ResponsiveUtility> GetResponsiveUtilities()
+    {
+        return new List<ResponsiveUtility>
+        {
+            new()
+            {
+                Category = "Visibility",
+                Examples = new()
+                {
+                    new() { Class = ".mobile-hidden", Description = "Hide on mobile devices" },
+                    new() { Class = ".tablet-hidden", Description = "Hide on tablet devices" },
+                    new() { Class = ".desktop-hidden", Description = "Hide on desktop devices" },
+                    new() { Class = ".mobile-only", Description = "Show only on mobile" }
+                }
+            },
+            new()
+            {
+                Category = "Layout",
+                Examples = new()
+                {
+                    new() { Class = ".tablet\\:flex-row", Description = "Flex row on tablet+" },
+                    new() { Class = ".desktop\\:grid-cols-3", Description = "3 columns on desktop+" },
+                    new() { Class = ".mobile-stack", Description = "Stack vertically on mobile" },
+                    new() { Class = ".tablet-row", Description = "Horizontal layout on tablet+" }
+                }
+            },
+            new()
+            {
+                Category = "Typography",
+                Examples = new()
+                {
+                    new() { Class = ".mobile-h4", Description = "H4 size on mobile" },
+                    new() { Class = ".tablet-h3", Description = "H3 size on tablet+" },
+                    new() { Class = ".desktop-h2", Description = "H2 size on desktop+" },
+                    new() { Class = ".tablet\\:text-lg", Description = "Large text on tablet+" }
+                }
+            },
+            new()
+            {
+                Category = "Spacing",
+                Examples = new()
+                {
+                    new() { Class = ".tablet\\:p-lg", Description = "Large padding on tablet+" },
+                    new() { Class = ".desktop\\:m-xl", Description = "XL margin on desktop+" },
+                    new() { Class = ".mobile-p-sm", Description = "Small padding on mobile" },
+                    new() { Class = ".tablet\\:gap-md", Description = "Medium gap on tablet+" }
+                }
+            }
+        };
+    }
+    
+    private bool IsCurrentBreakpoint(BreakpointItem breakpoint)
+    {
+        return currentScreenWidth >= breakpoint.MinWidth && currentScreenWidth <= breakpoint.MaxWidth;
+    }
+    
+    private double GetBarWidth(BreakpointItem breakpoint)
+    {
+        // Calculate relative width for visual representation
+        var maxWidth = 1440;
+        return Math.Min((double)breakpoint.MaxWidth / maxWidth * 100, 100);
+    }
+    
+    private async Task CopyUtility(string utilityClass)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", utilityClass);
+        }
+        catch
+        {
+            await JS.InvokeVoidAsync("prompt", "Copy this utility class:", utilityClass);
+        }
+    }
+    
+    public void Dispose()
+    {
+        if (ResponsiveService != null)
+        {
+            ResponsiveService.ScreenSizeChanged -= OnScreenSizeChanged;
+        }
+    }
+}
+
+<style>
+/* Page Header */
+.page-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Current Screen Info */
+.screen-info-card {
+    border: 2px solid var(--color-primary-bg);
+    background: linear-gradient(135deg, var(--color-primary-bg), var(--color-background-secondary));
+}
+
+.screen-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-item span:first-child {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
+
+/* Demo Card */
+.demo-card {
+    border: 1px solid var(--color-border);
+    transition: all 0.2s ease;
+}
+
+.demo-card:hover {
+    border-color: var(--color-primary-bg);
+    box-shadow: var(--shadow-md);
+}
+
+/* Breakpoint Scale */
+.breakpoint-scale {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.breakpoint-item {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+    transition: all 0.2s ease;
+}
+
+.breakpoint-item.active {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary-bg);
+    box-shadow: var(--shadow-sm);
+}
+
+.breakpoint-visual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: var(--spacing-lg);
+    min-width: 120px;
+}
+
+.device-icon {
+    font-size: 32px;
+    margin-bottom: var(--spacing-sm);
+}
+
+.breakpoint-bar {
+    height: 4px;
+    background-color: var(--color-primary);
+    border-radius: 2px;
+    min-width: 20px;
+    transition: all 0.3s ease;
+}
+
+.breakpoint-info {
+    flex: 1;
+}
+
+.breakpoint-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
+}
+
+.breakpoint-range {
+    color: var(--color-accent);
+    font-family: 'Courier New', Consolas, monospace;
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--spacing-xs);
+}
+
+/* Utilities Grid */
+.utilities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.utility-item {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.utility-header {
+    margin-bottom: var(--spacing-md);
+}
+
+.utility-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.utility-example {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.utility-example:hover {
+    border-color: var(--color-primary-bg);
+    box-shadow: var(--shadow-sm);
+}
+
+.utility-class {
+    background-color: var(--color-background-tertiary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-accent);
+    font-size: var(--font-size-sm);
+    font-family: 'Courier New', Consolas, monospace;
+}
+
+/* Responsive Demo */
+.responsive-demo {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px dashed var(--color-border);
+}
+
+.demo-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+}
+
+@@media (min-width: 768px) {
+    .demo-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@@media (min-width: 1024px) {
+    .demo-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.responsive-content {
+    margin-top: var(--spacing-md);
+}
+
+.mobile-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+@@media (min-width: 768px) {
+    .tablet-row {
+        flex-direction: row;
+    }
+}
+
+.nav-demo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nav-items {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.mobile-hamburger {
+    display: block;
+}
+
+.mobile-hidden {
+    display: none;
+}
+
+@@media (min-width: 768px) {
+    .mobile-hamburger {
+        display: none;
+    }
+    
+    .mobile-hidden {
+        display: block;
+    }
+    
+    .tablet-inline {
+        display: inline-block;
+    }
+}
+
+/* Implementation Examples */
+.implementation-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+.example-section {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.code-example {
+    margin-top: var(--spacing-md);
+}
+
+.code-block {
+    display: block;
+    width: 100%;
+    padding: var(--spacing-md);
+    background-color: var(--color-background-tertiary);
+    border-radius: var(--border-radius-md);
+    color: var(--color-text-primary);
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-x: auto;
+}
+
+/* Guidelines */
+.guidelines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.guideline-item {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.guideline-icon {
+    font-size: 48px;
+    margin-bottom: var(--spacing-md);
+    display: block;
+}
+</style>
