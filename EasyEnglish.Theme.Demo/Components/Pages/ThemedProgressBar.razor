@@ -40,7 +40,7 @@
             </div>
         </div>
 
-        <!-- Basic Progress Bars -->
+        <!-- Basic Progress Bars Section -->
         <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
             <Card Title="📈 Basic Progress Bars" Size="CardSize.Large" CssClass="demo-card">
                 <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
@@ -121,235 +121,31 @@
                         </div>
                         <ProgressBar Progress="currentProgress" />
                         <div class="progress-status @ThemeConstants.CssClasses.Margin.TopMd">
-                            
-@if
- 
-(
-currentProgress 
-==
- 
-0
-)
-
-                            
-{
-
-                                
-<
-Badge
- 
-Variant
-=
-"
-BadgeVariant.Secondary
-"
->
-Not Started
-</
-Badge
->
-
-                                
-<
-span
- 
-class
-=
-"
-@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary
-"
->
-Ready to begin your journey
-</
-span
->
-
-                            
-}
-
-                            
-else
- 
-if
- 
-(
-currentProgress 
-<
- 
-25
-)
-
-                            
-{
-
-                                
-<
-Badge
- 
-Variant
-=
-"
-BadgeVariant.Info
-"
->
-Getting Started
-</
-Badge
->
-
-                                
-<
-span
- 
-class
-=
-"
-@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary
-"
->
-Taking the first steps
-</
-span
->
-
-                            
-}
-
-                            
-else
- 
-if
- 
-(
-currentProgress 
-<
- 
-50
-)
-
-                            
-{
-
-                                
-<
-Badge
- 
-Variant
-=
-"
-BadgeVariant.Warning
-"
->
-Making Progress
-</
-Badge
->
-
-                                
-<
-span
- 
-class
-=
-"
-@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary
-"
->
-Building momentum
-</
-span
->
-
-                            
-}
-
-                            
-else
- 
-if
- 
-(
-currentProgress 
-<
- 
-100
-)
-
-                            
-{
-
-                                
-<
-Badge
- 
-Variant
-=
-"
-BadgeVariant.Success
-"
->
-Almost There
-</
-Badge
->
-
-                                
-<
-span
- 
-class
-=
-"
-@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary
-"
->
-So close to completion!
-</
-span
->
-
-                            
-}
-
-                            
-else
-
-                            
-{
-
-                                
-<
-Badge
- 
-Variant
-=
-"
-BadgeVariant.Success
-"
->
-Completed! 🎉
-</
-Badge
->
-
-                                
-<
-span
- 
-class
-=
-"
-@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary
-"
->
-Congratulations on finishing!
-</
-span
->
-
-                            
-}
-
+                            @if (currentProgress == 0)
+                            {
+                                <Badge Variant="BadgeVariant.Secondary">Not Started</Badge>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Ready to begin your journey</span>
+                            }
+                            else if (currentProgress < 25)
+                            {
+                                <Badge Variant="BadgeVariant.Info">Getting Started</Badge>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Taking the first steps</span>
+                            }
+                            else if (currentProgress < 50)
+                            {
+                                <Badge Variant="BadgeVariant.Warning">Making Progress</Badge>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Building momentum</span>
+                            }
+                            else if (currentProgress < 100)
+                            {
+                                <Badge Variant="BadgeVariant.Success">Almost There</Badge>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">So close to completion!</span>
+                            }
+                            else
+                            {
+                                <Badge Variant="BadgeVariant.Success">Completed! 🎉</Badge>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Congratulations on finishing!</span>
+                            }
                         </div>
                     </div>
                 </div>
@@ -461,7 +257,7 @@ span
                     </Card>
                     
                     <!-- Course Progress -->
-                    <Card Title="🎯 Course Progress" Size="CardSize.Large" CssClass="educational-card course-progress-card">
+                    <Card Title="🎯 Course Progress" Size="CardSize.Large" CssClass="educational-card">
                         <div class="course-overview @ThemeConstants.CssClasses.Margin.BottomLg">
                             <div class="course-stats">
                                 <div class="stat-box">
@@ -620,160 +416,407 @@ span
 </Container>
 
 <style>
-    .progress-demo {
-        background-color: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius-lg);
-        padding: var(--spacing-lg);
-    }
+/* Page Header */
+.page-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
 
-    .progress-section > * {
-        margin-bottom: var(--spacing-md);
-    }
-    
-    .progress-item {
-        margin-bottom: var(--spacing-lg);
-    }
-    
-    .progress-item:last-child {
-        margin-bottom: 0;
-    }
-    
-    .progress-item span {
-        display: block;
-        margin-bottom: var(--spacing-sm);
-    }
+/* Component Stats */
+.component-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    flex-wrap: wrap;
+}
 
-    .interactive-demo {
-        padding: var(--spacing-md);
-    }
+.stat-item {
+    text-align: center;
+}
 
-    .demo-controls {
-        display: flex;
+.stat-item span:first-child {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
+
+/* Demo Sections */
+.demo-card {
+    border: 1px solid var(--color-border);
+    transition: all 0.2s ease;
+}
+
+.demo-card:hover {
+    border-color: var(--color-primary-bg);
+    box-shadow: var(--shadow-md);
+}
+
+.demo-section {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    border: 1px dashed var(--color-border);
+}
+
+/* Progress Examples */
+.progress-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+.progress-demo-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.demo-info {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-md);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+}
+
+.demo-info code {
+    background-color: var(--color-background-tertiary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-accent);
+    font-size: var(--font-size-xs);
+    font-family: 'Courier New', Consolas, monospace;
+}
+
+/* Interactive Progress */
+.feature-demo {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--color-border);
+}
+
+.interactive-progress {
+    text-align: center;
+}
+
+.progress-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-xl);
+}
+
+.progress-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.progress-status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+/* Educational Examples */
+.educational-examples-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.educational-card {
+    height: fit-content;
+}
+
+/* Lesson Progress */
+.lesson-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.progress-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.step-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.overall-progress {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    text-align: center;
+    padding: var(--spacing-md);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-md);
+}
+
+/* Skill Assessment */
+.skill-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.skill-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.skill-detail {
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+}
+
+.assessment-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: center;
+}
+
+/* Course Progress */
+.course-progress-card {
+    grid-column: 1 / -1;
+}
+
+.course-overview {
+    text-align: center;
+}
+
+.course-stats {
+    display: flex;
+    justify-content: space-around;
+    gap: var(--spacing-lg);
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.module-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.module-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+/* Code Examples */
+.code-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.code-example {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+}
+
+.code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background-color: var(--color-background-tertiary);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.code-container {
+    position: relative;
+}
+
+.code-block {
+    background-color: var(--color-background);
+    padding: var(--spacing-lg);
+    margin: 0;
+    overflow-x: auto;
+}
+
+.code-block code {
+    font-family: 'Courier New', Consolas, monospace;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Guidelines */
+.guidelines-card {
+    background: linear-gradient(135deg, var(--color-background-secondary), var(--color-surface));
+    border: 1px solid var(--color-primary-bg);
+}
+
+.guidelines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.guideline-item {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.guideline-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Responsive */
+@@media (max-width: 768px) {
+    .progress-controls {
+        flex-direction: column;
         gap: var(--spacing-md);
-        margin-bottom: var(--spacing-md);
+    }
+    
+    .educational-examples-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .course-stats {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+    
+    .guidelines-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .component-stats {
+        gap: var(--spacing-md);
+    }
+    
+    .skill-detail {
         justify-content: center;
     }
     
-    .progress-display {
-        text-align: center;
-    }
-    
-    .progress-display span {
-        display: block;
-        margin-bottom: var(--spacing-sm);
-    }
-
-    /* Lesson Demo */
-    .lesson-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .lesson-steps {
-        display: flex;
+    .assessment-actions {
         flex-direction: column;
-        gap: var(--spacing-md);
     }
-    
-    .step-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: var(--spacing-sm);
-        background-color: var(--color-background-secondary);
-        border-radius: var(--border-radius-sm);
-    }
-    
-    .overall-progress {
-        text-align: center;
-        padding: var(--spacing-md);
-        background-color: var(--color-background-secondary);
-        border-radius: var(--border-radius-md);
-    }
-    
-    .overall-progress span {
-        display: block;
-        margin-bottom: var(--spacing-xs);
-    }
-
-    /* Skills Demo */
-    .skills-demo {
-        display: flex;
-        flex-direction: column;
-        gap: var(--spacing-lg);
-    }
-    
-    .skill-item {
-        display: flex;
-        flex-direction: column;
-        gap: var(--spacing-sm);
-    }
-    
-    .skill-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    /* Code Examples */
-    .code-examples {
-        display: flex;
-        flex-direction: column;
-        gap: var(--spacing-lg);
-    }
-    
-    .code-section {
-        padding: var(--spacing-lg);
-        background-color: var(--color-background-secondary);
-        border-radius: var(--border-radius-lg);
-    }
-    
-    .code-block {
-        background-color: var(--color-background);
-        padding: var(--spacing-lg);
-        border-radius: var(--border-radius-md);
-        border: 1px solid var(--color-border);
-        margin-bottom: var(--spacing-md);
-    }
-
-    .code-block code {
-        font-family: 'Courier New', Consolas, monospace;
-        color: var(--color-text-primary);
-        font-size: var(--font-size-sm);
-        line-height: 1.6;
-        white-space: pre;
-        display: block;
-    }
-
-    /* Responsive adjustments */
-    @@media (max-width: 768px) {
-        .demo-controls {
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .lesson-header {
-            flex-direction: column;
-            gap: var(--spacing-sm);
-            align-items: flex-start;
-        }
-        
-        .step-item {
-            flex-direction: column;
-            gap: var(--spacing-sm);
-            align-items: flex-start;
-        }
-        
-        .skill-header {
-            flex-direction: column;
-            gap: var(--spacing-xs);
-            align-items: flex-start;
-        }
-    }
+}
 </style>
 
 @code {
+    // Interactive progress state
+    private int currentProgress = 45;
+    private int lessonProgress = 75;
+
+    // Code examples
+    private string basicProgressCode = @"<!-- Basic Progress Bar -->
+<ProgressBar Progress=""75"" />
+
+<!-- With contextual information -->
+<div class=""progress-header"">
+    <span>Lesson Progress</span>
+    <Badge Variant=""BadgeVariant.Success"">75%</Badge>
+</div>
+<ProgressBar Progress=""75"" />
+
+<!-- Different progress levels -->
+<ProgressBar Progress=""25"" />  <!-- Starting -->
+<ProgressBar Progress=""50"" />  <!-- Halfway -->
+<ProgressBar Progress=""100"" /> <!-- Complete -->";
+
+    private string educationalProgressCode = @"<!-- Lesson Progress Example -->
+<Card Title=""Grammar Lesson"">
+    <div class=""lesson-header"">
+        <Badge Variant=""BadgeVariant.Level"" Level=""B1"">B1</Badge>
+        <Badge Variant=""BadgeVariant.Info"">30 min</Badge>
+    </div>
     
+    <div class=""progress-breakdown"">
+        <div class=""progress-step"">
+            <span>Introduction</span>
+            <Badge Variant=""BadgeVariant.Success"">✓</Badge>
+        </div>
+        <div class=""progress-step"">
+            <span>Exercises (6 of 10)</span>
+            <ProgressBar Progress=""60"" />
+        </div>
+    </div>
+    
+    <div class=""overall-progress"">
+        <ProgressBar Progress=""75"" />
+        <span>75% Complete</span>
+    </div>
+</Card>";
+
+    private string interactiveProgressCode = @"<!-- Interactive Progress Control -->
+@code {
+    private int currentProgress = 45;
+    
+    private void AdjustProgress(int adjustment)
+    {
+        currentProgress = Math.Max(0, Math.Min(100, currentProgress + adjustment));
+    }
+}
+
+<div class=""progress-controls"">
+    <Button OnClick=""() => AdjustProgress(-10)"">-10%</Button>
+    <span>@currentProgress%</span>
+    <Button OnClick=""() => AdjustProgress(10)"">+10%</Button>
+</div>
+<ProgressBar Progress=""currentProgress"" />
+
+@if (currentProgress == 100)
+{
+    <Badge Variant=""BadgeVariant.Success"">Completed! 🎉</Badge>
+}";
+
+    private void AdjustProgress(int adjustment)
+    {
+        currentProgress = Math.Max(0, Math.Min(100, currentProgress + adjustment));
+    }
+
+    private async Task CopyToClipboard(string text)
+    {
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+    }
 }
