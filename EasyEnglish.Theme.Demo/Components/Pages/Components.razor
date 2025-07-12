@@ -1,0 +1,614 @@
+﻿@page "/components"
+@using EasyEnglish.Theme.Components
+@using EasyEnglish.Theme.Constants
+@using EasyEnglish.Theme.Demo.Interfaces
+@using EasyEnglish.Theme.Demo.Models
+@using EasyEnglish.Theme.Types
+@inject IDemoService DemoService
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<PageTitle>Components - EasyEnglish Theme Demo</PageTitle>
+
+<Container Type="ContainerType.Screen">
+    <div class="@ThemeConstants.CssClasses.Padding.Lg">
+        
+        <!-- Header -->
+        <div class="page-header @ThemeConstants.CssClasses.Margin.BottomXl">
+            <H1 CssClass="@ThemeConstants.CssClasses.TextPrimary @ThemeConstants.CssClasses.Margin.BottomMd">
+                🧩 Component Library
+            </H1>
+            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                Interactive showcase of all available components with live examples, code snippets, and customization options.
+            </p>
+            
+            <!-- Search and Filter -->
+            <div class="component-filters @ThemeConstants.CssClasses.Margin.BottomLg">
+                <div class="search-container">
+                    <Input @bind-Value="searchTerm" 
+                           Placeholder="Search components..." 
+                           Icon="fas fa-search"
+                           OnInput="@(() => FilterComponents())" />
+                </div>
+                
+                <div class="category-filters">
+                    <Button Variant="@(selectedCategory == "All" ? ButtonVariant.Primary : ButtonVariant.Ghost)" 
+                            OnClick="@(() => FilterByCategory("All"))">
+                        All (@componentDemos.Count)
+                    </Button>
+                    @foreach (var category in GetCategories())
+                    {
+                        <Button Variant="@(selectedCategory == category ? ButtonVariant.Primary : ButtonVariant.Ghost)" 
+                                OnClick="@(() => FilterByCategory(category))">
+                            @category (@GetCategoryCount(category))
+                        </Button>
+                    }
+                </div>
+            </div>
+            
+            <!-- Stats -->
+            <div class="component-stats">
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextPrimary">@filteredComponents.Count</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Components</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextAccent">@GetTotalVariants()</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Variants</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextSuccess">@GetCategories().Count()</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Categories</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Components Grid -->
+        @if (filteredComponents.Any())
+        {
+            <div class="components-grid">
+                @foreach (var component in filteredComponents)
+                {
+                    <Card Title="@component.Name" Size="CardSize.Large" CssClass="component-card">
+                        <div class="component-header @ThemeConstants.CssClasses.Margin.BottomMd">
+                            <div class="component-meta">
+                                <Badge Variant="BadgeVariant.Secondary">@component.Category</Badge>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">
+                                    @component.Variants.Count variant@(component.Variants.Count != 1 ? "s" : "")
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                            @component.Description
+                        </p>
+
+                        <!-- Component Variants -->
+                        <div class="variants-container @ThemeConstants.CssClasses.Margin.BottomLg">
+                            @foreach (var variant in component.Variants.Take(showAllVariants.ContainsKey(component.Id) && showAllVariants[component.Id] ? component.Variants.Count : 3))
+                            {
+                                <div class="variant-item @ThemeConstants.CssClasses.Margin.BottomMd">
+                                    <div class="variant-header @ThemeConstants.CssClasses.Margin.BottomSm">
+                                        <H4 CssClass="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">
+                                            @variant.Name
+                                        </H4>
+                                        <Button Variant="ButtonVariant.Ghost" 
+                                                Size="ButtonSize.Small" 
+                                                OnClick="@(() => CopyCode(variant.Code))"
+                                                Icon="fas fa-copy">
+                                            Copy
+                                        </Button>
+                                    </div>
+                                    
+                                    <!-- Live Preview -->
+                                    <div class="variant-preview @ThemeConstants.CssClasses.Margin.BottomSm">
+                                        @RenderComponentVariant(component.Id, variant)
+                                    </div>
+                                    
+                                    <!-- Code Example -->
+                                    <div class="code-container">
+                                        <Button Variant="ButtonVariant.Ghost" 
+                                                Size="ButtonSize.Small" 
+                                                OnClick="@(() => ToggleCode(component.Id + variant.Name))"
+                                                Icon="@(showCode.ContainsKey(component.Id + variant.Name) && showCode[component.Id + variant.Name] ? "fas fa-eye-slash" : "fas fa-eye")">
+                                            @(showCode.ContainsKey(component.Id + variant.Name) && showCode[component.Id + variant.Name] ? "Hide" : "Show") Code
+                                        </Button>
+                                        
+                                        @if (showCode.ContainsKey(component.Id + variant.Name) && showCode[component.Id + variant.Name])
+                                        {
+                                            <div class="code-snippet @ThemeConstants.CssClasses.Margin.TopSm">
+                                                <pre><code>@variant.Code</code></pre>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            
+                            @if (component.Variants.Count > 3)
+                            {
+                                <Button Variant="ButtonVariant.Outline" 
+                                        OnClick="@(() => ToggleShowAllVariants(component.Id))"
+                                        Icon="@(showAllVariants.ContainsKey(component.Id) && showAllVariants[component.Id] ? "fas fa-chevron-up" : "fas fa-chevron-down")">
+                                    @(showAllVariants.ContainsKey(component.Id) && showAllVariants[component.Id] ? "Show Less" : $"Show All {component.Variants.Count} Variants")
+                                </Button>
+                            }
+                        </div>
+
+                        <!-- Component Actions -->
+                        <div class="component-actions">
+                            <Button Variant="ButtonVariant.Primary" 
+                                    OnClick="@(() => NavigateToComponentPage(component.Id))">
+                                View Details
+                            </Button>
+                            <Button Variant="ButtonVariant.Secondary" 
+                                    OnClick="@(() => CopyAllCode(component))">
+                                Copy All Code
+                            </Button>
+                        </div>
+                    </Card>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- Empty State -->
+            <Card Title="No Components Found" Size="CardSize.Large" CssClass="empty-state">
+                <div class="empty-content">
+                    <div class="empty-icon">🔍</div>
+                    <H3 CssClass="@ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomMd">
+                        No components match your search
+                    </H3>
+                    <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextTertiary @ThemeConstants.CssClasses.Margin.BottomLg">
+                        Try adjusting your search terms or filter criteria.
+                    </p>
+                    <Button Variant="ButtonVariant.Primary" OnClick="ClearFilters">
+                        Clear Filters
+                    </Button>
+                </div>
+            </Card>
+        }
+
+        <!-- Quick Actions -->
+        <div class="quick-actions @ThemeConstants.CssClasses.Margin.TopXl">
+            <Card Title="🚀 Quick Actions" Size="CardSize.Medium">
+                <div class="actions-grid">
+                    <Button Variant="ButtonVariant.Primary" 
+                            Icon="fas fa-download" 
+                            OnClick="ExportAllCode">
+                        Export All Code
+                    </Button>
+                    <Button Variant="ButtonVariant.Secondary" 
+                            Icon="fas fa-palette" 
+                            OnClick="@(() => Navigation.NavigateTo("/colors"))">
+                        View Colors
+                    </Button>
+                    <Button Variant="ButtonVariant.Accent" 
+                            Icon="fas fa-font" 
+                            OnClick="@(() => Navigation.NavigateTo("/typography"))">
+                        Typography
+                    </Button>
+                    <Button Variant="ButtonVariant.Success" 
+                            Icon="fas fa-ruler" 
+                            OnClick="@(() => Navigation.NavigateTo("/spacing"))">
+                        Spacing Guide
+                    </Button>
+                </div>
+            </Card>
+        </div>
+    </div>
+</Container>
+
+<style>
+/* Page Header */
+.page-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto var(--spacing-xl);
+}
+
+/* Filters */
+.component-filters {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    align-items: center;
+}
+
+.search-container {
+    width: 100%;
+    max-width: 400px;
+}
+
+.category-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    justify-content: center;
+}
+
+/* Stats */
+.component-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xl);
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-item span:first-child {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
+
+/* Components Grid */
+.components-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+}
+
+.component-card {
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid var(--color-border);
+}
+
+.component-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-primary-bg);
+}
+
+.component-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.component-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+/* Variants */
+.variants-container {
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--spacing-lg);
+}
+
+.variant-item {
+    padding: var(--spacing-md);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.variant-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.variant-preview {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-tertiary);
+    border-radius: var(--border-radius-md);
+    border: 1px dashed var(--color-border);
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.code-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.code-snippet {
+    width: 100%;
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    overflow-x: auto;
+}
+
+.code-snippet pre {
+    margin: 0;
+    padding: var(--spacing-md);
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: var(--font-size-sm);
+    line-height: 1.4;
+    color: var(--color-text-primary);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.code-snippet code {
+    color: var(--color-accent);
+}
+
+/* Component Actions */
+.component-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-xl);
+}
+
+.empty-content {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: var(--spacing-lg);
+    opacity: 0.5;
+}
+
+/* Quick Actions */
+.quick-actions {
+    display: flex;
+    justify-content: center;
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--spacing-md);
+}
+
+/* Responsive */
+@@media (max-width: 768px) {
+    .components-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .component-filters {
+        align-items: stretch;
+    }
+    
+    .category-filters {
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: var(--spacing-sm);
+    }
+    
+    .component-stats {
+        flex-wrap: wrap;
+        gap: var(--spacing-md);
+    }
+    
+    .component-actions {
+        justify-content: center;
+    }
+    
+    .variant-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+}
+
+@@media (max-width: 480px) {
+    .variant-preview {
+        padding: var(--spacing-md);
+    }
+    
+    .actions-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+@code {
+    private List<ComponentDemoModel> componentDemos = new();
+    private List<ComponentDemoModel> filteredComponents = new();
+    private string searchTerm = "";
+    private string selectedCategory = "All";
+    private Dictionary<string, bool> showCode = new();
+    private Dictionary<string, bool> showAllVariants = new();
+
+    protected override void OnInitialized()
+    {
+        componentDemos = DemoService.GetComponentDemos();
+        filteredComponents = componentDemos;
+    }
+
+    private async Task FilterComponents()
+    {
+        await Task.Delay(100); // Simulate debouncing
+        
+        filteredComponents = componentDemos.Where(c =>
+            (selectedCategory == "All" || c.Category == selectedCategory) &&
+            (string.IsNullOrEmpty(searchTerm) ||
+             c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+             c.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+        ).ToList();
+        
+        StateHasChanged();
+    }
+
+    private async Task FilterByCategory(string category)
+    {
+        selectedCategory = category;
+        await FilterComponents();
+    }
+
+    private List<string> GetCategories()
+    {
+        return componentDemos.Select(c => c.Category).Distinct().OrderBy(c => c).ToList();
+    }
+
+    private int GetCategoryCount(string category)
+    {
+        return componentDemos.Count(c => c.Category == category);
+    }
+
+    private int GetTotalVariants()
+    {
+        return componentDemos.Sum(c => c.Variants.Count);
+    }
+
+    private void ToggleCode(string key)
+    {
+        if (showCode.ContainsKey(key))
+        {
+            showCode[key] = !showCode[key];
+        }
+        else
+        {
+            showCode[key] = true;
+        }
+    }
+
+    private void ToggleShowAllVariants(string componentId)
+    {
+        if (showAllVariants.ContainsKey(componentId))
+        {
+            showAllVariants[componentId] = !showAllVariants[componentId];
+        }
+        else
+        {
+            showAllVariants[componentId] = true;
+        }
+    }
+
+    private async Task CopyCode(string code)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", code);
+            // Show success message
+        }
+        catch
+        {
+            // Fallback for clipboard API
+            Console.WriteLine($"Copied: {code}");
+        }
+    }
+
+    private async Task CopyAllCode(ComponentDemoModel component)
+    {
+        var allCode = string.Join("\n\n", component.Variants.Select(v => $"// {v.Name}\n{v.Code}"));
+        await CopyCode(allCode);
+    }
+
+    private void ClearFilters()
+    {
+        searchTerm = "";
+        selectedCategory = "All";
+        filteredComponents = componentDemos;
+        StateHasChanged();
+    }
+
+    private void NavigateToComponentPage(string componentId)
+    {
+        // Navigate to specific component page if it exists
+        Navigation.NavigateTo($"/components/{componentId}");
+    }
+
+    private async Task ExportAllCode()
+    {
+        var allCode = string.Join("\n\n", componentDemos.SelectMany(c => 
+            c.Variants.Select(v => $"// {c.Name} - {v.Name}\n{v.Code}")
+        ));
+        
+        await CopyCode(allCode);
+        // In real app, could also download as file
+    }
+
+    private RenderFragment RenderComponentVariant(string componentId, ComponentVariantModel variant)
+    {
+        return builder =>
+        {
+            // This would render the actual component based on the componentId and variant
+            // For demo purposes, we'll show a placeholder
+            switch (componentId.ToLower())
+            {
+                case "button":
+                    builder.OpenComponent<EasyEnglish.Theme.Components.Button>(0);
+                    foreach (var prop in variant.Props)
+                    {
+                        if (prop.Key == "Variant" && Enum.TryParse<ButtonVariant>(prop.Value.ToString(), out var buttonVariant))
+                        {
+                            builder.AddAttribute(1, "Variant", buttonVariant);
+                        }
+                        else if (prop.Key == "Size" && Enum.TryParse<ButtonSize>(prop.Value.ToString(), out var buttonSize))
+                        {
+                            builder.AddAttribute(2, "Size", buttonSize);
+                        }
+                    }
+                    builder.AddAttribute(3, "ChildContent", (RenderFragment)(childBuilder =>
+                    {
+                        childBuilder.AddContent(0, variant.Name);
+                    }));
+                    builder.CloseComponent();
+                    break;
+                    
+                case "badge":
+                    builder.OpenComponent<EasyEnglish.Theme.Components.Badge>(0);
+                    foreach (var prop in variant.Props)
+                    {
+                        if (prop.Key == "Variant" && Enum.TryParse<BadgeVariant>(prop.Value.ToString(), out var badgeVariant))
+                        {
+                            builder.AddAttribute(1, "Variant", badgeVariant);
+                        }
+                        else if (prop.Key == "Level")
+                        {
+                            builder.AddAttribute(2, "Level", prop.Value.ToString());
+                        }
+                        else if (prop.Key == "PartOfSpeech")
+                        {
+                            builder.AddAttribute(3, "PartOfSpeech", prop.Value.ToString());
+                        }
+                    }
+                    builder.AddAttribute(4, "ChildContent", (RenderFragment)(childBuilder =>
+                    {
+                        childBuilder.AddContent(0, variant.Name);
+                    }));
+                    builder.CloseComponent();
+                    break;
+                    
+                case "progressbar":
+                    builder.OpenComponent<EasyEnglish.Theme.Components.ProgressBar>(0);
+                    foreach (var prop in variant.Props)
+                    {
+                        if (prop.Key == "Progress" && double.TryParse(prop.Value.ToString(), out var progress))
+                        {
+                            builder.AddAttribute(1, "Progress", progress);
+                        }
+                        else if (prop.Key == "Min" && double.TryParse(prop.Value.ToString(), out var min))
+                        {
+                            builder.AddAttribute(2, "Min", min);
+                        }
+                        else if (prop.Key == "Max" && double.TryParse(prop.Value.ToString(), out var max))
+                        {
+                            builder.AddAttribute(3, "Max", max);
+                        }
+                    }
+                    builder.CloseComponent();
+                    break;
+                    
+                default:
+                    builder.OpenElement(0, "div");
+                    builder.AddAttribute(1, "class", "demo-placeholder");
+                    builder.AddContent(2, $"Preview: {variant.Name}");
+                    builder.CloseElement();
+                    break;
+            }
+        };
+    }
+}

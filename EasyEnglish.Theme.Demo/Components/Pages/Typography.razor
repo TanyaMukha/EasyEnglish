@@ -1,130 +1,1051 @@
 ﻿@page "/typography"
 @using EasyEnglish.Theme.Components
 @using EasyEnglish.Theme.Constants
+@using EasyEnglish.Theme.Demo.Interfaces
+@using EasyEnglish.Theme.Demo.Models
+@inject IDemoService DemoService
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
 
-<PageTitle>Typography - Theme Demo</PageTitle>
+<PageTitle>Typography - EasyEnglish Theme Demo</PageTitle>
 
-<Container>
-    <H1 CssClass="@ThemeConstants.CssClasses.Margin.BottomLg">
-        Typography System
-    </H1>
-    
-    <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomXl">
-        Complete typography scale with consistent spacing and responsive font sizes.
-    </p>
-
-    <!-- Headings -->
-    <Card Title="Headings" CssClass="@ThemeConstants.CssClasses.Margin.BottomXl">
-        <div class="typography-examples">
-            <div class="typography-example">
-                <H1>Heading 1 (H1)</H1>
-                <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
-                    Primary page titles, font-size: 48px, font-weight: 700
-                </p>
+<Container Type="ContainerType.Screen">
+    <div class="@ThemeConstants.CssClasses.Padding.Lg">
+        
+        <!-- Header -->
+        <div class="page-header @ThemeConstants.CssClasses.Margin.BottomXl">
+            <H1 CssClass="@ThemeConstants.CssClasses.TextPrimary @ThemeConstants.CssClasses.Margin.BottomMd">
+                📝 Typography System
+            </H1>
+            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                Comprehensive typography scale with consistent line heights, responsive sizing, and semantic text styles optimized for reading and accessibility.
+            </p>
+            
+            <!-- Typography Stats -->
+            <div class="typography-stats @ThemeConstants.CssClasses.Margin.BottomLg">
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextPrimary">8</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Font Sizes</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextAccent">6</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Headings</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextSuccess">1.5</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Scale Ratio</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextInfo">16px</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Base Size</span>
+                </div>
             </div>
             
-            <div class="typography-example">
-                <H2>Heading 2 (H2)</H2>
-                <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
-                    Section titles, font-size: 36px, font-weight: 600
-                </p>
-            </div>
-            
-            <div class="typography-example">
-                <H3>Heading 3 (H3)</H3>
-                <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
-                    Subsection titles, font-size: 28px, font-weight: 600
-                </p>
-            </div>
-            
-            <div class="typography-example">
-                <H4>Heading 4 (H4)</H4>
-                <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
-                    Component titles, font-size: 24px, font-weight: 600
-                </p>
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <Button Variant="ButtonVariant.Primary" OnClick="ExportTypographyCSS" Icon="fas fa-download">
+                    Export CSS
+                </Button>
+                <Button Variant="ButtonVariant.Secondary" OnClick="CopyTypographyTokens" Icon="fas fa-copy">
+                    Copy Tokens
+                </Button>
+                <Button Variant="ButtonVariant.Outline" OnClick="TogglePreviewText" Icon="fas fa-text-width">
+                    @(showLongText ? "Short Text" : "Long Text")
+                </Button>
             </div>
         </div>
-    </Card>
 
-    <!-- Body Text -->
-    <Card Title="Body Text" CssClass="@ThemeConstants.CssClasses.Margin.BottomXl">
-        <div class="typography-examples">
-            <div class="typography-example">
-                <p class="@ThemeConstants.CssClasses.BodyLarge">
-                    Large body text - used for introductory paragraphs and important content.
+        <!-- Font Scale -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📏 Type Scale" Size="CardSize.Large" CssClass="scale-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Responsive typography scale based on a 1.25 ratio with fluid sizing that adapts to screen size.
                 </p>
-                <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
-                    font-size: 20px, line-height: 1.6
-                </p>
-            </div>
-            
-            <div class="typography-example">
-                <p class="@ThemeConstants.CssClasses.BodyMedium">
-                    Medium body text - the default text size for most content and descriptions.
-                </p>
-                <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
-                    font-size: 16px, line-height: 1.5
-                </p>
-            </div>
-            
-            <div class="typography-example">
-                <p class="@ThemeConstants.CssClasses.BodySmall">
-                    Small body text - used for captions, metadata, and secondary information.
-                </p>
-                <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
-                    font-size: 14px, line-height: 1.4
-                </p>
-            </div>
+                
+                <div class="type-scale">
+                    @foreach (var example in GetTypographyExamples())
+                    {
+                        <div class="scale-item">
+                            <div class="scale-preview">
+                                <div class="@example.CssClass">
+                                    @(showLongText ? example.LongSample : example.Sample)
+                                </div>
+                            </div>
+                            
+                            <div class="scale-info">
+                                <div class="scale-meta">
+                                    <span class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">
+                                        @example.Name
+                                    </span>
+                                    <div class="scale-specs">
+                                        <code class="@ThemeConstants.CssClasses.Caption">@example.FontSize</code>
+                                        <code class="@ThemeConstants.CssClasses.Caption">@example.LineHeight</code>
+                                        <code class="@ThemeConstants.CssClasses.Caption">@example.FontWeight</code>
+                                    </div>
+                                </div>
+                                
+                                <div class="scale-actions">
+                                    <Button Variant="ButtonVariant.Ghost" 
+                                            Size="ButtonSize.Small" 
+                                            OnClick="@(() => CopyClassName(example.CssClass))"
+                                            Icon="fas fa-copy">
+                                    </Button>
+                                    <Button Variant="ButtonVariant.Ghost" 
+                                            Size="ButtonSize.Small" 
+                                            OnClick="@(() => ShowTypographyDetails(example))"
+                                            Icon="fas fa-info-circle">
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </Card>
         </div>
-    </Card>
 
-    <!-- Text Colors -->
-    <Card Title="Text Colors">
-        <div class="typography-examples">
-            <div class="typography-example">
-                <p class="@ThemeConstants.CssClasses.BodyMedium">
-                    Primary text - main content color for optimal readability.
+        <!-- Text Colors -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="🎨 Text Colors" Size="CardSize.Large">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Semantic text colors designed for optimal contrast and hierarchy in dark theme environments.
                 </p>
-            </div>
-            
-            <div class="typography-example">
-                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary">
-                    Secondary text - used for descriptions and supporting content.
-                </p>
-            </div>
-            
-            <div class="typography-example">
-                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSuccess">
-                    Success text - for positive status messages and confirmations.
-                </p>
-            </div>
-            
-            <div class="typography-example">
-                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextWarning">
-                    Warning text - for caution and attention-required messages.
-                </p>
-            </div>
-            
-            <div class="typography-example">
-                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextError">
-                    Error text - for error states and validation messages.
-                </p>
-            </div>
+                
+                <div class="text-colors-grid">
+                    <div class="color-demo-item">
+                        <div class="@ThemeConstants.CssClasses.TextPrimary @ThemeConstants.CssClasses.BodyLarge">
+                            Primary Text
+                        </div>
+                        <div class="color-info">
+                            <code>.text-primary</code>
+                            <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Main content, headings</span>
+                        </div>
+                    </div>
+                    
+                    <div class="color-demo-item">
+                        <div class="@ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.BodyLarge">
+                            Secondary Text
+                        </div>
+                        <div class="color-info">
+                            <code>.text-secondary</code>
+                            <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Supporting content</span>
+                        </div>
+                    </div>
+                    
+                    <div class="color-demo-item">
+                        <div class="@ThemeConstants.CssClasses.TextTertiary @ThemeConstants.CssClasses.BodyLarge">
+                            Tertiary Text
+                        </div>
+                        <div class="color-info">
+                            <code>.text-tertiary</code>
+                            <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Captions, metadata</span>
+                        </div>
+                    </div>
+                    
+                    <div class="color-demo-item">
+                        <div class="@ThemeConstants.CssClasses.TextMuted @ThemeConstants.CssClasses.BodyLarge">
+                            Muted Text
+                        </div>
+                        <div class="color-info">
+                            <code>.text-muted</code>
+                            <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Disabled, placeholder</span>
+                        </div>
+                    </div>
+                    
+                    <div class="color-demo-item">
+                        <div class="@ThemeConstants.CssClasses.TextSuccess @ThemeConstants.CssClasses.BodyLarge">
+                            Success Text
+                        </div>
+                        <div class="color-info">
+                            <code>.text-success</code>
+                            <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Positive feedback</span>
+                        </div>
+                    </div>
+                    
+                    <div class="color-demo-item">
+                        <div class="@ThemeConstants.CssClasses.TextWarning @ThemeConstants.CssClasses.BodyLarge">
+                            Warning Text
+                        </div>
+                        <div class="color-info">
+                            <code>.text-warning</code>
+                            <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Caution, attention</span>
+                        </div>
+                    </div>
+                    
+                    <div class="color-demo-item">
+                        <div class="@ThemeConstants.CssClasses.TextError @ThemeConstants.CssClasses.BodyLarge">
+                            Error Text
+                        </div>
+                        <div class="color-info">
+                            <code>.text-error</code>
+                            <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Errors, validation</span>
+                        </div>
+                    </div>
+                    
+                    <div class="color-demo-item">
+                        <div class="@ThemeConstants.CssClasses.TextAccent @ThemeConstants.CssClasses.BodyLarge">
+                            Accent Text
+                        </div>
+                        <div class="color-info">
+                            <code>.text-accent</code>
+                            <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Highlights, links</span>
+                        </div>
+                    </div>
+                </div>
+            </Card>
         </div>
-    </Card>
+
+        <!-- Reading Experience -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📖 Reading Experience" Size="CardSize.Large">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Typography optimized for comfortable reading with proper line spacing, contrast, and responsive sizing.
+                </p>
+                
+                <div class="reading-samples">
+                    <div class="reading-sample">
+                        <H3 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Article Heading</H3>
+                        <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.Margin.BottomMd">
+                            This is an example of body large text which is perfect for introductory paragraphs or lead text. 
+                            It provides excellent readability with optimal line height and spacing.
+                        </p>
+                        <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.Margin.BottomMd">
+                            Regular body text is designed for comfortable reading over longer periods. The line height of 1.6 
+                            ensures proper spacing between lines, while the font size remains legible across all devices. 
+                            This text demonstrates how our typography system maintains readability in dark theme environments.
+                        </p>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Small body text is used for secondary information, captions, or supporting details that don't require 
+                            as much visual prominence but still need to be easily readable.
+                        </p>
+                    </div>
+                    
+                    <div class="reading-metrics">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Reading Metrics</H4>
+                        <div class="metrics-grid">
+                            <div class="metric-item">
+                                <span class="@ThemeConstants.CssClasses.H4 @ThemeConstants.CssClasses.TextPrimary">65-75</span>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Characters per line</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="@ThemeConstants.CssClasses.H4 @ThemeConstants.CssClasses.TextAccent">1.6</span>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Line height ratio</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="@ThemeConstants.CssClasses.H4 @ThemeConstants.CssClasses.TextSuccess">4.5:1</span>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Contrast ratio</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Font Weights & Styles -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="⚖️ Font Weights & Styles" Size="CardSize.Large">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Available font weights and styles to create proper hierarchy and emphasis.
+                </p>
+                
+                <div class="weights-grid">
+                    <div class="weight-item">
+                        <div class="weight-sample" style="font-weight: 300;">
+                            Light Weight (300)
+                        </div>
+                        <code class="@ThemeConstants.CssClasses.Caption">font-weight-light</code>
+                    </div>
+                    
+                    <div class="weight-item">
+                        <div class="weight-sample" style="font-weight: 400;">
+                            Normal Weight (400)
+                        </div>
+                        <code class="@ThemeConstants.CssClasses.Caption">font-weight-normal</code>
+                    </div>
+                    
+                    <div class="weight-item">
+                        <div class="weight-sample" style="font-weight: 500;">
+                            Medium Weight (500)
+                        </div>
+                        <code class="@ThemeConstants.CssClasses.Caption">font-weight-medium</code>
+                    </div>
+                    
+                    <div class="weight-item">
+                        <div class="weight-sample" style="font-weight: 600;">
+                            Semibold Weight (600)
+                        </div>
+                        <code class="@ThemeConstants.CssClasses.Caption">font-weight-semibold</code>
+                    </div>
+                    
+                    <div class="weight-item">
+                        <div class="weight-sample" style="font-weight: 700;">
+                            Bold Weight (700)
+                        </div>
+                        <code class="@ThemeConstants.CssClasses.Caption">font-weight-bold</code>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Usage Guidelines -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📋 Usage Guidelines" Size="CardSize.Large" CssClass="guidelines-card">
+                <div class="guidelines-grid">
+                    <div class="guideline-item">
+                        <div class="guideline-icon">📰</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Hierarchy</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Use H1-H6 for content hierarchy. Limit to 3-4 heading levels per page for optimal readability.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">📏</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Line Length</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Keep line length between 45-75 characters for optimal reading comfort and comprehension.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">🎯</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Emphasis</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Use font weight and color, not just size, to create emphasis and guide user attention.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">📱</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Responsive</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Typography automatically scales for different screen sizes using fluid typography principles.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">♿</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Accessibility</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            All text meets WCAG AA contrast standards and maintains readability at 200% zoom.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">🌐</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Language Learning</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Typography supports multiple languages and includes styles for language learning contexts.
+                        </p>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Code Examples -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="💻 Code Examples" Size="CardSize.Large">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Copy-paste ready examples for implementing typography in your Blazor components.
+                </p>
+                
+                <div class="code-examples">
+                    <div class="code-example @ThemeConstants.CssClasses.Margin.BottomLg">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Basic Usage</H4>
+                        <div class="code-container">
+                            <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Small" OnClick="@(() => CopyCode(basicUsageCode))" Icon="fas fa-copy">
+                                Copy
+                            </Button>
+                            <pre class="code-block"><code>@basicUsageCode</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="code-example @ThemeConstants.CssClasses.Margin.BottomLg">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">With Theme Classes</H4>
+                        <div class="code-container">
+                            <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Small" OnClick="@(() => CopyCode(themeClassesCode))" Icon="fas fa-copy">
+                                Copy
+                            </Button>
+                            <pre class="code-block"><code>@themeClassesCode</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="code-example">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Custom CSS</H4>
+                        <div class="code-container">
+                            <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Small" OnClick="@(() => CopyCode(customCssCode))" Icon="fas fa-copy">
+                                Copy
+                            </Button>
+                            <pre class="code-block"><code>@customCssCode</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Typography Tokens Export -->
+        <Card Title="📤 Typography Tokens" Size="CardSize.Medium" CssClass="export-card">
+            <div class="export-options">
+                <Button Variant="ButtonVariant.Primary" OnClick="ExportAsDesignTokens" Icon="fas fa-download">
+                    Design Tokens
+                </Button>
+                <Button Variant="ButtonVariant.Secondary" OnClick="ExportAsSassVariables" Icon="fas fa-file-code">
+                    SASS Variables
+                </Button>
+                <Button Variant="ButtonVariant.Accent" OnClick="ExportAsCSSCustomProps" Icon="fas fa-palette">
+                    CSS Properties
+                </Button>
+            </div>
+        </Card>
+    </div>
 </Container>
 
 <style>
-.typography-examples {
+/* Page Header */
+.page-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Stats */
+.typography-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-item span:first-child {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
+
+/* Quick Actions */
+.quick-actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+/* Type Scale */
+.scale-card {
+    border: 1px solid var(--color-border);
+}
+
+.type-scale {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-lg);
 }
 
-.typography-example {
-    padding: var(--spacing-md);
+.scale-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
     border: 1px solid var(--color-border);
-    border-radius: var(--border-radius-md);
+    transition: all 0.2s ease;
+}
+
+.scale-item:hover {
+    border-color: var(--color-primary-bg);
+    box-shadow: var(--shadow-sm);
+}
+
+.scale-preview {
+    flex: 1;
+    min-width: 0;
+}
+
+.scale-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    min-width: 200px;
+}
+
+.scale-meta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.scale-specs {
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+}
+
+.scale-specs code {
+    background-color: var(--color-background-tertiary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-xs);
+}
+
+.scale-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+/* Text Colors */
+.text-colors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.color-demo-item {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+    text-align: center;
+}
+
+.color-info {
+    margin-top: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.color-info code {
+    background-color: var(--color-background-tertiary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-accent);
+    font-size: var(--font-size-sm);
+}
+
+/* Reading Experience */
+.reading-samples {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--spacing-xl);
+}
+
+.reading-sample {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border-left: 4px solid var(--color-primary);
+}
+
+.reading-metrics {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-tertiary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.metrics-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.metric-item {
+    text-align: center;
+    padding: var(--spacing-md);
     background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+}
+
+.metric-item span:first-child {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
+
+/* Font Weights */
+.weights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.weight-item {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.weight-sample {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-md);
+    color: var(--color-text-primary);
+}
+
+/* Guidelines */
+.guidelines-card {
+    background: linear-gradient(135deg, var(--color-background-secondary), var(--color-surface));
+    border: 1px solid var(--color-primary-bg);
+}
+
+.guidelines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.guideline-item {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.guideline-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Code Examples */
+.code-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.code-example {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+}
+
+.code-container {
+    position: relative;
+}
+
+.code-container button {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    z-index: 2;
+}
+
+.code-block {
+    background-color: var(--color-background);
+    padding: var(--spacing-lg);
+    margin: 0;
+    overflow-x: auto;
+    border-top: 1px solid var(--color-border);
+}
+
+.code-block code {
+    font-family: 'Courier New', Consolas, monospace;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Export Card */
+.export-card {
+    text-align: center;
+}
+
+.export-options {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+/* Responsive */
+@@media (max-width: 768px) {
+    .scale-item {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .scale-info {
+        min-width: auto;
+    }
+    
+    .reading-samples {
+        grid-template-columns: 1fr;
+    }
+    
+    .text-colors-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .weights-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .guidelines-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .typography-stats {
+        gap: var(--spacing-md);
+    }
+    
+    .scale-specs {
+        justify-content: center;
+    }
+    
+    .scale-actions {
+        justify-content: center;
+    }
+}
+
+@@media (max-width: 480px) {
+    .weights-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .export-options {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .quick-actions {
+        flex-direction: column;
+        align-items: center;
+    }
 }
 </style>
+
+@code {
+    private bool showLongText = false;
+    private TypographyExampleModel? selectedExample;
+    
+    private readonly string basicUsageCode = @"
+<!-- Basic heading usage -->
+<H1>Main Page Title</H1>
+<H2>Section Heading</H2>
+<H3>Subsection Heading</H3>
+
+<!-- Body text -->
+<p class=""body-large"">Lead paragraph text</p>
+<p class=""body-medium"">Regular paragraph text</p>
+<p class=""body-small"">Small supporting text</p>";
+
+    private readonly string themeClassesCode = @"
+<!-- Using theme constants -->
+<H1 CssClass=""@ThemeConstants.CssClasses.TextPrimary"">
+    Themed Heading
+</H1>
+
+<p class=""@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary"">
+    Paragraph with theme classes
+</p>
+
+<span class=""@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextMuted"">
+    Small caption text
+</span>";
+
+    private readonly string customCssCode = @"
+/* Custom typography using CSS variables */
+.my-custom-heading {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.my-body-text {
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
+    color: var(--color-text-secondary);
+}";
+
+    protected override void OnInitialized()
+    {
+        // Initialize any data if needed
+    }
+
+    private List<TypographyExampleModel> GetTypographyExamples()
+    {
+        return new List<TypographyExampleModel>
+        {
+            new TypographyExampleModel
+            { 
+                Name = "Display", 
+                CssClass = GetCssClassSafely("Display"), 
+                Sample = "Display Text", 
+                LongSample = "This is display text used for hero sections and major headings",
+                FontSize = "3.5rem", 
+                LineHeight = "1.1", 
+                FontWeight = "700" 
+            },
+            new TypographyExampleModel
+            { 
+                Name = "H1", 
+                CssClass = GetCssClassSafely("H1"), 
+                Sample = "Heading Level 1", 
+                LongSample = "Main page headings and primary section titles",
+                FontSize = "2.5rem", 
+                LineHeight = "1.2", 
+                FontWeight = "600" 
+            },
+            new TypographyExampleModel
+            { 
+                Name = "H2", 
+                CssClass = GetCssClassSafely("H2"), 
+                Sample = "Heading Level 2", 
+                LongSample = "Secondary headings for major content sections",
+                FontSize = "2rem", 
+                LineHeight = "1.3", 
+                FontWeight = "600" 
+            },
+            new TypographyExampleModel
+            { 
+                Name = "H3", 
+                CssClass = GetCssClassSafely("H3"), 
+                Sample = "Heading Level 3", 
+                LongSample = "Subsection headings within content areas",
+                FontSize = "1.5rem", 
+                LineHeight = "1.4", 
+                FontWeight = "600" 
+            },
+            new TypographyExampleModel
+            { 
+                Name = "Body Large", 
+                CssClass = GetCssClassSafely("BodyLarge"), 
+                Sample = "Large body text", 
+                LongSample = "Lead paragraphs and introductory text that needs more prominence",
+                FontSize = "1.125rem", 
+                LineHeight = "1.6", 
+                FontWeight = "400" 
+            },
+            new TypographyExampleModel
+            { 
+                Name = "Body Medium", 
+                CssClass = GetCssClassSafely("BodyMedium"), 
+                Sample = "Regular body text", 
+                LongSample = "Standard paragraph text for main content and regular reading",
+                FontSize = "1rem", 
+                LineHeight = "1.6", 
+                FontWeight = "400" 
+            },
+            new TypographyExampleModel
+            { 
+                Name = "Body Small", 
+                CssClass = GetCssClassSafely("BodySmall"), 
+                Sample = "Small body text", 
+                LongSample = "Supporting text, captions, and secondary information",
+                FontSize = "0.875rem", 
+                LineHeight = "1.5", 
+                FontWeight = "400" 
+            },
+            new TypographyExampleModel
+            { 
+                Name = "Caption", 
+                CssClass = GetCssClassSafely("Caption"), 
+                Sample = "Caption text", 
+                LongSample = "Image captions, metadata, and fine print text",
+                FontSize = "0.75rem", 
+                LineHeight = "1.4", 
+                FontWeight = "400" 
+            }
+        };
+    }
+
+    // Безпечне отримання CSS класу з fallback
+    private string GetCssClassSafely(string className)
+    {
+        try
+        {
+            // Використовуємо рефлексію для безпечного доступу до властивостей
+            var property = typeof(ThemeConstants.CssClasses).GetProperty(className);
+            return property?.GetValue(null)?.ToString() ?? $"theme-{className.ToLower()}";
+        }
+        catch
+        {
+            return $"theme-{className.ToLower()}";
+        }
+    }
+
+    private void TogglePreviewText()
+    {
+        showLongText = !showLongText;
+    }
+
+    private async Task CopyClassName(string className)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", className);
+        }
+        catch
+        {
+            Console.WriteLine($"Copied: {className}");
+        }
+    }
+
+    private async Task CopyCode(string code)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", code);
+        }
+        catch
+        {
+            Console.WriteLine($"Copied code: {code}");
+        }
+    }
+
+    private void ShowTypographyDetails(TypographyExampleModel example)
+    {
+        selectedExample = example;
+        // Could show modal with more details
+    }
+
+    private async Task ExportTypographyCSS()
+    {
+        var css = @":root {
+  /* Font Sizes */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
+  --font-size-4xl: 2.5rem;
+  --font-size-5xl: 3.5rem;
+
+  /* Font Weights */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Line Heights */
+  --line-height-tight: 1.1;
+  --line-height-snug: 1.2;
+  --line-height-normal: 1.6;
+  --line-height-relaxed: 1.8;
+}";
+
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", css);
+        }
+        catch
+        {
+            Console.WriteLine("Copied typography CSS");
+        }
+    }
+
+    private async Task CopyTypographyTokens()
+    {
+        var tokens = @"{
+  ""typography"": {
+    ""fontFamily"": {
+      ""base"": ""system-ui, -apple-system, sans-serif""
+    },
+    ""fontSize"": {
+      ""xs"": ""0.75rem"",
+      ""sm"": ""0.875rem"",
+      ""base"": ""1rem"",
+      ""lg"": ""1.125rem"",
+      ""xl"": ""1.25rem"",
+      ""2xl"": ""1.5rem"",
+      ""3xl"": ""2rem"",
+      ""4xl"": ""2.5rem"",
+      ""5xl"": ""3.5rem""
+    },
+    ""fontWeight"": {
+      ""light"": ""300"",
+      ""normal"": ""400"",
+      ""medium"": ""500"",
+      ""semibold"": ""600"",
+      ""bold"": ""700""
+    },
+    ""lineHeight"": {
+      ""tight"": ""1.1"",
+      ""snug"": ""1.2"",
+      ""normal"": ""1.6"",
+      ""relaxed"": ""1.8""
+    }
+  }
+}";
+
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", tokens);
+        }
+        catch
+        {
+            Console.WriteLine("Copied typography tokens");
+        }
+    }
+
+    private async Task ExportAsDesignTokens()
+    {
+        await CopyTypographyTokens();
+    }
+
+    private async Task ExportAsSassVariables()
+    {
+        var sass = @"// Font Sizes
+$font-size-xs: 0.75rem;
+$font-size-sm: 0.875rem;
+$font-size-base: 1rem;
+$font-size-lg: 1.125rem;
+$font-size-xl: 1.25rem;
+$font-size-2xl: 1.5rem;
+$font-size-3xl: 2rem;
+$font-size-4xl: 2.5rem;
+$font-size-5xl: 3.5rem;
+
+// Font Weights
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// Line Heights
+$line-height-tight: 1.1;
+$line-height-snug: 1.2;
+$line-height-normal: 1.6;
+$line-height-relaxed: 1.8;";
+
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", sass);
+        }
+        catch
+        {
+            Console.WriteLine("Copied SASS variables");
+        }
+    }
+
+    private async Task ExportAsCSSCustomProps()
+    {
+        await ExportTypographyCSS();
+    }
+
+    // Helper model for typography examples
+    public class TypographyExampleModel
+    {
+        public string Name { get; set; } = "";
+        public string CssClass { get; set; } = "";
+        public string Sample { get; set; } = "";
+        public string LongSample { get; set; } = "";
+        public string FontSize { get; set; } = "";
+        public string LineHeight { get; set; } = "";
+        public string FontWeight { get; set; } = "";
+    }
+}

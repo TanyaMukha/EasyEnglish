@@ -7,6 +7,7 @@ public enum ButtonVariant
     Accent,
     Success,
     Warning,
+    Info,
     Error,
     Outline,
     Ghost

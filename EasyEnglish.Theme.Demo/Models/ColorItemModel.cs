@@ -6,4 +6,6 @@ public class ColorItemModel
     public string Hex { get; set; } = "";
     public string CssVar { get; set; } = "";
     public string Usage { get; set; } = "";
+
+    public string? ContrastRatio { get; set; }
 }

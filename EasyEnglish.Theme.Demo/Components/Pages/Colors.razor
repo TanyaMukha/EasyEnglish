@@ -2,110 +2,927 @@
 @using EasyEnglish.Theme.Components
 @using EasyEnglish.Theme.Constants
 @using EasyEnglish.Theme.Demo.Interfaces
-@using EasyEnglish.Theme.Demo.Services
+@using EasyEnglish.Theme.Demo.Models
 @inject IDemoService DemoService
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
 
-<PageTitle>Colors - Theme Demo</PageTitle>
+<PageTitle>Color System - EasyEnglish Theme Demo</PageTitle>
 
-<div class="@ThemeConstants.CssClasses.FlexColumn">
-    <EasyEnglish.Theme.Components.H1 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">
-        Color System
-    </EasyEnglish.Theme.Components.H1>
-    
-    <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomXl">
-        Comprehensive color palette designed for modern dark UI with semantic meaning and accessibility in mind.
-    </p>
-
-    @foreach (var palette in colorPalettes)
-    {
-        <EasyEnglish.Theme.Components.Card Title="@palette.Name" CssClass="@ThemeConstants.CssClasses.Margin.BottomXl">
-            <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
-                @palette.Description
+<Container Type="ContainerType.Screen">
+    <div class="@ThemeConstants.CssClasses.Padding.Lg">
+        
+        <!-- Header -->
+        <div class="page-header @ThemeConstants.CssClasses.Margin.BottomXl">
+            <H1 CssClass="@ThemeConstants.CssClasses.TextPrimary @ThemeConstants.CssClasses.Margin.BottomMd">
+                🎨 Color System
+            </H1>
+            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                Comprehensive color palette designed for modern dark UI with semantic meaning, accessibility, and special language learning features.
             </p>
             
-            <div class="color-grid">
-                @foreach (var color in palette.Colors)
-                {
-                    <div class="color-item">
-                        <div class="color-swatch" style="background-color: @color.Hex"></div>
-                        <div class="color-info">
-                            <div class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.Margin.BottomXs">
-                                <strong>@color.Name</strong>
-                            </div>
-                            <div class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomXs">
-                                @color.Hex
-                            </div>
-                            <div class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextTertiary @ThemeConstants.CssClasses.Margin.BottomXs">
-                                @color.CssVar
-                            </div>
-                            <div class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextMuted">
-                                @color.Usage
-                            </div>
-                        </div>
-                        <div class="color-actions">
-                            <EasyEnglish.Theme.Components.Button Variant="ButtonVariant.Ghost" 
-                                    CssClass="copy-button" 
-                                    OnClick="@(() => CopyToClipboard(color.Hex))">
-                                Copy
-                            </EasyEnglish.Theme.Components.Button>
+            <!-- Color Stats -->
+            <div class="color-stats @ThemeConstants.CssClasses.Margin.BottomLg">
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextPrimary">@GetTotalColors()</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Total Colors</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextAccent">@colorPalettes.Count</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Palettes</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextSuccess">WCAG AA</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Accessible</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextInfo">CSS Vars</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Format</span>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <Button Variant="ButtonVariant.Primary" OnClick="ExportColorTokens" Icon="fas fa-download">
+                    Export Tokens
+                </Button>
+                <Button Variant="ButtonVariant.Secondary" OnClick="CopyAllColors" Icon="fas fa-copy">
+                    Copy All
+                </Button>
+                <Button Variant="ButtonVariant.Outline" OnClick="ToggleColorFormat" Icon="fas fa-palette">
+                    @(showHex ? "Show RGB" : "Show HEX")
+                </Button>
+            </div>
+        </div>
+
+        <!-- Color Palettes -->
+        @foreach (var palette in colorPalettes)
+        {
+            <div class="palette-section @ThemeConstants.CssClasses.Margin.BottomXl">
+                <Card Title="@palette.Name" Size="CardSize.Large" CssClass="palette-card">
+                    <div class="palette-header @ThemeConstants.CssClasses.Margin.BottomLg">
+                        <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomMd">
+                            @palette.Description
+                        </p>
+                        
+                        <div class="palette-meta">
+                            <Badge Variant="BadgeVariant.Info">@palette.Colors.Count colors</Badge>
+                            <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextTertiary">
+                                Updated @DateTime.Now.ToString("MMM dd, yyyy")
+                            </span>
                         </div>
                     </div>
-                }
+                    
+                    <!-- Color Grid -->
+                    <div class="color-grid">
+                        @foreach (var color in palette.Colors)
+                        {
+                            <div class="color-item @(selectedColor?.Name == color.Name ? "selected" : "")" 
+                                 @onclick="@(() => SelectColor(color))">
+                                <div class="color-swatch" 
+                                     style="background-color: @color.Hex;"
+                                     title="@color.Name - @color.Hex">
+                                </div>
+                                
+                                <div class="color-info">
+                                    <div class="color-name @ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.Margin.BottomXs">
+                                        <strong>@color.Name</strong>
+                                    </div>
+                                    
+                                    <div class="color-values @ThemeConstants.CssClasses.Margin.BottomXs">
+                                        <code class="color-value @ThemeConstants.CssClasses.BodySmall">
+                                            @(showHex ? color.Hex : ConvertToRgb(color.Hex))
+                                        </code>
+                                    </div>
+                                    
+                                    <div class="color-variable @ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextTertiary @ThemeConstants.CssClasses.Margin.BottomXs">
+                                        <code>@color.CssVar</code>
+                                    </div>
+                                    
+                                    <div class="color-usage @ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextMuted @ThemeConstants.CssClasses.Margin.BottomSm">
+                                        @color.Usage
+                                    </div>
+                                    
+                                    <!-- Accessibility Info -->
+                                    @if (!string.IsNullOrEmpty(color.ContrastRatio))
+                                    {
+                                        <div class="accessibility-info @ThemeConstants.CssClasses.Margin.BottomSm">
+                                            <Badge Variant="@GetContrastBadgeVariant(color.ContrastRatio)" Size="BadgeSize.Small">
+                                                @color.ContrastRatio
+                                            </Badge>
+                                        </div>
+                                    }
+                                </div>
+                                
+                                <div class="color-actions">
+                                    <Button Variant="ButtonVariant.Ghost" 
+                                            Size="ButtonSize.Small" 
+                                            OnClick="@(() => CopyColorValue(color))"
+                                            Icon="fas fa-copy">
+                                    </Button>
+                                    <Button Variant="ButtonVariant.Ghost" 
+                                            Size="ButtonSize.Small" 
+                                            OnClick="@(() => ShowColorDetails(color))"
+                                            Icon="fas fa-info-circle">
+                                    </Button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    
+                    <!-- Palette Actions -->
+                    <div class="palette-actions @ThemeConstants.CssClasses.Margin.TopLg">
+                        <Button Variant="ButtonVariant.Outline" OnClick="@(() => CopyPalette(palette))" Icon="fas fa-copy">
+                            Copy Palette
+                        </Button>
+                        <Button Variant="ButtonVariant.Secondary" OnClick="@(() => ExportPalette(palette))" Icon="fas fa-file-export">
+                            Export CSS
+                        </Button>
+                        @if (palette.Name.Contains("Language"))
+                        {
+                            <Button Variant="ButtonVariant.Accent" OnClick="@(() => ShowLanguageDemo(palette))" Icon="fas fa-graduation-cap">
+                                View Demo
+                            </Button>
+                        }
+                    </div>
+                </Card>
             </div>
-        </EasyEnglish.Theme.Components.Card>
-    }
-</div>
+        }
+
+        <!-- Color Details Modal/Panel -->
+        @if (selectedColor != null)
+        {
+            <div class="color-details-overlay" @onclick="CloseColorDetails">
+                <Card Title="@selectedColor.Name" Size="CardSize.Large" CssClass="color-details-card" @onclick:stopPropagation="true">
+                    <div class="color-details-content">
+                        <div class="color-preview-large">
+                            <div class="large-swatch" style="background-color: @selectedColor.Hex;"></div>
+                            
+                            <div class="color-formats">
+                                <div class="format-item">
+                                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">HEX</span>
+                                    <code class="@ThemeConstants.CssClasses.BodyMedium">@selectedColor.Hex</code>
+                                </div>
+                                <div class="format-item">
+                                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">RGB</span>
+                                    <code class="@ThemeConstants.CssClasses.BodyMedium">@ConvertToRgb(selectedColor.Hex)</code>
+                                </div>
+                                <div class="format-item">
+                                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">HSL</span>
+                                    <code class="@ThemeConstants.CssClasses.BodyMedium">@ConvertToHsl(selectedColor.Hex)</code>
+                                </div>
+                                <div class="format-item">
+                                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">CSS Variable</span>
+                                    <code class="@ThemeConstants.CssClasses.BodyMedium">@selectedColor.CssVar</code>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="color-usage-examples">
+                            <H3 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Usage Examples</H3>
+                            
+                            <div class="usage-example @ThemeConstants.CssClasses.Margin.BottomSm">
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">CSS</span>
+                                <div class="code-snippet">
+                                    <code>.my-element {{ background-color: var(@selectedColor.CssVar); }}</code>
+                                </div>
+                            </div>
+                            
+                            <div class="usage-example @ThemeConstants.CssClasses.Margin.BottomSm">
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Razor Component</span>
+                                <div class="code-snippet">
+                                    <code>&lt;div style="color: @selectedColor.Hex;"&gt;Text&lt;/div&gt;</code>
+                                </div>
+                            </div>
+                            
+                            <div class="usage-example">
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Theme Class</span>
+                                <div class="code-snippet">
+                                    <code>&lt;span class="@ThemeConstants.CssClasses.TextPrimary"&gt;Text&lt;/span&gt;</code>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="color-accessibility">
+                            <H3 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Accessibility</H3>
+                            <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomMd">
+                                @selectedColor.Usage
+                            </p>
+                            @if (!string.IsNullOrEmpty(selectedColor.ContrastRatio))
+                            {
+                                <div class="contrast-info">
+                                    <Badge Variant="@GetContrastBadgeVariant(selectedColor.ContrastRatio)">
+                                        Contrast: @selectedColor.ContrastRatio
+                                    </Badge>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="color-details-actions @ThemeConstants.CssClasses.Margin.TopLg">
+                        <Button Variant="ButtonVariant.Primary" OnClick="@(() => CopyColorValue(selectedColor))" Icon="fas fa-copy">
+                            Copy HEX
+                        </Button>
+                        <Button Variant="ButtonVariant.Secondary" OnClick="@(() => CopyColorVariable(selectedColor))" Icon="fas fa-code">
+                            Copy Variable
+                        </Button>
+                        <Button Variant="ButtonVariant.Ghost" OnClick="CloseColorDetails" Icon="fas fa-times">
+                            Close
+                        </Button>
+                    </div>
+                </Card>
+            </div>
+        }
+
+        <!-- Color Usage Guidelines -->
+        <Card Title="🎯 Usage Guidelines" Size="CardSize.Large" CssClass="@("guidelines-card " + @ThemeConstants.CssClasses.Margin.BottomXl)">
+            <div class="guidelines-grid">
+                <div class="guideline-item">
+                    <div class="guideline-icon">🎨</div>
+                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Primary Colors</H4>
+                    <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                        Use for main actions, links, and brand elements. Ensure sufficient contrast for accessibility.
+                    </p>
+                </div>
+                
+                <div class="guideline-item">
+                    <div class="guideline-icon">📚</div>
+                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Language Levels</H4>
+                    <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                        CEFR level colors help users quickly identify content difficulty. Use consistently across the app.
+                    </p>
+                </div>
+                
+                <div class="guideline-item">
+                    <div class="guideline-icon">✅</div>
+                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Semantic Colors</H4>
+                    <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                        Success, warning, and error colors convey system status. Use sparingly for maximum impact.
+                    </p>
+                </div>
+                
+                <div class="guideline-item">
+                    <div class="guideline-icon">🌙</div>
+                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Dark Theme</H4>
+                    <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                        All colors are optimized for dark backgrounds. Test contrast ratios when customizing.
+                    </p>
+                </div>
+            </div>
+        </Card>
+
+        <!-- Export Options -->
+        <Card Title="📤 Export Options" Size="CardSize.Medium" CssClass="export-options">
+            <div class="export-grid">
+                <Button Variant="ButtonVariant.Primary" OnClick="ExportAsCSS" Icon="fas fa-file-code">
+                    CSS Variables
+                </Button>
+                <Button Variant="ButtonVariant.Secondary" OnClick="ExportAsJSON" Icon="fas fa-file-alt">
+                    JSON Format
+                </Button>
+                <Button Variant="ButtonVariant.Accent" OnClick="ExportAsSass" Icon="fas fa-paint-brush">
+                    SASS Variables
+                </Button>
+                <Button Variant="ButtonVariant.Info" OnClick="ExportAsFigma" Icon="fas fa-layer-group">
+                    Figma Tokens
+                </Button>
+            </div>
+        </Card>
+    </div>
+</Container>
 
 <style>
+/* Page Header */
+.page-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Stats */
+.color-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-item span:first-child {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
+
+/* Quick Actions */
+.quick-actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+/* Palette Section */
+.palette-section {
+    scroll-margin-top: var(--spacing-xl);
+}
+
+.palette-card {
+    position: relative;
+    border: 1px solid var(--color-border);
+    transition: all 0.2s ease;
+}
+
+.palette-card:hover {
+    border-color: var(--color-primary-bg);
+    box-shadow: var(--shadow-md);
+}
+
+.palette-header {
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: var(--spacing-lg);
+}
+
+.palette-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    justify-content: space-between;
+}
+
+/* Color Grid */
 .color-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: var(--spacing-md);
+    gap: var(--spacing-lg);
 }
 
 .color-item {
     display: flex;
-    align-items: center;
-    padding: var(--spacing-md);
+    align-items: flex-start;
+    padding: var(--spacing-lg);
     background-color: var(--color-background-secondary);
     border-radius: var(--border-radius-lg);
-    border: 1px solid var(--color-border);
+    border: 2px solid var(--color-border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.color-item:hover {
+    border-color: var(--color-primary-bg);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.color-item.selected {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-bg);
 }
 
 .color-swatch {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--border-radius-md);
+    width: 64px;
+    height: 64px;
+    border-radius: var(--border-radius-lg);
     margin-right: var(--spacing-md);
     border: 1px solid var(--color-border);
     flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+}
+
+.color-swatch::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.color-item:hover .color-swatch::after {
+    opacity: 1;
 }
 
 .color-info {
     flex: 1;
+    min-width: 0;
+}
+
+.color-name {
+    color: var(--color-text-primary);
+}
+
+.color-values {
+    font-family: 'Courier New', Consolas, monospace;
+}
+
+.color-value {
+    background-color: var(--color-background-tertiary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-medium);
+}
+
+.color-variable code {
+    color: var(--color-accent);
+    font-size: var(--font-size-xs);
+}
+
+.accessibility-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
 }
 
 .color-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
     margin-left: var(--spacing-md);
 }
 
-.copy-button {
-    font-size: var(--font-size-sm);
+/* Palette Actions */
+.palette-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--spacing-lg);
+}
+
+/* Color Details Modal */
+.color-details-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: var(--spacing-lg);
+}
+
+.color-details-card {
+    max-width: 600px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: modalSlideIn 0.3s ease;
+}
+
+@@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.color-details-content {
+    display: grid;
+    gap: var(--spacing-xl);
+}
+
+.color-preview-large {
+    display: flex;
+    gap: var(--spacing-lg);
+    align-items: flex-start;
+}
+
+.large-swatch {
+    width: 120px;
+    height: 120px;
+    border-radius: var(--border-radius-xl);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-lg);
+    flex-shrink: 0;
+}
+
+.color-formats {
+    flex: 1;
+    display: grid;
+    gap: var(--spacing-md);
+}
+
+.format-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--color-background-tertiary);
+    border-radius: var(--border-radius-md);
+}
+
+.format-item code {
+    font-family: 'Courier New', Consolas, monospace;
+    color: var(--color-text-primary);
+    background-color: var(--color-background);
     padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--color-border);
+}
+
+.usage-example {
+    background-color: var(--color-background-secondary);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    border-left: 3px solid var(--color-primary);
+}
+
+.code-snippet {
+    margin-top: var(--spacing-xs);
+}
+
+.code-snippet code {
+    display: block;
+    padding: var(--spacing-sm);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-sm);
+    font-family: 'Courier New', Consolas, monospace;
+    color: var(--color-accent);
+    font-size: var(--font-size-sm);
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.contrast-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.color-details-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--spacing-lg);
+}
+
+/* Guidelines */
+.guidelines-card {
+    background: linear-gradient(135deg, var(--color-background-secondary), var(--color-surface));
+    border: 1px solid var(--color-primary-bg);
+}
+
+.guidelines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.guideline-item {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.guideline-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Export Options */
+.export-options {
+    text-align: center;
+}
+
+.export-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--spacing-md);
+}
+
+/* Responsive */
+@@media (max-width: 768px) {
+    .color-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .color-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .color-swatch {
+        margin: 0 auto var(--spacing-md);
+    }
+    
+    .color-actions {
+        flex-direction: row;
+        justify-content: center;
+        margin: var(--spacing-md) 0 0;
+    }
+    
+    .color-preview-large {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .large-swatch {
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .palette-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+    
+    .color-stats {
+        gap: var(--spacing-md);
+    }
+    
+    .guidelines-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .export-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@@media (max-width: 480px) {
+    .export-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .palette-actions {
+        flex-direction: column;
+    }
+    
+    .color-details-actions {
+        flex-direction: column;
+    }
 }
 </style>
 
 @code {
     private List<ColorPaletteModel> colorPalettes = new();
+    private ColorItemModel? selectedColor;
+    private bool showHex = true;
+    private string copiedMessage = "";
 
     protected override void OnInitialized()
     {
         colorPalettes = DemoService.GetColorPalettes();
     }
 
-    private async Task CopyToClipboard(string text)
+    private int GetTotalColors()
     {
-        // In a real app, you would use JSInterop to copy to clipboard
-        Console.WriteLine($"Copied to clipboard: {text}");
+        return colorPalettes.Sum(p => p.Colors.Count);
+    }
+
+    private void SelectColor(ColorItemModel color)
+    {
+        selectedColor = color;
+    }
+
+    private void CloseColorDetails()
+    {
+        selectedColor = null;
+    }
+
+    // ДОДАЄМО НЕДОСТАЮЩИЙ МЕТОД
+    private void ShowColorDetails(ColorItemModel color)
+    {
+        selectedColor = color;
+    }
+
+    private void ToggleColorFormat()
+    {
+        showHex = !showHex;
+    }
+
+    private string ConvertToRgb(string hex)
+    {
+        // Simple HEX to RGB conversion
+        if (hex.StartsWith("#") && hex.Length == 7)
+        {
+            try
+            {
+                var r = Convert.ToInt32(hex.Substring(1, 2), 16);
+                var g = Convert.ToInt32(hex.Substring(3, 2), 16);
+                var b = Convert.ToInt32(hex.Substring(5, 2), 16);
+                return $"rgb({r}, {g}, {b})";
+            }
+            catch
+            {
+                return hex;
+            }
+        }
+        return hex;
+    }
+
+    private string ConvertToHsl(string hex)
+    {
+        // Simplified HSL conversion for demo
+        if (hex.StartsWith("#") && hex.Length == 7)
+        {
+            try
+            {
+                var r = Convert.ToInt32(hex.Substring(1, 2), 16) / 255.0;
+                var g = Convert.ToInt32(hex.Substring(3, 2), 16) / 255.0;
+                var b = Convert.ToInt32(hex.Substring(5, 2), 16) / 255.0;
+
+                var max = Math.Max(Math.Max(r, g), b);
+                var min = Math.Min(Math.Min(r, g), b);
+                var diff = max - min;
+
+                var h = 0.0;
+                var s = 0.0;
+                var l = (max + min) / 2.0;
+
+                if (diff != 0)
+                {
+                    s = l > 0.5 ? diff / (2.0 - max - min) : diff / (max + min);
+
+                    if (max == r)
+                        h = ((g - b) / diff + (g < b ? 6 : 0)) / 6.0;
+                    else if (max == g)
+                        h = ((b - r) / diff + 2) / 6.0;
+                    else if (max == b)
+                        h = ((r - g) / diff + 4) / 6.0;
+                }
+
+                return $"hsl({Math.Round(h * 360)}, {Math.Round(s * 100)}%, {Math.Round(l * 100)}%)";
+            }
+            catch
+            {
+            }
+        }
+        return "hsl(220, 85%, 57%)";
+    }
+
+    private BadgeVariant GetContrastBadgeVariant(string contrastRatio)
+    {
+        if (contrastRatio.Contains("AAA"))
+            return BadgeVariant.Success;
+        if (contrastRatio.Contains("AA"))
+            return BadgeVariant.Info;
+        return BadgeVariant.Warning;
+    }
+
+    private async Task CopyColorValue(ColorItemModel color)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", color.Hex);
+            copiedMessage = $"Copied {color.Hex}";
+        }
+        catch
+        {
+            Console.WriteLine($"Copied: {color.Hex}");
+        }
+    }
+
+    private async Task CopyColorVariable(ColorItemModel color)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", color.CssVar);
+            copiedMessage = $"Copied {color.CssVar}";
+        }
+        catch
+        {
+            Console.WriteLine($"Copied: {color.CssVar}");
+        }
+    }
+
+    private async Task CopyPalette(ColorPaletteModel palette)
+    {
+        var css = string.Join("\n", palette.Colors.Select(c => $"  {c.CssVar}: {c.Hex};"));
+        var cssRoot = $":root {{\n{css}\n}}";
+        
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", cssRoot);
+            copiedMessage = $"Copied {palette.Name} palette";
+        }
+        catch
+        {
+            Console.WriteLine($"Copied palette: {palette.Name}");
+        }
+    }
+
+    private async Task CopyAllColors()
+    {
+        var allColors = string.Join("\n", colorPalettes.SelectMany(p => 
+            p.Colors.Select(c => $"  {c.CssVar}: {c.Hex}; /* {c.Name} */")));
+        var cssRoot = $":root {{\n{allColors}\n}}";
+        
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", cssRoot);
+            copiedMessage = "Copied all colors";
+        }
+        catch
+        {
+            Console.WriteLine("Copied all colors");
+        }
+    }
+
+    private async Task ExportPalette(ColorPaletteModel palette)
+    {
+        await CopyPalette(palette);
+        // In real app, could also trigger file download
+    }
+
+    private async Task ExportColorTokens()
+    {
+        await CopyAllColors();
+        // Export as design tokens file
+    }
+
+    private async Task ExportAsCSS()
+    {
+        await CopyAllColors();
+    }
+
+    private async Task ExportAsJSON()
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(colorPalettes, new System.Text.Json.JsonSerializerOptions 
+        { 
+            WriteIndented = true 
+        });
+        
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", json);
+            copiedMessage = "Copied JSON format";
+        }
+        catch
+        {
+            Console.WriteLine("Copied JSON");
+        }
+    }
+
+    private async Task ExportAsSass()
+    {
+        var sass = string.Join("\n", colorPalettes.SelectMany(p => 
+            p.Colors.Select(c => $"${c.CssVar.Replace("--", "").Replace("-", "_")}: {c.Hex}; // {c.Name}")));
+        
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", sass);
+            copiedMessage = "Copied SASS variables";
+        }
+        catch
+        {
+            Console.WriteLine("Copied SASS");
+        }
+    }
+
+    private async Task ExportAsFigma()
+    {
+        // Export in Figma design tokens format
+        var figmaTokens = new
+        {
+            colors = colorPalettes.ToDictionary(
+                palette => palette.Name.ToLower().Replace(" ", "-"),
+                palette => palette.Colors.ToDictionary(
+                    color => color.Name.ToLower().Replace(" ", "-"),
+                    color => new { value = color.Hex, type = "color" }
+                )
+            )
+        };
+        
+        var json = System.Text.Json.JsonSerializer.Serialize(figmaTokens, new System.Text.Json.JsonSerializerOptions 
+        { 
+            WriteIndented = true 
+        });
+        
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", json);
+            copiedMessage = "Copied Figma tokens";
+        }
+        catch
+        {
+            Console.WriteLine("Copied Figma tokens");
+        }
+    }
+
+    private void ShowLanguageDemo(ColorPaletteModel palette)
+    {
+        // Navigate to language demo or show modal
+        Navigation.NavigateTo("/language-demo");
     }
 }

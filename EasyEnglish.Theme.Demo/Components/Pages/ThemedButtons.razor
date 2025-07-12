@@ -1,135 +1,642 @@
 ﻿@page "/themed-buttons"
 @using EasyEnglish.Theme.Components
 @using EasyEnglish.Theme.Constants
-@inject IThemeService ThemeService
+@using EasyEnglish.Theme.Types
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<PageTitle>Buttons - EasyEnglish Theme Demo</PageTitle>
 
 <Container Type="ContainerType.Screen">
     <div class="@ThemeConstants.CssClasses.Padding.Lg">
         
         <!-- Header -->
-        <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
+        <div class="page-header @ThemeConstants.CssClasses.Margin.BottomXl">
             <H1 CssClass="@ThemeConstants.CssClasses.TextPrimary @ThemeConstants.CssClasses.Margin.BottomMd">
-                🧩 Components Demo
+                🔲 Button Components
             </H1>
-            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary">
-                Explore the comprehensive component library provided by EasyEnglish.Theme.
+            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                Interactive button components with multiple variants, sizes, and states. Built for modern UX with accessibility in mind.
             </p>
-        </div>
-
-        <!-- Buttons Section -->
-        <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
-            <H2 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Buttons</H2>
-            <div class="component-demo">
-                <div class="demo-row">
-                    <Button Variant="ButtonVariant.Primary">Primary Button</Button>
-                    <Button Variant="ButtonVariant.Secondary">Secondary Button</Button>
-                    <Button Variant="ButtonVariant.Outline">Outline Button</Button>
-                    <Button Variant="ButtonVariant.Success">Success Button</Button>
-                    <Button Variant="ButtonVariant.Warning">Warning Button</Button>
-                    <Button Variant="ButtonVariant.Error">Error Button</Button>
+            
+            <!-- Button Stats -->
+            <div class="component-stats @ThemeConstants.CssClasses.Margin.BottomLg">
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextPrimary">8</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Variants</span>
                 </div>
-                <div class="demo-row">
-                    <Button Variant="ButtonVariant.Primary" Size="ButtonSize.Small">Small</Button>
-                    <Button Variant="ButtonVariant.Primary" Size="ButtonSize.Medium">Medium</Button>
-                    <Button Variant="ButtonVariant.Primary" Size="ButtonSize.Large">Large</Button>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextAccent">3</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Sizes</span>
                 </div>
-                <div class="demo-row">
-                    <Button Variant="ButtonVariant.Primary" Icon="fas fa-star">With Icon</Button>
-                    <Button Variant="ButtonVariant.Primary" Disabled="true">Disabled</Button>
-                    <Button Variant="ButtonVariant.Primary" Loading="true">Loading</Button>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextSuccess">100%</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Accessible</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextInfo">Icons</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Support</span>
                 </div>
             </div>
         </div>
 
+        <!-- Variants Section -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="🎨 Button Variants" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Different button styles for various use cases and importance levels.
+                </p>
+                
+                <div class="demo-section @ThemeConstants.CssClasses.Margin.BottomLg">
+                    <div class="demo-row">
+                        <div class="button-demo-item">
+                            <Button Variant="ButtonVariant.Primary" OnClick="@(() => HandleDemoClick("Primary"))">
+                                Primary Button
+                            </Button>
+                            <div class="demo-info">
+                                <code>ButtonVariant.Primary</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Main actions</span>
+                            </div>
+                        </div>
+                        
+                        <div class="button-demo-item">
+                            <Button Variant="ButtonVariant.Secondary" OnClick="@(() => HandleDemoClick("Secondary"))">
+                                Secondary Button
+                            </Button>
+                            <div class="demo-info">
+                                <code>ButtonVariant.Secondary</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Supporting actions</span>
+                            </div>
+                        </div>
+                        
+                        <div class="button-demo-item">
+                            <Button Variant="ButtonVariant.Accent" OnClick="@(() => HandleDemoClick("Accent"))">
+                                Accent Button
+                            </Button>
+                            <div class="demo-info">
+                                <code>ButtonVariant.Accent</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Special highlights</span>
+                            </div>
+                        </div>
+                        
+                        <div class="button-demo-item">
+                            <Button Variant="ButtonVariant.Outline" OnClick="@(() => HandleDemoClick("Outline"))">
+                                Outline Button
+                            </Button>
+                            <div class="demo-info">
+                                <code>ButtonVariant.Outline</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Subtle actions</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="demo-row">
+                        <div class="button-demo-item">
+                            <Button Variant="ButtonVariant.Success" OnClick="@(() => HandleDemoClick("Success"))">
+                                Success Button
+                            </Button>
+                            <div class="demo-info">
+                                <code>ButtonVariant.Success</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Positive actions</span>
+                            </div>
+                        </div>
+                        
+                        <div class="button-demo-item">
+                            <Button Variant="ButtonVariant.Warning" OnClick="@(() => HandleDemoClick("Warning"))">
+                                Warning Button
+                            </Button>
+                            <div class="demo-info">
+                                <code>ButtonVariant.Warning</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Caution actions</span>
+                            </div>
+                        </div>
+                        
+                        <div class="button-demo-item">
+                            <Button Variant="ButtonVariant.Error" OnClick="@(() => HandleDemoClick("Error"))">
+                                Error Button
+                            </Button>
+                            <div class="demo-info">
+                                <code>ButtonVariant.Error</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Destructive actions</span>
+                            </div>
+                        </div>
+                        
+                        <div class="button-demo-item">
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => HandleDemoClick("Ghost"))">
+                                Ghost Button
+                            </Button>
+                            <div class="demo-info">
+                                <code>ButtonVariant.Ghost</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Minimal actions</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Live Demo Area -->
+                @if (!string.IsNullOrEmpty(demoMessage))
+                {
+                    <div class="demo-feedback">
+                        <Badge Variant="BadgeVariant.Success">@demoMessage</Badge>
+                    </div>
+                }
+            </Card>
+        </div>
+
+        <!-- Sizes Section -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📏 Button Sizes" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Three different sizes to fit various UI contexts and layout needs.
+                </p>
+                
+                <div class="demo-section">
+                    <div class="size-demo-row">
+                        <div class="button-demo-item">
+                            <Button Variant="ButtonVariant.Primary" Size="ButtonSize.Small">
+                                Small Button
+                            </Button>
+                            <div class="demo-info">
+                                <code>ButtonSize.Small</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Compact layouts</span>
+                            </div>
+                        </div>
+                        
+                        <div class="button-demo-item">
+                            <Button Variant="ButtonVariant.Primary" Size="ButtonSize.Medium">
+                                Medium Button (Default)
+                            </Button>
+                            <div class="demo-info">
+                                <code>ButtonSize.Medium</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Standard size</span>
+                            </div>
+                        </div>
+                        
+                        <div class="button-demo-item">
+                            <Button Variant="ButtonVariant.Primary" Size="ButtonSize.Large">
+                                Large Button
+                            </Button>
+                            <div class="demo-info">
+                                <code>ButtonSize.Large</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Important actions</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- States & Features Section -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="⚡ States & Features" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Interactive states, icons, loading indicators, and accessibility features.
+                </p>
+                
+                <div class="features-grid">
+                    <div class="feature-demo">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">With Icons</H4>
+                        <div class="demo-row">
+                            <Button Variant="ButtonVariant.Primary" Icon="fas fa-save">
+                                Save
+                            </Button>
+                            <Button Variant="ButtonVariant.Secondary" Icon="fas fa-edit">
+                                Edit
+                            </Button>
+                            <Button Variant="ButtonVariant.Error" Icon="fas fa-trash">
+                                Delete
+                            </Button>
+                            <Button Variant="ButtonVariant.Success" Icon="fas fa-check">
+                                Confirm
+                            </Button>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-demo">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">States</H4>
+                        <div class="demo-row">
+                            <Button Variant="ButtonVariant.Primary">
+                                Normal
+                            </Button>
+                            <Button Variant="ButtonVariant.Primary" Disabled="true">
+                                Disabled
+                            </Button>
+                            <Button Variant="ButtonVariant.Primary" OnClick="ToggleLoading">
+                                @(isLoading ? "Loading..." : "Click to Load")
+                            </Button>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-demo">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Interactive Demo</H4>
+                        <div class="interactive-demo">
+                            <Button Variant="ButtonVariant.Accent" OnClick="HandleInteractiveDemo">
+                                @buttonText
+                            </Button>
+                            <div class="@ThemeConstants.CssClasses.Margin.TopMd">
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">
+                                    Click count: @clickCount
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Code Examples -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="💻 Code Examples" Size="CardSize.Large">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Copy-paste ready examples for implementing buttons in your application.
+                </p>
+                
+                <div class="code-examples">
+                    <div class="code-example @ThemeConstants.CssClasses.Margin.BottomLg">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Basic Usage</H4>
+                        <div class="code-container">
+                            <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Small" OnClick="@(() => CopyCode(basicButtonCode))" Icon="fas fa-copy">
+                                Copy
+                            </Button>
+                            <pre class="code-block"><code>@basicButtonCode</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="code-example @ThemeConstants.CssClasses.Margin.BottomLg">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">With Click Handlers</H4>
+                        <div class="code-container">
+                            <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Small" OnClick="@(() => CopyCode(clickHandlerCode))" Icon="fas fa-copy">
+                                Copy
+                            </Button>
+                            <pre class="code-block"><code>@clickHandlerCode</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="code-example">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Advanced Features</H4>
+                        <div class="code-container">
+                            <Button Variant="ButtonVariant.Ghost" Size="ButtonSize.Small" OnClick="@(() => CopyCode(advancedCode))" Icon="fas fa-copy">
+                                Copy
+                            </Button>
+                            <pre class="code-block"><code>@advancedCode</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Best Practices -->
+        <Card Title="📋 Best Practices" Size="CardSize.Large" CssClass="guidelines-card">
+            <div class="guidelines-grid">
+                <div class="guideline-item">
+                    <div class="guideline-icon">🎯</div>
+                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Hierarchy</H4>
+                    <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                        Use Primary for main actions, Secondary for supporting actions, and Ghost for minimal interactions.
+                    </p>
+                </div>
+                
+                <div class="guideline-item">
+                    <div class="guideline-icon">📱</div>
+                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Touch Targets</H4>
+                    <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                        All buttons meet minimum 44px touch target size for mobile accessibility.
+                    </p>
+                </div>
+                
+                <div class="guideline-item">
+                    <div class="guideline-icon">🔤</div>
+                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Labels</H4>
+                    <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                        Use clear, action-oriented labels. Avoid generic terms like "Click here" or "Submit".
+                    </p>
+                </div>
+                
+                <div class="guideline-item">
+                    <div class="guideline-icon">⚠️</div>
+                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Destructive Actions</H4>
+                    <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                        Use Error variant for destructive actions like delete. Consider adding confirmation dialogs.
+                    </p>
+                </div>
+            </div>
+        </Card>
     </div>
 </Container>
 
 <style>
-    .component-demo {
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius-lg);
-        padding: var(--spacing-lg);
-    }
+/* Page Header */
+.page-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
 
-    .progress-section {
-        margin-bottom: var(--spacing-lg);
-    }
+/* Component Stats */
+.component-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    flex-wrap: wrap;
+}
 
-    .progress-section > * {
-        margin-bottom: var(--spacing-md);
-    }
+.stat-item {
+    text-align: center;
+}
 
-    .loading-section {
-        text-align: center;
-    }
+.stat-item span:first-child {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
 
-    .typography-demo {
-        background-color: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius-lg);
-        padding: var(--spacing-lg);
-    }
+/* Demo Sections */
+.demo-card {
+    border: 1px solid var(--color-border);
+    transition: all 0.2s ease;
+}
 
-    .typography-demo > * {
-        margin-bottom: var(--spacing-md);
-    }
+.demo-card:hover {
+    border-color: var(--color-primary-bg);
+    box-shadow: var(--shadow-md);
+}
 
-    .interactive-demo {
+.demo-section {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    border: 1px dashed var(--color-border);
+}
+
+.demo-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+    align-items: start;
+}
+
+.size-demo-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-xl);
+    flex-wrap: wrap;
+}
+
+.button-demo-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+    transition: all 0.2s ease;
+}
+
+.button-demo-item:hover {
+    border-color: var(--color-primary-bg);
+    box-shadow: var(--shadow-sm);
+}
+
+.demo-info {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.demo-info code {
+    background-color: var(--color-background-tertiary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-accent);
+    font-size: var(--font-size-xs);
+    font-family: 'Courier New', Consolas, monospace;
+}
+
+.demo-feedback {
+    text-align: center;
+    padding: var(--spacing-md);
+    border-top: 1px solid var(--color-border);
+    margin-top: var(--spacing-lg);
+}
+
+/* Features Grid */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-xl);
+}
+
+.feature-demo {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--color-border);
+}
+
+.interactive-demo {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+}
+
+/* Code Examples */
+.code-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.code-example {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+}
+
+.code-container {
+    position: relative;
+}
+
+.code-container button {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    z-index: 2;
+}
+
+.code-block {
+    background-color: var(--color-background);
+    padding: var(--spacing-lg);
+    margin: 0;
+    overflow-x: auto;
+    border-top: 1px solid var(--color-border);
+}
+
+.code-block code {
+    font-family: 'Courier New', Consolas, monospace;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Guidelines */
+.guidelines-card {
+    background: linear-gradient(135deg, var(--color-background-secondary), var(--color-surface));
+    border: 1px solid var(--color-primary-bg);
+}
+
+.guidelines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.guideline-item {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.guideline-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Responsive */
+@@media (max-width: 768px) {
+    .demo-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .size-demo-row {
+        flex-direction: column;
+        gap: var(--spacing-lg);
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .guidelines-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .component-stats {
+        gap: var(--spacing-md);
+    }
+}
+
+@@media (max-width: 480px) {
+    .demo-row {
+        gap: var(--spacing-md);
+    }
+    
+    .button-demo-item {
         padding: var(--spacing-md);
     }
-
-    .demo-controls {
-        display: flex;
-        gap: var(--spacing-md);
-        margin-bottom: var(--spacing-md);
-    }
-
-    /* Responsive adjustments */
-    @@media (max-width: 768px) {
-        .demo-row {
-            flex-direction: column;
-        }
-        
-        .cards-demo {
-            grid-template-columns: 1fr;
-        }
-        
-        .input-row {
-            grid-template-columns: 1fr;
-        }
-        
-        .demo-controls {
-            flex-direction: column;
-        }
-    }
+}
 </style>
 
 @code {
-    private string textValue = "";
-    private string passwordValue = "";
-    private string emailValue = "";
-    private string numberValue = "";
-    private string textareaValue = "";
-    private string errorValue = "";
-    
     private bool isLoading = false;
     private string demoMessage = "";
-    private string buttonText = "Click Me!";
+    private string buttonText = "Interactive Demo";
     private int clickCount = 0;
 
-    private async Task HandleDemoAction()
+    private readonly string basicButtonCode = @"
+<!-- Basic button variants -->
+<Button Variant=""ButtonVariant.Primary"">Primary Button</Button>
+<Button Variant=""ButtonVariant.Secondary"">Secondary Button</Button>
+<Button Variant=""ButtonVariant.Outline"">Outline Button</Button>
+
+<!-- Different sizes -->
+<Button Size=""ButtonSize.Small"">Small</Button>
+<Button Size=""ButtonSize.Medium"">Medium</Button>
+<Button Size=""ButtonSize.Large"">Large</Button>";
+
+    private readonly string clickHandlerCode = @"
+<!-- With click handlers -->
+<Button Variant=""ButtonVariant.Primary"" OnClick=""HandleSave"">
+    Save Changes
+</Button>
+
+<Button Variant=""ButtonVariant.Error"" OnClick=""HandleDelete"">
+    Delete Item
+</Button>
+
+@code {
+    private async Task HandleSave()
     {
-        clickCount++;
-        buttonText = $"Clicked {clickCount} times!";
-        demoMessage = $"Button clicked at {DateTime.Now:HH:mm:ss}";
-        
-        await Task.Delay(1000);
+        // Your save logic here
+        await SaveData();
+    }
+    
+    private async Task HandleDelete()
+    {
+        // Your delete logic here
+        await DeleteItem();
+    }
+}";
+
+    private readonly string advancedCode = @"
+<!-- With icons and states -->
+<Button Variant=""ButtonVariant.Primary"" 
+        Icon=""fas fa-save""
+        Disabled=""@isSaving""
+        OnClick=""HandleSave"">
+    @(isSaving ? ""Saving..."" : ""Save"")
+</Button>
+
+<!-- Custom CSS classes -->
+<Button Variant=""ButtonVariant.Success"" 
+        CssClass=""my-custom-button""
+        Size=""ButtonSize.Large"">
+    Custom Styled Button
+</Button>";
+
+    private async Task HandleDemoClick(string variant)
+    {
+        demoMessage = $"{variant} button clicked at {DateTime.Now:HH:mm:ss}";
+        await Task.Delay(2000);
         demoMessage = "";
         StateHasChanged();
+    }
+
+    private void HandleInteractiveDemo()
+    {
+        clickCount++;
+        buttonText = $"Clicked {clickCount} time{(clickCount != 1 ? "s" : "")}!";
+        
+        if (clickCount >= 5)
+        {
+            buttonText = "Wow, you really like clicking! 🎉";
+        }
     }
 
     private void ToggleLoading()
     {
         isLoading = !isLoading;
+        StateHasChanged();
+    }
+
+    private async Task CopyCode(string code)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", code);
+            // Could show a toast notification here
+        }
+        catch
+        {
+            Console.WriteLine($"Copied code: {code}");
+        }
     }
 }
