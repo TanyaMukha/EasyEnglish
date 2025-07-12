@@ -1,164 +1,934 @@
 ﻿@page "/progress-and-loading"
 @using EasyEnglish.Theme.Components
 @using EasyEnglish.Theme.Constants
-@inject IThemeService ThemeService
+@using EasyEnglish.Theme.Types
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<PageTitle>Progress & Loading - EasyEnglish Theme Demo</PageTitle>
 
 <Container Type="ContainerType.Screen">
     <div class="@ThemeConstants.CssClasses.Padding.Lg">
         
         <!-- Header -->
-        <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
+        <div class="page-header @ThemeConstants.CssClasses.Margin.BottomXl">
             <H1 CssClass="@ThemeConstants.CssClasses.TextPrimary @ThemeConstants.CssClasses.Margin.BottomMd">
-                🧩 Components Demo
+                ⏳ Progress & Loading Components
             </H1>
-            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary">
-                Explore the comprehensive component library provided by EasyEnglish.Theme.
+            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                Visual feedback components for showing progress, loading states, and user achievements in educational applications.
             </p>
-        </div>
-
-        <!-- Progress & Loading Section -->
-        <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
-            <H2 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Progress & Loading</H2>
-            <div class="progress-demo">
-                <div class="progress-section">
-                    <H3 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Progress Bars</H3>
-                    @* Label="25% Complete" *@
-                    <ProgressBar Progress="25" />
-                    @* Label="50% Complete" *@
-                    <ProgressBar Progress="50" />
-                    @* Label="75% Complete" *@
-                    <ProgressBar Progress="75" />
-                    @* Label="100% Complete" *@
-                    <ProgressBar Progress="100" />
+            
+            <!-- Component Stats -->
+            <div class="component-stats @ThemeConstants.CssClasses.Margin.BottomLg">
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextPrimary">2</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Components</span>
                 </div>
-                
-                <div class="loading-section">
-                    <H3 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Loading States</H3>
-                    <Loading Message="Loading your data..." />
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextAccent">✓</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Animated</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextSuccess">UX</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Focused</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextInfo">Feedback</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Ready</span>
                 </div>
             </div>
         </div>
 
-        <!-- Interactive Demo -->
-        <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
-            <H2 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Interactive Demo</H2>
-            <Card Title="Component Interaction Demo">
-                <div class="interactive-demo">
-                    <div class="demo-controls">
-                        <EasyEnglish.Theme.Components.Button Variant="ButtonVariant.Primary" OnClick="HandleDemoAction">
-                            @buttonText
-                        </EasyEnglish.Theme.Components.Button>
-                        <EasyEnglish.Theme.Components.Button Variant="ButtonVariant.Secondary" OnClick="ToggleLoading">
-                            @(isLoading ? "Stop Loading" : "Start Loading")
-                        </EasyEnglish.Theme.Components.Button>
+        <!-- Progress Bars Section -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📊 Progress Bars" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Visual indicators for showing completion status, skill levels, and learning progress.
+                </p>
+                
+                <div class="demo-section @ThemeConstants.CssClasses.Margin.BottomLg">
+                    <div class="progress-examples">
+                        <div class="progress-demo-item">
+                            <div class="progress-header">
+                                <span class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Beginner Level</span>
+                                <Badge Variant="BadgeVariant.Info">25%</Badge>
+                            </div>
+                            <ProgressBar Progress="25" />
+                            <div class="demo-info">
+                                <code>Progress="25"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Starting progress</span>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-demo-item">
+                            <div class="progress-header">
+                                <span class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Intermediate Level</span>
+                                <Badge Variant="BadgeVariant.Warning">50%</Badge>
+                            </div>
+                            <ProgressBar Progress="50" />
+                            <div class="demo-info">
+                                <code>Progress="50"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Halfway there</span>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-demo-item">
+                            <div class="progress-header">
+                                <span class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Advanced Level</span>
+                                <Badge Variant="BadgeVariant.Success">75%</Badge>
+                            </div>
+                            <ProgressBar Progress="75" />
+                            <div class="demo-info">
+                                <code>Progress="75"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Almost complete</span>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-demo-item">
+                            <div class="progress-header">
+                                <span class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Master Level</span>
+                                <Badge Variant="BadgeVariant.Success">100%</Badge>
+                            </div>
+                            <ProgressBar Progress="100" />
+                            <div class="demo-info">
+                                <code>Progress="100"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Complete!</span>
+                            </div>
+                        </div>
                     </div>
-                    
-                    @if (isLoading)
-                    {
-                        <div class="@ThemeConstants.CssClasses.Margin.TopMd">
-                            <Loading Message="Processing your request..." />
+                </div>
+                
+                <!-- Interactive Progress Demo -->
+                <div class="feature-demo">
+                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">🎮 Interactive Progress</H4>
+                    <div class="interactive-progress">
+                        <div class="progress-controls @ThemeConstants.CssClasses.Margin.BottomMd">
+                            <Button Variant="ButtonVariant.Outline" OnClick="@(() => AdjustProgress(-10))" Disabled="@(currentProgress <= 0)">
+                                ← Decrease
+                            </Button>
+                            <span class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">
+                                @currentProgress%
+                            </span>
+                            <Button Variant="ButtonVariant.Outline" OnClick="@(() => AdjustProgress(10))" Disabled="@(currentProgress >= 100)">
+                                Increase →
+                            </Button>
                         </div>
-                    }
-                    
-                    @if (!string.IsNullOrEmpty(demoMessage))
-                    {
-                        <div class="@ThemeConstants.CssClasses.Margin.TopMd">
-                            <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Success">@demoMessage</EasyEnglish.Theme.Components.Badge>
+                        <ProgressBar Progress="currentProgress" />
+                        <div class="progress-status @ThemeConstants.CssClasses.Margin.TopMd">
+                            @if (currentProgress == 0)
+                            {
+                                <Badge Variant="BadgeVariant.Secondary">Not Started</Badge>
+                            }
+                            else if (currentProgress < 25)
+                            {
+                                <Badge Variant="BadgeVariant.Info">Getting Started</Badge>
+                            }
+                            else if (currentProgress < 50)
+                            {
+                                <Badge Variant="BadgeVariant.Warning">Making Progress</Badge>
+                            }
+                            else if (currentProgress < 100)
+                            {
+                                <Badge Variant="BadgeVariant.Success">Almost There</Badge>
+                            }
+                            else
+                            {
+                                <Badge Variant="BadgeVariant.Success">Completed! 🎉</Badge>
+                            }
                         </div>
-                    }
+                    </div>
                 </div>
             </Card>
         </div>
 
+        <!-- Loading States Section -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="🔄 Loading States" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Animated loading indicators to provide feedback during data fetching and processing operations.
+                </p>
+                
+                <div class="demo-section @ThemeConstants.CssClasses.Margin.BottomLg">
+                    <div class="loading-examples">
+                        <div class="loading-demo-item">
+                            <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Basic Loading</H4>
+                            <Loading />
+                            <div class="demo-info">
+                                <code>&lt;Loading /&gt;</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Simple spinner</span>
+                            </div>
+                        </div>
+                        
+                        <div class="loading-demo-item">
+                            <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Loading with Message</H4>
+                            <Loading Message="Loading your lessons..." />
+                            <div class="demo-info">
+                                <code>Message="Loading your lessons..."</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">With descriptive text</span>
+                            </div>
+                        </div>
+                        
+                        <div class="loading-demo-item">
+                            <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Processing Data</H4>
+                            <Loading Message="Processing your answers..." />
+                            <div class="demo-info">
+                                <code>Message="Processing your answers..."</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Action-specific feedback</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Interactive Loading Demo -->
+                <div class="feature-demo">
+                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">🎭 Loading Simulation</H4>
+                    <div class="loading-simulation">
+                        <div class="simulation-controls @ThemeConstants.CssClasses.Margin.BottomMd">
+                            <Button Variant="ButtonVariant.Primary" OnClick="SimulateLoading" Disabled="@isSimulatingLoad">
+                                @(isSimulatingLoad ? "Loading..." : "Start Loading Simulation")
+                            </Button>
+                            <Button Variant="ButtonVariant.Secondary" OnClick="StopSimulation" Disabled="@(!isSimulatingLoad)">
+                                Stop
+                            </Button>
+                        </div>
+                        
+                        @if (isSimulatingLoad)
+                        {
+                            <div class="simulation-content">
+                                <Loading Message="@currentLoadingMessage" />
+                                <div class="simulation-progress @ThemeConstants.CssClasses.Margin.TopMd">
+                                    <ProgressBar Progress="simulationProgress" />
+                                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">
+                                        Step @currentStep of @totalSteps
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                        else if (simulationCompleted)
+                        {
+                            <div class="simulation-result">
+                                <Badge Variant="BadgeVariant.Success">Simulation completed successfully! ✅</Badge>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Educational Use Cases -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="🎓 Educational Use Cases" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Real-world examples of progress and loading components in language learning applications.
+                </p>
+                
+                <div class="use-cases-grid">
+                    <!-- Lesson Progress -->
+                    <Card Title="📚 Lesson Progress" Size="CardSize.Medium" CssClass="use-case-card">
+                        <div class="lesson-progress-demo">
+                            <div class="lesson-info @ThemeConstants.CssClasses.Margin.BottomMd">
+                                <H4 CssClass="@ThemeConstants.CssClasses.TextPrimary">Present Perfect Tense</H4>
+                                <Badge Variant="BadgeVariant.Level" Level="B1">B1</Badge>
+                            </div>
+                            
+                            <div class="progress-breakdown @ThemeConstants.CssClasses.Margin.BottomMd">
+                                <div class="progress-item">
+                                    <span class="@ThemeConstants.CssClasses.BodySmall">Introduction</span>
+                                    <Badge Variant="BadgeVariant.Success">✓</Badge>
+                                </div>
+                                <div class="progress-item">
+                                    <span class="@ThemeConstants.CssClasses.BodySmall">Examples</span>
+                                    <Badge Variant="BadgeVariant.Success">✓</Badge>
+                                </div>
+                                <div class="progress-item">
+                                    <span class="@ThemeConstants.CssClasses.BodySmall">Exercises</span>
+                                    <ProgressBar Progress="60" />
+                                </div>
+                                <div class="progress-item">
+                                    <span class="@ThemeConstants.CssClasses.BodySmall">Quiz</span>
+                                    <Badge Variant="BadgeVariant.Secondary">Locked</Badge>
+                                </div>
+                            </div>
+                            
+                            <div class="overall-progress">
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Overall Progress</span>
+                                <ProgressBar Progress="75" />
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">75% Complete</span>
+                            </div>
+                        </div>
+                    </Card>
+                    
+                    <!-- Skill Assessment -->
+                    <Card Title="📊 Skill Assessment" Size="CardSize.Medium" CssClass="use-case-card">
+                        <div class="skill-assessment">
+                            <div class="skills-list">
+                                <div class="skill-item @ThemeConstants.CssClasses.Margin.BottomMd">
+                                    <div class="skill-header">
+                                        <span class="@ThemeConstants.CssClasses.BodyMedium">Grammar</span>
+                                        <Badge Variant="BadgeVariant.Success">92%</Badge>
+                                    </div>
+                                    <ProgressBar Progress="92" />
+                                    <div class="skill-detail">
+                                        <Badge PartOfSpeech="verb">Verbs: 95%</Badge>
+                                        <Badge PartOfSpeech="noun">Nouns: 88%</Badge>
+                                    </div>
+                                </div>
+                                
+                                <div class="skill-item @ThemeConstants.CssClasses.Margin.BottomMd">
+                                    <div class="skill-header">
+                                        <span class="@ThemeConstants.CssClasses.BodyMedium">Vocabulary</span>
+                                        <Badge Variant="BadgeVariant.Warning">78%</Badge>
+                                    </div>
+                                    <ProgressBar Progress="78" />
+                                    <div class="skill-detail">
+                                        <Badge Variant="BadgeVariant.Info">850 words learned</Badge>
+                                    </div>
+                                </div>
+                                
+                                <div class="skill-item">
+                                    <div class="skill-header">
+                                        <span class="@ThemeConstants.CssClasses.BodyMedium">Pronunciation</span>
+                                        <Badge Variant="BadgeVariant.Warning">65%</Badge>
+                                    </div>
+                                    <ProgressBar Progress="65" />
+                                    <div class="skill-detail">
+                                        <Badge Variant="BadgeVariant.Warning">Needs practice</Badge>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+                    
+                    <!-- Assignment Submission -->
+                    <Card Title="📝 Assignment Status" Size="CardSize.Medium" CssClass="use-case-card">
+                        <div class="assignment-status">
+                            @if (isSubmittingAssignment)
+                            {
+                                <Loading Message="Submitting your essay..." />
+                                <div class="submission-progress @ThemeConstants.CssClasses.Margin.TopMd">
+                                    <ProgressBar Progress="submissionProgress" />
+                                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">
+                                        @submissionProgress% uploaded
+                                    </span>
+                                </div>
+                            }
+                            else if (assignmentSubmitted)
+                            {
+                                <div class="submission-complete">
+                                    <div class="success-icon @ThemeConstants.CssClasses.Margin.BottomMd">✅</div>
+                                    <H4 CssClass="@ThemeConstants.CssClasses.TextSuccess @ThemeConstants.CssClasses.Margin.BottomSm">
+                                        Assignment Submitted!
+                                    </H4>
+                                    <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomMd">
+                                        Your essay has been submitted successfully. You'll receive feedback within 24 hours.
+                                    </p>
+                                    <Badge Variant="BadgeVariant.Success">Submitted on time</Badge>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="assignment-ready">
+                                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Essay Assignment</H4>
+                                    <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomMd">
+                                        Write a 300-word essay about your favorite book.
+                                    </p>
+                                    <Button Variant="ButtonVariant.Primary" OnClick="SimulateSubmission">
+                                        Submit Assignment
+                                    </Button>
+                                </div>
+                            }
+                        </div>
+                    </Card>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Code Examples -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="💻 Code Examples" Size="CardSize.Large">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Copy-paste ready examples for implementing progress and loading components.
+                </p>
+                
+                <div class="code-examples">
+                    <div class="code-example">
+                        <div class="code-header">
+                            <h4 class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Progress Bar Usage</h4>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => CopyToClipboard(progressBarCode))">
+                                📋 Copy
+                            </Button>
+                        </div>
+                        <div class="code-container">
+                            <pre class="code-block"><code>@progressBarCode</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="code-example">
+                        <div class="code-header">
+                            <h4 class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Loading Components</h4>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => CopyToClipboard(loadingCode))">
+                                📋 Copy
+                            </Button>
+                        </div>
+                        <div class="code-container">
+                            <pre class="code-block"><code>@loadingCode</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="code-example">
+                        <div class="code-header">
+                            <h4 class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Educational Progress</h4>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => CopyToClipboard(educationalProgressCode))">
+                                📋 Copy
+                            </Button>
+                        </div>
+                        <div class="code-container">
+                            <pre class="code-block"><code>@educationalProgressCode</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Usage Guidelines -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📋 Usage Guidelines" Size="CardSize.Large" CssClass="guidelines-card">
+                <div class="guidelines-grid">
+                    <div class="guideline-item">
+                        <div class="guideline-icon">📊</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Progress Clarity</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Always provide clear context for progress bars. Users should understand what's being measured.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">⏱️</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Loading Feedback</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Use loading indicators for operations taking longer than 200ms. Include descriptive messages when possible.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">🎯</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Educational Context</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            In learning apps, progress should motivate and guide students. Show achievements and next steps clearly.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">♿</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Accessibility</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Progress and loading states are announced to screen readers and work with keyboard navigation.
+                        </p>
+                    </div>
+                </div>
+            </Card>
+        </div>
     </div>
 </Container>
 
 <style>
-    .component-demo {
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius-lg);
-        padding: var(--spacing-lg);
-    }
+/* Page Header */
+.page-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
 
-    .progress-section {
-        margin-bottom: var(--spacing-lg);
-    }
+/* Component Stats */
+.component-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    flex-wrap: wrap;
+}
 
-    .progress-section > * {
-        margin-bottom: var(--spacing-md);
-    }
+.stat-item {
+    text-align: center;
+}
 
-    .loading-section {
-        text-align: center;
-    }
+.stat-item span:first-child {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
 
-    .typography-demo {
-        background-color: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius-lg);
-        padding: var(--spacing-lg);
-    }
+/* Demo Sections */
+.demo-card {
+    border: 1px solid var(--color-border);
+    transition: all 0.2s ease;
+}
 
-    .typography-demo > * {
-        margin-bottom: var(--spacing-md);
-    }
+.demo-card:hover {
+    border-color: var(--color-primary-bg);
+    box-shadow: var(--shadow-md);
+}
 
-    .interactive-demo {
-        padding: var(--spacing-md);
-    }
+.demo-section {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    border: 1px dashed var(--color-border);
+}
 
-    .demo-controls {
-        display: flex;
+/* Progress Examples */
+.progress-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+.progress-demo-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.demo-info {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-md);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+}
+
+.demo-info code {
+    background-color: var(--color-background-tertiary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-accent);
+    font-size: var(--font-size-xs);
+    font-family: 'Courier New', Consolas, monospace;
+}
+
+/* Interactive Progress */
+.feature-demo {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--color-border);
+}
+
+.interactive-progress {
+    text-align: center;
+}
+
+.progress-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-lg);
+}
+
+.progress-status {
+    display: flex;
+    justify-content: center;
+}
+
+/* Loading Examples */
+.loading-examples {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-xl);
+}
+
+.loading-demo-item {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+}
+
+/* Loading Simulation */
+.loading-simulation {
+    text-align: center;
+}
+
+.simulation-controls {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+}
+
+.simulation-content, .simulation-result {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+}
+
+.simulation-progress {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+/* Use Cases */
+.use-cases-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.use-case-card {
+    height: fit-content;
+}
+
+/* Lesson Progress */
+.lesson-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.progress-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.progress-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-sm);
+}
+
+.overall-progress {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    text-align: center;
+}
+
+/* Skill Assessment */
+.skill-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.skill-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.skill-detail {
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+}
+
+/* Assignment Status */
+.assignment-status {
+    text-align: center;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.submission-complete {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.success-icon {
+    font-size: 3rem;
+}
+
+.submission-progress {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+/* Code Examples */
+.code-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.code-example {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+}
+
+.code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background-color: var(--color-background-tertiary);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.code-container {
+    position: relative;
+}
+
+.code-block {
+    background-color: var(--color-background);
+    padding: var(--spacing-lg);
+    margin: 0;
+    overflow-x: auto;
+}
+
+.code-block code {
+    font-family: 'Courier New', Consolas, monospace;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Guidelines */
+.guidelines-card {
+    background: linear-gradient(135deg, var(--color-background-secondary), var(--color-surface));
+    border: 1px solid var(--color-primary-bg);
+}
+
+.guidelines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.guideline-item {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.guideline-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Responsive */
+@@media (max-width: 768px) {
+    .progress-controls {
+        flex-direction: column;
         gap: var(--spacing-md);
-        margin-bottom: var(--spacing-md);
     }
-
-    /* Responsive adjustments */
-    @@media (max-width: 768px) {
-        .demo-row {
-            flex-direction: column;
-        }
-        
-        .cards-demo {
-            grid-template-columns: 1fr;
-        }
-        
-        .input-row {
-            grid-template-columns: 1fr;
-        }
-        
-        .demo-controls {
-            flex-direction: column;
-        }
+    
+    .loading-examples {
+        grid-template-columns: 1fr;
     }
+    
+    .use-cases-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .simulation-controls {
+        flex-direction: column;
+    }
+    
+    .guidelines-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .component-stats {
+        gap: var(--spacing-md);
+    }
+    
+    .skill-detail {
+        justify-content: center;
+    }
+}
 </style>
 
 @code {
-    private string textValue = "";
-    private string passwordValue = "";
-    private string emailValue = "";
-    private string numberValue = "";
-    private string textareaValue = "";
-    private string errorValue = "";
+    // Interactive progress state
+    private int currentProgress = 45;
     
-    private bool isLoading = false;
-    private string demoMessage = "";
-    private string buttonText = "Click Me!";
-    private int clickCount = 0;
-
-    private async Task HandleDemoAction()
+    // Loading simulation state
+    private bool isSimulatingLoad = false;
+    private bool simulationCompleted = false;
+    private int simulationProgress = 0;
+    private int currentStep = 0;
+    private int totalSteps = 5;
+    private string currentLoadingMessage = "";
+    private Timer? simulationTimer;
+    
+    // Assignment submission state
+    private bool isSubmittingAssignment = false;
+    private bool assignmentSubmitted = false;
+    private int submissionProgress = 0;
+    private Timer? submissionTimer;
+    
+    // Loading messages for simulation
+    private string[] loadingMessages = new[]
     {
-        clickCount++;
-        buttonText = $"Clicked {clickCount} times!";
-        demoMessage = $"Button clicked at {DateTime.Now:HH:mm:ss}";
-        
-        await Task.Delay(1000);
-        demoMessage = "";
-        StateHasChanged();
+        "Initializing system...",
+        "Loading user data...",
+        "Fetching lesson content...",
+        "Preparing exercises...",
+        "Finalizing setup..."
+    };
+
+    // Code examples
+    private string progressBarCode = @"<!-- Basic Progress Bar -->
+<ProgressBar Progress=""75"" />
+
+<!-- With contextual information -->
+<div class=""progress-header"">
+    <span>Lesson Progress</span>
+    <Badge Variant=""BadgeVariant.Success"">75%</Badge>
+</div>
+<ProgressBar Progress=""75"" />
+
+<!-- Multiple progress indicators -->
+<div class=""skill-breakdown"">
+    <div class=""skill-item"">
+        <span>Grammar: 92%</span>
+        <ProgressBar Progress=""92"" />
+    </div>
+    <div class=""skill-item"">
+        <span>Vocabulary: 88%</span>
+        <ProgressBar Progress=""88"" />
+    </div>
+</div>";
+
+    private string loadingCode = @"<!-- Basic Loading Spinner -->
+<Loading />
+
+<!-- Loading with Message -->
+<Loading Message=""Loading your lessons..."" />
+
+<!-- Conditional Loading -->
+@if (isLoading)
+{
+    <Loading Message=""Processing your answers..."" />
+}
+
+<!-- Loading with Progress -->
+@if (isSubmitting)
+{
+    <Loading Message=""Submitting assignment..."" />
+    <ProgressBar Progress=""uploadProgress"" />
+}";
+
+    private string educationalProgressCode = @"<!-- Lesson Progress Example -->
+<Card Title=""Present Perfect Tense"">
+    <div class=""lesson-header"">
+        <Badge Variant=""BadgeVariant.Level"" Level=""B1"">B1</Badge>
+        <Badge Variant=""BadgeVariant.Info"">30 min</Badge>
+    </div>
+    
+    <div class=""lesson-progress"">
+        <ProgressBar Progress=""75"" />
+        <span>75% Complete</span>
+    </div>
+    
+    @if (isLessonLoading)
+    {
+        <Loading Message=""Loading next exercise..."" />
+    }
+    else
+    {
+        <Button Variant=""ButtonVariant.Primary"">Continue</Button>
+    }
+</Card>";
+
+    private void AdjustProgress(int adjustment)
+    {
+        currentProgress = Math.Max(0, Math.Min(100, currentProgress + adjustment));
     }
 
-    private void ToggleLoading()
+    private async Task SimulateLoading()
     {
-        isLoading = !isLoading;
+        isSimulatingLoad = true;
+        simulationCompleted = false;
+        simulationProgress = 0;
+        currentStep = 0;
+        
+        simulationTimer = new Timer(UpdateSimulation, null, 0, 800);
+    }
+
+    private void UpdateSimulation(object? state)
+    {
+        if (currentStep < totalSteps)
+        {
+            currentLoadingMessage = loadingMessages[currentStep];
+            simulationProgress = (int)((currentStep + 1) * 100.0 / totalSteps);
+            currentStep++;
+            
+            InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+            StopSimulation();
+            simulationCompleted = true;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void StopSimulation()
+    {
+        isSimulatingLoad = false;
+        simulationTimer?.Dispose();
+        simulationTimer = null;
+    }
+
+    private async Task SimulateSubmission()
+    {
+        isSubmittingAssignment = true;
+        assignmentSubmitted = false;
+        submissionProgress = 0;
+        
+        submissionTimer = new Timer(UpdateSubmission, null, 0, 200);
+    }
+
+    private void UpdateSubmission(object? state)
+    {
+        if (submissionProgress < 100)
+        {
+            submissionProgress += 10;
+            InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+            isSubmittingAssignment = false;
+            assignmentSubmitted = true;
+            submissionTimer?.Dispose();
+            submissionTimer = null;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task CopyToClipboard(string text)
+    {
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+    }
+
+    public void Dispose()
+    {
+        simulationTimer?.Dispose();
+        submissionTimer?.Dispose();
     }
 }

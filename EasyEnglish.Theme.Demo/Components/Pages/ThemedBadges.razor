@@ -1,152 +1,620 @@
 ﻿@page "/themed-badges"
 @using EasyEnglish.Theme.Components
 @using EasyEnglish.Theme.Constants
-@inject IThemeService ThemeService
+@using EasyEnglish.Theme.Types
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<PageTitle>Badges - EasyEnglish Theme Demo</PageTitle>
 
 <Container Type="ContainerType.Screen">
     <div class="@ThemeConstants.CssClasses.Padding.Lg">
         
         <!-- Header -->
-        <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
+        <div class="page-header @ThemeConstants.CssClasses.Margin.BottomXl">
             <H1 CssClass="@ThemeConstants.CssClasses.TextPrimary @ThemeConstants.CssClasses.Margin.BottomMd">
-                🧩 Components Demo
+                🏷️ Badge Components
             </H1>
-            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary">
-                Explore the comprehensive component library provided by EasyEnglish.Theme.
+            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                Small status indicators and labels with semantic colors for language learning applications.
             </p>
-        </div>
-
-        <!-- Badges Section -->
-        <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
-            <H2 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Badges</H2>
-            <div class="badges-demo">
-                <div class="badge-section">
-                    <H3 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Status Badges</H3>
-                    <div class="badge-row">
-                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Primary">Primary</EasyEnglish.Theme.Components.Badge>
-                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Secondary">Secondary</EasyEnglish.Theme.Components.Badge>
-                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Success">Success</EasyEnglish.Theme.Components.Badge>
-                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Warning">Warning</EasyEnglish.Theme.Components.Badge>
-                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Error">Error</EasyEnglish.Theme.Components.Badge>
-                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Info">Info</EasyEnglish.Theme.Components.Badge>
-                    </div>
+            
+            <!-- Badge Stats -->
+            <div class="component-stats @ThemeConstants.CssClasses.Margin.BottomLg">
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextPrimary">9</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Variants</span>
                 </div>
-                
-                <div class="badge-section">
-                    <H3 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Language Levels</H3>
-                    <div class="badge-row">
-                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Level" Level="A1">A1</EasyEnglish.Theme.Components.Badge>
-                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Level" Level="A2">A2</EasyEnglish.Theme.Components.Badge>
-                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Level" Level="B1">B1</EasyEnglish.Theme.Components.Badge>
-                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Level" Level="B2">B2</EasyEnglish.Theme.Components.Badge>
-                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Level" Level="C1">C1</EasyEnglish.Theme.Components.Badge>
-                        <EasyEnglish.Theme.Components.Badge Variant="BadgeVariant.Level" Level="C2">C2</EasyEnglish.Theme.Components.Badge>
-                    </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextAccent">6</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">CEFR Levels</span>
                 </div>
-                
-                <div class="badge-section">
-                    <H3 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Parts of Speech</H3>
-                    <div class="badge-row">
-                        <EasyEnglish.Theme.Components.Badge PartOfSpeech="noun">Noun</EasyEnglish.Theme.Components.Badge>
-                        <EasyEnglish.Theme.Components.Badge PartOfSpeech="verb">Verb</EasyEnglish.Theme.Components.Badge>
-                        <EasyEnglish.Theme.Components.Badge PartOfSpeech="adjective">Adjective</EasyEnglish.Theme.Components.Badge>
-                        <EasyEnglish.Theme.Components.Badge PartOfSpeech="adverb">Adverb</EasyEnglish.Theme.Components.Badge>
-                        <EasyEnglish.Theme.Components.Badge PartOfSpeech="preposition">Preposition</EasyEnglish.Theme.Components.Badge>
-                        <EasyEnglish.Theme.Components.Badge PartOfSpeech="conjunction">Conjunction</EasyEnglish.Theme.Components.Badge>
-                    </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextSuccess">6</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Grammar Types</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextInfo">Educational</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Ready</span>
                 </div>
             </div>
         </div>
 
+        <!-- Status Badges Section -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="🎨 Status Badges" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    General-purpose badges for status indication and categorization.
+                </p>
+                
+                <div class="demo-section @ThemeConstants.CssClasses.Margin.BottomLg">
+                    <div class="demo-row">
+                        <div class="badge-demo-item">
+                            <Badge Variant="BadgeVariant.Primary">Primary</Badge>
+                            <div class="demo-info">
+                                <code>BadgeVariant.Primary</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Main actions</span>
+                            </div>
+                        </div>
+                        
+                        <div class="badge-demo-item">
+                            <Badge Variant="BadgeVariant.Secondary">Secondary</Badge>
+                            <div class="demo-info">
+                                <code>BadgeVariant.Secondary</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Secondary info</span>
+                            </div>
+                        </div>
+                        
+                        <div class="badge-demo-item">
+                            <Badge Variant="BadgeVariant.Success">Success</Badge>
+                            <div class="demo-info">
+                                <code>BadgeVariant.Success</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Positive states</span>
+                            </div>
+                        </div>
+                        
+                        <div class="badge-demo-item">
+                            <Badge Variant="BadgeVariant.Warning">Warning</Badge>
+                            <div class="demo-info">
+                                <code>BadgeVariant.Warning</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Attention needed</span>
+                            </div>
+                        </div>
+                        
+                        <div class="badge-demo-item">
+                            <Badge Variant="BadgeVariant.Error">Error</Badge>
+                            <div class="demo-info">
+                                <code>BadgeVariant.Error</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Error states</span>
+                            </div>
+                        </div>
+                        
+                        <div class="badge-demo-item">
+                            <Badge Variant="BadgeVariant.Info">Info</Badge>
+                            <div class="demo-info">
+                                <code>BadgeVariant.Info</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Information</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Language Levels Section -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="🌍 Language Levels (CEFR)" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    CEFR language proficiency levels with distinct semantic colors.
+                </p>
+                
+                <div class="demo-section @ThemeConstants.CssClasses.Margin.BottomLg">
+                    <div class="demo-row">
+                        <div class="badge-demo-item">
+                            <Badge Variant="BadgeVariant.Level" Level="A1">A1</Badge>
+                            <div class="demo-info">
+                                <code>Level="A1"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Beginner</span>
+                            </div>
+                        </div>
+                        
+                        <div class="badge-demo-item">
+                            <Badge Variant="BadgeVariant.Level" Level="A2">A2</Badge>
+                            <div class="demo-info">
+                                <code>Level="A2"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Elementary</span>
+                            </div>
+                        </div>
+                        
+                        <div class="badge-demo-item">
+                            <Badge Variant="BadgeVariant.Level" Level="B1">B1</Badge>
+                            <div class="demo-info">
+                                <code>Level="B1"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Intermediate</span>
+                            </div>
+                        </div>
+                        
+                        <div class="badge-demo-item">
+                            <Badge Variant="BadgeVariant.Level" Level="B2">B2</Badge>
+                            <div class="demo-info">
+                                <code>Level="B2"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Upper-Inter.</span>
+                            </div>
+                        </div>
+                        
+                        <div class="badge-demo-item">
+                            <Badge Variant="BadgeVariant.Level" Level="C1">C1</Badge>
+                            <div class="demo-info">
+                                <code>Level="C1"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Advanced</span>
+                            </div>
+                        </div>
+                        
+                        <div class="badge-demo-item">
+                            <Badge Variant="BadgeVariant.Level" Level="C2">C2</Badge>
+                            <div class="demo-info">
+                                <code>Level="C2"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Proficiency</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Level Progression Example -->
+                <div class="feature-demo">
+                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">📈 Level Progression</H4>
+                    <div class="progression-demo">
+                        <Badge Variant="BadgeVariant.Level" Level="A1">A1</Badge>
+                        <span class="progression-arrow">→</span>
+                        <Badge Variant="BadgeVariant.Level" Level="A2">A2</Badge>
+                        <span class="progression-arrow">→</span>
+                        <Badge Variant="BadgeVariant.Level" Level="B1">B1</Badge>
+                        <span class="progression-arrow">→</span>
+                        <Badge Variant="BadgeVariant.Level" Level="B2">B2</Badge>
+                        <span class="progression-arrow">→</span>
+                        <Badge Variant="BadgeVariant.Level" Level="C1">C1</Badge>
+                        <span class="progression-arrow">→</span>
+                        <Badge Variant="BadgeVariant.Level" Level="C2">C2</Badge>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Parts of Speech Section -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📝 Parts of Speech" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Grammar category badges with semantic colors for educational applications.
+                </p>
+                
+                <div class="demo-section @ThemeConstants.CssClasses.Margin.BottomLg">
+                    <div class="demo-row">
+                        <div class="badge-demo-item">
+                            <Badge PartOfSpeech="noun">Noun</Badge>
+                            <div class="demo-info">
+                                <code>PartOfSpeech="noun"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Person, place, thing</span>
+                            </div>
+                        </div>
+                        
+                        <div class="badge-demo-item">
+                            <Badge PartOfSpeech="verb">Verb</Badge>
+                            <div class="demo-info">
+                                <code>PartOfSpeech="verb"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Action word</span>
+                            </div>
+                        </div>
+                        
+                        <div class="badge-demo-item">
+                            <Badge PartOfSpeech="adjective">Adjective</Badge>
+                            <div class="demo-info">
+                                <code>PartOfSpeech="adjective"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Describes nouns</span>
+                            </div>
+                        </div>
+                        
+                        <div class="badge-demo-item">
+                            <Badge PartOfSpeech="adverb">Adverb</Badge>
+                            <div class="demo-info">
+                                <code>PartOfSpeech="adverb"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Modifies verbs</span>
+                            </div>
+                        </div>
+                        
+                        <div class="badge-demo-item">
+                            <Badge PartOfSpeech="preposition">Preposition</Badge>
+                            <div class="demo-info">
+                                <code>PartOfSpeech="preposition"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Shows relation</span>
+                            </div>
+                        </div>
+                        
+                        <div class="badge-demo-item">
+                            <Badge PartOfSpeech="conjunction">Conjunction</Badge>
+                            <div class="demo-info">
+                                <code>PartOfSpeech="conjunction"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Connects words</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sentence Example -->
+                <div class="feature-demo">
+                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">📚 Sentence Analysis</H4>
+                    <div class="sentence-demo">
+                        <div class="sentence-word">
+                            <span class="word">The</span>
+                            <Badge PartOfSpeech="adjective" CssClass="mini-badge">art</Badge>
+                        </div>
+                        <div class="sentence-word">
+                            <span class="word">quick</span>
+                            <Badge PartOfSpeech="adjective" CssClass="mini-badge">adj</Badge>
+                        </div>
+                        <div class="sentence-word">
+                            <span class="word">fox</span>
+                            <Badge PartOfSpeech="noun" CssClass="mini-badge">noun</Badge>
+                        </div>
+                        <div class="sentence-word">
+                            <span class="word">jumps</span>
+                            <Badge PartOfSpeech="verb" CssClass="mini-badge">verb</Badge>
+                        </div>
+                        <div class="sentence-word">
+                            <span class="word">over</span>
+                            <Badge PartOfSpeech="preposition" CssClass="mini-badge">prep</Badge>
+                        </div>
+                        <div class="sentence-word">
+                            <span class="word">the</span>
+                            <Badge PartOfSpeech="adjective" CssClass="mini-badge">art</Badge>
+                        </div>
+                        <div class="sentence-word">
+                            <span class="word">dog</span>
+                            <Badge PartOfSpeech="noun" CssClass="mini-badge">noun</Badge>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Code Examples -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="💻 Code Examples" Size="CardSize.Large">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Copy-paste ready examples for implementing badges in your application.
+                </p>
+                
+                <div class="code-examples">
+                    <div class="code-example">
+                        <div class="code-header">
+                            <h4 class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Status Badges</h4>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => CopyToClipboard(statusBadgeCode))">
+                                📋 Copy
+                            </Button>
+                        </div>
+                        <div class="code-container">
+                            <pre class="code-block"><code>@statusBadgeCode</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="code-example">
+                        <div class="code-header">
+                            <h4 class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Language Levels</h4>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => CopyToClipboard(languageLevelCode))">
+                                📋 Copy
+                            </Button>
+                        </div>
+                        <div class="code-container">
+                            <pre class="code-block"><code>@languageLevelCode</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="code-example">
+                        <div class="code-header">
+                            <h4 class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Parts of Speech</h4>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => CopyToClipboard(partOfSpeechCode))">
+                                📋 Copy
+                            </Button>
+                        </div>
+                        <div class="code-container">
+                            <pre class="code-block"><code>@partOfSpeechCode</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Usage Guidelines -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📋 Usage Guidelines" Size="CardSize.Large" CssClass="guidelines-card">
+                <div class="guidelines-grid">
+                    <div class="guideline-item">
+                        <div class="guideline-icon">🎯</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Purpose</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Use badges to label, categorize, or organize content. Keep text short and descriptive.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">🌈</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Color Meaning</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Each badge variant has semantic meaning. Use consistently across your application.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">📚</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Educational Context</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Language levels and parts of speech badges are optimized for educational applications.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">👀</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Accessibility</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            All badges meet WCAG color contrast requirements for accessibility compliance.
+                        </p>
+                    </div>
+                </div>
+            </Card>
+        </div>
     </div>
 </Container>
 
 <style>
-    .component-demo {
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius-lg);
-        padding: var(--spacing-lg);
-    }
+/* Page Header */
+.page-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
 
-    .progress-section {
-        margin-bottom: var(--spacing-lg);
-    }
+/* Component Stats */
+.component-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    flex-wrap: wrap;
+}
 
-    .progress-section > * {
-        margin-bottom: var(--spacing-md);
-    }
+.stat-item {
+    text-align: center;
+}
 
-    .loading-section {
-        text-align: center;
-    }
+.stat-item span:first-child {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
 
-    .typography-demo {
-        background-color: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius-lg);
-        padding: var(--spacing-lg);
-    }
+/* Demo Sections */
+.demo-card {
+    border: 1px solid var(--color-border);
+    transition: all 0.2s ease;
+}
 
-    .typography-demo > * {
-        margin-bottom: var(--spacing-md);
-    }
+.demo-card:hover {
+    border-color: var(--color-primary-bg);
+    box-shadow: var(--shadow-md);
+}
 
-    .interactive-demo {
-        padding: var(--spacing-md);
-    }
+.demo-section {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    border: 1px dashed var(--color-border);
+}
 
-    .demo-controls {
-        display: flex;
+.demo-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+    align-items: start;
+}
+
+.badge-demo-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+    transition: all 0.2s ease;
+}
+
+.badge-demo-item:hover {
+    border-color: var(--color-primary-bg);
+    box-shadow: var(--shadow-sm);
+}
+
+.demo-info {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.demo-info code {
+    background-color: var(--color-background-tertiary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-accent);
+    font-size: var(--font-size-xs);
+    font-family: 'Courier New', Consolas, monospace;
+}
+
+/* Feature Demos */
+.feature-demo {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--color-border);
+}
+
+.progression-demo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.progression-arrow {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+}
+
+.sentence-demo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+}
+
+.sentence-word {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.word {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-medium);
+}
+
+.mini-badge {
+    font-size: var(--font-size-xs) !important;
+    padding: 2px 6px !important;
+}
+
+/* Code Examples */
+.code-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.code-example {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+}
+
+.code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background-color: var(--color-background-tertiary);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.code-container {
+    position: relative;
+}
+
+.code-block {
+    background-color: var(--color-background);
+    padding: var(--spacing-lg);
+    margin: 0;
+    overflow-x: auto;
+}
+
+.code-block code {
+    font-family: 'Courier New', Consolas, monospace;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Guidelines */
+.guidelines-card {
+    background: linear-gradient(135deg, var(--color-background-secondary), var(--color-surface));
+    border: 1px solid var(--color-primary-bg);
+}
+
+.guidelines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.guideline-item {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.guideline-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Responsive */
+@@media (max-width: 768px) {
+    .demo-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .progression-demo {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .progression-arrow {
+        transform: rotate(90deg);
+    }
+    
+    .sentence-demo {
+        flex-direction: column;
         gap: var(--spacing-md);
-        margin-bottom: var(--spacing-md);
     }
-
-    /* Responsive adjustments */
-    @@media (max-width: 768px) {
-        .demo-row {
-            flex-direction: column;
-        }
-        
-        .cards-demo {
-            grid-template-columns: 1fr;
-        }
-        
-        .input-row {
-            grid-template-columns: 1fr;
-        }
-        
-        .demo-controls {
-            flex-direction: column;
-        }
+    
+    .guidelines-grid {
+        grid-template-columns: 1fr;
     }
+    
+    .component-stats {
+        gap: var(--spacing-md);
+    }
+}
 </style>
 
 @code {
-    private string textValue = "";
-    private string passwordValue = "";
-    private string emailValue = "";
-    private string numberValue = "";
-    private string textareaValue = "";
-    private string errorValue = "";
-    
-    private bool isLoading = false;
-    private string demoMessage = "";
-    private string buttonText = "Click Me!";
-    private int clickCount = 0;
+    private string statusBadgeCode = @"<!-- Status Badges -->
+<Badge Variant=""BadgeVariant.Primary"">Primary</Badge>
+<Badge Variant=""BadgeVariant.Success"">Success</Badge>
+<Badge Variant=""BadgeVariant.Warning"">Warning</Badge>
+<Badge Variant=""BadgeVariant.Error"">Error</Badge>";
 
-    private async Task HandleDemoAction()
-    {
-        clickCount++;
-        buttonText = $"Clicked {clickCount} times!";
-        demoMessage = $"Button clicked at {DateTime.Now:HH:mm:ss}";
-        
-        await Task.Delay(1000);
-        demoMessage = "";
-        StateHasChanged();
-    }
+    private string languageLevelCode = @"<!-- Language Level Badges -->
+<Badge Variant=""BadgeVariant.Level"" Level=""A1"">A1</Badge>
+<Badge Variant=""BadgeVariant.Level"" Level=""B2"">B2</Badge>
+<Badge Variant=""BadgeVariant.Level"" Level=""C1"">C1</Badge>";
 
-    private void ToggleLoading()
+    private string partOfSpeechCode = @"<!-- Parts of Speech Badges -->
+<Badge PartOfSpeech=""noun"">Noun</Badge>
+<Badge PartOfSpeech=""verb"">Verb</Badge>
+<Badge PartOfSpeech=""adjective"">Adjective</Badge>";
+
+    private async Task CopyToClipboard(string text)
     {
-        isLoading = !isLoading;
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
     }
 }

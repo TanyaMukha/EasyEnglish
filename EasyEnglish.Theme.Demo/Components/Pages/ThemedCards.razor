@@ -1,138 +1,717 @@
 ﻿@page "/themed-cards"
 @using EasyEnglish.Theme.Components
 @using EasyEnglish.Theme.Constants
-@inject IThemeService ThemeService
+@using EasyEnglish.Theme.Types
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<PageTitle>Card Components - EasyEnglish Theme Demo</PageTitle>
 
 <Container Type="ContainerType.Screen">
     <div class="@ThemeConstants.CssClasses.Padding.Lg">
         
         <!-- Header -->
-        <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
+        <div class="page-header @ThemeConstants.CssClasses.Margin.BottomXl">
             <H1 CssClass="@ThemeConstants.CssClasses.TextPrimary @ThemeConstants.CssClasses.Margin.BottomMd">
-                🧩 Components Demo
+                📄 Card Components
             </H1>
-            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary">
-                Explore the comprehensive component library provided by EasyEnglish.Theme.
+            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                Flexible container components for organizing content with consistent spacing and visual hierarchy.
             </p>
-        </div>
-
-        <!-- Cards Section -->
-        <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
-            <H2 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Cards</H2>
-            <div class="cards-demo">
-                <Card Title="Simple Card">
-                    <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary">
-                        This is a simple card with basic content.
-                    </p>
-                </Card>
-                
-                <Card Title="Card with Actions" Size="CardSize.Medium">
-                    <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomMd">
-                        This card includes action buttons at the bottom.
-                    </p>
-                    <div class="card-actions">
-                        <Button Variant="ButtonVariant.Primary" Size="ButtonSize.Small">Accept</Button>
-                        <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small">Cancel</Button>
-                    </div>
-                </Card>
-                
-                <Card Title="Large Card" Size="CardSize.Large">
-                    <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary">
-                        This is a large card with more padding and space for content.
-                    </p>
-                </Card>
+            
+            <!-- Card Stats -->
+            <div class="component-stats @ThemeConstants.CssClasses.Margin.BottomLg">
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextPrimary">3</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Sizes</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextAccent">✓</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Flexible</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextSuccess">Layout</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Ready</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextInfo">Content</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Container</span>
+                </div>
             </div>
         </div>
 
+        <!-- Card Sizes Section -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📏 Card Sizes" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Three predefined sizes for different content types and layout requirements.
+                </p>
+                
+                <div class="demo-section @ThemeConstants.CssClasses.Margin.BottomLg">
+                    <div class="card-sizes-demo">
+                        <div class="card-demo-item">
+                            <Card Title="Small Card" Size="CardSize.Small">
+                                <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                                    Perfect for compact information, status indicators, or quick actions. Uses minimal padding for space efficiency.
+                                </p>
+                            </Card>
+                            <div class="demo-info">
+                                <code>Size="CardSize.Small"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Compact content</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-demo-item">
+                            <Card Title="Medium Card" Size="CardSize.Medium">
+                                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary">
+                                    The default size for most use cases. Provides balanced spacing for content without being too prominent. Ideal for forms, lists, and general content.
+                                </p>
+                            </Card>
+                            <div class="demo-info">
+                                <code>Size="CardSize.Medium"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Default size</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-demo-item">
+                            <Card Title="Large Card" Size="CardSize.Large">
+                                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary">
+                                    Spacious layout for detailed content, hero sections, or important information that needs emphasis. Provides generous padding and visual prominence for primary content areas.
+                                </p>
+                                <Button Variant="ButtonVariant.Primary" OnClick="@(() => HandleCardAction("Large card action"))">
+                                    Take Action
+                                </Button>
+                            </Card>
+                            <div class="demo-info">
+                                <code>Size="CardSize.Large"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Prominent content</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Card Content Examples -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📝 Content Examples" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Real-world examples of how cards can be used in educational applications.
+                </p>
+                
+                <div class="content-examples-grid">
+                    <!-- Lesson Card -->
+                    <Card Title="📚 Grammar Lesson" Size="CardSize.Medium" CssClass="example-card">
+                        <div class="lesson-header @ThemeConstants.CssClasses.Margin.BottomMd">
+                            <Badge Variant="BadgeVariant.Level" Level="B1">B1</Badge>
+                            <Badge Variant="BadgeVariant.Info">30 min</Badge>
+                        </div>
+                        <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomMd">
+                            Learn about the present perfect tense with practical examples and exercises.
+                        </p>
+                        <div class="lesson-progress @ThemeConstants.CssClasses.Margin.BottomMd">
+                            <ProgressBar Progress="65" />
+                            <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">65% Complete</span>
+                        </div>
+                        <Button Variant="ButtonVariant.Primary" Size="ButtonSize.Small">
+                            Continue Lesson
+                        </Button>
+                    </Card>
+                    
+                    <!-- Vocabulary Card -->
+                    <Card Title="🔤 Word of the Day" Size="CardSize.Medium" CssClass="example-card">
+                        <div class="word-card">
+                            <div class="word-main @ThemeConstants.CssClasses.Margin.BottomMd">
+                                <H3 CssClass="@ThemeConstants.CssClasses.TextPrimary">Serendipity</H3>
+                                <Badge PartOfSpeech="noun">noun</Badge>
+                            </div>
+                            <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomMd">
+                                /ˌserənˈdipədē/ - The occurrence of events by chance in a happy way.
+                            </p>
+                            <div class="word-example @ThemeConstants.CssClasses.Margin.BottomMd">
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextTertiary">Example:</span>
+                                <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                                    "Meeting my best friend was pure serendipity."
+                                </p>
+                            </div>
+                            <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small">
+                                Add to My List
+                            </Button>
+                        </div>
+                    </Card>
+                    
+                    <!-- Achievement Card -->
+                    <Card Title="🏆 Achievement Unlocked" Size="CardSize.Medium" CssClass="example-card achievement-card">
+                        <div class="achievement-content">
+                            <div class="achievement-icon @ThemeConstants.CssClasses.Margin.BottomMd">
+                                🎯
+                            </div>
+                            <H4 CssClass="@ThemeConstants.CssClasses.TextPrimary @ThemeConstants.CssClasses.Margin.BottomSm">
+                                Grammar Master
+                            </H4>
+                            <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomMd">
+                                Completed 50 grammar exercises with 90%+ accuracy!
+                            </p>
+                            <div class="achievement-stats">
+                                <Badge Variant="BadgeVariant.Success">+100 XP</Badge>
+                                <Badge Variant="BadgeVariant.Warning">Rare</Badge>
+                            </div>
+                        </div>
+                    </Card>
+                    
+                    <!-- Student Progress Card -->
+                    <Card Title="📊 Student Progress" Size="CardSize.Large" CssClass="example-card progress-card">
+                        <div class="progress-overview @ThemeConstants.CssClasses.Margin.BottomLg">
+                            <div class="progress-stat">
+                                <span class="@ThemeConstants.CssClasses.H2 @ThemeConstants.CssClasses.TextPrimary">87%</span>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Overall Progress</span>
+                            </div>
+                            <div class="progress-stat">
+                                <span class="@ThemeConstants.CssClasses.H2 @ThemeConstants.CssClasses.TextAccent">24</span>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Lessons Completed</span>
+                            </div>
+                            <div class="progress-stat">
+                                <span class="@ThemeConstants.CssClasses.H2 @ThemeConstants.CssClasses.TextSuccess">950</span>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Words Learned</span>
+                            </div>
+                        </div>
+                        
+                        <div class="skill-breakdown">
+                            <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Skill Breakdown</H4>
+                            <div class="skill-item @ThemeConstants.CssClasses.Margin.BottomSm">
+                                <div class="skill-header">
+                                    <span class="@ThemeConstants.CssClasses.BodyMedium">Grammar</span>
+                                    <Badge Variant="BadgeVariant.Success">92%</Badge>
+                                </div>
+                                <ProgressBar Progress="92" />
+                            </div>
+                            <div class="skill-item @ThemeConstants.CssClasses.Margin.BottomSm">
+                                <div class="skill-header">
+                                    <span class="@ThemeConstants.CssClasses.BodyMedium">Vocabulary</span>
+                                    <Badge Variant="BadgeVariant.Success">88%</Badge>
+                                </div>
+                                <ProgressBar Progress="88" />
+                            </div>
+                            <div class="skill-item">
+                                <div class="skill-header">
+                                    <span class="@ThemeConstants.CssClasses.BodyMedium">Reading</span>
+                                    <Badge Variant="BadgeVariant.Warning">75%</Badge>
+                                </div>
+                                <ProgressBar Progress="75" />
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Interactive Demo -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="🎮 Interactive Card Demo" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Try different card configurations and see the results in real-time.
+                </p>
+                
+                <div class="interactive-demo">
+                    <div class="demo-controls @ThemeConstants.CssClasses.Margin.BottomLg">
+                        <div class="control-group">
+                            <label class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Card Title:</label>
+                            <Input @bind-Value="demoCardTitle" Placeholder="Enter card title" />
+                        </div>
+                        <div class="control-group">
+                            <label class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Card Size:</label>
+                            <select @bind="demoCardSize" class="select-input">
+                                <option value="@CardSize.Small">Small</option>
+                                <option value="@CardSize.Medium">Medium</option>
+                                <option value="@CardSize.Large">Large</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Content:</label>
+                            <Input @bind-Value="demoCardContent" Multiline="true" Rows="3" Placeholder="Enter card content" />
+                        </div>
+                    </div>
+                    
+                    <div class="demo-result">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Preview:</H4>
+                        <div class="demo-card-container">
+                            <Card Title="@demoCardTitle" Size="demoCardSize">
+                                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary">
+                                    @demoCardContent
+                                </p>
+                                <Button Variant="ButtonVariant.Primary" OnClick="@(() => HandleCardAction("Demo card action"))">
+                                    Demo Button
+                                </Button>
+                            </Card>
+                        </div>
+                        
+                        <div class="demo-feedback @ThemeConstants.CssClasses.Margin.TopMd">
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => CopyCardCode())">
+                                📋 Copy Code
+                            </Button>
+                            @if (!string.IsNullOrEmpty(actionMessage))
+                            {
+                                <Badge Variant="BadgeVariant.Success">@actionMessage</Badge>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Code Examples -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="💻 Code Examples" Size="CardSize.Large">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Copy-paste ready examples for implementing cards in your application.
+                </p>
+                
+                <div class="code-examples">
+                    <div class="code-example">
+                        <div class="code-header">
+                            <h4 class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Basic Card</h4>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => CopyToClipboard(basicCardCode))">
+                                📋 Copy
+                            </Button>
+                        </div>
+                        <div class="code-container">
+                            <pre class="code-block"><code>@basicCardCode</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="code-example">
+                        <div class="code-header">
+                            <h4 class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Educational Card</h4>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => CopyToClipboard(educationalCardCode))">
+                                📋 Copy
+                            </Button>
+                        </div>
+                        <div class="code-container">
+                            <pre class="code-block"><code>@educationalCardCode</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="code-example">
+                        <div class="code-header">
+                            <h4 class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Interactive Card</h4>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => CopyToClipboard(interactiveCardCode))">
+                                📋 Copy
+                            </Button>
+                        </div>
+                        <div class="code-container">
+                            <pre class="code-block"><code>@interactiveCardCode</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Usage Guidelines -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📋 Usage Guidelines" Size="CardSize.Large" CssClass="guidelines-card">
+                <div class="guidelines-grid">
+                    <div class="guideline-item">
+                        <div class="guideline-icon">📦</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Content Grouping</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Use cards to group related content together. Each card should represent a single concept or action.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">📏</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Size Selection</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Choose size based on content importance: Small for status, Medium for general content, Large for primary information.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">🎨</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Visual Hierarchy</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Use cards to create clear visual hierarchy in your layouts. Primary cards should be larger and more prominent.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">📱</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Responsive Design</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Cards automatically adapt to different screen sizes, maintaining readability on all devices.
+                        </p>
+                    </div>
+                </div>
+            </Card>
+        </div>
     </div>
 </Container>
 
 <style>
-    .component-demo {
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius-lg);
-        padding: var(--spacing-lg);
-    }
+/* Page Header */
+.page-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
 
-    .progress-section {
-        margin-bottom: var(--spacing-lg);
-    }
+/* Component Stats */
+.component-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    flex-wrap: wrap;
+}
 
-    .progress-section > * {
-        margin-bottom: var(--spacing-md);
-    }
+.stat-item {
+    text-align: center;
+}
 
-    .loading-section {
-        text-align: center;
-    }
+.stat-item span:first-child {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
 
-    .typography-demo {
-        background-color: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius-lg);
-        padding: var(--spacing-lg);
-    }
+/* Demo Sections */
+.demo-card {
+    border: 1px solid var(--color-border);
+    transition: all 0.2s ease;
+}
 
-    .typography-demo > * {
-        margin-bottom: var(--spacing-md);
-    }
+.demo-card:hover {
+    border-color: var(--color-primary-bg);
+    box-shadow: var(--shadow-md);
+}
 
-    .interactive-demo {
-        padding: var(--spacing-md);
-    }
+.demo-section {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    border: 1px dashed var(--color-border);
+}
 
-    .demo-controls {
-        display: flex;
+/* Card Sizes Demo */
+.card-sizes-demo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-xl);
+    align-items: start;
+}
+
+.card-demo-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.demo-info {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-md);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+}
+
+.demo-info code {
+    background-color: var(--color-background-tertiary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-accent);
+    font-size: var(--font-size-xs);
+    font-family: 'Courier New', Consolas, monospace;
+}
+
+/* Content Examples */
+.content-examples-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.example-card {
+    height: fit-content;
+}
+
+/* Lesson Card */
+.lesson-header {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+}
+
+.lesson-progress {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+/* Word Card */
+.word-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.word-example {
+    padding: var(--spacing-sm);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-sm);
+    border-left: 3px solid var(--color-primary);
+}
+
+/* Achievement Card */
+.achievement-card {
+    background: linear-gradient(135deg, var(--color-background-secondary), var(--color-surface));
+    border: 1px solid var(--color-success);
+}
+
+.achievement-content {
+    text-align: center;
+}
+
+.achievement-icon {
+    font-size: 3rem;
+}
+
+.achievement-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-sm);
+}
+
+/* Progress Card */
+.progress-overview {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+}
+
+.progress-stat {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.skill-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.skill-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Interactive Demo */
+.interactive-demo {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--color-border);
+}
+
+.demo-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.select-input {
+    padding: var(--spacing-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+}
+
+.demo-card-container {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.demo-feedback {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    border-top: 1px solid var(--color-border);
+}
+
+/* Code Examples */
+.code-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.code-example {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+}
+
+.code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background-color: var(--color-background-tertiary);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.code-container {
+    position: relative;
+}
+
+.code-block {
+    background-color: var(--color-background);
+    padding: var(--spacing-lg);
+    margin: 0;
+    overflow-x: auto;
+}
+
+.code-block code {
+    font-family: 'Courier New', Consolas, monospace;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Guidelines */
+.guidelines-card {
+    background: linear-gradient(135deg, var(--color-background-secondary), var(--color-surface));
+    border: 1px solid var(--color-primary-bg);
+}
+
+.guidelines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.guideline-item {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.guideline-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Responsive */
+@@media (max-width: 768px) {
+    .card-sizes-demo {
+        grid-template-columns: 1fr;
+    }
+    
+    .content-examples-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .progress-overview {
+        flex-direction: column;
         gap: var(--spacing-md);
-        margin-bottom: var(--spacing-md);
     }
-
-    /* Responsive adjustments */
-    @@media (max-width: 768px) {
-        .demo-row {
-            flex-direction: column;
-        }
-        
-        .cards-demo {
-            grid-template-columns: 1fr;
-        }
-        
-        .input-row {
-            grid-template-columns: 1fr;
-        }
-        
-        .demo-controls {
-            flex-direction: column;
-        }
+    
+    .demo-controls {
+        grid-template-columns: 1fr;
     }
+    
+    .guidelines-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .component-stats {
+        gap: var(--spacing-md);
+    }
+}
 </style>
 
 @code {
-    private string textValue = "";
-    private string passwordValue = "";
-    private string emailValue = "";
-    private string numberValue = "";
-    private string textareaValue = "";
-    private string errorValue = "";
-    
-    private bool isLoading = false;
-    private string demoMessage = "";
-    private string buttonText = "Click Me!";
-    private int clickCount = 0;
+    // Demo state
+    private string demoCardTitle = "Custom Card";
+    private CardSize demoCardSize = CardSize.Medium;
+    private string demoCardContent = "This is a dynamically generated card with custom content.";
+    private string actionMessage = "";
 
-    private async Task HandleDemoAction()
+    // Code examples
+    private string basicCardCode = @"<!-- Basic Card Usage -->
+<Card Title=""My Card"" Size=""CardSize.Medium"">
+    <p>Card content goes here</p>
+    <Button Variant=""ButtonVariant.Primary"">
+        Take Action
+    </Button>
+</Card>";
+
+    private string educationalCardCode = @"<!-- Educational Content Card -->
+<Card Title=""Grammar Lesson"" Size=""CardSize.Large"">
+    <div class=""lesson-header"">
+        <Badge Variant=""BadgeVariant.Level"" Level=""B1"">B1</Badge>
+        <Badge Variant=""BadgeVariant.Info"">30 min</Badge>
+    </div>
+    <p>Learn about the present perfect tense...</p>
+    <ProgressBar Progress=""65"" />
+    <Button Variant=""ButtonVariant.Primary"">Continue</Button>
+</Card>";
+
+    private string interactiveCardCode = @"<!-- Interactive Card with Actions -->
+<Card Title=""@cardTitle"" Size=""@cardSize"">
+    <p>@cardContent</p>
+    <Button Variant=""ButtonVariant.Primary"" OnClick=""HandleAction"">
+        @buttonText
+    </Button>
+</Card>";
+
+    private void HandleCardAction(string action)
     {
-        clickCount++;
-        buttonText = $"Clicked {clickCount} times!";
-        demoMessage = $"Button clicked at {DateTime.Now:HH:mm:ss}";
-        
-        await Task.Delay(1000);
-        demoMessage = "";
-        StateHasChanged();
+        actionMessage = $"Action: {action}";
+        Task.Run(async () =>
+        {
+            await Task.Delay(2000);
+            actionMessage = "";
+            await InvokeAsync(StateHasChanged);
+        });
     }
 
-    private void ToggleLoading()
+    private async Task CopyCardCode()
     {
-        isLoading = !isLoading;
+        var code = $@"<Card Title=""{demoCardTitle}"" Size=""CardSize.{demoCardSize}"">
+    <p>{demoCardContent}</p>
+    <Button Variant=""ButtonVariant.Primary"">Demo Button</Button>
+</Card>";
+        
+        await CopyToClipboard(code);
+        actionMessage = "Code copied!";
+        Task.Run(async () =>
+        {
+            await Task.Delay(2000);
+            actionMessage = "";
+            await InvokeAsync(StateHasChanged);
+        });
+    }
+
+    private async Task CopyToClipboard(string text)
+    {
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
     }
 }

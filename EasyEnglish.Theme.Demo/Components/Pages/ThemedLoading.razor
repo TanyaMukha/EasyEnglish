@@ -1,0 +1,1072 @@
+﻿@page "/themed-loading"
+@using EasyEnglish.Theme.Components
+@using EasyEnglish.Theme.Constants
+@using EasyEnglish.Theme.Types
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<PageTitle>Loading Components - EasyEnglish Theme Demo</PageTitle>
+
+<Container Type="ContainerType.Screen">
+    <div class="@ThemeConstants.CssClasses.Padding.Lg">
+        
+        <!-- Header -->
+        <div class="page-header @ThemeConstants.CssClasses.Margin.BottomXl">
+            <H1 CssClass="@ThemeConstants.CssClasses.TextPrimary @ThemeConstants.CssClasses.Margin.BottomMd">
+                🔄 Loading Components
+            </H1>
+            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                Animated loading indicators and feedback components for providing visual cues during data processing and content loading.
+            </p>
+            
+            <!-- Loading Stats -->
+            <div class="component-stats @ThemeConstants.CssClasses.Margin.BottomLg">
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextPrimary">1</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Component</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextAccent">∞</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Messages</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextSuccess">Smooth</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Animation</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextInfo">UX</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Focused</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Basic Loading States Section -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="⚡ Basic Loading States" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Essential loading indicators for different scenarios and user feedback requirements.
+                </p>
+                
+                <div class="demo-section @ThemeConstants.CssClasses.Margin.BottomLg">
+                    <div class="loading-examples">
+                        <div class="loading-demo-item">
+                            <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Simple Loading</H4>
+                            <div class="loading-container">
+                                <Loading />
+                            </div>
+                            <div class="demo-info">
+                                <code>&lt;Loading /&gt;</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Basic spinner without text</span>
+                            </div>
+                        </div>
+                        
+                        <div class="loading-demo-item">
+                            <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Loading with Message</H4>
+                            <div class="loading-container">
+                                <Loading Message="Loading your lessons..." />
+                            </div>
+                            <div class="demo-info">
+                                <code>Message="Loading your lessons..."</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Descriptive loading text</span>
+                            </div>
+                        </div>
+                        
+                        <div class="loading-demo-item">
+                            <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Action-Specific Loading</H4>
+                            <div class="loading-container">
+                                <Loading Message="Processing your answers..." />
+                            </div>
+                            <div class="demo-info">
+                                <code>Message="Processing your answers..."</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Task-specific feedback</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Interactive Loading Demo -->
+                <div class="feature-demo">
+                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">🎭 Interactive Loading Demo</H4>
+                    <div class="interactive-loading">
+                        <div class="loading-controls @ThemeConstants.CssClasses.Margin.BottomMd">
+                            <div class="control-group">
+                                <label class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Loading Message:</label>
+                                <Input @bind-Value="customLoadingMessage" Placeholder="Enter custom loading message" />
+                            </div>
+                            <div class="control-buttons">
+                                <Button Variant="ButtonVariant.Primary" OnClick="StartCustomLoading" Disabled="@isCustomLoading">
+                                    @(isCustomLoading ? "Loading..." : "Start Loading")
+                                </Button>
+                                <Button Variant="ButtonVariant.Secondary" OnClick="StopCustomLoading" Disabled="@(!isCustomLoading)">
+                                    Stop Loading
+                                </Button>
+                            </div>
+                        </div>
+                        
+                        @if (isCustomLoading)
+                        {
+                            <div class="custom-loading-display">
+                                <Loading Message="@(string.IsNullOrEmpty(customLoadingMessage) ? "Loading..." : customLoadingMessage)" />
+                            </div>
+                        }
+                        else if (customLoadingCompleted)
+                        {
+                            <div class="loading-result">
+                                <Badge Variant="BadgeVariant.Success">Loading completed! ✅</Badge>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Loading Simulation Section -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="🎮 Multi-Step Loading Simulation" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Advanced loading states that simulate real application workflows with progress tracking.
+                </p>
+                
+                <div class="demo-section @ThemeConstants.CssClasses.Margin.BottomLg">
+                    <div class="simulation-controls @ThemeConstants.CssClasses.Margin.BottomMd">
+                        <Button Variant="ButtonVariant.Primary" OnClick="StartSimulation" Disabled="@isSimulating">
+                            @(isSimulating ? "Simulating..." : "Start Multi-Step Simulation")
+                        </Button>
+                        <Button Variant="ButtonVariant.Secondary" OnClick="StopSimulation" Disabled="@(!isSimulating)">
+                            Stop Simulation
+                        </Button>
+                        <Button Variant="ButtonVariant.Outline" OnClick="ResetSimulation" Disabled="@isSimulating">
+                            Reset
+                        </Button>
+                    </div>
+                    
+                    @if (isSimulating)
+                    {
+                        <div class="simulation-content">
+                            <Loading Message="@currentSimulationMessage" />
+                            <div class="simulation-progress @ThemeConstants.CssClasses.Margin.TopMd">
+                                <div class="progress-info @ThemeConstants.CssClasses.Margin.BottomSm">
+                                    <span class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">
+                                        Step @currentSimulationStep of @totalSimulationSteps
+                                    </span>
+                                    <Badge Variant="BadgeVariant.Info">@simulationProgress%</Badge>
+                                </div>
+                                <ProgressBar Progress="simulationProgress" />
+                            </div>
+                        </div>
+                    }
+                    else if (simulationCompleted)
+                    {
+                        <div class="simulation-result">
+                            <div class="success-feedback @ThemeConstants.CssClasses.Margin.BottomMd">
+                                <div class="success-icon">✅</div>
+                                <H4 CssClass="@ThemeConstants.CssClasses.TextSuccess @ThemeConstants.CssClasses.Margin.BottomSm">
+                                    Simulation Completed Successfully!
+                                </H4>
+                                <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                                    All @totalSimulationSteps steps completed in @simulationDuration seconds.
+                                </p>
+                            </div>
+                            <div class="completion-badges">
+                                <Badge Variant="BadgeVariant.Success">Data Loaded</Badge>
+                                <Badge Variant="BadgeVariant.Success">Processed</Badge>
+                                <Badge Variant="BadgeVariant.Success">Validated</Badge>
+                                <Badge Variant="BadgeVariant.Success">Complete</Badge>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="simulation-ready">
+                            <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary">
+                                Click "Start Multi-Step Simulation" to see a realistic loading sequence with progress tracking.
+                            </p>
+                        </div>
+                    }
+                </div>
+            </Card>
+        </div>
+
+        <!-- Educational Use Cases -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="🎓 Educational Loading Examples" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Real-world loading scenarios in language learning and educational applications.
+                </p>
+                
+                <div class="educational-examples-grid">
+                    <!-- Assignment Submission -->
+                    <Card Title="📝 Assignment Submission" Size="CardSize.Medium" CssClass="educational-card">
+                        <div class="assignment-demo">
+                            @if (isSubmittingAssignment)
+                            {
+                                <div class="submission-loading">
+                                    <Loading Message="Submitting your essay..." />
+                                    <div class="submission-progress @ThemeConstants.CssClasses.Margin.TopMd">
+                                        <div class="progress-header @ThemeConstants.CssClasses.Margin.BottomSm">
+                                            <span class="@ThemeConstants.CssClasses.BodySmall">Upload Progress</span>
+                                            <Badge Variant="BadgeVariant.Info">@submissionProgress%</Badge>
+                                        </div>
+                                        <ProgressBar Progress="submissionProgress" />
+                                        <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.TopSm">
+                                            @(submissionProgress < 100 ? "Uploading..." : "Finalizing...")
+                                        </span>
+                                    </div>
+                                </div>
+                            }
+                            else if (assignmentSubmitted)
+                            {
+                                <div class="submission-success">
+                                    <div class="success-icon @ThemeConstants.CssClasses.Margin.BottomMd">✅</div>
+                                    <H4 CssClass="@ThemeConstants.CssClasses.TextSuccess @ThemeConstants.CssClasses.Margin.BottomSm">
+                                        Essay Submitted Successfully!
+                                    </H4>
+                                    <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomMd">
+                                        Your essay has been submitted. You'll receive feedback within 24 hours.
+                                    </p>
+                                    <div class="submission-details">
+                                        <Badge Variant="BadgeVariant.Success">Submitted on time</Badge>
+                                        <Badge Variant="BadgeVariant.Info">Word count: 327</Badge>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="assignment-ready">
+                                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Essay Assignment</H4>
+                                    <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomMd">
+                                        Write a 300-word essay about your favorite book.
+                                    </p>
+                                    <div class="assignment-meta @ThemeConstants.CssClasses.Margin.BottomMd">
+                                        <Badge Variant="BadgeVariant.Level" Level="B2">B2</Badge>
+                                        <Badge Variant="BadgeVariant.Warning">Due in 2 days</Badge>
+                                    </div>
+                                    <Button Variant="ButtonVariant.Primary" OnClick="SimulateSubmission">
+                                        Submit Assignment
+                                    </Button>
+                                </div>
+                            }
+                        </div>
+                    </Card>
+                    
+                    <!-- Content Loading -->
+                    <Card Title="📚 Content Loading" Size="CardSize.Medium" CssClass="educational-card">
+                        <div class="content-loading-demo">
+                            @if (isLoadingContent)
+                            {
+                                <div class="content-loading">
+                                    <Loading Message="@currentContentMessage" />
+                                    <div class="content-info @ThemeConstants.CssClasses.Margin.TopMd">
+                                        <Badge Variant="BadgeVariant.Info">Loading @contentType</Badge>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="content-ready">
+                                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Load Learning Content</H4>
+                                    <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomMd">
+                                        Simulate loading different types of educational content.
+                                    </p>
+                                    <div class="content-options">
+                                        <Button Variant="ButtonVariant.Outline" OnClick="@(() => LoadContent("lessons", "Loading lessons..."))" Size="ButtonSize.Small">
+                                            📚 Load Lessons
+                                        </Button>
+                                        <Button Variant="ButtonVariant.Outline" OnClick="@(() => LoadContent("exercises", "Loading exercises..."))" Size="ButtonSize.Small">
+                                            📝 Load Exercises
+                                        </Button>
+                                        <Button Variant="ButtonVariant.Outline" OnClick="@(() => LoadContent("vocabulary", "Loading vocabulary..."))" Size="ButtonSize.Small">
+                                            🔤 Load Vocabulary
+                                        </Button>
+                                        <Button Variant="ButtonVariant.Outline" OnClick="@(() => LoadContent("audio", "Loading audio files..."))" Size="ButtonSize.Small">
+                                            🔊 Load Audio
+                                        </Button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </Card>
+                    
+                    <!-- Quiz Processing -->
+                    <Card Title="🧠 Quiz Processing" Size="CardSize.Medium" CssClass="educational-card">
+                        <div class="quiz-demo">
+                            @if (isProcessingQuiz)
+                            {
+                                <div class="quiz-processing">
+                                    <Loading Message="Analyzing your answers..." />
+                                    <div class="quiz-info @ThemeConstants.CssClasses.Margin.TopMd">
+                                        <div class="quiz-stats">
+                                            <Badge Variant="BadgeVariant.Info">10 questions</Badge>
+                                            <Badge Variant="BadgeVariant.Warning">Calculating score...</Badge>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            else if (quizProcessed)
+                            {
+                                <div class="quiz-results">
+                                    <div class="results-header @ThemeConstants.CssClasses.Margin.BottomMd">
+                                        <H4 CssClass="@ThemeConstants.CssClasses.TextSuccess">Quiz Results</H4>
+                                        <Badge Variant="BadgeVariant.Success">85%</Badge>
+                                    </div>
+                                    <div class="results-breakdown @ThemeConstants.CssClasses.Margin.BottomMd">
+                                        <div class="result-item">
+                                            <span class="@ThemeConstants.CssClasses.BodySmall">Correct answers:</span>
+                                            <Badge Variant="BadgeVariant.Success">8/10</Badge>
+                                        </div>
+                                        <div class="result-item">
+                                            <span class="@ThemeConstants.CssClasses.BodySmall">Time taken:</span>
+                                            <Badge Variant="BadgeVariant.Info">5:23</Badge>
+                                        </div>
+                                        <div class="result-item">
+                                            <span class="@ThemeConstants.CssClasses.BodySmall">Grade:</span>
+                                            <Badge Variant="BadgeVariant.Success">B+</Badge>
+                                        </div>
+                                    </div>
+                                    <Button Variant="ButtonVariant.Primary" Size="ButtonSize.Small">
+                                        Review Answers
+                                    </Button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="quiz-ready">
+                                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Grammar Quiz</H4>
+                                    <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomMd">
+                                        Test your knowledge of present perfect tense.
+                                    </p>
+                                    <div class="quiz-meta @ThemeConstants.CssClasses.Margin.BottomMd">
+                                        <Badge Variant="BadgeVariant.Level" Level="B1">B1</Badge>
+                                        <Badge Variant="BadgeVariant.Info">10 questions</Badge>
+                                        <Badge Variant="BadgeVariant.Warning">15 min</Badge>
+                                    </div>
+                                    <Button Variant="ButtonVariant.Primary" OnClick="ProcessQuiz">
+                                        Submit Quiz
+                                    </Button>
+                                </div>
+                            }
+                        </div>
+                    </Card>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Code Examples -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="💻 Code Examples" Size="CardSize.Large">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Copy-paste ready examples for implementing loading components in your application.
+                </p>
+                
+                <div class="code-examples">
+                    <div class="code-example">
+                        <div class="code-header">
+                            <h4 class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Basic Loading</h4>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => CopyToClipboard(basicLoadingCode))">
+                                📋 Copy
+                            </Button>
+                        </div>
+                        <div class="code-container">
+                            <pre class="code-block"><code>@basicLoadingCode</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="code-example">
+                        <div class="code-header">
+                            <h4 class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Conditional Loading</h4>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => CopyToClipboard(conditionalLoadingCode))">
+                                📋 Copy
+                            </Button>
+                        </div>
+                        <div class="code-container">
+                            <pre class="code-block"><code>@conditionalLoadingCode</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="code-example">
+                        <div class="code-header">
+                            <h4 class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Loading with Progress</h4>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => CopyToClipboard(progressLoadingCode))">
+                                📋 Copy
+                            </Button>
+                        </div>
+                        <div class="code-container">
+                            <pre class="code-block"><code>@progressLoadingCode</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Usage Guidelines -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📋 Usage Guidelines" Size="CardSize.Large" CssClass="guidelines-card">
+                <div class="guidelines-grid">
+                    <div class="guideline-item">
+                        <div class="guideline-icon">⏱️</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Response Time</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Show loading indicators for operations taking longer than 200ms to provide immediate feedback.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">💬</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Descriptive Messages</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Use specific messages that describe what's happening: "Loading lessons" instead of just "Loading".
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">🎯</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Educational Context</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            In learning apps, use loading time to build anticipation and maintain engagement with learners.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">♿</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Accessibility</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Loading states are announced to screen readers and provide clear feedback for all users.
+                        </p>
+                    </div>
+                </div>
+            </Card>
+        </div>
+    </div>
+</Container>
+
+<style>
+/* Page Header */
+.page-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Component Stats */
+.component-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-item span:first-child {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
+
+/* Demo Sections */
+.demo-card {
+    border: 1px solid var(--color-border);
+    transition: all 0.2s ease;
+}
+
+.demo-card:hover {
+    border-color: var(--color-primary-bg);
+    box-shadow: var(--shadow-md);
+}
+
+.demo-section {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    border: 1px dashed var(--color-border);
+}
+
+/* Loading Examples */
+.loading-examples {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-xl);
+}
+
+.loading-demo-item {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+}
+
+.loading-container {
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.demo-info {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.demo-info code {
+    background-color: var(--color-background-tertiary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-accent);
+    font-size: var(--font-size-xs);
+    font-family: 'Courier New', Consolas, monospace;
+}
+
+/* Interactive Loading */
+.feature-demo {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--color-border);
+}
+
+.interactive-loading {
+    text-align: center;
+}
+
+.loading-controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    align-items: center;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    min-width: 300px;
+}
+
+.control-buttons {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.custom-loading-display, .loading-result {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+}
+
+/* Simulation */
+.simulation-controls {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.simulation-content, .simulation-result, .simulation-ready {
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+    text-align: center;
+}
+
+.simulation-progress {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.success-feedback {
+    text-align: center;
+}
+
+.success-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.completion-badges {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+/* Educational Examples */
+.educational-examples-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.educational-card {
+    height: fit-content;
+}
+
+/* Assignment Demo */
+.assignment-demo {
+    text-align: center;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.submission-progress {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.submission-success {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.submission-details {
+    display: flex;
+    gap: var(--spacing-xs);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.assignment-meta {
+    display: flex;
+    gap: var(--spacing-xs);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Content Loading Demo */
+.content-loading-demo {
+    text-align: center;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.content-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.content-info {
+    display: flex;
+    justify-content: center;
+}
+
+/* Quiz Demo */
+.quiz-demo {
+    text-align: center;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.results-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm);
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-sm);
+}
+
+.quiz-stats {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.quiz-meta {
+    display: flex;
+    gap: var(--spacing-xs);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Code Examples */
+.code-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.code-example {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+}
+
+.code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background-color: var(--color-background-tertiary);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.code-container {
+    position: relative;
+}
+
+.code-block {
+    background-color: var(--color-background);
+    padding: var(--spacing-lg);
+    margin: 0;
+    overflow-x: auto;
+}
+
+.code-block code {
+    font-family: 'Courier New', Consolas, monospace;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Guidelines */
+.guidelines-card {
+    background: linear-gradient(135deg, var(--color-background-secondary), var(--color-surface));
+    border: 1px solid var(--color-primary-bg);
+}
+
+.guidelines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.guideline-item {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.guideline-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Responsive */
+@@media (max-width: 768px) {
+    .loading-examples {
+        grid-template-columns: 1fr;
+    }
+    
+    .educational-examples-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .simulation-controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .control-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .control-group {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .content-options {
+        gap: var(--spacing-xs);
+    }
+    
+    .guidelines-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .component-stats {
+        gap: var(--spacing-md);
+    }
+    
+    .completion-badges {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+</style>
+
+@code {
+    // Interactive loading state
+    private string customLoadingMessage = "Loading custom content...";
+    private bool isCustomLoading = false;
+    private bool customLoadingCompleted = false;
+    private Timer? customLoadingTimer;
+    
+    // Multi-step simulation state
+    private bool isSimulating = false;
+    private bool simulationCompleted = false;
+    private int simulationProgress = 0;
+    private int currentSimulationStep = 0;
+    private int totalSimulationSteps = 5;
+    private string currentSimulationMessage = "";
+    private int simulationDuration = 0;
+    private Timer? simulationTimer;
+    
+    // Educational examples state
+    private bool isSubmittingAssignment = false;
+    private bool assignmentSubmitted = false;
+    private int submissionProgress = 0;
+    private Timer? submissionTimer;
+    
+    private bool isLoadingContent = false;
+    private string currentContentMessage = "";
+    private string contentType = "";
+    private Timer? contentTimer;
+    
+    private bool isProcessingQuiz = false;
+    private bool quizProcessed = false;
+    private Timer? quizTimer;
+    
+    // Simulation messages
+    private string[] simulationMessages = new[]
+    {
+        "Initializing system...",
+        "Loading user data...",
+        "Fetching lesson content...",
+        "Processing exercises...",
+        "Finalizing setup..."
+    };
+
+    // Code examples
+    private string basicLoadingCode = @"<!-- Basic Loading Spinner -->
+<Loading />
+
+<!-- Loading with Message -->
+<Loading Message=""Loading your lessons..."" />
+
+<!-- Different loading messages -->
+<Loading Message=""Processing your answers..."" />
+<Loading Message=""Submitting assignment..."" />
+<Loading Message=""Loading vocabulary..."" />";
+
+    private string conditionalLoadingCode = @"<!-- Conditional Loading -->
+@if (isLoading)
+{
+    <Loading Message=""Loading content..."" />
+}
+else
+{
+    <div class=""content"">
+        <!-- Your content here -->
+    </div>
+}
+
+<!-- Loading with different states -->
+@if (isSubmitting)
+{
+    <Loading Message=""Submitting assignment..."" />
+}
+else if (isProcessing)
+{
+    <Loading Message=""Processing answers..."" />
+}";
+
+    private string progressLoadingCode = @"<!-- Loading with Progress -->
+@if (isSubmitting)
+{
+    <Loading Message=""Submitting assignment..."" />
+    <div class=""progress-info"">
+        <ProgressBar Progress=""uploadProgress"" />
+        <span>@uploadProgress% uploaded</span>
+    </div>
+}
+
+<!-- Multi-step loading -->
+@if (isProcessing)
+{
+    <Loading Message=""@currentStepMessage"" />
+    <div class=""step-info"">
+        <span>Step @currentStep of @totalSteps</span>
+        <ProgressBar Progress=""stepProgress"" />
+    </div>
+}";
+
+    private async Task StartCustomLoading()
+    {
+        isCustomLoading = true;
+        customLoadingCompleted = false;
+        
+        customLoadingTimer = new Timer(StopCustomLoadingTimer, null, 3000, Timeout.Infinite);
+    }
+
+    private void StopCustomLoadingTimer(object? state)
+    {
+        isCustomLoading = false;
+        customLoadingCompleted = true;
+        customLoadingTimer?.Dispose();
+        customLoadingTimer = null;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void StopCustomLoading()
+    {
+        isCustomLoading = false;
+        customLoadingTimer?.Dispose();
+        customLoadingTimer = null;
+    }
+
+    private async Task StartSimulation()
+    {
+        isSimulating = true;
+        simulationCompleted = false;
+        simulationProgress = 0;
+        currentSimulationStep = 0;
+        simulationDuration = 0;
+        
+        simulationTimer = new Timer(UpdateSimulation, null, 0, 800);
+    }
+
+    private void UpdateSimulation(object? state)
+    {
+        if (currentSimulationStep < totalSimulationSteps)
+        {
+            currentSimulationMessage = simulationMessages[currentSimulationStep];
+            simulationProgress = (int)((currentSimulationStep + 1) * 100.0 / totalSimulationSteps);
+            currentSimulationStep++;
+            simulationDuration++;
+            
+            InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+            StopSimulation();
+            simulationCompleted = true;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void StopSimulation()
+    {
+        isSimulating = false;
+        simulationTimer?.Dispose();
+        simulationTimer = null;
+    }
+
+    private void ResetSimulation()
+    {
+        simulationCompleted = false;
+        simulationProgress = 0;
+        currentSimulationStep = 0;
+        simulationDuration = 0;
+    }
+
+    private async Task SimulateSubmission()
+    {
+        isSubmittingAssignment = true;
+        assignmentSubmitted = false;
+        submissionProgress = 0;
+        
+        submissionTimer = new Timer(UpdateSubmission, null, 0, 200);
+    }
+
+    private void UpdateSubmission(object? state)
+    {
+        if (submissionProgress < 100)
+        {
+            submissionProgress += 10;
+            InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+            isSubmittingAssignment = false;
+            assignmentSubmitted = true;
+            submissionTimer?.Dispose();
+            submissionTimer = null;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task LoadContent(string type, string message)
+    {
+        isLoadingContent = true;
+        contentType = type;
+        currentContentMessage = message;
+        
+        contentTimer = new Timer(StopContentLoading, null, 2000, Timeout.Infinite);
+    }
+
+    private void StopContentLoading(object? state)
+    {
+        isLoadingContent = false;
+        contentTimer?.Dispose();
+        contentTimer = null;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ProcessQuiz()
+    {
+        isProcessingQuiz = true;
+        quizProcessed = false;
+        
+        quizTimer = new Timer(StopQuizProcessing, null, 3000, Timeout.Infinite);
+    }
+
+    private void StopQuizProcessing(object? state)
+    {
+        isProcessingQuiz = false;
+        quizProcessed = true;
+        quizTimer?.Dispose();
+        quizTimer = null;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CopyToClipboard(string text)
+    {
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+    }
+
+    public void Dispose()
+    {
+        customLoadingTimer?.Dispose();
+        simulationTimer?.Dispose();
+        submissionTimer?.Dispose();
+        contentTimer?.Dispose();
+        quizTimer?.Dispose();
+    }
+}

@@ -1,156 +1,671 @@
 ﻿@page "/themed-inputs"
 @using EasyEnglish.Theme.Components
 @using EasyEnglish.Theme.Constants
-@inject IThemeService ThemeService
+@using EasyEnglish.Theme.Types
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<PageTitle>Input Components - EasyEnglish Theme Demo</PageTitle>
 
 <Container Type="ContainerType.Screen">
     <div class="@ThemeConstants.CssClasses.Padding.Lg">
         
         <!-- Header -->
-        <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
+        <div class="page-header @ThemeConstants.CssClasses.Margin.BottomXl">
             <H1 CssClass="@ThemeConstants.CssClasses.TextPrimary @ThemeConstants.CssClasses.Margin.BottomMd">
-                🧩 Components Demo
+                📝 Input Components
             </H1>
-            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary">
-                Explore the comprehensive component library provided by EasyEnglish.Theme.
+            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                Form input components with validation support and accessibility features for educational applications.
             </p>
-        </div>
-
-        <!-- Input Fields Section -->
-        <div class="@ThemeConstants.CssClasses.Margin.BottomXl">
-            <H2 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Input Fields</H2>
-            <div class="inputs-demo">
-                <div class="input-row">
-                    <Input Label="Text Input" 
-                           Placeholder="Enter some text"
-                           Value="@textValue"
-                           ValueChanged="@((string value) => textValue = value)" />
-                    <Input Label="Password Input" 
-                           Type="password"
-                           Placeholder="Enter password"
-                           Value="@passwordValue"
-                           ValueChanged="@((string value) => passwordValue = value)" />
+            
+            <!-- Input Stats -->
+            <div class="component-stats @ThemeConstants.CssClasses.Margin.BottomLg">
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextPrimary">8</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Input Types</span>
                 </div>
-                <div class="input-row">
-                    <Input Label="Email Input" 
-                           Type="email"
-                           Placeholder="Enter email"
-                           Value="@emailValue"
-                           ValueChanged="@((string value) => emailValue = value)" />
-                    <Input Label="Number Input" 
-                           Type="number"
-                           Placeholder="Enter number"
-                           Value="@numberValue"
-                           ValueChanged="@((string value) => numberValue = value)" />
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextAccent">✓</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Validation</span>
                 </div>
-                <div class="input-row">
-                    <Input Label="Textarea" 
-                           Multiline="true"
-                           Rows="4"
-                           Placeholder="Enter multiple lines..."
-                           Value="@textareaValue"
-                           ValueChanged="@((string value) => textareaValue = value)" />
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextSuccess">A11y</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Ready</span>
                 </div>
-                <div class="input-row">
-                    <Input Label="Input with Error" 
-                           Placeholder="This field has an error"
-                           HasError="true"
-                           ErrorMessage="This field is required"
-                           Value="@errorValue"
-                           ValueChanged="@((string value) => errorValue = value)" />
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextInfo">Icons</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Support</span>
                 </div>
             </div>
         </div>
 
+        <!-- Basic Input Types Section -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📋 Basic Input Types" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Standard input components for collecting different types of user data.
+                </p>
+                
+                <div class="demo-section @ThemeConstants.CssClasses.Margin.BottomLg">
+                    <div class="demo-row">
+                        <div class="input-demo-item">
+                            <Input @bind-Value="textValue" 
+                                   Label="Text Input" 
+                                   Placeholder="Enter your name" />
+                            <div class="demo-info">
+                                <code>Type="text"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Standard text input</span>
+                            </div>
+                        </div>
+                        
+                        <div class="input-demo-item">
+                            <Input @bind-Value="emailValue" 
+                                   Label="Email Input" 
+                                   Type="email"
+                                   Placeholder="user@example.com" />
+                            <div class="demo-info">
+                                <code>Type="email"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Email validation</span>
+                            </div>
+                        </div>
+                        
+                        <div class="input-demo-item">
+                            <Input @bind-Value="passwordValue" 
+                                   Label="Password Input" 
+                                   Type="password"
+                                   Placeholder="Enter password" />
+                            <div class="demo-info">
+                                <code>Type="password"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Secure input</span>
+                            </div>
+                        </div>
+                        
+                        <div class="input-demo-item">
+                            <Input @bind-Value="numberValue" 
+                                   Label="Number Input" 
+                                   Type="number"
+                                   Placeholder="Enter age" />
+                            <div class="demo-info">
+                                <code>Type="number"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Numeric input</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Multiline and Advanced Inputs -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📝 Advanced Input Types" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Specialized inputs for complex data collection and educational content.
+                </p>
+                
+                <div class="demo-section @ThemeConstants.CssClasses.Margin.BottomLg">
+                    <div class="advanced-demo-row">
+                        <div class="input-demo-item wide">
+                            <Input @bind-Value="textareaValue" 
+                                   Label="Multiline Text" 
+                                   Multiline="true"
+                                   Rows="4"
+                                   Placeholder="Enter a longer description or essay..." />
+                            <div class="demo-info">
+                                <code>Multiline="true" Rows="4"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">For longer text content</span>
+                            </div>
+                        </div>
+                        
+                        <div class="input-demo-item">
+                            <Input @bind-Value="urlValue" 
+                                   Label="URL Input" 
+                                   Type="url"
+                                   Placeholder="https://example.com" />
+                            <div class="demo-info">
+                                <code>Type="url"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">URL validation</span>
+                            </div>
+                        </div>
+                        
+                        <div class="input-demo-item">
+                            <Input @bind-Value="telValue" 
+                                   Label="Phone Number" 
+                                   Type="tel"
+                                   Placeholder="+1 (555) 123-4567" />
+                            <div class="demo-info">
+                                <code>Type="tel"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Phone input</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Interactive Demo -->
+                <div class="feature-demo">
+                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">✍️ Try it yourself</H4>
+                    <div class="interactive-input-demo">
+                        <Input @bind-Value="demoInputValue" 
+                               Label="Interactive Demo Input" 
+                               Placeholder="Type something here..."
+                               OnInput="@HandleInputChange" />
+                        <div class="demo-feedback @ThemeConstants.CssClasses.Margin.TopMd">
+                            <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">
+                                You typed: "@demoInputValue" (@(demoInputValue?.Length ?? 0) characters)
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Validation States -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="⚠️ Validation States" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Input validation states with error messages and visual feedback.
+                </p>
+                
+                <div class="demo-section @ThemeConstants.CssClasses.Margin.BottomLg">
+                    <div class="demo-row">
+                        <div class="input-demo-item">
+                            <Input @bind-Value="validInput" 
+                                   Label="Valid Input" 
+                                   Placeholder="This is valid" />
+                            <div class="demo-info">
+                                <code>Normal state</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Default appearance</span>
+                            </div>
+                        </div>
+                        
+                        <div class="input-demo-item">
+                            <Input @bind-Value="errorInput" 
+                                   Label="Input with Error" 
+                                   HasError="true"
+                                   ErrorMessage="This field is required"
+                                   Placeholder="This has an error" />
+                            <div class="demo-info">
+                                <code>HasError="true"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Error state</span>
+                            </div>
+                        </div>
+                        
+                        <div class="input-demo-item">
+                            <Input Value="@disabledValue" 
+                                   Label="Disabled Input" 
+                                   Disabled="true"
+                                   Placeholder="This is disabled" />
+                            <div class="demo-info">
+                                <code>Disabled="true"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Disabled state</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Validation Demo -->
+                <div class="feature-demo">
+                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">🔍 Real-time Validation</H4>
+                    <div class="validation-demo">
+                        <Input @bind-Value="validationEmail" 
+                               Label="Email Validation Demo" 
+                               Type="email"
+                               HasError="@(!IsValidEmail(validationEmail) && !string.IsNullOrEmpty(validationEmail))"
+                               ErrorMessage="Please enter a valid email address"
+                               Placeholder="Enter email to see validation..." />
+                        
+                        <div class="validation-status @ThemeConstants.CssClasses.Margin.TopMd">
+                            @if (string.IsNullOrEmpty(validationEmail))
+                            {
+                                <Badge Variant="BadgeVariant.Info">Not entered</Badge>
+                            }
+                            else if (IsValidEmail(validationEmail))
+                            {
+                                <Badge Variant="BadgeVariant.Success">Valid email</Badge>
+                            }
+                            else
+                            {
+                                <Badge Variant="BadgeVariant.Error">Invalid email</Badge>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Educational Use Cases -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="🎓 Educational Use Cases" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Examples of how inputs can be used in language learning applications.
+                </p>
+                
+                <div class="features-grid">
+                    <div class="feature-demo">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">📝 Essay Writing</H4>
+                        <Input @bind-Value="essayValue" 
+                               Label="Write a short essay" 
+                               Multiline="true"
+                               Rows="6"
+                               Placeholder="Write about your favorite book..." />
+                        <div class="word-count @ThemeConstants.CssClasses.Margin.TopSm">
+                            <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">
+                                Word count: @GetWordCount(essayValue)
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-demo">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">🔤 Vocabulary Exercise</H4>
+                        <Input @bind-Value="vocabularyAnswer" 
+                               Label="Complete the sentence" 
+                               Placeholder="The cat is ___ the table" />
+                        
+                        <div class="exercise-feedback @ThemeConstants.CssClasses.Margin.TopMd">
+                            @if (!string.IsNullOrEmpty(vocabularyAnswer))
+                            {
+                                if (vocabularyAnswer.ToLower().Contains("on") || vocabularyAnswer.ToLower().Contains("under"))
+                                {
+                                    <Badge Variant="BadgeVariant.Success">Good answer!</Badge>
+                                }
+                                else
+                                {
+                                    <Badge Variant="BadgeVariant.Warning">Try again</Badge>
+                                }
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="feature-demo">
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">🗣️ Translation Practice</H4>
+                        <Input @bind-Value="translationInput" 
+                               Label="Translate to English" 
+                               Placeholder="Translate: 'Bonjour'" />
+                        
+                        <div class="translation-hint @ThemeConstants.CssClasses.Margin.TopMd">
+                            <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">
+                                Hint: This is a French greeting
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Code Examples -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="💻 Code Examples" Size="CardSize.Large">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Copy-paste ready examples for implementing inputs in your application.
+                </p>
+                
+                <div class="code-examples">
+                    <div class="code-example">
+                        <div class="code-header">
+                            <h4 class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Basic Inputs</h4>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => CopyToClipboard(basicInputCode))">
+                                📋 Copy
+                            </Button>
+                        </div>
+                        <div class="code-container">
+                            <pre class="code-block"><code>@basicInputCode</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="code-example">
+                        <div class="code-header">
+                            <h4 class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Validation Example</h4>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => CopyToClipboard(validationInputCode))">
+                                📋 Copy
+                            </Button>
+                        </div>
+                        <div class="code-container">
+                            <pre class="code-block"><code>@validationInputCode</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="code-example">
+                        <div class="code-header">
+                            <h4 class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Multiline Input</h4>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => CopyToClipboard(multilineInputCode))">
+                                📋 Copy
+                            </Button>
+                        </div>
+                        <div class="code-container">
+                            <pre class="code-block"><code>@multilineInputCode</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Usage Guidelines -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📋 Usage Guidelines" Size="CardSize.Large" CssClass="guidelines-card">
+                <div class="guidelines-grid">
+                    <div class="guideline-item">
+                        <div class="guideline-icon">🏷️</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Clear Labels</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Always provide clear, descriptive labels. Avoid generic terms like "Field 1" or "Input".
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">💬</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Helpful Placeholders</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Use placeholder text to provide examples or format hints, not as a replacement for labels.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">⚠️</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Error Messages</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Provide specific, actionable error messages that help users understand how to fix the problem.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">♿</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Accessibility</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            All inputs are properly labeled and support keyboard navigation and screen readers.
+                        </p>
+                    </div>
+                </div>
+            </Card>
+        </div>
     </div>
 </Container>
 
 <style>
-    .component-demo {
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius-lg);
-        padding: var(--spacing-lg);
-    }
+/* Page Header */
+.page-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
 
-    .progress-section {
-        margin-bottom: var(--spacing-lg);
-    }
+/* Component Stats */
+.component-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    flex-wrap: wrap;
+}
 
-    .progress-section > * {
-        margin-bottom: var(--spacing-md);
-    }
+.stat-item {
+    text-align: center;
+}
 
-    .loading-section {
-        text-align: center;
-    }
+.stat-item span:first-child {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
 
-    .typography-demo {
-        background-color: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius-lg);
-        padding: var(--spacing-lg);
-    }
+/* Demo Sections */
+.demo-card {
+    border: 1px solid var(--color-border);
+    transition: all 0.2s ease;
+}
 
-    .typography-demo > * {
-        margin-bottom: var(--spacing-md);
-    }
+.demo-card:hover {
+    border-color: var(--color-primary-bg);
+    box-shadow: var(--shadow-md);
+}
 
-    .interactive-demo {
-        padding: var(--spacing-md);
-    }
+.demo-section {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    border: 1px dashed var(--color-border);
+}
 
-    .demo-controls {
-        display: flex;
+.demo-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-lg);
+    align-items: start;
+}
+
+.advanced-demo-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: var(--spacing-lg);
+    align-items: start;
+}
+
+.input-demo-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+    transition: all 0.2s ease;
+}
+
+.input-demo-item.wide {
+    min-height: 120px;
+}
+
+.input-demo-item:hover {
+    border-color: var(--color-primary-bg);
+    box-shadow: var(--shadow-sm);
+}
+
+.demo-info {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.demo-info code {
+    background-color: var(--color-background-tertiary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-accent);
+    font-size: var(--font-size-xs);
+    font-family: 'Courier New', Consolas, monospace;
+}
+
+/* Features Grid */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-xl);
+}
+
+.feature-demo {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--color-border);
+}
+
+.interactive-input-demo {
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+}
+
+.demo-feedback {
+    text-align: center;
+    padding: var(--spacing-md);
+    border-top: 1px solid var(--color-border);
+}
+
+.word-count, .exercise-feedback, .translation-hint, .validation-status {
+    text-align: center;
+}
+
+/* Code Examples */
+.code-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.code-example {
+    background-color: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+}
+
+.code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background-color: var(--color-background-tertiary);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.code-container {
+    position: relative;
+}
+
+.code-block {
+    background-color: var(--color-background);
+    padding: var(--spacing-lg);
+    margin: 0;
+    overflow-x: auto;
+}
+
+.code-block code {
+    font-family: 'Courier New', Consolas, monospace;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Guidelines */
+.guidelines-card {
+    background: linear-gradient(135deg, var(--color-background-secondary), var(--color-surface));
+    border: 1px solid var(--color-primary-bg);
+}
+
+.guidelines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.guideline-item {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.guideline-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Responsive */
+@@media (max-width: 768px) {
+    .demo-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .advanced-demo-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .guidelines-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .component-stats {
         gap: var(--spacing-md);
-        margin-bottom: var(--spacing-md);
     }
-
-    /* Responsive adjustments */
-    @@media (max-width: 768px) {
-        .demo-row {
-            flex-direction: column;
-        }
-        
-        .cards-demo {
-            grid-template-columns: 1fr;
-        }
-        
-        .input-row {
-            grid-template-columns: 1fr;
-        }
-        
-        .demo-controls {
-            flex-direction: column;
-        }
-    }
+}
 </style>
 
 @code {
+    // Input values for demo
     private string textValue = "";
-    private string passwordValue = "";
     private string emailValue = "";
+    private string passwordValue = "";
     private string numberValue = "";
     private string textareaValue = "";
-    private string errorValue = "";
-    
-    private bool isLoading = false;
-    private string demoMessage = "";
-    private string buttonText = "Click Me!";
-    private int clickCount = 0;
+    private string urlValue = "";
+    private string telValue = "";
+    private string validInput = "";
+    private string errorInput = "";
+    private string disabledValue = "Cannot edit this";
+    private string validationEmail = "";
+    private string demoInputValue = "";
+    private string essayValue = "";
+    private string vocabularyAnswer = "";
+    private string translationInput = "";
 
-    private async Task HandleDemoAction()
+    // Code examples
+    private string basicInputCode = @"<!-- Basic Input Types -->
+<Input @bind-Value=""name"" Label=""Name"" Placeholder=""Enter your name"" />
+<Input @bind-Value=""email"" Label=""Email"" Type=""email"" Placeholder=""user@example.com"" />
+<Input @bind-Value=""password"" Label=""Password"" Type=""password"" />
+<Input @bind-Value=""age"" Label=""Age"" Type=""number"" />";
+
+    private string validationInputCode = @"<!-- Input with Validation -->
+<Input @bind-Value=""email""
+       Label=""Email Address""
+       Type=""email""
+       HasError=""@(!IsValidEmail(email))""
+       ErrorMessage=""Please enter a valid email address""
+       Placeholder=""user@example.com"" />";
+
+    private string multilineInputCode = @"<!-- Multiline Input -->
+<Input @bind-Value=""description""
+       Label=""Description""
+       Multiline=""true""
+       Rows=""4""
+       Placeholder=""Enter a detailed description..."" />";
+
+    private void HandleInputChange()
     {
-        clickCount++;
-        buttonText = $"Clicked {clickCount} times!";
-        demoMessage = $"Button clicked at {DateTime.Now:HH:mm:ss}";
-        
-        await Task.Delay(1000);
-        demoMessage = "";
         StateHasChanged();
     }
 
-    private void ToggleLoading()
+    private bool IsValidEmail(string email)
     {
-        isLoading = !isLoading;
+        if (string.IsNullOrEmpty(email))
+            return true; // Don't show error for empty field
+            
+        try
+        {
+            var addr = new System.Net.Mail.MailAddress(email);
+            return addr.Address == email;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private int GetWordCount(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+            return 0;
+            
+        return text.Split(new char[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Length;
+    }
+
+    private async Task CopyToClipboard(string text)
+    {
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
     }
 }

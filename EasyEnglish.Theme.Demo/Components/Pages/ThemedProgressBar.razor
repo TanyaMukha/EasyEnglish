@@ -1,0 +1,779 @@
+﻿@page "/themed-progress"
+@using EasyEnglish.Theme.Components
+@using EasyEnglish.Theme.Constants
+@using EasyEnglish.Theme.Types
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<PageTitle>Progress Components - EasyEnglish Theme Demo</PageTitle>
+
+<Container Type="ContainerType.Screen">
+    <div class="@ThemeConstants.CssClasses.Padding.Lg">
+        
+        <!-- Header -->
+        <div class="page-header @ThemeConstants.CssClasses.Margin.BottomXl">
+            <H1 CssClass="@ThemeConstants.CssClasses.TextPrimary @ThemeConstants.CssClasses.Margin.BottomMd">
+                📊 Progress Components
+            </H1>
+            <p class="@ThemeConstants.CssClasses.BodyLarge @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                Visual progress indicators for tracking completion, skill levels, and learning achievements in educational applications.
+            </p>
+            
+            <!-- Progress Stats -->
+            <div class="component-stats @ThemeConstants.CssClasses.Margin.BottomLg">
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextPrimary">1</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Component</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextAccent">∞</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Progress Values</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextSuccess">Animated</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Transitions</span>
+                </div>
+                <div class="stat-item">
+                    <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextInfo">Educational</span>
+                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Focused</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Basic Progress Bars -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📈 Basic Progress Bars" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Fundamental progress indicators showing completion status with semantic colors and smooth animations.
+                </p>
+                
+                <div class="demo-section @ThemeConstants.CssClasses.Margin.BottomLg">
+                    <div class="progress-examples">
+                        <div class="progress-demo-item">
+                            <div class="progress-header">
+                                <span class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Getting Started</span>
+                                <Badge Variant="BadgeVariant.Info">25%</Badge>
+                            </div>
+                            <ProgressBar Progress="25" />
+                            <div class="demo-info">
+                                <code>Progress="25"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Early progress indicator</span>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-demo-item">
+                            <div class="progress-header">
+                                <span class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Halfway Progress</span>
+                                <Badge Variant="BadgeVariant.Warning">50%</Badge>
+                            </div>
+                            <ProgressBar Progress="50" />
+                            <div class="demo-info">
+                                <code>Progress="50"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Midpoint achievement</span>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-demo-item">
+                            <div class="progress-header">
+                                <span class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Almost Complete</span>
+                                <Badge Variant="BadgeVariant.Success">75%</Badge>
+                            </div>
+                            <ProgressBar Progress="75" />
+                            <div class="demo-info">
+                                <code>Progress="75"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Near completion</span>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-demo-item">
+                            <div class="progress-header">
+                                <span class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Completed!</span>
+                                <Badge Variant="BadgeVariant.Success">100%</Badge>
+                            </div>
+                            <ProgressBar Progress="100" />
+                            <div class="demo-info">
+                                <code>Progress="100"</code>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Full completion</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Interactive Progress Demo -->
+                <div class="feature-demo">
+                    <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">🎮 Interactive Progress Control</H4>
+                    <div class="interactive-progress">
+                        <div class="progress-controls @ThemeConstants.CssClasses.Margin.BottomMd">
+                            <Button Variant="ButtonVariant.Outline" OnClick="@(() => AdjustProgress(-10))" Disabled="@(currentProgress <= 0)">
+                                ← -10%
+                            </Button>
+                            <div class="progress-display">
+                                <span class="@ThemeConstants.CssClasses.H3 @ThemeConstants.CssClasses.TextPrimary">
+                                    @currentProgress%
+                                </span>
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">
+                                    Current Progress
+                                </span>
+                            </div>
+                            <Button Variant="ButtonVariant.Outline" OnClick="@(() => AdjustProgress(10))" Disabled="@(currentProgress >= 100)">
+                                +10% →
+                            </Button>
+                        </div>
+                        <ProgressBar Progress="currentProgress" />
+                        <div class="progress-status @ThemeConstants.CssClasses.Margin.TopMd">
+                            
+@if
+ 
+(
+currentProgress 
+==
+ 
+0
+)
+
+                            
+{
+
+                                
+<
+Badge
+ 
+Variant
+=
+"
+BadgeVariant.Secondary
+"
+>
+Not Started
+</
+Badge
+>
+
+                                
+<
+span
+ 
+class
+=
+"
+@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary
+"
+>
+Ready to begin your journey
+</
+span
+>
+
+                            
+}
+
+                            
+else
+ 
+if
+ 
+(
+currentProgress 
+<
+ 
+25
+)
+
+                            
+{
+
+                                
+<
+Badge
+ 
+Variant
+=
+"
+BadgeVariant.Info
+"
+>
+Getting Started
+</
+Badge
+>
+
+                                
+<
+span
+ 
+class
+=
+"
+@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary
+"
+>
+Taking the first steps
+</
+span
+>
+
+                            
+}
+
+                            
+else
+ 
+if
+ 
+(
+currentProgress 
+<
+ 
+50
+)
+
+                            
+{
+
+                                
+<
+Badge
+ 
+Variant
+=
+"
+BadgeVariant.Warning
+"
+>
+Making Progress
+</
+Badge
+>
+
+                                
+<
+span
+ 
+class
+=
+"
+@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary
+"
+>
+Building momentum
+</
+span
+>
+
+                            
+}
+
+                            
+else
+ 
+if
+ 
+(
+currentProgress 
+<
+ 
+100
+)
+
+                            
+{
+
+                                
+<
+Badge
+ 
+Variant
+=
+"
+BadgeVariant.Success
+"
+>
+Almost There
+</
+Badge
+>
+
+                                
+<
+span
+ 
+class
+=
+"
+@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary
+"
+>
+So close to completion!
+</
+span
+>
+
+                            
+}
+
+                            
+else
+
+                            
+{
+
+                                
+<
+Badge
+ 
+Variant
+=
+"
+BadgeVariant.Success
+"
+>
+Completed! 🎉
+</
+Badge
+>
+
+                                
+<
+span
+ 
+class
+=
+"
+@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary
+"
+>
+Congratulations on finishing!
+</
+span
+>
+
+                            
+}
+
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Educational Use Cases -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="🎓 Educational Progress Examples" Size="CardSize.Large" CssClass="demo-card">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Real-world applications of progress components in language learning and educational contexts.
+                </p>
+                
+                <div class="educational-examples-grid">
+                    <!-- Lesson Progress -->
+                    <Card Title="📚 Lesson Completion" Size="CardSize.Medium" CssClass="educational-card">
+                        <div class="lesson-progress-demo">
+                            <div class="lesson-info @ThemeConstants.CssClasses.Margin.BottomMd">
+                                <H4 CssClass="@ThemeConstants.CssClasses.TextPrimary">Present Perfect Tense</H4>
+                                <Badge Variant="BadgeVariant.Level" Level="B1">B1</Badge>
+                            </div>
+                            
+                            <div class="progress-breakdown @ThemeConstants.CssClasses.Margin.BottomMd">
+                                <div class="progress-step">
+                                    <div class="step-info">
+                                        <span class="@ThemeConstants.CssClasses.BodySmall">Introduction</span>
+                                        <Badge Variant="BadgeVariant.Success">✓</Badge>
+                                    </div>
+                                </div>
+                                <div class="progress-step">
+                                    <div class="step-info">
+                                        <span class="@ThemeConstants.CssClasses.BodySmall">Examples</span>
+                                        <Badge Variant="BadgeVariant.Success">✓</Badge>
+                                    </div>
+                                </div>
+                                <div class="progress-step">
+                                    <div class="step-info">
+                                        <span class="@ThemeConstants.CssClasses.BodySmall">Exercises</span>
+                                        <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">6 of 10</span>
+                                    </div>
+                                    <ProgressBar Progress="60" />
+                                </div>
+                                <div class="progress-step">
+                                    <div class="step-info">
+                                        <span class="@ThemeConstants.CssClasses.BodySmall">Quiz</span>
+                                        <Badge Variant="BadgeVariant.Secondary">Locked</Badge>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="overall-progress">
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Overall Progress</span>
+                                <ProgressBar Progress="lessonProgress" />
+                                <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextPrimary">@lessonProgress% Complete</span>
+                            </div>
+                        </div>
+                    </Card>
+                    
+                    <!-- Skill Assessment -->
+                    <Card Title="📊 Skill Assessment" Size="CardSize.Medium" CssClass="educational-card">
+                        <div class="skill-assessment">
+                            <div class="skills-list">
+                                <div class="skill-item @ThemeConstants.CssClasses.Margin.BottomMd">
+                                    <div class="skill-header">
+                                        <span class="@ThemeConstants.CssClasses.BodyMedium">Grammar</span>
+                                        <Badge Variant="BadgeVariant.Success">92%</Badge>
+                                    </div>
+                                    <ProgressBar Progress="92" />
+                                    <div class="skill-detail @ThemeConstants.CssClasses.Margin.TopSm">
+                                        <Badge PartOfSpeech="verb">Verbs: 95%</Badge>
+                                        <Badge PartOfSpeech="noun">Nouns: 88%</Badge>
+                                    </div>
+                                </div>
+                                
+                                <div class="skill-item @ThemeConstants.CssClasses.Margin.BottomMd">
+                                    <div class="skill-header">
+                                        <span class="@ThemeConstants.CssClasses.BodyMedium">Vocabulary</span>
+                                        <Badge Variant="BadgeVariant.Warning">78%</Badge>
+                                    </div>
+                                    <ProgressBar Progress="78" />
+                                    <div class="skill-detail @ThemeConstants.CssClasses.Margin.TopSm">
+                                        <Badge Variant="BadgeVariant.Info">850 words learned</Badge>
+                                        <Badge Variant="BadgeVariant.Warning">150 to review</Badge>
+                                    </div>
+                                </div>
+                                
+                                <div class="skill-item">
+                                    <div class="skill-header">
+                                        <span class="@ThemeConstants.CssClasses.BodyMedium">Pronunciation</span>
+                                        <Badge Variant="BadgeVariant.Warning">65%</Badge>
+                                    </div>
+                                    <ProgressBar Progress="65" />
+                                    <div class="skill-detail @ThemeConstants.CssClasses.Margin.TopSm">
+                                        <Badge Variant="BadgeVariant.Warning">Needs practice</Badge>
+                                        <Badge Variant="BadgeVariant.Info">25 exercises remaining</Badge>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="assessment-actions @ThemeConstants.CssClasses.Margin.TopLg">
+                                <Button Variant="ButtonVariant.Primary" Size="ButtonSize.Small">
+                                    Continue Learning
+                                </Button>
+                                <Button Variant="ButtonVariant.Outline" Size="ButtonSize.Small">
+                                    View Details
+                                </Button>
+                            </div>
+                        </div>
+                    </Card>
+                    
+                    <!-- Course Progress -->
+                    <Card Title="🎯 Course Progress" Size="CardSize.Large" CssClass="educational-card course-progress-card">
+                        <div class="course-overview @ThemeConstants.CssClasses.Margin.BottomLg">
+                            <div class="course-stats">
+                                <div class="stat-box">
+                                    <span class="@ThemeConstants.CssClasses.H2 @ThemeConstants.CssClasses.TextPrimary">87%</span>
+                                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Overall Progress</span>
+                                </div>
+                                <div class="stat-box">
+                                    <span class="@ThemeConstants.CssClasses.H2 @ThemeConstants.CssClasses.TextAccent">24</span>
+                                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Lessons Completed</span>
+                                </div>
+                                <div class="stat-box">
+                                    <span class="@ThemeConstants.CssClasses.H2 @ThemeConstants.CssClasses.TextSuccess">950</span>
+                                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">Words Learned</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="course-modules">
+                            <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomMd">Module Progress</H4>
+                            
+                            <div class="module-item @ThemeConstants.CssClasses.Margin.BottomMd">
+                                <div class="module-header">
+                                    <div class="module-info">
+                                        <span class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Present Tenses</span>
+                                        <Badge Variant="BadgeVariant.Success">Completed</Badge>
+                                    </div>
+                                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">12/12 lessons</span>
+                                </div>
+                                <ProgressBar Progress="100" />
+                            </div>
+                            
+                            <div class="module-item @ThemeConstants.CssClasses.Margin.BottomMd">
+                                <div class="module-header">
+                                    <div class="module-info">
+                                        <span class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Past Tenses</span>
+                                        <Badge Variant="BadgeVariant.Warning">In Progress</Badge>
+                                    </div>
+                                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">8/15 lessons</span>
+                                </div>
+                                <ProgressBar Progress="53" />
+                            </div>
+                            
+                            <div class="module-item @ThemeConstants.CssClasses.Margin.BottomMd">
+                                <div class="module-header">
+                                    <div class="module-info">
+                                        <span class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Future Tenses</span>
+                                        <Badge Variant="BadgeVariant.Secondary">Locked</Badge>
+                                    </div>
+                                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">0/10 lessons</span>
+                                </div>
+                                <ProgressBar Progress="0" />
+                            </div>
+                            
+                            <div class="module-item">
+                                <div class="module-header">
+                                    <div class="module-info">
+                                        <span class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Advanced Grammar</span>
+                                        <Badge Variant="BadgeVariant.Secondary">Locked</Badge>
+                                    </div>
+                                    <span class="@ThemeConstants.CssClasses.Caption @ThemeConstants.CssClasses.TextSecondary">0/20 lessons</span>
+                                </div>
+                                <ProgressBar Progress="0" />
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Code Examples -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="💻 Code Examples" Size="CardSize.Large">
+                <p class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextSecondary @ThemeConstants.CssClasses.Margin.BottomLg">
+                    Copy-paste ready examples for implementing progress components in your application.
+                </p>
+                
+                <div class="code-examples">
+                    <div class="code-example">
+                        <div class="code-header">
+                            <h4 class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Basic Progress Bar</h4>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => CopyToClipboard(basicProgressCode))">
+                                📋 Copy
+                            </Button>
+                        </div>
+                        <div class="code-container">
+                            <pre class="code-block"><code>@basicProgressCode</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="code-example">
+                        <div class="code-header">
+                            <h4 class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Educational Progress</h4>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => CopyToClipboard(educationalProgressCode))">
+                                📋 Copy
+                            </Button>
+                        </div>
+                        <div class="code-container">
+                            <pre class="code-block"><code>@educationalProgressCode</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="code-example">
+                        <div class="code-header">
+                            <h4 class="@ThemeConstants.CssClasses.BodyMedium @ThemeConstants.CssClasses.TextPrimary">Interactive Progress</h4>
+                            <Button Variant="ButtonVariant.Ghost" OnClick="@(() => CopyToClipboard(interactiveProgressCode))">
+                                📋 Copy
+                            </Button>
+                        </div>
+                        <div class="code-container">
+                            <pre class="code-block"><code>@interactiveProgressCode</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </Card>
+        </div>
+
+        <!-- Usage Guidelines -->
+        <div class="section @ThemeConstants.CssClasses.Margin.BottomXl">
+            <Card Title="📋 Usage Guidelines" Size="CardSize.Large" CssClass="guidelines-card">
+                <div class="guidelines-grid">
+                    <div class="guideline-item">
+                        <div class="guideline-icon">📊</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Clear Context</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Always provide clear labels and context. Users should understand what progress is being measured.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">🎯</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Motivational Design</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Use progress bars to motivate learners. Show achievements and celebrate milestones.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">🔄</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Real-time Updates</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Update progress immediately when tasks are completed to provide instant feedback.
+                        </p>
+                    </div>
+                    
+                    <div class="guideline-item">
+                        <div class="guideline-icon">♿</div>
+                        <H4 CssClass="@ThemeConstants.CssClasses.Margin.BottomSm">Accessibility</H4>
+                        <p class="@ThemeConstants.CssClasses.BodySmall @ThemeConstants.CssClasses.TextSecondary">
+                            Progress values are announced to screen readers and meet WCAG accessibility standards.
+                        </p>
+                    </div>
+                </div>
+            </Card>
+        </div>
+    </div>
+</Container>
+
+<style>
+    .progress-demo {
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--border-radius-lg);
+        padding: var(--spacing-lg);
+    }
+
+    .progress-section > * {
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .progress-item {
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    .progress-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .progress-item span {
+        display: block;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .interactive-demo {
+        padding: var(--spacing-md);
+    }
+
+    .demo-controls {
+        display: flex;
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+        justify-content: center;
+    }
+    
+    .progress-display {
+        text-align: center;
+    }
+    
+    .progress-display span {
+        display: block;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    /* Lesson Demo */
+    .lesson-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .lesson-steps {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+    
+    .step-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-sm);
+        background-color: var(--color-background-secondary);
+        border-radius: var(--border-radius-sm);
+    }
+    
+    .overall-progress {
+        text-align: center;
+        padding: var(--spacing-md);
+        background-color: var(--color-background-secondary);
+        border-radius: var(--border-radius-md);
+    }
+    
+    .overall-progress span {
+        display: block;
+        margin-bottom: var(--spacing-xs);
+    }
+
+    /* Skills Demo */
+    .skills-demo {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-lg);
+    }
+    
+    .skill-item {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .skill-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* Code Examples */
+    .code-examples {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-lg);
+    }
+    
+    .code-section {
+        padding: var(--spacing-lg);
+        background-color: var(--color-background-secondary);
+        border-radius: var(--border-radius-lg);
+    }
+    
+    .code-block {
+        background-color: var(--color-background);
+        padding: var(--spacing-lg);
+        border-radius: var(--border-radius-md);
+        border: 1px solid var(--color-border);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .code-block code {
+        font-family: 'Courier New', Consolas, monospace;
+        color: var(--color-text-primary);
+        font-size: var(--font-size-sm);
+        line-height: 1.6;
+        white-space: pre;
+        display: block;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .demo-controls {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .lesson-header {
+            flex-direction: column;
+            gap: var(--spacing-sm);
+            align-items: flex-start;
+        }
+        
+        .step-item {
+            flex-direction: column;
+            gap: var(--spacing-sm);
+            align-items: flex-start;
+        }
+        
+        .skill-header {
+            flex-direction: column;
+            gap: var(--spacing-xs);
+            align-items: flex-start;
+        }
+    }
+</style>
+
+@code {
+    
+}
