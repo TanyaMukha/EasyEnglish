@@ -196,7 +196,7 @@
             if (IsEditMode)
             {
                 BrowserConsole.LogInfoAsync($"✅ Word : { JsonSerializer.Serialize(Word) }");
-                Word.Unit = Units.Find(u => u.Id == Word.UnitId);
+                Word.Unit = null;
                 await WordService.UpdateAsync(Word.Id, Word);
             }
             else

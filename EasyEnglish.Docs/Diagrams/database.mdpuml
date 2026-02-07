@@ -1,0 +1,202 @@
+@startuml Database Diagram
+
+<style>
+title {
+  HorizontalAlignment right
+  FontSize 24
+'   FontColor blue
+}
+
+header {
+  HorizontalAlignment center
+  FontSize 16
+'   FontColor purple
+  FontStyle bold
+}
+
+' footer {
+'   HorizontalAlignment left
+'   FontSize 28
+'   FontColor red
+' }
+
+legend {
+  FontSize 30
+  BackGroundColor yellow
+  Margin 30
+  Padding 50
+}
+
+caption {
+  FontSize 32
+}
+</style>
+
+' Определение стилей для элементов базы данных с одинаковыми отступами
+!define PK(x)     <b><color:#b8861b>PK</color>   x</b>
+!define FK(x)     <b><color:#aaaaaa>FK</color>   x</b>
+!define FPK(x)    <b><color:#b8861b>FPK</color> x</b>
+!define column(x) <b><color:#efefef><&media-record></color>     x</b>
+!define table(x)  entity x << (T, white) >>
+
+' Настройка стилей для всей диаграммы
+skinparam {
+    PackageStyle rectangle
+    ArrowColor #2688d4
+    ArrowThickness 1.5
+    EntityBorderThickness 1.5
+    EntityBorderColor #2688d4
+    EntityBackgroundColor white
+    EntityFontColor black
+    EntityFontSize 14
+    padding 4
+    roundCorner 10
+    defaultTextAlignment left
+    shadowing false
+}
+
+' header some header
+
+' footer some footer
+
+title Database Diagram
+
+' caption This is caption
+
+' legend
+' The legend
+' end legend
+
+' Определение таблиц базы данных
+table(courses) {
+    PK(id): INT AUTO_INCREMENT
+    column(guid): TEXT NOT NULL
+    column(title): TEXT NOT NULL
+    column(description): TEXT
+    column(created_at): TEXT NULL
+    column(updated_at): TEXT NULL
+}
+
+table(units) {
+    PK(id): INT AUTO_INCREMENT
+    column(guid): TEXT NOT NULL
+    column(title): TEXT NOT NULL
+    column(description): TEXT
+    column(content): TEXT
+    column(level): TEXT
+    column(last_review_date): TIMESTAMP
+    column(review_count): INT
+    column(created_at): TEXT NULL
+    column(updated_at): TEXT NULL
+    --
+    FK(courses_id): INT
+}
+
+table(words) {
+    PK(id): INT AUTO_INCREMENT
+    column(guid): TEXT NOT NULL
+    column(word): TEXT NOT NULL
+    column(transcription): TEXT
+    column(translation): TEXT
+    column(explanation): TEXT
+    column(definition): TEXT
+    column(part_of_speech): TEXT NOT NULL
+    column(language): TEXT NOT NULL DEFAULT 'en'
+    column(level): TEXT
+    column(pronunciation): BLOB
+    column(last_review_date): TIMESTAMP
+    column(review_count): INT
+    column(rate): INT
+    column(created_at): TEXT NULL
+    column(updated_at): TEXT NULL
+    --
+    FK(unit_id): INT
+}
+
+table(tags) {
+  PK(id): INT AUTO_INCREMENT
+  column(title): TEXT NOT NULL
+  column(created_at): TEXT NULL
+  column(updated_at): TEXT NULL
+}
+
+table(word_tags) {
+  FPK(word_id): INT NOT NULL
+  FPK(tag_id): INT NOT NULL
+}
+
+table(irregular_forms) {
+  PK(id): INT AUTO_INCREMENT
+  column(first_form): TEXT NOT NULL
+  column(first_form_transcription): TEXT
+  column(first_form_translation): TEXT
+  column(first_form_pronunciation): BLOB
+  column(part_of_speech): TEXT NOT NULL
+  column(second_form): TEXT NOT NULL
+  column(second_form_transcription): TEXT
+  column(second_form_translation): TEXT
+  column(second_form_pronunciation): BLOB
+  column(third_form): TEXT
+  column(third_form_transcription): TEXT
+  column(third_form_translation): TEXT
+  column(third_form_pronunciation): BLOB
+  --
+  FK(unit_id): INT
+}
+
+table(examples) {
+  PK(id): INT AUTO_INCREMENT
+  column(sentence): TEXT NOT NULL
+  column(translation): TEXT
+  --
+  FK(word_id): INT
+}
+
+table(study_cards) {
+  PK(id): INT AUTO_INCREMENT
+  column(guid): TEXT NOT NULL
+  column(title): TEXT NOT NULL
+  column(description): TEXT
+  column(dialogue): TEXT
+  column(last_review_date): TIMESTAMP
+  column(review_count): INT
+  column(rate): INT
+  column(created_at): TEXT NULL
+  column(updated_at): TEXT NULL
+  --
+  FK(unit_id): INT
+}
+
+table(test_cards) {
+  PK(id): INT AUTO_INCREMENT
+  column(guid): TEXT NOT NULL
+  column(test_type): TEXT
+  column(title): TEXT NOT NULL
+  column(description): TEXT
+  column(text): TEXT
+  column(mask): TEXT
+  column(options): TEXT
+  column(correct_answers): TEXT
+  column(last_review_date): TIMESTAMP
+  column(review_count): INT
+  column(rate): INT
+  column(created_at): TEXT NULL
+  column(updated_at): TEXT NULL
+  --
+  FK(unit_id): INT
+}
+
+' Определение связей между таблицами
+courses ||--o{ units
+
+units ||--o{ study_cards
+units ||--o{ words
+units ||--o{ irregular_forms
+units ||--o{ test_cards
+
+words ||--o{ examples
+
+word_tags ||--o{ tags
+word_tags ||--o{ words
+
+@enduml

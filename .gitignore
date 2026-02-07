@@ -4,14 +4,6 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 bootstrap-icons/
-EasyEnglish.Business/
-EasyEnglish.Data/
-EasyEnglish.Cache/*
-EasyEnglish.Docs/
-MukhaLab.BrowserConsoleLogger/
-MukhaLab.Database/
-MukhaLab.LoggerExtensionDelegate/
-MukhaLab.SelectQueryParameters/
 
 # User-specific files
 *.rsuser
@@ -371,4 +363,3 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/EasyEnglish.Cache/EasyEnglish.Cache.csproj

@@ -1,0 +1,157 @@
+﻿<!-- Irregular Forms -->
+    @if (ShouldShowHasIrregularForms)
+    {
+        <div class="mb-3">
+            <div class="form-check">
+                <InputCheckbox id="hasIrregularForms" @bind-Value="Word.HasIrregularForms" class="form-check-input" />
+                <label class="form-check-label" for="hasIrregularForms">
+                    Has Irregular Forms
+                </label>
+            </div>
+            <small class="text-muted">Check if this word has irregular forms (e.g., go-went-gone)</small>
+        </div>
+    }
+
+    <!-- Word Forms Section -->
+    @if (ShouldShowWordForms)
+    {
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>@GetFormsTitle()</h5>
+            </div>
+            <div class="card-body">
+                @if (Word.PartOfSpeech == "noun")
+                {
+                    <!-- Verb Forms -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>2nd Form (Plural)</h6>
+                            <div class="mb-2">
+                                <InputText @bind-Value="Word.SecondForm.Word" class="form-control" placeholder="mice" />
+                                <small class="text-muted">Past form</small>
+                            </div>
+                            <div class="mb-2">
+                                <InputText @bind-Value="Word.SecondForm.Transcription" class="form-control" placeholder="maɪs" />
+                                <small class="text-muted">Transcription</small>
+                            </div>
+                            <div class="mb-3">
+                                <InputText @bind-Value="Word.SecondForm.Translation" class="form-control" placeholder="миши" />
+                                <small class="text-muted">Translation</small>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                @if (Word.PartOfSpeech == "verb")
+                {
+                    <!-- Verb Forms -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>2nd Form (Past Simple)</h6>
+                            <div class="mb-2">
+                                <InputText @bind-Value="Word.SecondForm.Word" class="form-control" placeholder="went" />
+                                <small class="text-muted">Past form</small>
+                            </div>
+                            <div class="mb-2">
+                                <InputText @bind-Value="Word.SecondForm.Transcription" class="form-control" placeholder="went" />
+                                <small class="text-muted">Transcription</small>
+                            </div>
+                            <div class="mb-3">
+                                <InputText @bind-Value="Word.SecondForm.Translation" class="form-control" placeholder="ішов, ходив" />
+                                <small class="text-muted">Translation</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>3rd Form (Past Participle)</h6>
+                            <div class="mb-2">
+                                <InputText @bind-Value="Word.ThirdForm.Word" class="form-control" placeholder="gone" />
+                                <small class="text-muted">Past participle</small>
+                            </div>
+                            <div class="mb-2">
+                                <InputText @bind-Value="Word.ThirdForm.Transcription" class="form-control" placeholder="ɡɒn" />
+                                <small class="text-muted">Transcription</small>
+                            </div>
+                            <div class="mb-3">
+                                <InputText @bind-Value="Word.ThirdForm.Translation" class="form-control" placeholder="пішов, поїхав" />
+                                <small class="text-muted">Translation</small>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+            if (Word.PartOfSpeech == "adjective")
+                {
+                    <!-- Adjective Forms -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Comparative Form</h6>
+                            <div class="mb-2">
+                                <InputText @bind-Value="Word.SecondForm.Word" class="form-control" placeholder="better" />
+                                <small class="text-muted">Comparative form</small>
+                            </div>
+                            <div class="mb-2">
+                                <InputText @bind-Value="Word.SecondForm.Transcription" class="form-control" placeholder="ˈbetə(r)" />
+                                <small class="text-muted">Transcription</small>
+                            </div>
+                            <div class="mb-3">
+                                <InputText @bind-Value="Word.SecondForm.Translation" class="form-control" placeholder="кращий" />
+                                <small class="text-muted">Translation</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Superlative Form</h6>
+                            <div class="mb-2">
+                                <InputText @bind-Value="Word.ThirdForm.Word" class="form-control" placeholder="best" />
+                                <small class="text-muted">Superlative form</small>
+                            </div>
+                            <div class="mb-2">
+                                <InputText @bind-Value="Word.ThirdForm.Transcription" class="form-control" placeholder="best" />
+                                <small class="text-muted">Transcription</small>
+                            </div>
+                            <div class="mb-3">
+                                <InputText @bind-Value="Word.ThirdForm.Translation" class="form-control" placeholder="найкращий" />
+                                <small class="text-muted">Translation</small>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+            if (Word.PartOfSpeech == "adverb")
+                {
+                    <!-- Adverb Forms -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Comparative Form</h6>
+                            <div class="mb-2">
+                                <InputText @bind-Value="Word.SecondForm.Word" class="form-control" placeholder="more quickly" />
+                                <small class="text-muted">Comparative form</small>
+                            </div>
+                            <div class="mb-2">
+                                <InputText @bind-Value="Word.SecondForm.Transcription" class="form-control" placeholder="mɔː(r) ˈkwɪkli" />
+                                <small class="text-muted">Transcription</small>
+                            </div>
+                            <div class="mb-3">
+                                <InputText @bind-Value="Word.SecondForm.Translation" class="form-control" placeholder="швидше" />
+                                <small class="text-muted">Translation</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Superlative Form</h6>
+                            <div class="mb-2">
+                                <InputText @bind-Value="Word.ThirdForm.Word" class="form-control" placeholder="most quickly" />
+                                <small class="text-muted">Superlative form</small>
+                            </div>
+                            <div class="mb-2">
+                                <InputText @bind-Value="Word.ThirdForm.Transcription" class="form-control" placeholder="məʊst ˈkwɪkli" />
+                                <small class="text-muted">Transcription</small>
+                            </div>
+                            <div class="mb-3">
+                                <InputText @bind-Value="Word.ThirdForm.Translation" class="form-control" placeholder="найшвидше" />
+                                <small class="text-muted">Translation</small>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
