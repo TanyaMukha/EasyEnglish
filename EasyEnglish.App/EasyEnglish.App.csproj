@@ -116,4 +116,8 @@
 	  <None Include="D:\Projects\PetProjects\EasyEnglish\EasyEnglish.App\.editorconfig" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Components\Pages\Examples\" />
+	</ItemGroup>
+
 </Project>

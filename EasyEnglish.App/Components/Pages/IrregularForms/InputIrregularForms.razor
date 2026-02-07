@@ -1,0 +1,578 @@
+@page "/input-irregular-forms"
+@using EasyEnglish.App.Components.Shared
+@using EasyEnglish.App.Models
+@using EasyEnglish.App.Components.Pages.Learning.Shared
+@inject NavigationManager NavigationManager
+@inject IBrowserConsoleService BrowserConsole
+
+<div class="page-content">
+    <PageHeader Title="Введення неправильних форм" />
+
+    <LearningCard 
+        Title="Введення форм"
+        HeaderClass="pastel-green"
+        IconClass="bi-keyboard"
+        Rate="@(currentItem?.Rate ?? 0)"
+        TotalCount="@totalItems"
+        CompletedCount="@completed"
+        IsLoading="@isLoading"
+        ErrorMessage="@errorMessage"
+        ShowStats="@showStats"
+        CompletedWords="@completed"
+        TotalAttempts="@totalAttempts"
+        CorrectAnswers="@correctAnswers"
+        IncorrectAnswers="@incorrectAnswers"
+        ShowNextButton="@isAnswerSubmitted"
+        OnNextCard="@NextItem"
+        OnFinish="@FinishTest">
+
+        <ChildContent>
+            @if (currentItem != null)
+            {
+                <!-- Part of Speech Badge -->
+                @if (!string.IsNullOrEmpty(currentItem.PartOfSpeech))
+                {
+                    <div class="part-of-speech-badge">
+                        <span class="badge">@GetPartOfSpeechLabel(currentItem.PartOfSpeech)</span>
+                    </div>
+                }
+
+                <!-- Question: First Form -->
+                <div class="question-section">
+                    <h3 class="question-label">@GetFormLabel(1)</h3>
+                    <div class="question-word">@currentItem.FirstForm</div>
+                    @if (!string.IsNullOrEmpty(currentItem.FirstFormTranscription))
+                    {
+                        <div class="question-transcription">[@currentItem.FirstFormTranscription]</div>
+                    }
+                    @if (!string.IsNullOrEmpty(currentItem.FirstFormTranslation))
+                    {
+                        <div class="question-translation">@currentItem.FirstFormTranslation</div>
+                    }
+                </div>
+
+                <!-- Answer: Input Forms -->
+                @if (!isAnswerSubmitted)
+                {
+                    <div class="input-section">
+                        <!-- Second Form Input -->
+                        <div class="input-group">
+                            <label class="input-label">@GetFormLabel(2)</label>
+                            <input type="text" 
+                                   class="form-input" 
+                                   @bind="userSecondForm" 
+                                   @bind:event="oninput"
+                                   placeholder="Введіть форму..."
+                                   @onkeydown="@(e => HandleKeyDown(e))" />
+                        </div>
+
+                        <!-- Third Form Input (якщо потрібна) -->
+                        @if (!string.IsNullOrEmpty(currentItem.ThirdForm))
+                        {
+                            <div class="input-group">
+                                <label class="input-label">@GetFormLabel(3)</label>
+                                <input type="text" 
+                                       class="form-input" 
+                                       @bind="userThirdForm" 
+                                       @bind:event="oninput"
+                                       placeholder="Введіть форму..."
+                                       @onkeydown="@(e => HandleKeyDown(e))" />
+                            </div>
+                        }
+
+                        <button class="btn-submit" @onclick="CheckAnswer" disabled="@(!CanSubmit)">
+                            <i class="bi bi-check-circle"></i>
+                            Перевірити
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <!-- Result Display -->
+                    <div class="result-section">
+                        <!-- Second Form Result -->
+                        <div class="result-item @GetResultClass(isSecondFormCorrect)">
+                            <div class="result-header">
+                                <span class="result-label">@GetFormLabel(2)</span>
+                                <span class="result-icon">
+                                    @if (isSecondFormCorrect)
+                                    {
+                                        <i class="bi bi-check-circle-fill"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-x-circle-fill"></i>
+                                    }
+                                </span>
+                            </div>
+                            <div class="result-content">
+                                <div class="user-answer">
+                                    Ваша відповідь: <strong>@userSecondForm</strong>
+                                </div>
+                                @if (!isSecondFormCorrect)
+                                {
+                                    <div class="correct-answer">
+                                        Правильно: <strong>@currentItem.SecondForm</strong>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Third Form Result (якщо потрібна) -->
+                        @if (!string.IsNullOrEmpty(currentItem.ThirdForm))
+                        {
+                            <div class="result-item @GetResultClass(isThirdFormCorrect)">
+                                <div class="result-header">
+                                    <span class="result-label">@GetFormLabel(3)</span>
+                                    <span class="result-icon">
+                                        @if (isThirdFormCorrect)
+                                        {
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-x-circle-fill"></i>
+                                        }
+                                    </span>
+                                </div>
+                                <div class="result-content">
+                                    <div class="user-answer">
+                                        Ваша відповідь: <strong>@userThirdForm</strong>
+                                    </div>
+                                    @if (!isThirdFormCorrect)
+                                    {
+                                        <div class="correct-answer">
+                                            Правильно: <strong>@currentItem.ThirdForm</strong>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+        </ChildContent>
+    </LearningCard>
+</div>
+
+@code {
+    // Data
+    private List<IrregularFormModel> items = new();
+    private IrregularFormModel? currentItem;
+    private int currentIndex = 0;
+
+    // User Input
+    private string userSecondForm = "";
+    private string userThirdForm = "";
+
+    // State
+    private bool isLoading = false;
+    private string? errorMessage;
+    private bool showStats = false;
+    private bool isAnswerSubmitted = false;
+    private bool isSecondFormCorrect = false;
+    private bool isThirdFormCorrect = false;
+
+    // Statistics
+    private int totalItems = 0;
+    private int totalAttempts = 0;
+    private int correctAnswers = 0;
+    private int incorrectAnswers = 0;
+    private int completed => currentIndex;
+
+    private bool CanSubmit => !string.IsNullOrWhiteSpace(userSecondForm) && 
+                             (string.IsNullOrEmpty(currentItem?.ThirdForm) || !string.IsNullOrWhiteSpace(userThirdForm));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+
+            // TODO: Завантажити IrregularForm моделі з сервісу
+            // items = await IrregularFormService.GetAllAsync();
+            
+            // Тимчасові дані для тестування
+            items = new List<IrregularFormModel>
+            {
+                new IrregularFormModel 
+                { 
+                    Id = 1,
+                    PartOfSpeech = "verb",
+                    FirstForm = "go",
+                    FirstFormTranscription = "ɡəʊ",
+                    FirstFormTranslation = "йти",
+                    SecondForm = "went",
+                    SecondFormTranscription = "went",
+                    ThirdForm = "gone",
+                    ThirdFormTranscription = "ɡɒn"
+                }
+            };
+
+            totalItems = items.Count;
+            
+            if (items.Any())
+            {
+                currentItem = items[currentIndex];
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+            BrowserConsole.LogErrorAsync("Error loading irregular forms", ex);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && CanSubmit && !isAnswerSubmitted)
+        {
+            CheckAnswer();
+        }
+    }
+
+    private void CheckAnswer()
+    {
+        if (currentItem == null) return;
+
+        totalAttempts++;
+
+        // Перевірка другої форми (ігнорує регістр і пробіли)
+        isSecondFormCorrect = string.Equals(
+            userSecondForm.Trim(), 
+            currentItem.SecondForm.Trim(), 
+            StringComparison.OrdinalIgnoreCase);
+
+        // Перевірка третьої форми (якщо потрібна)
+        if (!string.IsNullOrEmpty(currentItem.ThirdForm))
+        {
+            isThirdFormCorrect = string.Equals(
+                userThirdForm.Trim(), 
+                currentItem.ThirdForm.Trim(), 
+                StringComparison.OrdinalIgnoreCase);
+        }
+        else
+        {
+            isThirdFormCorrect = true; // Якщо третьої форми немає, вважаємо правильною
+        }
+
+        // Статистика
+        if (isSecondFormCorrect && isThirdFormCorrect)
+        {
+            correctAnswers++;
+        }
+        else
+        {
+            incorrectAnswers++;
+        }
+
+        isAnswerSubmitted = true;
+        StateHasChanged();
+    }
+
+    private async Task NextItem()
+    {
+        currentIndex++;
+        
+        // Скидання стану
+        userSecondForm = "";
+        userThirdForm = "";
+        isAnswerSubmitted = false;
+        isSecondFormCorrect = false;
+        isThirdFormCorrect = false;
+
+        if (currentIndex >= totalItems)
+        {
+            showStats = true;
+        }
+        else
+        {
+            currentItem = items[currentIndex];
+        }
+
+        StateHasChanged();
+    }
+
+    private void FinishTest()
+    {
+        NavigationManager.NavigateTo("/irregular-forms");
+    }
+
+    private string GetPartOfSpeechLabel(string partOfSpeech)
+    {
+        return partOfSpeech?.ToLower() switch
+        {
+            "verb" => "Verb (Дієслово)",
+            "noun" => "Noun (Іменник)",
+            "adjective" => "Adjective (Прикметник)",
+            "adverb" => "Adverb (Прислівник)",
+            _ => partOfSpeech ?? ""
+        };
+    }
+
+    private string GetFormLabel(int formNumber)
+    {
+        if (currentItem == null || string.IsNullOrEmpty(currentItem.PartOfSpeech))
+        {
+            return formNumber switch
+            {
+                1 => "First Form",
+                2 => "Second Form",
+                3 => "Third Form",
+                _ => "Form"
+            };
+        }
+
+        return currentItem.PartOfSpeech.ToLower() switch
+        {
+            "verb" => formNumber switch
+            {
+                1 => "Infinitive",
+                2 => "Past Simple",
+                3 => "Past Participle",
+                _ => "Form"
+            },
+            "noun" => formNumber switch
+            {
+                1 => "Singular",
+                2 => "Plural",
+                3 => "Alternative Plural",
+                _ => "Form"
+            },
+            "adjective" => formNumber switch
+            {
+                1 => "Positive",
+                2 => "Comparative",
+                3 => "Superlative",
+                _ => "Form"
+            },
+            "adverb" => formNumber switch
+            {
+                1 => "Positive",
+                2 => "Comparative",
+                3 => "Superlative",
+                _ => "Form"
+            },
+            _ => $"Form {formNumber}"
+        };
+    }
+
+    private string GetResultClass(bool isCorrect)
+    {
+        return isCorrect ? "correct" : "incorrect";
+    }
+}
+
+<style>
+    .page-content {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .part-of-speech-badge {
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .badge {
+        background: #E3F2FD;
+        color: #1976D2;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .question-section {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .question-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0 0 1rem 0;
+    }
+
+    .question-word {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .question-transcription {
+        font-size: 1.5rem;
+        color: #666;
+        font-style: italic;
+        margin-bottom: 0.5rem;
+    }
+
+    .question-translation {
+        font-size: 1.125rem;
+        color: #888;
+    }
+
+    .input-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .input-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-input {
+        padding: 1rem;
+        font-size: 1.125rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        transition: all 0.2s;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #A3BFFA;
+        box-shadow: 0 0 0 3px rgba(163, 191, 250, 0.1);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #66BB6A, #4CAF50);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 1rem 2rem;
+        font-size: 1.125rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 187, 106, 0.3);
+    }
+
+    .btn-submit:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .result-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .result-item {
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 2px solid;
+    }
+
+    .result-item.correct {
+        background: #F1F8F4;
+        border-color: #66BB6A;
+    }
+
+    .result-item.incorrect {
+        background: #FFF5F5;
+        border-color: #EF5350;
+    }
+
+    .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .result-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .result-icon {
+        font-size: 1.5rem;
+    }
+
+    .result-item.correct .result-icon {
+        color: #66BB6A;
+    }
+
+    .result-item.incorrect .result-icon {
+        color: #EF5350;
+    }
+
+    .result-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .user-answer {
+        font-size: 1rem;
+        color: #333;
+    }
+
+    .correct-answer {
+        font-size: 1rem;
+        color: #666;
+    }
+
+    @@media (max-width: 768px) {
+        .question-word {
+            font-size: 2rem;
+        }
+
+        .question-transcription {
+            font-size: 1.25rem;
+        }
+
+        .form-input {
+            font-size: 1rem;
+        }
+
+        .btn-submit {
+            font-size: 1rem;
+        }
+    }
+</style>

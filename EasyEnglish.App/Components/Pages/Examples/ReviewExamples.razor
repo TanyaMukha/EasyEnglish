@@ -1,0 +1,328 @@
+@page "/review-examples"
+@using EasyEnglish.App.Components.Shared
+@using EasyEnglish.App.Models
+@using EasyEnglish.App.Components.Pages.Learning.Shared
+@using EasyEnglish.App.Services
+@inject NavigationManager NavigationManager
+@inject IBrowserConsoleService BrowserConsole
+
+<div class="page-content">
+    <PageHeader Title="Перегляд прикладів" />
+
+    <LearningCard 
+        Title="Перегляд прикладів"
+        HeaderClass="pastel-blue"
+        IconClass="bi-eye"
+        Rate="@(currentItem?.Word?.Rate ?? 0)"
+        TotalCount="@totalItems"
+        CompletedCount="@completed"
+        IsLoading="@isLoading"
+        ErrorMessage="@errorMessage"
+        ShowStats="@showStats"
+        CompletedWords="@completed"
+        TotalAttempts="@totalAttempts"
+        CorrectAnswers="@correctAnswers"
+        IncorrectAnswers="@incorrectAnswers"
+        ShowNextButton="true"
+        OnNextCard="@NextItem"
+        OnFinish="@FinishTest">
+
+        <ChildContent>
+            @if (currentItem != null)
+            {
+                <!-- Word Badge -->
+                <div class="word-badge-container">
+                    <div class="word-badge">
+                        <span class="word-text">@currentItem.Word?.Word</span>
+                        @if (!string.IsNullOrEmpty(currentItem.Word?.Transcription))
+                        {
+                            <span class="word-transcription">[@currentItem.Word.Transcription]</span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Example Display -->
+                <div class="example-container">
+                    <!-- English Sentence -->
+                    <div class="sentence-section english">
+                        <div class="language-label">
+                            <i class="bi bi-translate"></i>
+                            English
+                        </div>
+                        <div class="sentence-text">
+                            @((MarkupString)ExampleMarkdownService.RenderMarkdownWithHidden(currentItem.Sentence, showHidden: true))
+                        </div>
+                    </div>
+
+                    <!-- Translation -->
+                    @if (!string.IsNullOrEmpty(currentItem.Translation))
+                    {
+                        <div class="sentence-section translation">
+                            <div class="language-label">
+                                <i class="bi bi-arrow-return-right"></i>
+                                Переклад
+                            </div>
+                            <div class="sentence-text">
+                                @currentItem.Translation
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Rating Section -->
+                <DifficultyRatingSection 
+                    OnRate="@RateExample"
+                    IsRating="@isRating"
+                    LastRatedValue="@lastRatedValue" />
+            }
+        </ChildContent>
+    </LearningCard>
+</div>
+
+@code {
+    // Data
+    private List<ExampleModel> items = new();
+    private ExampleModel? currentItem;
+    private int currentIndex = 0;
+
+    // State
+    private bool isLoading = false;
+    private string? errorMessage;
+    private bool showStats = false;
+    private bool isRating = false;
+    private double lastRatedValue = 0;
+
+    // Statistics
+    private int totalItems = 0;
+    private int totalAttempts = 0;
+    private int correctAnswers = 0;
+    private int incorrectAnswers = 0;
+    private int completed => currentIndex;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+
+            // TODO: Завантажити приклади з сервісу
+            // items = await ExampleService.GetAllAsync();
+            
+            // Тимчасові дані для тестування
+            items = new List<ExampleModel>
+            {
+                new ExampleModel 
+                { 
+                    Id = 1,
+                    Sentence = "I ***go*** to school every day.",
+                    Translation = "Я ходжу до школи щодня.",
+                    WordId = 1,
+                    Word = new WordModel 
+                    { 
+                        Word = "go", 
+                        Transcription = "ɡəʊ",
+                        Translation = "йти, ходити"
+                    }
+                },
+                new ExampleModel 
+                { 
+                    Id = 2,
+                    Sentence = "She **likes** to ***read*** books.",
+                    Translation = "Вона любить читати книги.",
+                    WordId = 2,
+                    Word = new WordModel 
+                    { 
+                        Word = "read", 
+                        Transcription = "riːd",
+                        Translation = "читати"
+                    }
+                }
+            };
+
+            totalItems = items.Count;
+            
+            if (items.Any())
+            {
+                currentItem = items[currentIndex];
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+            BrowserConsole.LogErrorAsync("Error loading examples", ex);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RateExample(double rating)
+    {
+        if (currentItem == null) return;
+
+        try
+        {
+            isRating = true;
+            lastRatedValue = rating;
+
+            // TODO: Зберегти оцінку
+            // await WordService.UpdateRateAsync(currentItem.WordId, rating);
+
+            await Task.Delay(300);
+        }
+        catch (Exception ex)
+        {
+            BrowserConsole.LogErrorAsync("Error rating example", ex);
+        }
+        finally
+        {
+            isRating = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task NextItem()
+    {
+        currentIndex++;
+        lastRatedValue = 0;
+
+        if (currentIndex >= totalItems)
+        {
+            showStats = true;
+        }
+        else
+        {
+            currentItem = items[currentIndex];
+        }
+
+        StateHasChanged();
+    }
+
+    private void FinishTest()
+    {
+        NavigationManager.NavigateTo("/examples-learning");
+    }
+}
+
+<style>
+    .page-content {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .word-badge-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+
+    .word-badge {
+        background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+        padding: 0.75rem 1.5rem;
+        border-radius: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .word-text {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1976D2;
+    }
+
+    .word-transcription {
+        font-size: 0.875rem;
+        font-style: italic;
+        color: #1976D2;
+        opacity: 0.8;
+    }
+
+    .example-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .sentence-section {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .sentence-section.english {
+        background: linear-gradient(135deg, #F5F7FA, #E8EAF6);
+        border-left: 4px solid #5E35B1;
+    }
+
+    .sentence-section.translation {
+        background: linear-gradient(135deg, #F1F8E9, #DCEDC8);
+        border-left: 4px solid #7CB342;
+    }
+
+    .language-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #666;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .sentence-text {
+        font-size: 1.25rem;
+        line-height: 1.8;
+        color: #333;
+    }
+
+    /* Markdown styles */
+    .sentence-text :deep(strong) {
+        color: #1976D2;
+        font-weight: 700;
+    }
+
+    .sentence-text :deep(em) {
+        color: #7B1FA2;
+        font-style: italic;
+    }
+
+    .sentence-text :deep(code) {
+        background: #FFF9C4;
+        padding: 0.125rem 0.375rem;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 1.1rem;
+    }
+
+    .sentence-text :deep(.hidden-text.revealed) {
+        background: linear-gradient(135deg, #FFE082, #FFD54F);
+        padding: 0.125rem 0.375rem;
+        border-radius: 4px;
+        font-weight: 600;
+        color: #F57C00;
+    }
+
+    @@media (max-width: 768px) {
+        .sentence-text {
+            font-size: 1.125rem;
+        }
+
+        .word-text {
+            font-size: 1.125rem;
+        }
+    }
+</style>

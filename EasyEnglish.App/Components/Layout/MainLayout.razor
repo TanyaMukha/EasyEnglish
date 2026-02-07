@@ -102,6 +102,19 @@
                             }
                         </a>
                     </li>
+                    <!-- 🆕 Examples Learning -->
+                    <li class="nav-item">
+                        <a href="/examples-learning" 
+                           class="nav-link @GetNavClass("/examples-learning")" 
+                           @onclick="OnNavClick" 
+                           title="@(isSidebarCollapsed && !isMobile ? "Examples Learning" : "")">
+                            <i class="nav-icon bi bi-card-text"></i>
+                            @if (!isSidebarCollapsed || isMobile)
+                            {
+                                <span class="nav-label">Examples Learning</span>
+                            }
+                        </a>
+                    </li>
                 </ul>
             </div>
 

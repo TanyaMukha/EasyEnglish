@@ -1,9 +1,9 @@
-@page "/irregular-forms"
+@page "/examples-learning"
 @using EasyEnglish.App.Components.Shared
 @inject NavigationManager NavigationManager
 
 <div class="page-content">
-    <PageHeader Title="Irregular Forms" Description="Опануйте неправильні форми іменників, дієслів, прикметників та прислівників" />
+    <PageHeader Title="Examples Learning" Description="Вчіть англійську через контекст реальних прикладів" />
 
     @if (isLoading)
     {
@@ -34,21 +34,30 @@
         
         <div class="exercises-grid">
             <IrregularFormsExerciseCard
-                Title="Перегляд"
-                Description="Повторіть неправильні форми для закріплення знань"
-                Icon="bi-book"
-                Link="/review-irregular-forms"
+                Title="Перегляд прикладів"
+                Description="Читайте приклади з перекладом для розуміння контексту"
+                Icon="bi-eye"
+                Link="/review-examples"
                 Color="blue"
-                @bind-IsSelected="@ReviewIrregularForms"
+                @bind-IsSelected="@ReviewExamples"
             />
 
             <IrregularFormsExerciseCard
-                Title="Введення форм"
-                Description="Практикуйте написання другої та третьої форми"
+                Title="Угадай слово"
+                Description="Розкрийте приховане слово для перевірки розуміння"
+                Icon="bi-search"
+                Link="/review-examples-blurred"
+                Color="purple"
+                @bind-IsSelected="@ReviewExamplesBlurred"
+            />
+
+            <IrregularFormsExerciseCard
+                Title="Введи слово"
+                Description="Введіть правильне слово замість пропуску"
                 Icon="bi-keyboard"
-                Link="/input-irregular-forms"
+                Link="/input-examples"
                 Color="green"
-                @bind-IsSelected="@InputIrregularForms"
+                @bind-IsSelected="@InputExamples"
             />
         </div>
 
@@ -78,21 +87,23 @@
 @code {
     private bool selectAll = false;
 
-    private bool ReviewIrregularForms = false;
-    private bool InputIrregularForms = false;
+    private bool ReviewExamples = false;
+    private bool ReviewExamplesBlurred = false;
+    private bool InputExamples = false;
 
     private bool isLoading = false;
     private string? errorMessage;
 
-    private bool AnySelected => ReviewIrregularForms || InputIrregularForms;
+    private bool AnySelected => ReviewExamples || ReviewExamplesBlurred || InputExamples;
 
     private int SelectedCount
     {
         get
         {
             int count = 0;
-            if (ReviewIrregularForms) count++;
-            if (InputIrregularForms) count++;
+            if (ReviewExamples) count++;
+            if (ReviewExamplesBlurred) count++;
+            if (InputExamples) count++;
             return count;
         }
     }
@@ -110,8 +121,7 @@
             errorMessage = null;
             StateHasChanged();
 
-            // Тут можна додати логіку завантаження даних, якщо потрібно
-            await Task.Delay(100); // Симуляція завантаження
+            await Task.Delay(100);
         }
         catch (Exception ex)
         {
@@ -128,18 +138,20 @@
     {
         var selectedTests = new List<string>();
 
-        if (ReviewIrregularForms) selectedTests.Add("review-irregular-forms");
-        if (InputIrregularForms) selectedTests.Add("input-irregular-forms");
+        if (ReviewExamples) selectedTests.Add("review-examples");
+        if (ReviewExamplesBlurred) selectedTests.Add("review-examples-blurred");
+        if (InputExamples) selectedTests.Add("input-examples");
 
         var testsParam = string.Join(",", selectedTests);
-        NavigationManager.NavigateTo($"/irregular-forms-multi-test?tests={testsParam}");
+        NavigationManager.NavigateTo($"/examples-multi-test?tests={testsParam}");
     }
 
     private async Task SelectAllChange()
     {
         bool isChecked = selectAll;
-        ReviewIrregularForms = isChecked;
-        InputIrregularForms = isChecked;
+        ReviewExamples = isChecked;
+        ReviewExamplesBlurred = isChecked;
+        InputExamples = isChecked;
     }
 }
 
@@ -161,7 +173,6 @@
         margin-bottom: 2rem;
     }
 
-    /* Loading State */
     .loading-container {
         display: flex;
         flex-direction: column;
@@ -181,7 +192,6 @@
         margin: 0;
     }
 
-    /* Error State */
     .error-container {
         display: flex;
         flex-direction: column;
@@ -222,7 +232,6 @@
         text-align: center;
     }
 
-    /* Multi-Test Section */
     .multi-test-section {
         position: sticky;
         bottom: 2rem;
@@ -303,14 +312,12 @@
         font-size: 1.25rem;
     }
 
-    /* Responsive - Tablet */
     @@media (max-width: 1024px) {
         .exercises-grid {
             grid-template-columns: repeat(2, 1fr);
         }
     }
 
-    /* Responsive - Mobile */
     @@media (max-width: 768px) {
         .page-content {
             padding: 1.5rem 1rem;
