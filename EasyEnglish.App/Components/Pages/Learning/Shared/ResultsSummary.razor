@@ -1,0 +1,22 @@
+﻿<div class="card-body">
+    <p><strong>Words Completed:</strong> @CompletedWords</p>
+    <p><strong>Total Attempts:</strong> @TotalAttempts</p>
+    <p><strong>Correct Answers:</strong> @CorrectAnswers</p>
+    <p><strong>Incorrect Answers:</strong> @IncorrectAnswers</p>
+    <p><strong>Success Rate:</strong> @SuccessPercentage%</p>
+</div>
+<div class="d-flex justify-content-end mt-4 w-100">
+    <button class="btn btn-outline-secondary btn-sm" @onclick="async () => await OnClick.InvokeAsync()">
+        Finish
+    </button>
+</div>
+
+@code {
+    [Parameter] public int CompletedWords { get; set; }
+    [Parameter] public int TotalAttempts { get; set; }
+    [Parameter] public int CorrectAnswers { get; set; }
+    [Parameter] public int IncorrectAnswers { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+
+    public double SuccessPercentage => TotalAttempts > 0 ? Math.Round((CorrectAnswers / (double) TotalAttempts) * 100, 2) : 0;
+}

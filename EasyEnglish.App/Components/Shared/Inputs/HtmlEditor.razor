@@ -1,0 +1,415 @@
+﻿@namespace EasyEnglish.App.Components.Shared
+@inject IJSRuntime JSRuntime
+
+<div class="html-editor">
+    <div class="editor-toolbar">
+        <button type="button" class="toolbar-btn" @onclick="@(() => ExecuteCommand("bold"))" title="Жирний (Ctrl+B)">
+            <i class="bi bi-type-bold"></i>
+        </button>
+        <button type="button" class="toolbar-btn" @onclick="@(() => ExecuteCommand("italic"))" title="Курсив (Ctrl+I)">
+            <i class="bi bi-type-italic"></i>
+        </button>
+        <button type="button" class="toolbar-btn" @onclick="@(() => ExecuteCommand("underline"))" title="Підкреслений (Ctrl+U)">
+            <i class="bi bi-type-underline"></i>
+        </button>
+        
+        <div class="toolbar-divider"></div>
+        
+        <button type="button" class="toolbar-btn" @onclick="@(() => ExecuteCommand("formatBlock", "h1"))" title="Заголовок 1">
+            <i class="bi bi-type-h1"></i>
+        </button>
+        <button type="button" class="toolbar-btn" @onclick="@(() => ExecuteCommand("formatBlock", "h2"))" title="Заголовок 2">
+            <i class="bi bi-type-h2"></i>
+        </button>
+        <button type="button" class="toolbar-btn" @onclick="@(() => ExecuteCommand("formatBlock", "h3"))" title="Заголовок 3">
+            <i class="bi bi-type-h3"></i>
+        </button>
+        <button type="button" class="toolbar-btn" @onclick="@(() => ExecuteCommand("formatBlock", "p"))" title="Параграф">
+            <i class="bi bi-paragraph"></i>
+        </button>
+        
+        <div class="toolbar-divider"></div>
+        
+        <button type="button" class="toolbar-btn" @onclick="@(() => ExecuteCommand("insertUnorderedList"))" title="Маркований список">
+            <i class="bi bi-list-ul"></i>
+        </button>
+        <button type="button" class="toolbar-btn" @onclick="@(() => ExecuteCommand("insertOrderedList"))" title="Нумерований список">
+            <i class="bi bi-list-ol"></i>
+        </button>
+        
+        <div class="toolbar-divider"></div>
+        
+        <button type="button" class="toolbar-btn" @onclick="InsertLink" title="Вставити посилання">
+            <i class="bi bi-link-45deg"></i>
+        </button>
+        <button type="button" class="toolbar-btn" @onclick="@(() => ExecuteCommand("unlink"))" title="Видалити посилання">
+            <i class="bi bi-link-45deg-slash"></i>
+        </button>
+        
+        <div class="toolbar-divider"></div>
+        
+        <button type="button" class="toolbar-btn" @onclick="@(() => ExecuteCommand("justifyLeft"))" title="Вирівняти ліворуч">
+            <i class="bi bi-text-left"></i>
+        </button>
+        <button type="button" class="toolbar-btn" @onclick="@(() => ExecuteCommand("justifyCenter"))" title="Вирівняти по центру">
+            <i class="bi bi-text-center"></i>
+        </button>
+        <button type="button" class="toolbar-btn" @onclick="@(() => ExecuteCommand("justifyRight"))" title="Вирівняти праворуч">
+            <i class="bi bi-text-right"></i>
+        </button>
+        
+        <div class="toolbar-divider"></div>
+        
+        <button type="button" class="toolbar-btn @(showSource ? "active" : "")" @onclick="ToggleSource" title="HTML код">
+            <i class="bi bi-code-square"></i>
+        </button>
+        <button type="button" class="toolbar-btn" @onclick="ClearFormatting" title="Очистити форматування">
+            <i class="bi bi-eraser"></i>
+        </button>
+    </div>
+
+    <div class="editor-content">
+        @if (!showSource)
+        {
+            <div @ref="editorRef"
+                 class="editor-area"
+                 contenteditable="true"
+                 @oninput="OnContentChanged"
+                 @onblur="OnContentChanged"></div>
+        }
+        else
+        {
+            <textarea @ref="sourceRef"
+                      class="source-area"
+                      @bind="htmlSource"
+                      @bind:event="oninput"
+                      rows="15"></textarea>
+        }
+    </div>
+    
+    <div class="editor-footer">
+        <span class="editor-hint">
+            <i class="bi bi-info-circle"></i>
+            Використовуйте панель інструментів або гарячі клавіші для форматування тексту
+        </span>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    [Parameter] public string Placeholder { get; set; } = "Введіть текст...";
+
+    private ElementReference editorRef;
+    private ElementReference sourceRef;
+    private bool showSource = false;
+    private string htmlSource = "";
+    private bool isInitialized = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !string.IsNullOrEmpty(Value))
+        {
+            try
+            {
+                var escapedValue = System.Text.Json.JsonSerializer.Serialize(Value);
+                await JSRuntime.InvokeVoidAsync("eval", 
+                    $"if(document.querySelector('.editor-area')){{document.querySelector('.editor-area').innerHTML = {escapedValue};}}");
+                htmlSource = Value;
+                isInitialized = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing editor: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task ExecuteCommand(string command, string? value = null)
+    {
+        if (showSource) return;
+
+        try
+        {
+            var jsCommand = value != null 
+                ? $"document.execCommand('{command}', false, '{value}')"
+                : $"document.execCommand('{command}', false, null)";
+            
+            await JSRuntime.InvokeVoidAsync("eval", jsCommand);
+            await Task.Delay(100);
+            await OnContentChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error executing command: {ex.Message}");
+        }
+    }
+
+    private async Task InsertLink()
+    {
+        if (showSource) return;
+
+        try
+        {
+            var url = await JSRuntime.InvokeAsync<string>("prompt", "Введіть URL:", "https://");
+            
+            if (!string.IsNullOrEmpty(url) && url != "https://")
+            {
+                await JSRuntime.InvokeVoidAsync("eval", 
+                    $"document.execCommand('createLink', false, '{url}')");
+                await OnContentChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error inserting link: {ex.Message}");
+        }
+    }
+
+    private async Task ClearFormatting()
+    {
+        if (showSource) return;
+        await ExecuteCommand("removeFormat");
+    }
+
+    private async Task ToggleSource()
+    {
+        try
+        {
+            if (!showSource)
+            {
+                var content = await JSRuntime.InvokeAsync<string>("eval", 
+                    "document.querySelector('.editor-area')?.innerHTML || ''");
+                htmlSource = content;
+            }
+            else
+            {
+                var escapedValue = System.Text.Json.JsonSerializer.Serialize(htmlSource);
+                await JSRuntime.InvokeVoidAsync("eval", 
+                    $"if(document.querySelector('.editor-area')){{document.querySelector('.editor-area').innerHTML = {escapedValue};}}");
+                await OnContentChanged();
+            }
+            
+            showSource = !showSource;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error toggling source: {ex.Message}");
+        }
+    }
+
+    private async Task OnContentChanged()
+    {
+        try
+        {
+            string content;
+            
+            if (showSource)
+            {
+                content = htmlSource;
+            }
+            else
+            {
+                content = await JSRuntime.InvokeAsync<string>("eval", 
+                    "document.querySelector('.editor-area')?.innerHTML || ''");
+            }
+            
+            Value = content;
+            await ValueChanged.InvokeAsync(content);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting content: {ex.Message}");
+        }
+    }
+}
+
+<style>
+    .html-editor {
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        overflow: hidden;
+        background: white;
+        margin-bottom: 1.5rem;
+    }
+
+    .editor-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e0e0e0;
+        flex-wrap: wrap;
+    }
+
+    .toolbar-btn {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: #666;
+    }
+
+    .toolbar-btn:hover {
+        background: #e9ecef;
+        border-color: #A3BFFA;
+        color: #A3BFFA;
+    }
+
+    .toolbar-btn.active {
+        background: #A3BFFA;
+        border-color: #A3BFFA;
+        color: white;
+    }
+
+    .toolbar-btn i {
+        font-size: 1rem;
+    }
+
+    .toolbar-divider {
+        width: 1px;
+        height: 24px;
+        background: #dee2e6;
+        margin: 0 0.5rem;
+    }
+
+    .editor-content {
+        min-height: 300px;
+    }
+
+    .editor-area {
+        min-height: 300px;
+        max-height: 600px;
+        overflow-y: auto;
+        padding: 1.5rem;
+        font-size: 1rem;
+        line-height: 1.8;
+        color: #333;
+        outline: none;
+    }
+
+    .editor-area:empty:before {
+        content: 'Введіть текст...';
+        color: #999;
+    }
+
+    .editor-area h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 1rem 0 0.5rem 0;
+        color: #1a1a1a;
+    }
+
+    .editor-area h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 1rem 0 0.5rem 0;
+        color: #1a1a1a;
+    }
+
+    .editor-area h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 1rem 0 0.5rem 0;
+        color: #1a1a1a;
+    }
+
+    .editor-area p {
+        margin: 0.5rem 0;
+    }
+
+    .editor-area strong {
+        font-weight: 700;
+    }
+
+    .editor-area em {
+        font-style: italic;
+    }
+
+    .editor-area u {
+        text-decoration: underline;
+    }
+
+    .editor-area a {
+        color: #A3BFFA;
+        text-decoration: none;
+        border-bottom: 1px solid #A3BFFA;
+    }
+
+    .editor-area ul,
+    .editor-area ol {
+        margin: 0.5rem 0;
+        padding-left: 2rem;
+    }
+
+    .editor-area li {
+        margin: 0.25rem 0;
+    }
+
+    .source-area {
+        width: 100%;
+        min-height: 300px;
+        padding: 1rem;
+        border: none;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: #333;
+        resize: vertical;
+        outline: none;
+    }
+
+    .editor-footer {
+        padding: 0.75rem 1rem;
+        background: #f8f9fa;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .editor-hint {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: #666;
+    }
+
+    .editor-hint i {
+        color: #A3BFFA;
+    }
+
+    .editor-area::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .editor-area::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .editor-area::-webkit-scrollbar-thumb {
+        background: #A3BFFA;
+        border-radius: 4px;
+    }
+
+    .editor-area::-webkit-scrollbar-thumb:hover {
+        background: #8FA9E8;
+    }
+
+    @@media (max-width: 768px) {
+        .toolbar-btn {
+            width: 32px;
+            height: 32px;
+        }
+
+        .editor-area {
+            padding: 1rem;
+            font-size: 0.95rem;
+        }
+    }
+</style

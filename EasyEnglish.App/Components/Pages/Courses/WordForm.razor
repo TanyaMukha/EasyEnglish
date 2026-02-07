@@ -1,0 +1,441 @@
+@page "/courses/{CourseId:int}/units/{UnitId:int}/words/{WordId:int}/edit"
+@page "/courses/{CourseId:int}/units/{UnitId:int}/words/create"
+@using System.Dynamic
+@using EasyEnglish.App.Components.Shared
+@using EasyEnglish.App.Components.Shared.Breadcrumb
+
+<div class="edit-page">
+    <div class="header-section">
+        <Breadcrumb Items="breadcrumbs" />
+
+        <h1 class="page-title">
+            <i class="bi @(IsEditMode ? "bi-pencil" : "bi-plus-circle")"></i>
+            @(IsEditMode ? "Edit" : "Create") Word
+        </h1>
+    </div>
+
+    <div class="form-container">
+        <EditForm Model="Word" OnValidSubmit="HandleValidSubmit" class="edit-form">
+            <DataAnnotationsValidator />
+        
+            <div class="form-section">
+                <h2 class="section-title">
+                    <i class="bi bi-info-circle"></i>
+                    Основна інформація
+                </h2>
+
+                <InputSelectField @bind-Value="Word.UnitId" Label="Word List">
+                    @foreach(UnitModel wordList in Units)
+                    {
+                        <option value="@wordList.Id">@wordList.Title</option>
+                    }
+                </InputSelectField>
+                <ValidationMessage For="() => Word.UnitId" />
+
+                <InputTextField @bind-Value="Word.Word" Label="Word or Phrase *" />
+
+                <InputTranscriptionField @bind-Value="Word.Transcription" Label="Transcription" />
+
+                <InputTextField @bind-Value="Word.Translation" Label="Translation" />
+
+                <!-- Pronunciation Audio -->
+                <label for="pronunciation" class="form-label">Pronunciation Audio</label>
+                <div class="input-group">
+                    <InputFile id="pronunciation" OnChange="HandlePronunciationFile" class="form-control" accept="audio/*" />
+                    @if (HasExistingAudio)
+                    {
+                            <button type="button" class="btn btn-outline-secondary" @onclick="PlayAudio">
+                                <i class="bi bi-play-fill"></i>
+                                Play
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" @onclick="RemoveAudio">
+                                <i class="bi bi-trash"></i>
+                                Remove
+                            </button>
+                    }
+                </div>
+                <small class="text-muted">Upload MP3, WAV, or other audio file for pronunciation</small>
+                @if (AudioUploadMessage != null)
+                {
+                        <div class="alert alert-info mt-2">@AudioUploadMessage</div>
+                }
+
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title">
+                    <div class="d-flex justify-content-between align-items-center w-100">
+                        <span>
+                            <i class="bi bi-file-text"></i>
+                            Examples
+                        </span>
+                        <button type="button" class="btn-cancel" @onclick="AddExample">
+                            <i class="bi bi-plus"></i> Add Example
+                        </button>
+                    </div>
+                </h2>
+
+                <!-- Examples Section -->
+
+                @if (Word.Examples is not null && Word.Examples.Any())
+                {
+                    @for (int i = 0; i < Word.Examples.Count; i++)
+                    {
+                        var index = i;
+                        // Capture for lambda
+                        <div class="row">
+                            <div class="col-md-5 align-content-end">
+                                <InputMultilineField @bind-Value="Word.Examples[index].Sentence" Label="Sentence" />
+                            </div>
+                            <div class="col-md-5 align-content-end">
+                                <InputMultilineField @bind-Value="Word.Examples[index].Translation" Label="Translation" />
+                            </div>
+                            <button type="button" 
+                                    class="remove-btn" 
+                                    @onclick="() => RemoveExample(index)" 
+                                    title="Видалити">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted">No examples added yet. Click "Add Example" to add usage examples.</p>
+                }
+            </div>
+                
+            <div class="form-actions">
+                <a href="@($"/courses/{CourseId}/units/{UnitId}")" class="btn-cancel">
+                    <i class="bi bi-x-lg"></i>
+                    Скасувати
+                </a>
+                <button type="submit" class="btn-submit">
+                    <i class="bi @(IsEditMode ? "bi-check-lg" : "bi-plus-lg")"></i>
+                @(IsEditMode ? "Оновити" : "Створити")
+                </button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int CourseId { get; set; } = 0;
+    [Parameter] public int UnitId { get; set; } = 0;
+    [Parameter] public int WordId { get; set; } = 0;
+
+    public WordModel Word { get; set; } = new();
+
+    public List<UnitModel> Units { get; set; } = new();
+
+    private bool IsEditMode => WordId > 0;
+
+    private bool HasExistingAudio => Word.Pronunciation?.Length > 0;
+
+    private string? AudioUploadMessage;
+
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsEditMode)
+        {
+            // Loading existeding course item for editing
+            Word = await WordService.GetByIdAsync(WordId)
+                ?? new WordModel();
+            BrowserConsole.LogInfoAsync($"✅ Word : {JsonSerializer.Serialize(Word)}");
+        }
+        else
+        {
+            Word = new WordModel();
+        }
+        Units = (await UnitService.GetAllAsync()).ToList();
+
+        breadcrumbs = BreadcrumbBuilder.Create()
+            .WithLink("Courses", "/courses")
+            .WithLink(Word.Unit.Course.Title, $"/courses/{CourseId}")
+            .WithLink(Word.Unit.Title, $"/courses/{CourseId}/units/{UnitId}")
+            .WithActive(Word.Word)
+            .Build();
+    }
+
+    // private string GetFormsTitle()
+    // {
+    //     return Word.PartOfSpeech switch
+    //     {
+    //         "noun" => "Noun Forms (Plural)",
+    //         "verb" => "Verb Forms (Past Simple & Past Participle)",
+    //         "adjective" => "Adjective Forms (Comparative & Superlative)",
+    //         "adverb" => "Adverb Forms (Comparative & Superlative)",
+    //         _ => "Word Forms"
+    //     };
+    // }
+
+    private void AddExample()
+    {
+        ExampleModel example = new ExampleModel();
+        example.WordId = Word.Id;
+
+        if(Word.Examples is null)
+        {
+            Word.Examples = new List<ExampleModel>();
+        }
+
+        Word.Examples!.Add(example);
+    }
+
+    private void RemoveExample(int index)
+    {
+        Word.Examples.RemoveAt(index);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            if (IsEditMode)
+            {
+                BrowserConsole.LogInfoAsync($"✅ Word : { JsonSerializer.Serialize(Word) }");
+                Word.Unit = Units.Find(u => u.Id == Word.UnitId);
+                await WordService.UpdateAsync(Word.Id, Word);
+            }
+            else
+            {
+                Console.WriteLine($"New Course Item: {Word}");
+                await WordService.CreateAsync(Word);
+            }
+
+            Navigation.NavigateTo($"/courses/{CourseId}/units/{UnitId}");
+        }
+        catch (Exception ex)
+        {
+            // Handle error - you might want to show a toast or error message
+            Console.WriteLine($"Error saving course item: {ex.Message}");
+        }
+    }
+
+    private async Task HandlePronunciationFile(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            try
+            {
+                // Limit file size to 5MB
+                var maxSize = 5 * 1024 * 1024;
+                if (file.Size > maxSize)
+                {
+                    AudioUploadMessage = "File size must be less than 5MB";
+                    return;
+                }
+
+                // Read file to byte array
+                using var stream = file.OpenReadStream(maxSize);
+                using var memoryStream = new MemoryStream();
+                await stream.CopyToAsync(memoryStream);
+                Word.Pronunciation = memoryStream.ToArray();
+
+                AudioUploadMessage = $"Audio file '{file.Name}' uploaded successfully";
+            }
+            catch (Exception ex)
+            {
+                AudioUploadMessage = $"Error uploading file: {ex.Message}";
+            }
+        }
+    }
+
+    private void PlayAudio()
+    {
+        // Implement audio playback - you might need JS interop
+        // For now, just show a message
+        AudioUploadMessage = "Audio playback functionality not implemented yet";
+    }
+
+    private void RemoveAudio()
+    {
+        Word.Pronunciation = null;
+        AudioUploadMessage = "Audio file removed";
+    }
+
+    private void ResetLastReview()
+    {
+        Word.LastReviewDate = null;
+        AudioUploadMessage = "Last review date reset";
+    }
+}
+
+
+<style>
+    .edit-page {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .header-section {
+        margin-bottom: 2rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .page-title i {
+        color: #A3BFFA;
+    }
+
+    .form-container {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .edit-form {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .form-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0 0 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .section-title i {
+        color: #A3BFFA;
+    }
+
+    .validation-message {
+        color: #dc3545;
+        font-size: 0.85rem;
+        margin-top: -1rem;
+        margin-bottom: 0.5rem;
+        padding-left: 0.5rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        padding-top: 1.5rem;
+        border-top: 2px solid #f0f0f0;
+        margin-top: 1rem;
+    }
+
+    .btn-cancel,
+    .btn-submit {
+        padding: 0.875rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        border: none;
+    }
+
+    .btn-cancel {
+        background: #f8f9fa;
+        color: #666;
+        border: 1px solid #dee2e6;
+    }
+
+    .btn-cancel:hover {
+        background: white;
+        border-color: #999;
+        color: #333;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        color: white;
+        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.3);
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(163, 191, 250, 0.4);
+    }
+
+    .btn-submit:active,
+    .btn-cancel:active {
+        transform: translateY(0);
+    }
+
+    .remove-btn {
+        background: transparent;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        color: #999;
+        cursor: pointer;
+        padding: 0.5rem;
+        transition: all 0.2s;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 0.75rem;
+    }
+
+    .remove-btn:hover {
+        background: #fff5f5;
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+
+    .remove-btn i {
+        font-size: 0.9rem;
+    }
+
+    @@media (max-width: 768px) {
+        .edit-page {
+            padding: 1.5rem 1rem;
+        }
+
+        .form-container {
+            padding: 1.5rem;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+        }
+
+        .form-actions {
+            flex-direction: column-reverse;
+        }
+
+        .btn-cancel,
+        .btn-submit {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>

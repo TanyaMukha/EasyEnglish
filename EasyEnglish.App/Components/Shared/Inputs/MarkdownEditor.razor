@@ -1,0 +1,367 @@
+﻿@namespace EasyEnglish.App.Components.Shared
+
+<div class="markdown-editor">
+    <div class="editor-toolbar">
+        <button type="button" class="toolbar-btn" @onclick="@(() => InsertFormat("**", "**"))" title="Жирний">
+            <i class="bi bi-type-bold"></i>
+        </button>
+        <button type="button" class="toolbar-btn" @onclick="@(() => InsertFormat("__", "__"))" title="Курсив">
+            <i class="bi bi-type-italic"></i>
+        </button>
+        <button type="button" class="toolbar-btn" @onclick="@(() => InsertFormat("***", "***"))" title="Жирний курсив">
+            <i class="bi bi-type"></i>
+        </button>
+        <div class="toolbar-divider"></div>
+        <button type="button" class="toolbar-btn" @onclick="@(() => InsertFormat("`", "`"))" title="Код">
+            <i class="bi bi-code"></i>
+        </button>
+        <button type="button" class="toolbar-btn" @onclick="InsertLink" title="Посилання">
+            <i class="bi bi-link-45deg"></i>
+        </button>
+        <div class="toolbar-divider"></div>
+        <button type="button" class="toolbar-btn @(showPreview ? "active" : "")" @onclick="TogglePreview" title="Попередній перегляд">
+            <i class="bi bi-eye"></i>
+        </button>
+    </div>
+
+    <div class="editor-content">
+        @if (!showPreview)
+        {
+                <div class="editor-pane">
+                    <textarea @ref="textareaRef"
+                              class="editor-textarea"
+                              @bind="Value"
+                              @bind:event="oninput"
+                              @onselectionchange="UpdateSelection"
+                              placeholder="@Placeholder"
+                              rows="@Rows"></textarea>
+
+                    <div class="editor-hints">
+                        <div class="hint-item">
+                            <strong>**text**</strong> - жирний
+                        </div>
+                        <div class="hint-item">
+                            <strong>__text__</strong> - курсив
+                        </div>
+                        <div class="hint-item">
+                            <strong>***text***</strong> - жирний курсив
+                        </div>
+                        <div class="hint-item">
+                            <strong>`code`</strong> - код
+                        </div>
+                        <div class="hint-item">
+                            <strong>[text](url)</strong> - посилання
+                        </div>
+                    </div>
+                </div>
+        }
+        else
+        {
+                <div class="preview-pane">
+                    <div class="preview-content">
+                    @((MarkupString)RenderMarkdown(Value ?? ""))
+                    </div>
+                </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    [Parameter] public string Label { get; set; } = "Content";
+    [Parameter] public string Placeholder { get; set; } = "Введіть текст у форматі Markdown...";
+    [Parameter] public int Rows { get; set; } = 10;
+
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+
+    private ElementReference textareaRef;
+    private bool showPreview = false;
+    private int selectionStart = 0;
+    private int selectionEnd = 0;
+
+    private async Task InsertFormat(string before, string after)
+    {
+        if (string.IsNullOrEmpty(Value))
+            Value = "";
+
+        var selectedText = selectionStart != selectionEnd
+            ? Value.Substring(selectionStart, selectionEnd - selectionStart)
+            : "текст";
+
+        var newText = Value.Substring(0, selectionStart)
+                     + before + selectedText + after
+                     + Value.Substring(selectionEnd);
+
+        Value = newText;
+        await ValueChanged.InvokeAsync(Value);
+
+        StateHasChanged();
+        await textareaRef.FocusAsync();
+    }
+
+    private async Task InsertLink()
+    {
+        if (string.IsNullOrEmpty(Value))
+            Value = "";
+
+        var selectedText = selectionStart != selectionEnd
+            ? Value.Substring(selectionStart, selectionEnd - selectionStart)
+            : "текст посилання";
+
+        var newText = Value.Substring(0, selectionStart)
+                     + "[" + selectedText + "](url)"
+                     + Value.Substring(selectionEnd);
+
+        Value = newText;
+        await ValueChanged.InvokeAsync(Value);
+
+        StateHasChanged();
+        await textareaRef.FocusAsync();
+    }
+
+    private void TogglePreview()
+    {
+        showPreview = !showPreview;
+    }
+
+    private async Task UpdateSelection()
+    {
+        try
+        {
+            var jsCode = @"
+                (function() {
+                    var el = document.activeElement;
+                    return { start: el.selectionStart || 0, end: el.selectionEnd || 0 };
+                })()
+            ";
+            var selection = await JSRuntime.InvokeAsync<SelectionInfo>("eval", jsCode);
+            selectionStart = selection.Start;
+            selectionEnd = selection.End;
+        }
+        catch
+        {
+            // Ignore errors
+        }
+    }
+
+    private string RenderMarkdown(string markdown)
+    {
+        if (string.IsNullOrWhiteSpace(markdown))
+            return "<p class='empty-preview'>Нічого для відображення</p>";
+
+        var html = markdown;
+
+        // Жирний наклонний: ***text*** (обробляємо першим!)
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html,
+            @"\*\*\*(.+?)\*\*\*",
+            "<strong><em>$1</em></strong>"
+        );
+
+        // Жирний: **text**
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html,
+            @"\*\*(.+?)\*\*",
+            "<strong>$1</strong>"
+        );
+
+        // Наклонний: __text__
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html,
+            @"__(.+?)__",
+            "<em>$1</em>"
+        );
+
+        // Код: `text`
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html,
+            @"`(.+?)`",
+            "<code>$1</code>"
+        );
+
+        // Посилання: [text](url)
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html,
+            @"\[(.+?)\]\((.+?)\)",
+            "<a href=\"$2\" target=\"_blank\">$1</a>"
+        );
+
+        // Переноси рядків
+        html = html.Replace("\n", "<br />");
+
+        return html;
+    }
+
+    private class SelectionInfo
+    {
+        public int Start { get; set; }
+        public int End { get; set; }
+    }
+}
+
+<style>
+    .markdown-editor {
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        overflow: hidden;
+        background: white;
+        margin-bottom: 1.5rem;
+    }
+
+    .editor-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .toolbar-btn {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: #666;
+    }
+
+    .toolbar-btn:hover {
+        background: #e9ecef;
+        border-color: #A3BFFA;
+        color: #A3BFFA;
+    }
+
+    .toolbar-btn.active {
+        background: #A3BFFA;
+        border-color: #A3BFFA;
+        color: white;
+    }
+
+    .toolbar-btn i {
+        font-size: 1rem;
+    }
+
+    .toolbar-divider {
+        width: 1px;
+        height: 24px;
+        background: #dee2e6;
+        margin: 0 0.5rem;
+    }
+
+    .editor-content {
+        display: flex;
+        min-height: 300px;
+    }
+
+    .editor-pane {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .editor-textarea {
+        flex: 1;
+        width: 100%;
+        border: none;
+        padding: 1rem;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        resize: vertical;
+        min-height: 200px;
+    }
+
+    .editor-textarea:focus {
+        outline: none;
+    }
+
+    .editor-hints {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: #f8f9fa;
+        border-top: 1px solid #e0e0e0;
+        font-size: 0.75rem;
+        color: #666;
+    }
+
+    .hint-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .hint-item strong {
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        color: #A3BFFA;
+        font-weight: 600;
+    }
+
+    .preview-pane {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+    }
+
+    .preview-content {
+        line-height: 1.8;
+        color: #333;
+    }
+
+    .preview-content strong {
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+
+    .preview-content em {
+        font-style: italic;
+        color: #555;
+    }
+
+    .preview-content code {
+        background: #f5f5f5;
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 0.9em;
+        color: #c7254e;
+    }
+
+    .preview-content a {
+        color: #A3BFFA;
+        text-decoration: none;
+        border-bottom: 1px solid #A3BFFA;
+    }
+
+    .preview-content a:hover {
+        color: #7B9FE8;
+        border-bottom-color: #7B9FE8;
+    }
+
+    .empty-preview {
+        color: #999;
+        font-style: italic;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    @@media (max-width: 768px) {
+        .editor-hints {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .toolbar-btn {
+            width: 32px;
+            height: 32px;
+        }
+    }
+</style>

@@ -1,0 +1,747 @@
+@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IDisposable
+
+<div class="app-layout">
+    <!-- Burger button (mobile) -->
+    <button class="burger-button @(isSidebarOpen ? "active" : "")" @onclick="ToggleSidebar">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+    </button>
+
+    <!-- Overlay -->
+    @if (isSidebarOpen && isMobile)
+    {
+        <div class="sidebar-overlay" @onclick="CloseSidebar"></div>
+    }
+
+    <!-- Sidebar Navigation -->
+    <aside class="app-sidebar @(isSidebarOpen ? "open" : "") @(isSidebarCollapsed && !isMobile ? "collapsed" : "")">
+        <div class="sidebar-header">
+            <button class="logo-link" 
+                    @onclick="ToggleCollapse" 
+                    @onclick:stopPropagation="true"
+                    title="@(isSidebarCollapsed ? "Розгорнути меню" : "Згорнути меню")">
+                <div class="logo-icon">
+                    <i class="bi bi-book"></i>
+                </div>
+                @if (!isSidebarCollapsed || isMobile)
+                {
+                    <h3 class="logo-text">EasyEnglish</h3>
+                }
+            </button>
+            <button class="close-button" @onclick="CloseSidebar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                @if (!isSidebarCollapsed || isMobile)
+                {
+                    <p class="nav-section-title">Головне</p>
+                }
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="/" 
+                           class="nav-link @GetNavClass("/")" 
+                           @onclick="OnNavClick" 
+                           title="@(isSidebarCollapsed && !isMobile ? "Home" : "")">
+                            <i class="nav-icon bi bi-house"></i>
+                            @if (!isSidebarCollapsed || isMobile)
+                            {
+                                <span class="nav-label">Home</span>
+                            }
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/courses" 
+                           class="nav-link @GetNavClass("/courses")" 
+                           @onclick="OnNavClick" 
+                           title="@(isSidebarCollapsed && !isMobile ? "Courses" : "")">
+                            <i class="nav-icon bi bi-journals"></i>
+                            @if (!isSidebarCollapsed || isMobile)
+                            {
+                                <span class="nav-label">Courses</span>
+                            }
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                @if (!isSidebarCollapsed || isMobile)
+                {
+                    <p class="nav-section-title">Навчання</p>
+                }
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="/learning-words" 
+                           class="nav-link @GetNavClass("/learning-words")" 
+                           @onclick="OnNavClick" 
+                           title="@(isSidebarCollapsed && !isMobile ? "Learning Words" : "")">
+                            <i class="nav-icon bi bi-lightbulb"></i>
+                            @if (!isSidebarCollapsed || isMobile)
+                            {
+                                <span class="nav-label">Learning Words</span>
+                            }
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/irregular-forms" 
+                           class="nav-link @GetNavClass("/irregular-forms")" 
+                           @onclick="OnNavClick" 
+                           title="@(isSidebarCollapsed && !isMobile ? "Irregular Forms" : "")">
+                            <i class="nav-icon bi bi-arrow-repeat"></i>
+                            @if (!isSidebarCollapsed || isMobile)
+                            {
+                                <span class="nav-label">Irregular Forms</span>
+                            }
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                @if (!isSidebarCollapsed || isMobile)
+                {
+                    <p class="nav-section-title">Інструменти</p>
+                }
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="/import" 
+                           class="nav-link @GetNavClass("/import")" 
+                           @onclick="OnNavClick" 
+                           title="@(isSidebarCollapsed && !isMobile ? "Import" : "")">
+                            <i class="nav-icon bi bi-upload"></i>
+                            @if (!isSidebarCollapsed || isMobile)
+                            {
+                                <span class="nav-label">Import</span>
+                            }
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/export" 
+                           class="nav-link @GetNavClass("/export")" 
+                           @onclick="OnNavClick" 
+                           title="@(isSidebarCollapsed && !isMobile ? "Export" : "")">
+                            <i class="nav-icon bi bi-download"></i>
+                            @if (!isSidebarCollapsed || isMobile)
+                            {
+                                <span class="nav-label">Export</span>
+                            }
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/database-info" 
+                           class="nav-link @GetNavClass("/database-info")" 
+                           @onclick="OnNavClick" 
+                           title="@(isSidebarCollapsed && !isMobile ? "Database Info" : "")">
+                            <i class="nav-icon bi bi-database"></i>
+                            @if (!isSidebarCollapsed || isMobile)
+                            {
+                                <span class="nav-label">Database Info</span>
+                            }
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Footer -->
+        <div class="nav-footer">
+            @if (!isSidebarCollapsed || isMobile)
+            {
+                <p class="footer-text">© @DateTime.Now.Year EasyEnglish</p>
+            }
+            else
+            {
+                <p class="footer-text">©</p>
+            }
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="app-content @(isSidebarCollapsed && !isMobile ? "collapsed" : "")">
+        <div class="content-wrapper">
+            @Body
+        </div>
+    </main>
+</div>
+
+<script>
+    window.mainLayoutHelper = {
+        dotNetRef: null,
+        resizeTimeout: null,
+
+        initialize: function (dotNetReference) {
+            this.dotNetRef = dotNetReference;
+            
+            // Додаємо обробник resize з debounce
+            window.addEventListener('resize', () => {
+                clearTimeout(this.resizeTimeout);
+                this.resizeTimeout = setTimeout(() => {
+                    if (this.dotNetRef) {
+                        console.log('Calling HandleResize from JavaScript');
+                        this.dotNetRef.invokeMethodAsync('HandleResize');
+                    }
+                }, 100);
+            });
+
+            // Додаємо обробник зміни орієнтації
+            window.addEventListener('orientationchange', () => {
+                clearTimeout(this.resizeTimeout);
+                this.resizeTimeout = setTimeout(() => {
+                    if (this.dotNetRef) {
+                        console.log('Calling HandleResize from orientationchange');
+                        this.dotNetRef.invokeMethodAsync('HandleResize');
+                    }
+                }, 200);
+            });
+
+            console.log('MainLayout resize listener initialized');
+        },
+
+        dispose: function () {
+            if (this.dotNetRef) {
+                this.dotNetRef = null;
+            }
+        }
+    };
+</script>
+
+@code {
+    private bool isSidebarOpen = false;
+    private bool isSidebarCollapsed = true; // Початковий стан - згорнуте
+    private bool isMobile = false;
+    private int windowWidth = 0;
+    private int windowHeight = 0;
+    private DotNetObjectReference<MainLayout>? dotNetRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        Console.WriteLine($"MainLayout OnAfterRenderAsync - firstRender: {firstRender}");
+
+        if (firstRender)
+        {
+            await CheckIsMobile();
+            
+            // Створюємо reference для JavaScript
+            dotNetRef = DotNetObjectReference.Create(this);
+            
+            // Ініціалізуємо JavaScript helper
+            await JSRuntime.InvokeVoidAsync("mainLayoutHelper.initialize", dotNetRef);
+            
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable("HandleResize")]
+    public async Task HandleResize()
+    {
+        var wasMobile = isMobile;
+        await CheckIsMobile();
+        Console.WriteLine($"HandleResize - wasMobile: {wasMobile}, isMobile: {isMobile}, isSidebarOpen: {isSidebarOpen}, width: {windowWidth}, height: {windowHeight}");
+
+        if (wasMobile && !isMobile && isSidebarOpen)
+        {
+            Console.WriteLine("Closing sidebar - switched to desktop");
+            isSidebarOpen = false;
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task CheckIsMobile()
+    {
+        try
+        {
+            windowWidth = await JSRuntime.InvokeAsync<int>("eval", "window.innerWidth");
+            windowHeight = await JSRuntime.InvokeAsync<int>("eval", "window.innerHeight");
+            
+            // Логіка визначення мобільного режиму:
+            // 1. Якщо ширина <= 768px - завжди мобільний
+            // 2. Якщо ширина > 768px і <= 1024px (планшет):
+            //    - У portrait (висота > ширини) - мобільний
+            //    - У landscape (ширина >= висоти) - десктопний
+            // 3. Якщо ширина > 1024px - десктопний
+            
+            if (windowWidth <= 768)
+            {
+                isMobile = true;
+            }
+            else if (windowWidth <= 1024)
+            {
+                // Планшет: перевіряємо орієнтацію
+                isMobile = windowHeight > windowWidth; // portrait = mobile, landscape = desktop
+            }
+            else
+            {
+                isMobile = false;
+            }
+            
+            Console.WriteLine($"CheckIsMobile - width: {windowWidth}, height: {windowHeight}, isMobile: {isMobile}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in CheckIsMobile: {ex.Message}");
+            isMobile = true;
+            windowWidth = 0;
+            windowHeight = 0;
+        }
+    }
+
+    private void ToggleSidebar()
+    {
+        Console.WriteLine($"ToggleSidebar clicked! Current isSidebarOpen: {isSidebarOpen}");
+        isSidebarOpen = !isSidebarOpen;
+        Console.WriteLine($"New isSidebarOpen: {isSidebarOpen}");
+    }
+
+    private void ToggleCollapse()
+    {
+        // На мобільних не дозволяємо згортати
+        if (isMobile)
+        {
+            Console.WriteLine("ToggleCollapse ignored on mobile");
+            return;
+        }
+
+        Console.WriteLine($"ToggleCollapse clicked! Current isSidebarCollapsed: {isSidebarCollapsed}");
+        isSidebarCollapsed = !isSidebarCollapsed;
+        Console.WriteLine($"New isSidebarCollapsed: {isSidebarCollapsed}");
+    }
+
+    private void CloseSidebar()
+    {
+        Console.WriteLine("CloseSidebar called");
+        isSidebarOpen = false;
+    }
+
+    private void OnNavClick()
+    {
+        Console.WriteLine($"OnNavClick - isMobile: {isMobile}, isSidebarOpen: {isSidebarOpen}");
+        if (isMobile)
+        {
+            CloseSidebar();
+        }
+    }
+
+    private string GetNavClass(string path)
+    {
+        var currentPath = Navigation.Uri.Replace(Navigation.BaseUri, "/").TrimEnd('/');
+        if (string.IsNullOrEmpty(currentPath))
+        {
+            currentPath = "/";
+        }
+
+        return currentPath == path ? "active" : "";
+    }
+
+    public void Dispose()
+    {
+        if (dotNetRef != null)
+        {
+            JSRuntime.InvokeVoidAsync("mainLayoutHelper.dispose");
+            dotNetRef.Dispose();
+        }
+    }
+}
+
+<style>
+    .app-layout {
+        display: flex;
+        min-height: 100vh;
+        background-color: #f8f9fa;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        position: relative;
+    }
+
+    .app-content {
+        flex: 1;
+        margin-left: 280px;
+        overflow-y: auto;
+        transition: margin-left 0.3s ease;
+    }
+
+    .app-content.collapsed {
+        margin-left: 80px;
+    }
+
+    .content-wrapper {
+        background-color: #FFFFFF;
+        min-height: 100vh;
+    }
+
+    /* ===== BURGER BUTTON (Mobile) ===== */
+    .burger-button {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        z-index: 1001;
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        border: none;
+        border-radius: 12px;
+        padding: 12px;
+        cursor: pointer;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 48px;
+        height: 48px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.3);
+    }
+
+    .burger-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(163, 191, 250, 0.4);
+    }
+
+    .burger-line {
+        width: 24px;
+        height: 3px;
+        background: white;
+        border-radius: 2px;
+        margin: 3px 0;
+        transition: all 0.3s ease;
+        transform-origin: center;
+    }
+
+    .burger-button.active .burger-line:nth-child(1) {
+        transform: rotate(45deg) translate(7px, 7px);
+    }
+
+    .burger-button.active .burger-line:nth-child(2) {
+        opacity: 0;
+    }
+
+    .burger-button.active .burger-line:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -7px);
+    }
+
+    /* ===== OVERLAY ===== */
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 999;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* ===== SIDEBAR ===== */
+    .app-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 280px;
+        background: white;
+        border-right: 1px solid #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.3s ease;
+        overflow-y: auto;
+        overflow-x: hidden;
+
+        border-top: 1px solid #e0e0e0;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .app-sidebar.collapsed {
+        width: 80px;
+    }
+
+    /* ===== SIDEBAR HEADER ===== */
+    .sidebar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.5rem 1rem;
+        border-bottom: 1px solid #e0e0e0;
+        min-height: 80px;
+    }
+
+    .logo-link {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .logo-link:hover .logo-icon {
+        transform: scale(1.05);
+    }
+
+    .logo-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        border-radius: 12px;
+        color: white;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        transition: transform 0.3s ease;
+    }
+
+    .logo-text {
+        font-size: 1.25rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    .close-button {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border: 2px solid transparent;
+        background: transparent;
+        border-radius: 8px;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 1.2rem;
+    }
+
+    .close-button:hover {
+        background: white;
+        border-color: #A3BFFA;
+        color: #A3BFFA;
+    }
+
+    /* ===== SIDEBAR NAVIGATION ===== */
+    .sidebar-nav {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+    }
+
+    .nav-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .nav-section-title {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #999;
+        margin: 0 0 0.5rem 0.75rem;
+        white-space: nowrap;
+    }
+
+    .app-sidebar.collapsed .nav-section-title {
+        display: none;
+    }
+
+    .nav-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .nav-item {
+        margin-bottom: 0.25rem;
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        color: #666;
+        text-decoration: none;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+        font-size: 0.95rem;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .app-sidebar.collapsed .nav-link {
+        justify-content: center;
+        padding: 0.75rem;
+    }
+
+    .nav-link:hover {
+        background-color: #f8f9fa;
+        color: #333;
+    }
+
+    .nav-link.active {
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        color: white;
+    }
+
+    .nav-link.active:hover {
+        background: linear-gradient(135deg, #8FA9E8, #A3D9C2);
+    }
+
+    .nav-icon {
+        font-size: 1.1rem;
+        width: 20px;
+        text-align: center;
+        flex-shrink: 0;
+    }
+
+    .nav-label {
+        flex: 1;
+    }
+
+    /* ===== SIDEBAR FOOTER ===== */
+    .nav-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #e0e0e0;
+        margin-top: auto;
+    }
+
+    .app-sidebar.collapsed .nav-footer {
+        padding: 1rem 0.5rem;
+        text-align: center;
+    }
+
+    .footer-text {
+        margin: 0;
+        color: #999;
+        font-size: 0.75rem;
+        text-align: center;
+    }
+
+    /* ===== SCROLLBAR ===== */
+    .app-sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .app-sidebar::-webkit-scrollbar-track {
+        background: #f8f9fa;
+    }
+
+    .app-sidebar::-webkit-scrollbar-thumb {
+        background: #A3BFFA;
+        border-radius: 3px;
+    }
+
+    .app-sidebar::-webkit-scrollbar-thumb:hover {
+        background: #8FA9E8;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    /* Мобільні телефони і планшети в portrait */
+    @@media (max-width: 768px), (max-width: 1024px) and (orientation: portrait) {
+        .burger-button {
+            display: flex;
+        }
+
+        .close-button {
+            display: flex;
+        }
+
+        /* Видаляємо відступ на мобільних */
+        .app-content {
+            margin-left: 0 !important;
+        }
+
+        /* Сайдбар на мобільних */
+        .app-sidebar {
+            z-index: 1000;
+            transform: translateX(-100%);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+            width: 280px;
+        }
+
+        /* Відкритий сайдбар */
+        .app-sidebar.open {
+            transform: translateX(0);
+        }
+
+        /* На мобільних завжди показуємо повну версію (не collapsed) */
+        .app-sidebar.collapsed {
+            width: 280px;
+        }
+
+        /* Показуємо всі елементи на мобільних */
+        .app-sidebar .nav-section-title,
+        .app-sidebar .nav-label,
+        .app-sidebar .logo-text {
+            display: block !important;
+        }
+
+        .app-sidebar .nav-link {
+            justify-content: flex-start !important;
+            padding: 0.75rem 1rem !important;
+        }
+
+        .app-sidebar .nav-footer {
+            padding: 1rem 1.5rem !important;
+        }
+
+        /* Додаємо відступ зверху під бургер меню */
+        .content-wrapper {
+            padding-top: 4rem;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .app-sidebar {
+            width: 85vw;
+            max-width: 320px;
+        }
+
+        .app-sidebar.collapsed {
+            width: 85vw;
+            max-width: 320px;
+        }
+
+        .burger-button {
+            width: 44px;
+            height: 44px;
+            padding: 10px;
+        }
+
+        .burger-line {
+            width: 20px;
+        }
+    }
+
+    /* Планшети в landscape і десктопи */
+    @@media (min-width: 769px) and (orientation: landscape), (min-width: 1025px) {
+        .burger-button {
+            display: none;
+        }
+
+        .close-button {
+            display: none;
+        }
+    }
+</style>

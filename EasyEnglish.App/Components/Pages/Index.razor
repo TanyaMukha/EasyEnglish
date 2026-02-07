@@ -1,0 +1,783 @@
+@page "/"
+@using System.Dynamic
+@using MukhaLab.SelectQueryParameters.Models
+@using MukhaLab.Database
+@using EasyEnglish.App.Services
+@using EasyEnglish.App.Models
+@using System.Collections.Generic
+@using System.Linq
+@using System.Globalization
+@using Microsoft.AspNetCore.Components.Web
+@using EasyEnglish.App.Components.Shared
+@inject NavigationManager NavigationManager
+@inject ProgressService ProgressService
+@inject StreakService StreakService
+@inject DailyWordsService DailyWordsService
+@inject SettingsService SettingsService
+
+<div class="home-page">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="hero-content">
+            <div class="greeting-section">
+                <h1 class="hero-title">
+                    <span class="wave">👋</span>
+                    Вітаємо!
+                </h1>
+                <p class="hero-subtitle">Продовжуйте ваш шлях до вільного володіння англійською</p>
+            </div>
+
+            <div class="stats-grid">
+                <!-- Streak Card -->
+                <div class="stat-card streak-card">
+                    <div class="stat-icon">
+                        <i class="bi bi-fire"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="d-flex justify-content-center align-items-end gap-2">
+                            <div class="stat-value">@streakInfo.CurrentStreak</div>
+                            <div class="stat-label">Днів підряд</div>
+                        </div>
+                        @if (streakInfo.HighestStreak > 0)
+                        {
+                            <div class="stat-badge">
+                                <i class="bi bi-trophy"></i>
+                                Рекорд: @streakInfo.HighestStreak
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Progress Card -->
+                <div class="stat-card progress-card">
+                    <div class="stat-icon">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">@progressStats.TotalProgress%</div>
+                        <div class="stat-label">Прогрес сьогодні</div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" style="width: @progressStats.TotalProgress%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Words Card -->
+                <div class="stat-card words-card">
+                    <div class="stat-icon">
+                        <i class="bi bi-card-text"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">@todayWords.Count</div>
+                        <div class="stat-label">Слів на сьогодні</div>
+                        @if (progressStats.TotalProgress == 100)
+                        {
+                            <div class="stat-badge success">
+                                <i class="bi bi-check-circle"></i>
+                                Завершено!
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Learning Set -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-book"></i>
+                Поточний набір
+            </h2>
+            <button class="btn-change" @onclick="NavigateToSelectUnit">
+                <i class="bi bi-shuffle"></i>
+                Змінити
+            </button>
+        </div>
+
+        @if (currentUnit != null)
+        {
+            <div class="learning-set-card">
+                <div class="set-info">
+                    <h3 class="set-title">@currentUnit.Title</h3>
+                    <div class="set-meta">
+                        <span class="meta-item">
+                            <i class="bi bi-card-text"></i>
+                            @todayWords.Count слів
+                        </span>
+                    </div>
+                </div>
+                <button class="btn-start" @onclick="StartLearning">
+                    <i class="bi bi-play-fill"></i>
+                    Почати навчання
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="bi bi-inbox"></i>
+                </div>
+                <p class="empty-message">Набір не обрано</p>
+                <button class="btn-primary" @onclick="NavigateToSelectUnit">
+                    Обрати набір слів
+                </button>
+            </div>
+        }
+    </div>
+
+    <!-- Today's Words -->
+    @if (todayWords.Any())
+    {
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="bi bi-calendar-check"></i>
+                    Слова на сьогодні
+                </h2>
+                <span class="word-count-badge">@todayWords.Count / @(todayWords.Count)</span>
+            </div>
+
+            <div class="words-grid">
+                @foreach (var word in todayWords)
+                {
+                    <WordCard word="@word" />
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Statistics -->
+    @if (correctAnswers > 0 || incorrectAnswers > 0)
+    {
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="bi bi-bar-chart"></i>
+                    Статистика відповідей
+                </h2>
+            </div>
+
+            <div class="stats-cards-grid">
+                <div class="stats-card">
+                    <div class="stats-card-header">
+                        <i class="bi bi-check-circle"></i>
+                        Правильні відповіді
+                    </div>
+                    <div class="stats-card-value success">@correctAnswers</div>
+                </div>
+
+                <div class="stats-card">
+                    <div class="stats-card-header">
+                        <i class="bi bi-x-circle"></i>
+                        Неправильні відповіді
+                    </div>
+                    <div class="stats-card-value error">@incorrectAnswers</div>
+                </div>
+
+                <div class="stats-card">
+                    <div class="stats-card-header">
+                        <i class="bi bi-percent"></i>
+                        Успішність
+                    </div>
+                    <div class="stats-card-value">@successPercentage%</div>
+                    <div class="success-bar">
+                        <div class="success-bar-fill" style="width: @successPercentage%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Quick Actions -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-lightning"></i>
+                Швидкі дії
+            </h2>
+        </div>
+
+        <div class="quick-actions-grid">
+            <a href="/courses" class="action-card">
+                <div class="action-icon">
+                    <i class="bi bi-journals"></i>
+                </div>
+                <h3 class="action-title">Бібліотека</h3>
+                <p class="action-description">Перегляньте всі словники та списки слів</p>
+            </a>
+
+            <a href="/learning-words" class="action-card">
+                <div class="action-icon">
+                    <i class="bi bi-lightbulb"></i>
+                </div>
+                <h3 class="action-title">Вивчення</h3>
+                <p class="action-description">Розпочніть інтерактивне навчання</p>
+            </a>
+
+            <a href="/irregular-forms" class="action-card">
+                <div class="action-icon">
+                    <i class="bi bi-arrow-repeat"></i>
+                </div>
+                <h3 class="action-title">Irregular Forms</h3>
+                <p class="action-description">Практикуйте неправильні дієслова</p>
+            </a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<WordModel> todayWords = new();
+    private UnitModel? currentUnit;
+    private ProgressStats progressStats = new ProgressStats { DailyProgress = new DailyProgress(), TotalProgress = 0 };
+    private StreakInfo streakInfo = new StreakInfo { CurrentStreak = 0, HighestStreak = 0 };
+    private bool isLoading = false;
+    private string? errorMessage;
+
+    private int correctAnswers => progressStats.DailyProgress.CompletedTests.Values.Sum();
+    private int incorrectAnswers => progressStats.DailyProgress.IncorrectTests.Values.Sum();
+    private double successPercentage => (correctAnswers + incorrectAnswers) > 0
+        ? Math.Round((correctAnswers / (double)(correctAnswers + incorrectAnswers)) * 100, 2)
+        : 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadHomeData();
+    }
+
+    private async Task LoadHomeData()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+
+            var settings = await SettingsService.GetSettingsAsync();
+            var wordsTask = DailyWordsService.GetWordsForToday();
+            var progressTask = ProgressService.GetProgressStats(settings ?? new DailyGoals { Goals = new Dictionary<string, DailyGoal>() });
+            var streakTask = StreakService.CheckAndUpdateStreak();
+
+            await Task.WhenAll(wordsTask, progressTask, streakTask);
+
+            todayWords = wordsTask.Result.Words;
+            currentUnit = wordsTask.Result.Unit;
+            progressStats = progressTask.Result;
+            streakInfo = streakTask.Result;
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading home data: {ex.Message}";
+            Console.WriteLine(errorMessage);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void NavigateToSelectUnit()
+    {
+        NavigationManager.NavigateTo("/select-unit");
+    }
+
+    private void StartLearning()
+    {
+        NavigationManager.NavigateTo("/learning-words");
+    }
+
+    private void NavigateToWord(int wordId)
+    {
+        if (currentUnit != null)
+        {
+            NavigationManager.NavigateTo($"/courses/{currentUnit.CourseId}/units/{currentUnit.Id}/words/{wordId}");
+        }
+    }
+}
+
+<style>
+    .home-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    /* Hero Section */
+    .hero-section {
+        margin-bottom: 3rem;
+    }
+
+    .hero-content {
+        text-align: center;
+    }
+
+    .greeting-section {
+        margin-bottom: 2rem;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .wave {
+        display: inline-block;
+        animation: wave 2s infinite;
+        transform-origin: 70% 70%;
+    }
+
+    @@keyframes wave {
+        0%, 100% { transform: rotate(0deg); }
+        10%, 30% { transform: rotate(14deg); }
+        20% { transform: rotate(-8deg); }
+        40% { transform: rotate(-4deg); }
+        50% { transform: rotate(10deg); }
+    }
+
+    .hero-subtitle {
+        font-size: 1.1rem;
+        color: #666;
+        margin: 0;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 16px;
+        padding: 1.5rem;
+        display: flex;
+        gap: 1rem;
+        transition: all 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        flex-shrink: 0;
+    }
+
+    .streak-card .stat-icon {
+        background: linear-gradient(135deg, #FF9800, #F57C00);
+        color: white;
+    }
+
+    .progress-card .stat-icon {
+        background: linear-gradient(135deg, #A3BFFA, #7B9FE8);
+        color: white;
+    }
+
+    .words-card .stat-icon {
+        background: linear-gradient(135deg, #B5EAD7, #8DD3BB);
+        color: white;
+    }
+
+    .stat-content {
+        flex: 1;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        line-height: 1;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.625rem;
+        background: #FFF3E0;
+        color: #F57C00;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+    }
+
+    .stat-badge.success {
+        background: #E8F5E9;
+        color: #388E3C;
+    }
+
+    .progress-bar-container {
+        height: 6px;
+        background: #f0f0f0;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #A3BFFA, #7B9FE8);
+        border-radius: 3px;
+        transition: width 0.3s;
+    }
+
+    /* Section */
+    .section {
+        margin-bottom: 3rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-title i {
+        color: #A3BFFA;
+    }
+
+    .btn-change {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 0.625rem 1.25rem;
+        color: #666;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-change:hover {
+        background: white;
+        border-color: #A3BFFA;
+        color: #A3BFFA;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.2);
+    }
+
+    /* Learning Set Card */
+    .learning-set-card {
+        background: linear-gradient(135deg, #A3BFFA 0%, #B5EAD7 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+        color: white;
+    }
+
+    .set-info {
+        flex: 1;
+    }
+
+    .set-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0 0 1rem 0;
+    }
+
+    .set-meta {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        opacity: 0.95;
+    }
+
+    .btn-start {
+        background: white;
+        color: #7B9FE8;
+        border: none;
+        border-radius: 12px;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-start:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Words Grid */
+    .words-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.25rem;
+    }
+
+    .word-count-badge {
+        background: #E3F2FD;
+        color: #1976D2;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    /* Statistics Cards */
+    .stats-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .stats-card {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .stats-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 1rem;
+    }
+
+    .stats-card-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+    }
+
+    .stats-card-value.success {
+        color: #4CAF50;
+    }
+
+    .stats-card-value.error {
+        color: #F44336;
+    }
+
+    .success-bar {
+        height: 8px;
+        background: #f0f0f0;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+
+    .success-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4CAF50, #66BB6A);
+        border-radius: 4px;
+        transition: width 0.3s;
+    }
+
+    /* Quick Actions */
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .action-card {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-decoration: none;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .action-card:hover {
+        border-color: #A3BFFA;
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(163, 191, 250, 0.15);
+    }
+
+    .action-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+    }
+
+    .action-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+
+    .action-description {
+        font-size: 0.9rem;
+        color: #666;
+        margin: 0;
+    }
+
+    /* Empty State */
+    .empty-state {
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 3rem 2rem;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        border: 2px solid #e0e0e0;
+    }
+
+    .empty-icon i {
+        font-size: 2.5rem;
+        color: #999;
+    }
+
+    .empty-message {
+        font-size: 1.1rem;
+        color: #666;
+        margin: 0 0 1.5rem 0;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.875rem 2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(163, 191, 250, 0.4);
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .home-page {
+            padding: 1.5rem 1rem;
+        }
+
+        .hero-title {
+            font-size: 2rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .stat-card {
+            padding: 1.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+        }
+
+        .learning-set-card {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .set-title {
+            font-size: 1.5rem;
+        }
+
+        .btn-start {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .words-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .quick-actions-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+    }
+</style>

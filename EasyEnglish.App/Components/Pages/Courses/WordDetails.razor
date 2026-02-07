@@ -1,0 +1,409 @@
+@page "/courses/{CourseId:int}/units/{UnitId:int}/words/{WordId:int}"
+
+@using EasyEnglish.App.Components.Shared
+@using EasyEnglish.App.Components.Shared.Breadcrumb
+
+<div class="word-details-page">
+    <div class="header-section">
+        <Breadcrumb Items="breadcrumbs" />
+
+        <div class="title-section">
+            <h1 class="word-title">@Word.Word</h1>
+            <a href="/courses/@CourseId/units/@UnitId/words/@WordId/edit" class="btn-edit" title="Edit">
+                <i class="bi bi-pencil"></i>
+            </a>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Word.Transcription))
+        {
+            <div class="transcription">[ @Word.Transcription ]</div>
+        }
+    </div>
+
+    <div class="content-grid">
+        @if (!string.IsNullOrEmpty(Word.Translation))
+        {
+            <div class="info-card">
+                <div class="card-icon">
+                    <i class="bi bi-translate"></i>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Translation</h3>
+                    <SelectableText>
+                        <p class="card-text">@Word.Translation</p>
+                    </SelectableText>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (Word.Examples != null && Word.Examples.Any())
+    {
+        <div class="examples-section">
+            <h2 class="section-title">
+                <i class="bi bi-card-text"></i> Examples
+            </h2>
+            <div class="examples-list">
+                @foreach (var example in Word.Examples)
+                {
+                    <div class="example-card">
+                        <SelectableText>
+                            <div class="example-sentence">
+                                <i class="bi bi-quote"></i>
+                                @example.Sentence
+                            </div>
+                        </SelectableText>
+                        @if (!string.IsNullOrEmpty(example.Translation))
+                        {
+                            <SelectableText>
+                                <div class="example-translation">
+                                    <i class="bi bi-arrow-return-right"></i>
+                                    @example.Translation
+                                </div>
+                            </SelectableText>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="stats-section">
+        <h2 class="section-title">
+            <i class="bi bi-bar-chart"></i> Learning Progress
+        </h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-star"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Rating</div>
+                    <div class="stat-value">@Word.Rate / 5</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-arrow-repeat"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Reviews</div>
+                    <div class="stat-value">@Word.ReviewCount</div>
+                </div>
+            </div>
+
+            @if (Word.LastReviewDate.HasValue)
+            {
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Last Review</div>
+                        <div class="stat-value">@Word.LastReviewDate.Value.ToString("dd MMM yyyy")</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+    [Parameter] public int UnitId { get; set; }
+    [Parameter] public int WordId { get; set; }
+    
+    public WordModel Word { get; set; } = new();
+
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        Word = await WordService.GetByIdAsync(WordId) ?? new WordModel();
+        BrowserConsole.LogInfoAsync($"✅ Word : {JsonSerializer.Serialize(Word)}");
+
+        breadcrumbs = BreadcrumbBuilder.Create()
+            .WithLink("Courses", "/courses")
+            .WithLink(Word.Unit.Course.Title, $"/courses/{CourseId}")
+            .WithLink(Word.Unit.Title, $"/courses/{CourseId}/units/{UnitId}")
+            .WithActive(Word.Word)
+            .Build();
+    }
+}
+
+<style>
+    .word-details-page {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .header-section {
+        margin-bottom: 2rem;
+    }
+
+    .title-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .word-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+        margin: 0;
+    }
+
+    .btn-edit {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 0.5rem 0.75rem;
+        color: #666;
+        text-decoration: none;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-edit:hover {
+        background: white;
+        border-color: #A3BFFA;
+        color: #A3BFFA;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .transcription {
+        font-size: 1.25rem;
+        color: #666;
+        font-style: italic;
+        margin-bottom: 1rem;
+    }
+
+    .meta-tags {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .tag {
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .tag-speech {
+        background: #E3F2FD;
+        color: #1976D2;
+    }
+
+    .tag-level {
+        background: #F3E5F5;
+        color: #7B1FA2;
+    }
+
+    .tag-language {
+        background: #E8F5E9;
+        color: #388E3C;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .info-card {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        gap: 1rem;
+        transition: all 0.2s;
+    }
+
+    .info-card:hover {
+        border-color: #A3BFFA;
+        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.15);
+    }
+
+    .info-card.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .card-icon {
+        width: 40px;
+        height: 40px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #A3BFFA;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .card-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .card-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .card-text {
+        font-size: 1rem;
+        color: #333;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0 0 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-title i {
+        color: #A3BFFA;
+    }
+
+    .examples-section {
+        margin-bottom: 2rem;
+    }
+
+    .examples-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .example-card {
+        background: #f8f9fa;
+        border-left: 4px solid #A3BFFA;
+        border-radius: 8px;
+        padding: 1.25rem;
+    }
+
+    .example-sentence {
+        font-size: 1rem;
+        color: #333;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .example-sentence i {
+        color: #A3BFFA;
+        margin-top: 0.25rem;
+        flex-shrink: 0;
+    }
+
+    .example-translation {
+        font-size: 0.95rem;
+        color: #666;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        margin-left: 1.5rem;
+    }
+
+    .example-translation i {
+        color: #999;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+        flex-shrink: 0;
+    }
+
+    .stats-section {
+        margin-top: 2rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .stat-card {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.2s;
+    }
+
+    .stat-card:hover {
+        border-color: #A3BFFA;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.15);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .stat-content {
+        flex: 1;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #333;
+    }
+
+    @@media (max-width: 768px) {
+        .word-title {
+            font-size: 2rem;
+        }
+
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

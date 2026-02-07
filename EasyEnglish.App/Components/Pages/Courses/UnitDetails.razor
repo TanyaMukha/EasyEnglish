@@ -1,0 +1,922 @@
+@page "/courses/{CourseId:int}/units/{UnitId:int}"
+
+@using System.Dynamic
+@using MukhaLab.SelectQueryParameters.Models
+@using System.Collections.Generic
+@using EasyEnglish.App.Components.Shared
+@using Microsoft.Extensions.Logging
+@using MukhaLab.Database
+@using EasyEnglish.App.Models
+@using AutoMapper
+@inject ILogger<Index> Logger
+@inject NavigationManager Navigation
+@inject IMapper mapper
+@using EasyEnglish.App.Components.Shared.Breadcrumb
+
+<div class="unit-page">
+    <div class="header-section">
+        <Breadcrumb Items="breadcrumbs" />
+
+        <div class="title-section">
+            <h1 class="page-title">@Unit.Title</h1>
+            <a href="/courses/@CourseId/units/@UnitId/edit" class="btn-edit" title="Edit">
+                <i class="bi bi-pencil"></i>
+            </a>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Unit.Description))
+        {
+            <p class="page-description">@Unit.Description</p>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(Unit.Content))
+    {
+        <div class="content-section content-html">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="bi bi-file-text"></i>
+                    Матеріал
+                </h2>
+            </div>
+
+            <div class="html-content">
+                @((MarkupString)GetHtmlContent())
+            </div>
+        </div>
+    }
+
+    <div class="content-section">
+        @if (availableTabs.Any())
+        {
+            <div class="tabs-container">
+                <div class="tabs-header">
+                    <div class="tabs-scroll">
+                        @foreach (var tab in availableTabs)
+                        {
+                            <button class="tab-button @(activeTab == tab.Key ? "active" : "")" 
+                                    @onclick="() => SetActiveTab(tab.Key)">
+                                <i class="bi @tab.Icon"></i>
+                                <span class="tab-label">@tab.Label</span>
+                                @if (tab.Count > 0)
+                                {
+                                    <span class="tab-count">@tab.Count</span>
+                                }
+                            </button>
+                        }
+                    </div>
+
+                    @if (GetAvailableTabsToAdd().Any())
+                    {
+                        <div class="add-tab-container">
+                            <button class="add-tab-button" @onclick="ToggleAddTabDropdown">
+                                <i class="bi bi-plus-circle"></i>
+                                <span>Add Section</span>
+                            </button>
+
+                            @if (showAddTabDropdown)
+                            {
+                                <div class="add-tab-dropdown">
+                                    @foreach (var tab in GetAvailableTabsToAdd())
+                                    {
+                                        <button class="dropdown-item" @onclick="() => AddNewTab(tab.Key)">
+                                            <i class="bi @tab.Icon"></i>
+                                            <span>@tab.Label</span>
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="tabs-content">
+                    @if (activeTab == "words")
+                    {
+                        <div class="tab-panel">
+                            @if (isLoading)
+                            {
+                                <div class="loading-container">
+                                    <div class="spinner">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                    <p class="loading-text">Завантаження...</p>
+                                </div>
+                            }
+                            else if (Unit.Words != null && Unit.Words.Any())
+                            {
+                                <div class="items-grid">
+                                    @foreach (var word in Unit.Words)
+                                    {
+                                        <WordCard word="@word" />
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="empty-container">
+                                    <div class="empty-icon">
+                                        <i class="bi bi-inbox"></i>
+                                    </div>
+                                    <p class="empty-message">Немає слів у цьому списку.</p>
+                                    <p class="empty-hint">Додайте перше слово, використовуючи форму нижче</p>
+                                </div>
+                            }
+
+                            <div class="create-section">
+                                <WordShortForm 
+                                    CourseId="CourseId" 
+                                    UnitId="Unit.Id" 
+                                    OnWordsCreated="OnUnitChanged"
+                                />
+                            </div>
+                        </div>
+                    }
+                    else if (activeTab == "irregular-forms")
+                    {
+                        <div class="tab-panel">
+                            @if (isLoading)
+                            {
+                                <div class="loading-container">
+                                    <div class="spinner">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                    <p class="loading-text">Завантаження...</p>
+                                </div>
+                            }
+                            else if (Unit.IrregularForms != null && Unit.IrregularForms.Any())
+                            {
+                                <div class="items-grid">
+                                    @foreach (var irregularForm in Unit.IrregularForms)
+                                    {
+                                        <IrregularFormCard irregularForm="@irregularForm" />
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="empty-container">
+                                    <div class="empty-icon">
+                                        <i class="bi bi-inbox"></i>
+                                    </div>
+                                    <p class="empty-message">Немає неправильних форм у цьому списку.</p>
+                                    <p class="empty-hint">Додайте першу неправильну форму, використовуючи форму нижче</p>
+                                </div>
+                            }
+
+                            <div class="create-section">
+                                <IrregularFormShortForm 
+                                    CourseId="CourseId" 
+                                    UnitId="Unit.Id" 
+                                    OnFormsCreated="OnUnitChanged"
+                                />
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="empty-unit-container">
+                <div class="empty-icon">
+                    <i class="bi bi-inbox"></i>
+                </div>
+                <h3 class="empty-title">У цьому модулі поки немає контенту</h3>
+                <p class="empty-description">Додайте секцію для початку роботи</p>
+                
+                <div class="add-sections-grid">
+                    @foreach (var tab in GetAllPossibleTabs())
+                    {
+                        <button class="add-section-card" @onclick="() => AddNewTab(tab.Key)">
+                            <i class="bi @tab.Icon"></i>
+                            <span>@tab.Label</span>
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+    [Parameter] public int UnitId { get; set; }
+
+    private UnitModel Unit { get; set; } = new();
+    private List<OptionDefinition> AvailableUnits { get; set; } = new();
+    private bool isLoading { get; set; } = false;
+    private string? errorMessage;
+    private string activeTab = "words";
+    private List<string> manuallyAddedTabs = new();
+    private bool showAddTabDropdown = false;
+
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
+
+    private class TabInfo
+    {
+        public string Key { get; set; } = "";
+        public string Label { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public int Count { get; set; }
+    }
+
+    private List<TabInfo> availableTabs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+
+        breadcrumbs = BreadcrumbBuilder.Create()
+            .WithLink("Courses", "/courses")
+            .WithLink(Unit.Course?.Title ?? "Course", $"/courses/{CourseId}")
+            .WithActive(Unit.Title)
+            .Build();
+
+        InitializeTabs();
+    }
+
+    private List<TabInfo> GetAllPossibleTabs()
+    {
+        return new List<TabInfo>
+        {
+            new TabInfo 
+            { 
+                Key = "words", 
+                Label = "Vocabulary", 
+                Icon = "bi-card-text",
+                Count = Unit.Words?.Count ?? 0
+            },
+            new TabInfo 
+            { 
+                Key = "irregular-forms", 
+                Label = "Irregular Forms", 
+                Icon = "bi-layers",
+                Count = Unit.IrregularForms?.Count ?? 0
+            }
+            // Легко додати нові типи тут:
+            // new TabInfo { Key = "phrases", Label = "Phrases", Icon = "bi-chat-quote", Count = Unit.Phrases?.Count ?? 0 },
+            // new TabInfo { Key = "grammar", Label = "Grammar", Icon = "bi-book", Count = Unit.GrammarRules?.Count ?? 0 },
+        };
+    }
+
+    private void InitializeTabs()
+    {
+        var allTabs = GetAllPossibleTabs();
+        
+        // Показуємо таби які мають контент або які користувач додав вручну
+        availableTabs = allTabs.Where(t => t.Count > 0 || manuallyAddedTabs.Contains(t.Key)).ToList();
+
+        // Якщо є таби, встановлюємо перший як активний
+        if (availableTabs.Any() && !availableTabs.Any(t => t.Key == activeTab))
+        {
+            activeTab = availableTabs.First().Key;
+        }
+    }
+
+    private List<TabInfo> GetAvailableTabsToAdd()
+    {
+        var allTabs = GetAllPossibleTabs();
+        var currentTabKeys = availableTabs.Select(t => t.Key).ToList();
+        return allTabs.Where(t => !currentTabKeys.Contains(t.Key)).ToList();
+    }
+
+    private void AddNewTab(string tabKey)
+    {
+        if (!manuallyAddedTabs.Contains(tabKey))
+        {
+            manuallyAddedTabs.Add(tabKey);
+        }
+        InitializeTabs();
+        activeTab = tabKey;
+        showAddTabDropdown = false;
+        StateHasChanged();
+    }
+
+    private void ToggleAddTabDropdown()
+    {
+        showAddTabDropdown = !showAddTabDropdown;
+        StateHasChanged();
+    }
+
+    private void SetActiveTab(string tabKey)
+    {
+        activeTab = tabKey;
+        StateHasChanged();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            isLoading = true;
+            Unit = await UnitService.GetByIdAsync(UnitId) ?? new UnitModel();
+            AvailableUnits = (await CourseService.GetUnitsAsync(Unit.CourseId))
+                .Select(wl => new OptionDefinition { Id = wl.Id, Title = wl.Title })
+                .ToList();
+            
+            InitializeTabs();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading unit: {ex.Message}";
+            BrowserConsole.LogErrorAsync("Failed to load unit", ex);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnUnitChanged()
+    {
+        await LoadData();
+        
+        // Видаляємо з вручну доданих табів ті, які тепер мають контент
+        var allTabs = GetAllPossibleTabs();
+        manuallyAddedTabs = manuallyAddedTabs
+            .Where(key => !allTabs.Any(t => t.Key == key && t.Count > 0))
+            .ToList();
+        
+        InitializeTabs();
+    }
+
+    private MarkupString GetHtmlContent()
+    {
+        if (string.IsNullOrEmpty(Unit.Content))
+            return new MarkupString("");
+
+        var decoded = System.Net.WebUtility.HtmlDecode(Unit.Content);
+        return new MarkupString(decoded);
+    }
+}
+
+<style>
+    .unit-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .header-section {
+        margin-bottom: 2rem;
+    }
+
+    .title-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+        margin: 0;
+    }
+
+    .btn-edit {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 0.5rem 0.75rem;
+        color: #666;
+        text-decoration: none;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-edit:hover {
+        background: white;
+        border-color: #5B8BD6;
+        color: #5B8BD6;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(91, 139, 214, 0.2);
+    }
+
+    .page-description {
+        font-size: 1.1rem;
+        color: #666;
+        margin: 0 0 1rem 0;
+        line-height: 1.6;
+    }
+
+    .content-section {
+        margin-bottom: 2rem;
+    }
+
+    .content-section.content-html {
+        margin-bottom: 3rem;
+    }
+
+    .section-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-title i {
+        color: #5B8BD6;
+    }
+
+    /* HTML Content */
+    .html-content {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 2rem;
+        line-height: 1.8;
+        color: #333;
+        font-size: 1rem;
+    }
+
+    .html-content h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 1.5rem 0 1rem 0;
+        color: #1a1a1a;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 0.5rem;
+    }
+
+    .html-content h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 1.25rem 0 0.75rem 0;
+        color: #1a1a1a;
+    }
+
+    .html-content h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 1rem 0 0.5rem 0;
+        color: #333;
+    }
+
+    .html-content p {
+        margin: 0.75rem 0;
+        line-height: 1.8;
+    }
+
+    .html-content strong {
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+
+    .html-content em {
+        font-style: italic;
+        color: #555;
+    }
+
+    .html-content u {
+        text-decoration: underline;
+    }
+
+    .html-content a {
+        color: #5B8BD6;
+        text-decoration: none;
+        border-bottom: 1px solid #5B8BD6;
+        transition: all 0.2s;
+    }
+
+    .html-content a:hover {
+        color: #4A6FA5;
+        border-bottom-color: #4A6FA5;
+    }
+
+    .html-content ul,
+    .html-content ol {
+        margin: 1rem 0;
+        padding-left: 2rem;
+    }
+
+    .html-content li {
+        margin: 0.5rem 0;
+        line-height: 1.6;
+    }
+
+    .html-content ul {
+        list-style-type: disc;
+    }
+
+    .html-content ol {
+        list-style-type: decimal;
+    }
+
+    .html-content code {
+        background: #f5f5f5;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 0.9em;
+        color: #c7254e;
+        border: 1px solid #e8e8e8;
+    }
+
+    .html-content blockquote {
+        margin: 1rem 0;
+        padding: 1rem 1.5rem;
+        background: #f8f9fa;
+        border-left: 4px solid #5B8BD6;
+        color: #666;
+    }
+
+    /* Tabs */
+    .tabs-container {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .tabs-header {
+        display: flex;
+        border-bottom: 2px solid #f0f0f0;
+        background: #f8f9fa;
+        position: relative;
+    }
+
+    .tabs-scroll {
+        display: flex;
+        overflow-x: auto;
+        flex: 1;
+    }
+
+    .tabs-scroll::-webkit-scrollbar {
+        height: 3px;
+    }
+
+    .tabs-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .tabs-scroll::-webkit-scrollbar-thumb {
+        background: #d0d0d0;
+        border-radius: 3px;
+    }
+
+    .tabs-scroll::-webkit-scrollbar-thumb:hover {
+        background: #b0b0b0;
+    }
+
+    .tab-button {
+        background: transparent;
+        border: none;
+        padding: 1rem 1.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #555;
+        font-weight: 600;
+        font-size: 0.95rem;
+        border-bottom: 3px solid transparent;
+        white-space: nowrap;
+    }
+
+    .tab-button:hover {
+        background: rgba(163, 191, 250, 0.1);
+        color: #333;
+    }
+
+    .tab-button.active {
+        background: white;
+        color: #5B8BD6;
+        border-bottom-color: #5B8BD6;
+    }
+
+    .tab-button i {
+        font-size: 1.1rem;
+    }
+
+    .tab-label {
+        font-weight: 600;
+    }
+
+    .tab-count {
+        background: #d0d0d0;
+        color: #555;
+        padding: 0.125rem 0.5rem;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        min-width: 1.5rem;
+        text-align: center;
+    }
+
+    .tab-button.active .tab-count {
+        background: #5B8BD6;
+        color: white;
+    }
+
+    .add-tab-container {
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .add-tab-button {
+        background: transparent;
+        border: none;
+        padding: 1rem 1.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #5B8BD6;
+        font-weight: 600;
+        font-size: 0.95rem;
+        white-space: nowrap;
+    }
+
+    .add-tab-button:hover {
+        background: rgba(91, 139, 214, 0.1);
+        color: #4A6FA5;
+    }
+
+    .add-tab-button i {
+        font-size: 1.1rem;
+    }
+
+    .add-tab-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        min-width: 200px;
+        z-index: 100;
+        margin-top: 0.5rem;
+    }
+
+    .dropdown-item {
+        background: transparent;
+        border: none;
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #333;
+        font-weight: 500;
+        font-size: 0.95rem;
+        width: 100%;
+        text-align: left;
+    }
+
+    .dropdown-item:hover {
+        background: #f0f4ff;
+        color: #1a1a1a;
+    }
+
+    .dropdown-item:first-child {
+        border-radius: 8px 8px 0 0;
+    }
+
+    .dropdown-item:last-child {
+        border-radius: 0 0 8px 8px;
+    }
+
+    .dropdown-item i {
+        color: #5B8BD6;
+        font-size: 1.1rem;
+    }
+
+    /* Empty Unit State */
+    .empty-unit-container {
+        background: white;
+        border: 2px dashed #e0e0e0;
+        border-radius: 12px;
+        padding: 3rem 2rem;
+        text-align: center;
+    }
+
+    .empty-unit-container .empty-icon {
+        width: 80px;
+        height: 80px;
+        background: #f8f9fa;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #e0e0e0;
+        margin: 0 auto 1.5rem;
+    }
+
+    .empty-unit-container .empty-icon i {
+        font-size: 2.5rem;
+        color: #999;
+    }
+
+    .empty-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .empty-description {
+        font-size: 1rem;
+        color: #666;
+        margin: 0 0 2rem 0;
+    }
+
+    .add-sections-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .add-section-card {
+        background: white;
+        border: 2px dashed #d0d0d0;
+        border-radius: 12px;
+        padding: 2rem 1.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        color: #555;
+        font-weight: 600;
+    }
+
+    .add-section-card:hover {
+        border-color: #5B8BD6;
+        background: rgba(91, 139, 214, 0.05);
+        color: #5B8BD6;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(91, 139, 214, 0.15);
+    }
+
+    .add-section-card i {
+        font-size: 2rem;
+        color: inherit;
+    }
+
+    .tabs-content {
+        padding: 2rem;
+    }
+
+    .tab-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    /* Items Grid */
+    .items-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+
+    /* Loading State */
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 2rem;
+        gap: 1rem;
+    }
+
+    .spinner {
+        color: #5B8BD6;
+    }
+
+    .loading-text {
+        color: #666;
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    /* Empty State */
+    .empty-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 2rem;
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        gap: 0.75rem;
+    }
+
+    .empty-icon {
+        width: 64px;
+        height: 64px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #e0e0e0;
+    }
+
+    .empty-icon i {
+        font-size: 2rem;
+        color: #999;
+    }
+
+    .empty-message {
+        color: #666;
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin: 0;
+        text-align: center;
+    }
+
+    .empty-hint {
+        color: #999;
+        font-size: 0.9rem;
+        margin: 0;
+        text-align: center;
+    }
+
+    .create-section {
+        margin-top: 2rem;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .unit-page {
+            padding: 1.5rem 1rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+        }
+
+        .page-description {
+            font-size: 1rem;
+        }
+
+        .html-content {
+            padding: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .html-content h1 {
+            font-size: 1.75rem;
+        }
+
+        .html-content h2 {
+            font-size: 1.35rem;
+        }
+
+        .html-content h3 {
+            font-size: 1.15rem;
+        }
+
+        .tabs-content {
+            padding: 1.5rem;
+        }
+
+        .tab-button {
+            padding: 0.875rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .items-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .add-sections-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .empty-unit-container {
+            padding: 2rem 1.5rem;
+        }
+
+        .add-tab-button span {
+            display: none;
+        }
+    }
+</style>

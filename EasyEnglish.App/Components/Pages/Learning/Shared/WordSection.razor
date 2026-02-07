@@ -1,0 +1,50 @@
+@* WordSection.razor - Компонент для відображення слова та транскрипції *@
+
+@if (!Hidden)
+{
+    <div class="word-section">
+        <h2 class="word-title">@Word</h2>
+        @if (!string.IsNullOrEmpty(Transcription))
+        {
+            <p class="transcription">[ @Transcription ]</p>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public string Word { get; set; } = "";
+    [Parameter] public string? Transcription { get; set; }
+    [Parameter] public bool Hidden { get; set; } = false;
+}
+
+<style>
+    .word-section {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .word-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        margin: 0 0 0.75rem 0;
+    }
+
+    .transcription {
+        font-size: 1.25rem;
+        color: #666;
+        font-style: italic;
+        margin: 0;
+    }
+
+    @@media (max-width: 768px) {
+        .word-title {
+            font-size: 1.5rem;
+        }
+
+        .transcription {
+            font-size: 1rem;
+        }
+    }
+</style>

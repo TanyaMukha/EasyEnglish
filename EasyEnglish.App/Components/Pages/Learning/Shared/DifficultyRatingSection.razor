@@ -1,0 +1,239 @@
+@* DifficultyRatingSection.razor - Кнопки оцінки складності (5 рівнів) *@
+
+<div class="difficulty-section">
+    <p class="difficulty-label">Оцініть складність цього слова:</p>
+    <div class="difficulty-buttons">
+        <button class="btn-difficulty level-1"
+                @onclick="() => OnRate.InvokeAsync(1.0)"
+                disabled="@IsRating"
+                title="Дуже легко">
+            @if (IsRating && LastRatedValue == 1.0)
+            {
+                <span class="spinner-border spinner-border-sm"></span>
+            }
+            else
+            {
+                <span class="level-number">1</span>
+            }
+        </button>
+
+        <button class="btn-difficulty level-2"
+                @onclick="() => OnRate.InvokeAsync(2.0)"
+                disabled="@IsRating"
+                title="Легко">
+            @if (IsRating && LastRatedValue == 2.0)
+            {
+                <span class="spinner-border spinner-border-sm"></span>
+            }
+            else
+            {
+                <span class="level-number">2</span>
+            }
+        </button>
+
+        <button class="btn-difficulty level-3"
+                @onclick="() => OnRate.InvokeAsync(3.0)"
+                disabled="@IsRating"
+                title="Середньо">
+            @if (IsRating && LastRatedValue == 3.0)
+            {
+                <span class="spinner-border spinner-border-sm"></span>
+            }
+            else
+            {
+                <span class="level-number">3</span>
+            }
+        </button>
+
+        <button class="btn-difficulty level-4"
+                @onclick="() => OnRate.InvokeAsync(4.0)"
+                disabled="@IsRating"
+                title="Складно">
+            @if (IsRating && LastRatedValue == 4.0)
+            {
+                <span class="spinner-border spinner-border-sm"></span>
+            }
+            else
+            {
+                <span class="level-number">4</span>
+            }
+        </button>
+
+        <button class="btn-difficulty level-5"
+                @onclick="() => OnRate.InvokeAsync(5.0)"
+                disabled="@IsRating"
+                title="Дуже складно">
+            @if (IsRating && LastRatedValue == 5.0)
+            {
+                <span class="spinner-border spinner-border-sm"></span>
+            }
+            else
+            {
+                <span class="level-number">5</span>
+            }
+        </button>
+    </div>
+    <div class="difficulty-legend">
+        <span class="legend-item">Дуже легко</span>
+        <span class="legend-separator">→</span>
+        <span class="legend-item">Дуже складно</span>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<double> OnRate { get; set; }
+    [Parameter] public bool IsRating { get; set; } = false;
+    [Parameter] public double LastRatedValue { get; set; } = 0;
+}
+
+<style>
+    .difficulty-section {
+        width: 100%;
+    }
+
+    .difficulty-label {
+        font-size: 1rem;
+        color: #666;
+        margin: 0 0 1rem 0;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    .difficulty-buttons {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+        margin-bottom: 0.75rem;
+    }
+
+    .btn-difficulty {
+        flex: 1;
+        max-width: 80px;
+        height: 80px;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-difficulty::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .btn-difficulty:hover:not(:disabled)::before {
+        opacity: 1;
+    }
+
+    .btn-difficulty:hover:not(:disabled) {
+        transform: translateY(-4px) scale(1.05);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-difficulty:active:not(:disabled) {
+        transform: translateY(-2px) scale(1.02);
+    }
+
+    /* Градієнт від зеленого до червоного */
+    .btn-difficulty.level-1 {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+    }
+
+    .btn-difficulty.level-2 {
+        background: linear-gradient(135deg, #84cc16, #65a30d);
+    }
+
+    .btn-difficulty.level-3 {
+        background: linear-gradient(135deg, #facc15, #eab308);
+    }
+
+    .btn-difficulty.level-4 {
+        background: linear-gradient(135deg, #f97316, #ea580c);
+    }
+
+    .btn-difficulty.level-5 {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+
+    .btn-difficulty:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    .level-number {
+        font-size: 2rem;
+        font-weight: 700;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .difficulty-legend {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #666;
+    }
+
+    .legend-item {
+        font-weight: 500;
+    }
+
+    .legend-separator {
+        color: #999;
+    }
+
+    @@media (max-width: 768px) {
+        .difficulty-buttons {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .btn-difficulty {
+            max-width: none;
+            flex-basis: calc(20% - 0.4rem);
+            height: 60px;
+        }
+
+        .level-number {
+            font-size: 1.5rem;
+        }
+
+        .difficulty-legend {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .legend-separator {
+            display: none;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .btn-difficulty {
+            flex-basis: calc(20% - 0.4rem);
+            height: 50px;
+        }
+
+        .level-number {
+            font-size: 1.25rem;
+        }
+    }
+</style>

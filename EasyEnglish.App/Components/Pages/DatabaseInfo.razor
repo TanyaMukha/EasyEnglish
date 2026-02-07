@@ -1,0 +1,103 @@
+﻿@page "/database-info"
+
+<div class="d-flex align-content-between">
+    <h1>Table statistics</h1>
+    <button class="btn btn-danger" @onclick="ClearAllData">
+        Clear All Data
+    </button>
+</div>
+       
+<div class="">
+    @if (stats != null)
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Table</th>
+                    <th>Record count</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var stat in stats)
+                {
+                    <tr>
+                        <td>@stat.Key</td>
+                        <td><span class="badge bg-primary">@stat.Value</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>Loading...</p>
+    }
+</div>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-info mt-3">
+        @message
+    </div>
+}
+
+@code {
+    private Dictionary<string, int>? stats;
+    private List<CourseEntity>? courses;
+    private string message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            // Table statistics
+            stats = new Dictionary<string, int>
+                {
+                    ["Courses"] = await CourseService.CountAsync(),
+                    ["Units"] = await UnitService.CountAsync(),
+                    ["Words"] = await WordService.CountAsync(),
+                    ["Examples"] = await ExampleService.CountAsync(),
+                    ["Study cards"] = 0,
+                    ["Test cards"] = 0
+                };
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            message = $"Loading error: {ex.Message}";
+        }
+    }
+
+    private async Task ClearAllData()
+    {
+        try
+        {
+            // Delete in the correct order (dependencies first)
+            DbContext.Examples.RemoveRange(DbContext.Examples);
+            DbContext.IrregularForms.RemoveRange(DbContext.IrregularForms);
+
+            DbContext.Words.RemoveRange(DbContext.Words);
+            DbContext.TestCards.RemoveRange(DbContext.TestCards);
+            DbContext.StudyCards.RemoveRange(DbContext.StudyCards);
+
+            DbContext.Units.RemoveRange(DbContext.Units);
+
+            DbContext.Courses.RemoveRange(DbContext.Courses);
+            
+            await DbContext.SaveChangesAsync();
+
+            message = "🗑️ All data deleted!";
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            message = $"❌ Error: {ex.Message}";
+        }
+    }
+}

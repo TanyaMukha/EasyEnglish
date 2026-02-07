@@ -1,0 +1,456 @@
+@typeparam T
+@using System.Dynamic
+@using MukhaLab.SelectQueryParameters.Models
+@using System.Collections.Generic
+@using MukhaLab.Database
+
+@if (IsLoading)
+{
+        <div class="loading-container">
+            <div class="spinner">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            <p class="loading-text">Завантаження...</p>
+        </div>
+}
+else if (Items != null && Items.Any())
+{
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                    @if (ShowIndexColumn)
+                    {
+                                <th class="index-column">#</th>
+                    }
+                    @foreach (var column in Columns)
+                    {
+                                <th class="@(column.Width != null ? $"w-{column.Width}" : "")">
+                            @column.Header
+                                </th>
+                    }
+                        <th class="actions-column">Дії</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @{
+                    var index = 1;
+                }
+                @foreach (var item in Items)
+                {
+                            <tr class="table-row">
+                        @if (ShowIndexColumn)
+                        {
+                                        <td class="index-cell">@index</td>
+                        }
+                        @foreach (var column in Columns)
+                        {
+                                        <td class="@(column.IsBold ? "bold-cell" : "")">
+                                @{
+                                    var value = column.ValueSelector(item);
+                                }
+                                @(value ?? "—")
+                                        </td>
+                        }
+                                <td class="actions-cell">
+                            @{
+                                var idValue = IdSelector?.Invoke(item);
+                            }
+                                    <div class="action-buttons">
+                                        <a href="@($"{BaseUrl}/{idValue ?? ""}")" class="action-btn action-btn-view" title="Переглянути">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="@($"{BaseUrl}/{idValue ?? ""}/edit")" class="action-btn action-btn-edit" title="Редагувати">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                    index++;
+                }
+                </tbody>
+            </table>
+        </div>
+
+    @if (PaginationInfo != null && PaginationInfo.TotalPages > 1)
+    {
+                <nav class="pagination-nav" aria-label="Page navigation">
+                    <ul class="pagination">
+                        <li class="page-item @(CurrentPage <= 1 ? "disabled" : "")">
+                            <button class="page-link" @onclick="() => ChangePage(CurrentPage.HasValue ? CurrentPage.Value - 1 : 1)">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                        </li>
+                @for (int i = 1; i <= PaginationInfo.TotalPages; i++)
+                {
+                    var pageNum = i;
+                                <li class="page-item @(CurrentPage == pageNum ? "active" : "")">
+                                    <button class="page-link" @onclick="() => ChangePage(pageNum)">@pageNum</button>
+                                </li>
+                }
+                        <li class="page-item @(CurrentPage >= PaginationInfo.TotalPages ? "disabled" : "")">
+                            <button class="page-link" @onclick="() => ChangePage(CurrentPage.HasValue ? CurrentPage.Value + 1 : 2)">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
+    }
+}
+else if (!string.IsNullOrEmpty(ErrorMessage))
+{
+        <div class="error-container">
+            <div class="error-icon">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <h3 class="error-title">Помилка завантаження</h3>
+            <p class="error-message">@ErrorMessage</p>
+        </div>
+}
+else
+{
+        <div class="empty-container">
+            <div class="empty-icon">
+                <i class="bi bi-inbox"></i>
+            </div>
+            <p class="empty-message">@EmptyMessage</p>
+        </div>
+}
+
+@code {
+    [Parameter] public IEnumerable<T>? Items { get; set; }
+    [Parameter] public PaginationInfo? PaginationInfo { get; set; }
+    [Parameter] public QueryParameters Parameters { get; set; } = new QueryParameters();
+    [Parameter] public bool IsLoading { get; set; }
+    [Parameter] public string? ErrorMessage { get; set; }
+    [Parameter] public string EmptyMessage { get; set; } = "Немає елементів.";
+    [Parameter] public string BaseUrl { get; set; } = string.Empty;
+    [Parameter] public List<ColumnDefinition<T>> Columns { get; set; } = new List<ColumnDefinition<T>>();
+    [Parameter] public Func<T, object?>? IdSelector { get; set; }
+    [Parameter] public EventCallback<int> OnPageChange { get; set; }
+    [Parameter] public bool ShowIndexColumn { get; set; } = false;
+
+    private int? CurrentPage { get; set; } = 1;
+
+    public class ColumnDefinition<TItem>
+    {
+        public string Header { get; set; } = string.Empty;
+        public Func<TItem, object?> ValueSelector { get; set; } = _ => null;
+        public bool IsBold { get; set; }
+        public int? Width { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentPage = Parameters.PageNumber is not null && Parameters.PageNumber > 0 ? Parameters.PageNumber : 1;
+    }
+
+    private async Task ChangePage(int page)
+    {
+        if (page < 1 || (PaginationInfo != null && page > PaginationInfo.TotalPages))
+            return;
+
+        CurrentPage = page;
+        await OnPageChange.InvokeAsync(page);
+    }
+}
+
+<style>
+    /* Loading State */
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 2rem;
+        gap: 1rem;
+    }
+
+    .spinner {
+        color: #A3BFFA;
+    }
+
+    .loading-text {
+        color: #666;
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    /* Table Container */
+    .table-container {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Table Styles */
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+
+    .data-table thead {
+        background: #f8f9fa;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .data-table th {
+        padding: 1rem;
+        text-align: left;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .data-table th.index-column {
+        width: 60px;
+        text-align: center;
+    }
+
+    .data-table th.actions-column {
+        width: 120px;
+        text-align: center;
+    }
+
+    .data-table tbody tr {
+        border-bottom: 1px solid #f0f0f0;
+        transition: all 0.2s;
+    }
+
+    .data-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .data-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .data-table td {
+        padding: 1rem;
+        color: #333;
+        font-size: 0.95rem;
+        vertical-align: middle;
+    }
+
+    .index-cell {
+        text-align: center;
+        color: #999;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .bold-cell {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .actions-cell {
+        text-align: center;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.2s;
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        color: #666;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .action-btn-view:hover {
+        background: white;
+        border-color: #A3BFFA;
+        color: #A3BFFA;
+    }
+
+    .action-btn-edit:hover {
+        background: white;
+        border-color: #A3BFFA;
+        color: #A3BFFA;
+    }
+
+    .action-btn i {
+        font-size: 1rem;
+    }
+
+    /* Pagination */
+    .pagination-nav {
+        margin-top: 1.5rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .pagination {
+        display: flex;
+        gap: 0.5rem;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .page-item {
+        display: flex;
+    }
+
+    .page-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 40px;
+        height: 40px;
+        padding: 0.5rem 0.75rem;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        color: #666;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .page-link:hover:not(.disabled .page-link) {
+        background: #f8f9fa;
+        border-color: #A3BFFA;
+        color: #A3BFFA;
+    }
+
+    .page-item.active .page-link {
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        border-color: #A3BFFA;
+        color: white;
+    }
+
+    .page-item.disabled .page-link {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Error State */
+    .error-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 2rem;
+        background: #fff5f5;
+        border: 1px solid #feb2b2;
+        border-radius: 12px;
+        gap: 1rem;
+    }
+
+    .error-icon {
+        width: 64px;
+        height: 64px;
+        background: #fed7d7;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .error-icon i {
+        font-size: 2rem;
+        color: #dc3545;
+    }
+
+    .error-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+
+    .error-message {
+        color: #666;
+        margin: 0;
+        text-align: center;
+    }
+
+    /* Empty State */
+    .empty-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 2rem;
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        gap: 1rem;
+    }
+
+    .empty-icon {
+        width: 64px;
+        height: 64px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #e0e0e0;
+    }
+
+    .empty-icon i {
+        font-size: 2rem;
+        color: #999;
+    }
+
+    .empty-message {
+        color: #666;
+        font-size: 1rem;
+        margin: 0;
+        text-align: center;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            min-width: 600px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem;
+            font-size: 0.85rem;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+        }
+
+        .action-btn i {
+            font-size: 0.9rem;
+        }
+    }
+</style>

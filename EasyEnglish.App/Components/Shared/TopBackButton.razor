@@ -1,0 +1,36 @@
+﻿@inject NavigationManager Navigation
+
+<div class="info-card @ColorClass @(!string.IsNullOrWhiteSpace(Link) ? "clickable" : "")" @onclick="@HandleClick">
+        <i class="bi bi-chevron-left"></i>
+</div>
+
+
+@code {
+    [Parameter] public string ColorClass { get; set; } = string.Empty;
+    [Parameter] public string Link { get; set; }
+
+    private void HandleClick()
+    {
+        if (!string.IsNullOrWhiteSpace(Link))
+        {
+            NavigateToPage(Link);
+        }
+    }
+
+    private void NavigateToPage(string page)
+    {
+        Navigation.NavigateTo(page);
+    }
+}
+
+<style>
+    .info-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+    }
+</style>

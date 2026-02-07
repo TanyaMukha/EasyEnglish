@@ -1,0 +1,97 @@
+<div class="breadcrumb-nav">
+    @foreach (var (item, index) in Items.Select((item, i) => (item, i)))
+    {
+        @if (index > 0)
+        {
+            <i class="bi bi-chevron-right breadcrumb-separator"></i>
+        }
+
+        @if (!string.IsNullOrEmpty(item.Url) && !item.IsActive)
+        {
+            <a href="@item.Url" class="breadcrumb-link">
+                @if (!string.IsNullOrEmpty(item.Icon))
+                {
+                    <i class="bi bi-@item.Icon"></i>
+                }
+                @item.Title
+            </a>
+        }
+        else
+        {
+            <span class="breadcrumb-current">
+                @if (!string.IsNullOrEmpty(item.Icon))
+                {
+                    <i class="bi bi-@item.Icon"></i>
+                }
+                @item.Title
+            </span>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public List<BreadcrumbItem> Items { get; set; } = new();
+
+    public class BreadcrumbItem
+    {
+        public string Title { get; set; } = string.Empty;
+        public string? Url { get; set; }
+        public string? Icon { get; set; }
+        public bool IsActive { get; set; }
+    }
+}
+
+<style>
+    .breadcrumb-nav {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+        flex-wrap: wrap;
+    }
+
+    .breadcrumb-link {
+        color: #666;
+        text-decoration: none;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+    }
+
+    .breadcrumb-link:hover {
+        color: #A3BFFA;
+        background: #f8f9fa;
+    }
+
+    .breadcrumb-link i {
+        font-size: 1rem;
+    }
+
+    .breadcrumb-separator {
+        color: #ccc;
+        font-size: 0.7rem;
+    }
+
+    .breadcrumb-current {
+        color: #333;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    @@media (max-width: 768px) {
+        .breadcrumb-nav {
+            font-size: 0.85rem;
+        }
+
+        .breadcrumb-link i {
+            font-size: 0.9rem;
+        }
+    }
+</style>

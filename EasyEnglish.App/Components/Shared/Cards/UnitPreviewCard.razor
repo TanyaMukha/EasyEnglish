@@ -1,0 +1,104 @@
+﻿@namespace EasyEnglish.App.Components.Shared
+
+<PreviewCard
+    Id="@Id"
+    Title="@Title"
+    Description="@Description"
+    ItemsCount="@ItemsCount"
+    BadgeText="@BadgeText"
+    IsEditable="@IsEditable"
+    GoToViewPage="@GoToViewPage"
+    GoToEditPage="@GoToEditPage"
+    RemoveItem="@RemoveItem"
+>
+    <AdditionalBottomContent>
+        <div class="d-flex align-items-center">
+            <div class="card-progress w-100">
+                <div class="progress-stacked">
+                    <div class="progress" style="width: 15%">
+                        <div class="progress-bar bg-success"></div>
+                    </div>
+                    <div class="progress" style="width: 30%">
+                        <div class="progress-bar bg-warning"></div>
+                    </div>
+                    <div class="progress" style="width: 55%">
+                        <div class="progress-bar bg-danger"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-learning">
+                <i class="bi bi-play icon-btn-play" @onclick="@(async () => await GoToLearningPage.InvokeAsync(Id))" title="Вчити"></i>
+            </div>
+        </div>
+    </AdditionalBottomContent>
+</PreviewCard>
+
+@code {
+    [Parameter] public required int Id { get; set; }
+    [Parameter] public required string Title { get; set; }
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public required int ItemsCount { get; set; } = 0;
+    [Parameter] public string? BadgeText { get; set; }
+    [Parameter] public bool IsEditable { get; set; } = false;
+
+    [Parameter] public EventCallback<int> GoToViewPage { get; set; }
+    [Parameter] public EventCallback<int> GoToEditPage { get; set; }
+    [Parameter] public EventCallback<int> RemoveItem { get; set; }
+    [Parameter] public EventCallback<int> GoToLearningPage { get; set; }
+}
+
+<style>  
+    .card-progress {
+        margin: 0.75rem 0;
+    }
+
+    .progress-stacked {
+        display: flex;
+        height: 8px;
+        overflow: hidden;
+        background-color: rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+        gap: 0;
+    }
+
+    .progress-stacked .progress {
+        display: flex;
+        height: 100%;
+        overflow: hidden;
+        background-color: transparent;
+        border-radius: 0;
+    }
+
+    .progress-stacked .progress-bar {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        overflow: hidden;
+        transition: width 0.6s ease;
+    }
+
+    .progress-bar.bg-success {
+        background-color: #89FC00 !important;
+    }
+
+    .progress-bar.bg-warning {
+        background-color: #F5B700 !important;
+    }
+
+    .progress-bar.bg-secondary {
+        background-color: #DC0073 !important;
+    }
+
+    .icon-btn-play {
+        font-size: 2rem !important;
+        cursor: pointer;
+        display: inline-block;
+    }
+
+    .icon-btn-play:hover {
+        color: green;
+        transform: scale(1.08);
+    }
+</style>

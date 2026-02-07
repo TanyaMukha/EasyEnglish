@@ -1,0 +1,268 @@
+@page "/review-words"
+@using System.Dynamic
+@using MukhaLab.SelectQueryParameters.Models
+@using MukhaLab.Database
+@using System.Collections.Generic
+@using System.Globalization
+@inject DailyWordsService DailyWordsService
+@inject ILogger<ReviewWords> Logger
+@inject IBrowserConsoleService BrowserConsole
+@using EasyEnglish.App.Models
+@inject NavigationManager NavigationManager
+@using EasyEnglish.App.Components.Pages.Learning.Shared
+
+<div class="page-content">
+    <PageHeader Title="Перегляд слів" />
+
+    @if (isLoading)
+    {
+        <div class="loading-container">
+            <div class="spinner">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            <p class="loading-text">Завантаження слів...</p>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="error-container">
+            <div class="error-icon">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <h3 class="error-title">Помилка завантаження</h3>
+            <p class="error-message">@errorMessage</p>
+        </div>
+    }
+    else if (HasItems && currentItem != null)
+    {
+        <ProgressBar totalCount="@ItemCount" completedCount="@currentIndex" colorClass="pastel-blue" />
+
+        <div class="review-container">
+            <ReviewCard UnitTitle="@(list?.Title ?? "")"
+                        CourseTitle="@list?.Course.Title"
+                        Rate="@currentItem.Rate"
+                        CurrentIndex="@(currentIndex + 1)"
+                        TotalCount="@ItemCount"
+                        ShowNavigation="@true"
+                        CanGoPrevious="@(currentIndex > 0)"
+                        CanGoNext="@(currentIndex < ItemCount - 1)"
+                        OnPrevious="@PreviousWord"
+                        OnNext="@NextWord"
+                        OnFinish="@FinishReview">
+
+                <WordInfoSection Word="@currentItem.Word"
+                                 Transcription="@currentItem.Transcription"
+                                 Translation="@currentItem.Translation"
+                                 Examples="@currentItem.Examples"
+                                 ShowNoExamples="@true" />
+
+                <DifficultyRatingSection OnRate="@RateWord"
+                                         IsRating="@isRating"
+                                         LastRatedValue="@lastRatedValue" />
+
+            </ReviewCard>
+        </div>
+    }
+    else
+    {
+        <div class="error-container">
+            <div class="error-icon">
+                <i class="bi bi-inbox"></i>
+            </div>
+            <h3 class="error-title">Немає слів для перегляду</h3>
+            <p class="error-message">Спочатку додайте слова для навчання</p>
+        </div>
+    }
+</div>
+
+@code {
+
+
+
+    private List<WordModel>? items;
+    private UnitModel? list;
+    private WordModel? currentItem;
+    private int currentIndex = 0;
+    private bool isLoading = false;
+    private string? errorMessage;
+    private bool isRating = false;
+    private double lastRatedValue = 0;
+
+    private bool HasItems => items != null && items.Any();
+    private int ItemCount => items?.Count ?? 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+
+            var result = await DailyWordsService.GetWordsForToday();
+            items = result.Words.OrderBy(x => Random.Shared.Next()).ToList();
+            list = result.Unit;
+
+            if (HasItems)
+            {
+                currentIndex = 0;
+                currentItem = items![currentIndex];
+            }
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Помилка завантаження: {ex.Message}";
+            Logger.LogError(ex, "Error loading words");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RateWord(double rateValue)
+    {
+        if (currentItem == null || isRating) return;
+
+        try
+        {
+            isRating = true;
+            lastRatedValue = rateValue;
+            StateHasChanged();
+
+            currentItem.Rate = (float)rateValue;
+
+            // await WordService.UpdateWordRateAsync(mapper.Map<UpdateWordRateRequest>(currentItem));
+
+            await BrowserConsole.LogInfoAsync($"Word '{currentItem.Word}' rated with {rateValue}");
+
+            await Task.Delay(300);
+
+            await NextWord();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Помилка оцінки: {ex.Message}";
+            Logger.LogError(ex, "Error rating word");
+        }
+        finally
+        {
+            isRating = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task NextWord()
+    {
+        if (HasItems && currentIndex < ItemCount - 1)
+        {
+            currentIndex++;
+            currentItem = items![currentIndex];
+            StateHasChanged();
+        }
+    }
+
+    private Task PreviousWord()
+    {
+        if (HasItems && currentIndex > 0)
+        {
+            currentIndex--;
+            currentItem = items![currentIndex];
+            StateHasChanged();
+        }
+        return Task.CompletedTask;
+    }
+
+    private async Task FinishReview()
+    {
+        items.ForEach(item =>
+        {
+            item.LastReviewDate = DateTime.UtcNow;
+            item.ReviewCount++;
+        });
+        await WordService.UpdateWordRateRangeAsync(mapper.Map<List<UpdateWordRateRequest>>(items));
+        DailyWordsService.ClearCache();
+        NavigationManager.NavigateTo("/learning-words");
+    }
+}
+
+<style>
+    .page-content {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .loading-container,
+    .error-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 2rem;
+        gap: 1rem;
+    }
+
+    .spinner {
+        color: #A3BFFA;
+    }
+
+    .loading-text {
+        color: #666;
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    .error-container {
+        background: #fff5f5;
+        border: 1px solid #feb2b2;
+        border-radius: 12px;
+    }
+
+    .error-icon {
+        width: 64px;
+        height: 64px;
+        background: #fed7d7;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .error-icon i {
+        font-size: 2rem;
+        color: #dc3545;
+    }
+
+    .error-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+
+    .error-message {
+        color: #666;
+        margin: 0;
+        text-align: center;
+    }
+
+    .review-container {
+        margin-top: 2rem;
+    }
+
+    @@media (max-width: 768px) {
+        .page-content {
+            padding: 1.5rem 1rem;
+        }
+    }
+</style>

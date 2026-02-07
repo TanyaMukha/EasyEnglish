@@ -1,0 +1,21 @@
+@using System.Globalization
+
+<div class="progress mb-5" style="height: 25px; position: relative;">
+    <div class="progress-bar @colorClass" 
+            role="progressbar"
+            style="width: @(ProgressPercentage.ToString("F1", CultureInfo.InvariantCulture))%;"
+            aria-valuenow="@completedCount"
+            aria-valuemin="1"
+            aria-valuemax="@totalCount" />
+    <span style="position: absolute; width: 100%; text-align: center; line-height: 25px; color: #000;">
+        @(completedCount + 1)/@totalCount
+    </span>
+</div>
+
+@code {
+    [Parameter] public int totalCount { get; set; }
+    [Parameter] public int completedCount { get; set; }
+    [Parameter] public string? colorClass { get; set; }
+
+    private double ProgressPercentage => totalCount > 0 ? ((completedCount + 1.0) / totalCount * 100) : 0;
+}

@@ -1,0 +1,93 @@
+@* AnswerOptionSection.razor - Компонент для відображення варіантів відповідей *@
+
+<div class="options-grid">
+    @foreach (var option in AnswerOptions)
+    {
+        <button class="@GetButtonClass(option)"
+                @onclick="async () => await OnAnswerSelected.InvokeAsync(option)"
+                disabled="@IsAnswerSubmitted">
+            @option
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter] public List<string> AnswerOptions { get; set; } = new();
+    [Parameter] public bool IsAnswerSubmitted { get; set; } = false;
+    [Parameter] public string CorrectAnswer { get; set; } = "";
+    [Parameter] public string SelectedAnswer { get; set; } = "";
+    [Parameter] public EventCallback<string> OnAnswerSelected { get; set; }
+
+    public string GetButtonClass(string option)
+    {
+        if (!IsAnswerSubmitted)
+        {
+            return "option-button";
+        }
+
+        // Якщо це правильна відповідь - зелена
+        if (option == CorrectAnswer)
+        {
+            return "option-button correct";
+        }
+
+        // Якщо це вибрана неправильна відповідь - червона
+        if (option == SelectedAnswer && option != CorrectAnswer)
+        {
+            return "option-button incorrect";
+        }
+
+        // Інші кнопки - неактивні
+        return "option-button disabled";
+    }
+}
+
+<style>
+    .options-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-top: 2rem;
+        width: 100%;
+    }
+
+    .option-button {
+        padding: 1rem 1.5rem;
+        background: white;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: left;
+        color: #333;
+    }
+
+    .option-button:not(:disabled):hover {
+        border-color: #A3BFFA;
+        background: #f8f9fa;
+        transform: translateX(4px);
+    }
+
+    .option-button:disabled {
+        cursor: not-allowed;
+    }
+
+    .option-button.correct {
+        border-color: #28a745;
+        background: #d4edda;
+        color: #155724;
+        font-weight: 600;
+    }
+
+    .option-button.incorrect {
+        border-color: #dc3545;
+        background: #f8d7da;
+        color: #721c24;
+        font-weight: 600;
+    }
+
+    .option-button.disabled {
+        opacity: 0.5;
+    }
+</style>

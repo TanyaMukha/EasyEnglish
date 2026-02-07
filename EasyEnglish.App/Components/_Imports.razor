@@ -1,0 +1,40 @@
+@using System.Net.Http
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.JSInterop
+@using EasyEnglish.App
+@using EasyEnglish.App.Components
+@using EasyEnglish.App.Models
+@using EasyEnglish.Core.Models
+@using EasyEnglish.Core.Interfaces.Services
+@using EasyEnglish.Services
+@using EasyEnglish.Data
+@using EasyEnglish.Core.Entities
+@using EasyEnglish.Core.Enums
+@using EasyEnglish.Core.Options
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Logging
+@using MukhaLab.BrowserConsoleLogger
+@using MukhaLab.LoggerExtensionDelegate
+@using EasyEnglish.App.Services
+@using AutoMapper
+
+@inject NavigationManager Navigation
+
+@inject ICourseService CourseService
+@inject IWordService WordService
+@inject IExampleService ExampleService
+@inject IUnitService UnitService
+@inject IIrregularFormService IrregularFormService
+@inject EasyEnglishDbContext DbContext
+
+@inject IMapper mapper
+
+@using System.Text.Json
+@inject IBrowserConsoleService BrowserConsole
+
+@* @inject IJSRuntime JSRuntime *@
+@* @rendermode InteractiveServer *@

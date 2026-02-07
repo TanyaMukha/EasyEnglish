@@ -1,0 +1,16 @@
+﻿@if (ShowButton)
+{
+    <div class="d-flex justify-content-end mt-4 w-100">
+        <button class="btn btn-outline-secondary btn-sm"
+                disabled="@Disabled"
+                @onclick="async () => await OnClick.InvokeAsync()">
+            Next
+        </button>
+    </div>
+}
+
+@code {
+    [Parameter] public bool ShowButton { get; set; } = false;
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public EventCallback<string> OnClick { get; set; }
+}

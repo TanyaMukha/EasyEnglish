@@ -1,0 +1,275 @@
+@page "/courses/{CourseId:int}/units/{UnitId:int}/edit"
+@page "/courses/{CourseId:int}/units/create"
+@using System.Dynamic
+@using EasyEnglish.App.Components.Shared
+@using EasyEnglish.App.Components.Shared.Breadcrumb
+
+<div class="edit-page">
+    <div class="header-section">
+        <Breadcrumb Items="breadcrumbs" />
+
+        <h1 class="page-title">
+            <i class="bi @(IsEditMode ? "bi-pencil" : "bi-plus-circle")"></i>
+            @(IsEditMode ? "Edit" : "Create") Unit
+        </h1>
+    </div>
+
+    <div class="form-container">
+        <EditForm Model="unit" OnValidSubmit="HandleValidSubmit" class="edit-form">
+            <DataAnnotationsValidator />
+
+            <div class="form-section">
+                <h2 class="section-title">
+                    <i class="bi bi-info-circle"></i>
+                    Основна інформація
+                </h2>
+
+                <InputSelectField @bind-Value="unit.CourseId"
+                                  Label="Course">
+                    @foreach (CourseModel course in Courses)
+                    {
+                            <option value="@course.Id">@course.Title</option>
+                    }
+                </InputSelectField>
+                <ValidationMessage For="() => unit.CourseId" class="validation-message" />
+
+                <InputTextField @bind-Value="unit.Title"
+                                Label="Назва модулю" />
+                <ValidationMessage For="@(() => unit.Title)" class="validation-message" />
+
+                <InputMultilineField @bind-Value="unit.Description"
+                                     Label="Опис"
+                                     Rows="2" />
+                <ValidationMessage For="@(() => unit.Description)" class="validation-message" />
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title">
+                    <i class="bi bi-file-text"></i>
+                    Контент (HTML)
+                </h2>
+
+                <HtmlEditor @bind-Value="unit.Content"
+                                Placeholder="Введіть контент модуля у форматі HTML..." />
+                <ValidationMessage For="@(() => unit.Content)" class="validation-message" />
+            </div>
+
+            <div class="form-actions">
+                <a href="@("/courses" + (CourseId > 0 ? "/" + CourseId : ""))" class="btn-cancel">
+                    <i class="bi bi-x-lg"></i>
+                    Скасувати
+                </a>
+                <button type="submit" class="btn-submit">
+                    <i class="bi @(IsEditMode ? "bi-check-lg" : "bi-plus-lg")"></i>
+                    @(IsEditMode ? "Оновити" : "Створити")
+                </button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+    [Parameter] public int UnitId { get; set; } = 0;
+
+    public UnitModel unit { get; set; } = new();
+    public List<CourseModel> Courses { get; set; } = new();
+
+    private readonly List<(string, string)> levels = LanguageLevels.GetAll().ToList();
+    private bool IsEditMode => UnitId > 0;
+
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsEditMode)
+        {
+            unit = await UnitService.GetByIdAsync(UnitId)
+                ?? new UnitModel { CourseId = CourseId };
+            BrowserConsole.LogInfoAsync($"✅ Unit : {JsonSerializer.Serialize(unit)}");
+        }
+        else
+        {
+            unit = new UnitModel { CourseId = CourseId };
+        }
+
+        Courses = (await CourseService.GetAllAsync()).ToList();
+
+        breadcrumbs = BreadcrumbBuilder.Create()
+            .WithLink("Courses", "/courses")
+            .WithLink(unit.Course.Title, $"/courses/{CourseId}")
+            .WithLink(unit.Title, $"/courses/{CourseId}/units/{unit.Id}")
+            .Build();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            if (IsEditMode)
+            {
+                BrowserConsole.LogInfoAsync($"✅ Unit : {JsonSerializer.Serialize(unit)}");
+                await UnitService.UpdateAsync(unit.Id, unit);
+            }
+            else
+            {
+                Console.WriteLine($"New Word List: {unit}");
+                await UnitService.CreateAsync(unit);
+            }
+
+            Navigation.NavigateTo($"/courses/{unit.CourseId}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving word list: {ex.Message}");
+        }
+    }
+}
+
+<style>
+    .edit-page {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .header-section {
+        margin-bottom: 2rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .page-title i {
+        color: #A3BFFA;
+    }
+
+    .form-container {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .edit-form {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .form-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0 0 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .section-title i {
+        color: #A3BFFA;
+    }
+
+    .validation-message {
+        color: #dc3545;
+        font-size: 0.85rem;
+        margin-top: -1rem;
+        margin-bottom: 0.5rem;
+        padding-left: 0.5rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        padding-top: 1.5rem;
+        border-top: 2px solid #f0f0f0;
+        margin-top: 1rem;
+    }
+
+    .btn-cancel,
+    .btn-submit {
+        padding: 0.875rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        border: none;
+    }
+
+    .btn-cancel {
+        background: #f8f9fa;
+        color: #666;
+        border: 1px solid #dee2e6;
+    }
+
+    .btn-cancel:hover {
+        background: white;
+        border-color: #999;
+        color: #333;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        color: white;
+        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.3);
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(163, 191, 250, 0.4);
+    }
+
+    .btn-submit:active,
+    .btn-cancel:active {
+        transform: translateY(0);
+    }
+
+    @@media (max-width: 768px) {
+        .edit-page {
+            padding: 1.5rem 1rem;
+        }
+
+        .form-container {
+            padding: 1.5rem;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+        }
+
+        .form-actions {
+            flex-direction: column-reverse;
+        }
+
+        .btn-cancel,
+        .btn-submit {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>

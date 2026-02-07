@@ -1,0 +1,1028 @@
+@page "/select-unit"
+@using EasyEnglish.App.Models
+@using EasyEnglish.App.Services
+@inject NavigationManager NavigationManager
+@inject DailyWordsService DailyWordsService
+
+<div class="select-unit-page">
+    <!-- Header -->
+    <div class="page-header">
+        <button class="btn-back" @onclick="GoBack">
+            <i class="bi bi-arrow-left"></i>
+        </button>
+        <div class="header-content">
+            <h1 class="page-title">Налаштування навчання</h1>
+            <p class="page-subtitle">Оберіть набір слів та параметри для вивчення</p>
+        </div>
+    </div>
+
+    <div class="page-content">
+        <!-- Main Settings Card -->
+        <div class="settings-card main-card">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i class="bi bi-journals"></i>
+                </div>
+                <div class="card-title-group">
+                    <h2 class="card-title">Основні налаштування</h2>
+                    <p class="card-description">Виберіть джерело слів та налаштуйте параметри</p>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <!-- Course Selection -->
+                <div class="form-field">
+                    <label class="field-label">
+                        <i class="bi bi-book"></i>
+                        Словник
+                    </label>
+                    <select class="field-select" @bind="selectedCourseId" @bind:after="OnCourseChanged">
+                        @foreach (var course in courses)
+                        {
+                            <option value="@course.Id">@course.Title</option>
+                        }
+                    </select>
+                    <span class="field-hint">Оберіть словник для вивчення</span>
+                </div>
+
+                <!-- Unit Selection -->
+                @if (units.Any())
+                {
+                    <div class="form-field">
+                        <label class="field-label">
+                            <i class="bi bi-list-ul"></i>
+                            Набір слів
+                        </label>
+                        <select class="field-select" @bind="selectedUnitId">
+                            <option value="0">-- Випадковий набір --</option>
+                            @foreach (var unit in units)
+                            {
+                                <option value="@unit.Id">@unit.Title (@unit.Words?.Count слів)</option>
+                            }
+                        </select>
+                        <span class="field-hint">Оберіть конкретний набір або залиште випадковий</span>
+                    </div>
+                }
+
+                <!-- Word Count -->
+                <div class="form-field">
+                    <label class="field-label">
+                        <i class="bi bi-123"></i>
+                        Кількість слів
+                        <span class="field-value">@options.WordCount</span>
+                    </label>
+                    <div class="slider-container">
+                        <input type="range" 
+                        class="field-slider" 
+                        min="0" 
+                        max="50" 
+                        step="5" 
+                        @bind="options.WordCount" 
+                        @bind:event="oninput" />
+                        <div class="slider-labels">
+                            <span>0</span>
+                            <span>25</span>
+                            <span>50</span>
+                        </div>
+                    </div>
+                    <span class="field-hint">Рекомендовано: 10-20 слів для ефективного навчання</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Settings Card -->
+        <div class="settings-card">
+            <div class="card-header">
+                <div class="card-icon accent">
+                    <i class="bi bi-sliders"></i>
+                </div>
+                <div class="card-title-group">
+                    <h2 class="card-title">Розширені налаштування</h2>
+                    <p class="card-description">Додаткові параметри для персоналізації</p>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <!-- Priority Selection -->
+                <div class="form-field">
+                    <label class="field-label">
+                        <i class="bi bi-sort-down"></i>
+                        Пріоритет вибору слів
+                    </label>
+                    <div class="radio-group">
+                        <label class="radio-option @(options.Priority == WordPriority.Random ? "active" : "")">
+                            <input type="radio" name="priority" value="@WordPriority.Random" 
+                            checked="@(options.Priority == WordPriority.Random)" 
+                            @onchange="@(() => options.Priority = WordPriority.Random)" />
+                            <div class="radio-content">
+                                <i class="bi bi-shuffle"></i>
+                                <div class="radio-text">
+                                    <span class="radio-title">Випадкові</span>
+                                    <span class="radio-desc">Будь-які слова з набору</span>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="radio-option @(options.Priority == WordPriority.Difficult ? "active" : "")">
+                            <input type="radio" name="priority" value="@WordPriority.Difficult" 
+                            checked="@(options.Priority == WordPriority.Difficult)" 
+                            @onchange="@(() => options.Priority = WordPriority.Difficult)" />
+                            <div class="radio-content">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                <div class="radio-text">
+                                    <span class="radio-title">Складні</span>
+                                    <span class="radio-desc">Слова з найбільшою кількістю помилок</span>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="radio-option @(options.Priority == WordPriority.New ? "active" : "")">
+                            <input type="radio" name="priority" value="@WordPriority.New" 
+                            checked="@(options.Priority == WordPriority.New)" 
+                            @onchange="@(() => options.Priority = WordPriority.New)" />
+                            <div class="radio-content">
+                                <i class="bi bi-star"></i>
+                                <div class="radio-text">
+                                    <span class="radio-title">Нові</span>
+                                    <span class="radio-desc">Ще не вивчені слова</span>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="radio-option @(options.Priority == WordPriority.Review ? "active" : "")">
+                            <input type="radio" name="priority" value="@WordPriority.Review" 
+                            checked="@(options.Priority == WordPriority.Review)" 
+                            @onchange="@(() => options.Priority = WordPriority.Review)" />
+                            <div class="radio-content">
+                                <i class="bi bi-arrow-repeat"></i>
+                                <div class="radio-text">
+                                    <span class="radio-title">Повторення</span>
+                                    <span class="radio-desc">Слова, які потребують закріплення</span>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="radio-option @(options.Priority == WordPriority.Old ? "active" : "")">
+                            <input type="radio" name="priority" value="@WordPriority.Old" 
+                            checked="@(options.Priority == WordPriority.Old)" 
+                            @onchange="@(() => options.Priority = WordPriority.Old)" />
+                            <div class="radio-content">
+                                <i class="bi bi-clock"></i>
+                                <div class="radio-text">
+                                    <span class="radio-title">Найстаріші</span>
+                                    <span class="radio-desc">Найдавніші слова, до яких не дійшла черга</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Additional Options -->
+                <div class="form-field">
+                    <label class="field-label">
+                        <i class="bi bi-gear"></i>
+                        Додаткові опції
+                    </label>
+
+                    <div class="checkbox-group">
+                        <label class="checkbox-option">
+                            <input type="checkbox" @bind="options.IncludeLearnedWords" />
+                            <div class="checkbox-content">
+                                <div class="checkbox-icon">
+                                    <i class="bi bi-check2"></i>
+                                </div>
+                                <div class="checkbox-text">
+                                    <span class="checkbox-title">Включити вивчені слова</span>
+                                    <span class="checkbox-desc">Додати до вибірки вже вивчені слова</span>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="checkbox-option">
+                            <input type="checkbox" @bind="options.ShuffleWords" />
+                            <div class="checkbox-content">
+                                <div class="checkbox-icon">
+                                    <i class="bi bi-shuffle"></i>
+                                </div>
+                                <div class="checkbox-text">
+                                    <span class="checkbox-title">Перемішати слова</span>
+                                    <span class="checkbox-desc">Випадковий порядок слів під час навчання</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn-secondary" @onclick="ResetSettings">
+                <i class="bi bi-arrow-counterclockwise"></i>
+                Скинути налаштування
+            </button>
+            <button class="btn-primary" @onclick="CreateWordList">
+                <i class="bi bi-play-fill"></i>
+                Згенерувати
+            </button>
+        </div>
+
+        <!-- Quick Presets -->
+        <div class="presets-card">
+            <h3 class="presets-title">
+                <i class="bi bi-lightning-fill"></i>
+                Швидкі пресети
+            </h3>
+            <div class="presets-grid">
+                <button class="preset-card" @onclick="@(() => ApplyPreset("beginner"))">
+                    <div class="preset-icon beginner">
+                        <i class="bi bi-egg"></i>
+                    </div>
+                    <div class="preset-content">
+                        <h4 class="preset-name">Початківець</h4>
+                        <p class="preset-desc">10 нових слів</p>
+                    </div>
+                </button>
+
+                <button class="preset-card" @onclick="@(() => ApplyPreset("standard"))">
+                    <div class="preset-icon standard">
+                        <i class="bi bi-bookmarks"></i>
+                    </div>
+                    <div class="preset-content">
+                        <h4 class="preset-name">Стандарт</h4>
+                        <p class="preset-desc">20 випадкових слів</p>
+                    </div>
+                </button>
+
+                <button class="preset-card" @onclick="@(() => ApplyPreset("intensive"))">
+                    <div class="preset-icon intensive">
+                        <i class="bi bi-rocket-takeoff"></i>
+                    </div>
+                    <div class="preset-content">
+                        <h4 class="preset-name">Інтенсив</h4>
+                        <p class="preset-desc">30 складних слів</p>
+                    </div>
+                </button>
+
+                <button class="preset-card" @onclick="@(() => ApplyPreset("review"))">
+                    <div class="preset-icon review">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </div>
+                    <div class="preset-content">
+                        <h4 class="preset-name">Повторення</h4>
+                        <p class="preset-desc">15 слів на повторення</p>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int selectedCourseId = 1;
+    private int selectedUnitId = 0;
+    private WordSelectionOptions options = new();
+
+    private List<CourseModel> courses = new();
+    private List<UnitModel> units = new();
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            isLoading = true;
+            courses = (await CourseService.GetAllAsync()).ToList();
+
+            if (courses.Any())
+            {
+                selectedCourseId = courses[0].Id;
+                await LoadUnits();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading data: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnCourseChanged()
+    {
+        await LoadUnits();
+        selectedUnitId = 0;
+    }
+
+    private async Task LoadUnits()
+    {
+        try
+        {
+            isLoading = true;
+            units = (await CourseService.GetUnitsAsync(selectedCourseId)).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading units: {ex.Message}");
+            units = new();
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CreateWordList()
+    {
+        try
+        {
+            UnitModel unit = selectedUnitId == 0 ? null : units.Find(u => u.Id == selectedUnitId);
+            int? unitId = selectedUnitId == 0 ? null : selectedUnitId;
+            List<WordModel> words = (await CourseService.GetWordsAsync(selectedCourseId, unitId, options)).ToList();
+            await DailyWordsService.SetWordsForToday(words.Select(i => i.Id).ToList(), unit.Id);
+            GoBack();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating word list for today: {ex.Message}");
+        }
+    }
+
+    private void ResetSettings()
+    {
+        options.WordCount = 15;
+        options.Priority = WordPriority.Random;
+        options.IncludeLearnedWords = false;
+        options.ShuffleWords = true;
+        selectedUnitId = 0;
+    }
+
+    private void ApplyPreset(string presetType)
+    {
+        switch (presetType)
+        {
+            case "beginner":
+                options.WordCount = 10;
+                options.Priority = WordPriority.New;
+                options.IncludeLearnedWords = false;
+                options.ShuffleWords = true;
+                break;
+            case "standard":
+                options.WordCount = 20;
+                options.Priority = WordPriority.Random;
+                options.IncludeLearnedWords = false;
+                options.ShuffleWords = true;
+                break;
+            case "intensive":
+                options.WordCount = 30;
+                options.Priority = WordPriority.Difficult;
+                options.IncludeLearnedWords = true;
+                options.ShuffleWords = true;
+                break;
+            case "review":
+                options.WordCount = 15;
+                options.Priority = WordPriority.Review;
+                options.IncludeLearnedWords = true;
+                options.ShuffleWords = true;
+                break;
+        }
+        StateHasChanged();
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    .select-unit-page {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+    }
+
+    /* Header */
+    .page-header {
+        background: white;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        padding: 1.5rem 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .btn-back {
+        background: #f8f9fa;
+        border: 1px solid #e0e3e7;
+        border-radius: 12px;
+        padding: 0.75rem;
+        color: #495057;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        flex-shrink: 0;
+    }
+
+    .btn-back:hover {
+        background: white;
+        border-color: #A3BFFA;
+        color: #A3BFFA;
+        transform: translateX(-3px);
+        box-shadow: 0 2px 8px rgba(163, 191, 250, 0.2);
+    }
+
+    .header-content {
+        flex: 1;
+    }
+
+    .page-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1a1d29;
+        margin: 0 0 0.25rem 0;
+        letter-spacing: -0.02em;
+    }
+
+    .page-subtitle {
+        font-size: 0.95rem;
+        color: #6c757d;
+        margin: 0;
+    }
+
+    /* Content */
+    .page-content {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+    }
+
+    /* Settings Card */
+    .settings-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .settings-card:hover {
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .settings-card.main-card {
+        border: 2px solid #A3BFFA;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        padding: 2rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+    }
+
+    .card-icon {
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.75rem;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.3);
+    }
+
+    .card-icon.accent {
+        background: linear-gradient(135deg, #FF9800, #F57C00);
+        box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+    }
+
+    .card-title-group {
+        flex: 1;
+    }
+
+    .card-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #1a1d29;
+        margin: 0 0 0.25rem 0;
+        letter-spacing: -0.01em;
+    }
+
+    .card-description {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin: 0;
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    /* Form Fields */
+    .form-field {
+        margin-bottom: 2rem;
+    }
+
+    .form-field:last-child {
+        margin-bottom: 0;
+    }
+
+    .field-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1a1d29;
+        margin-bottom: 0.75rem;
+    }
+
+    .field-label i {
+        color: #A3BFFA;
+        font-size: 1.1rem;
+    }
+
+    .field-value {
+        margin-left: auto;
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .field-select {
+        width: 100%;
+        padding: 1rem 1.25rem;
+        border: 2px solid #e0e3e7;
+        border-radius: 12px;
+        font-size: 1rem;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 500;
+        color: #1a1d29;
+    }
+
+    .field-select:hover {
+        border-color: #cbd0d8;
+    }
+
+    .field-select:focus {
+        outline: none;
+        border-color: #A3BFFA;
+        box-shadow: 0 0 0 4px rgba(163, 191, 250, 0.1);
+    }
+
+    .field-hint {
+        display: block;
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: #868e96;
+        font-style: italic;
+    }
+
+    /* Slider */
+    .slider-container {
+        margin-top: 1rem;
+    }
+
+    .field-slider {
+        width: 100%;
+        height: 8px;
+        border-radius: 4px;
+        background: linear-gradient(to right, 
+            #A3BFFA 0%, 
+            #A3BFFA var(--value, 50%), 
+            #e9ecef var(--value, 50%), 
+            #e9ecef 100%);
+        outline: none;
+        -webkit-appearance: none;
+        appearance: none;
+    }
+
+    .field-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #A3BFFA, #7B9FE8);
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(163, 191, 250, 0.4);
+        transition: all 0.2s ease;
+    }
+
+    .field-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.5);
+    }
+
+    .field-slider::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #A3BFFA, #7B9FE8);
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 2px 8px rgba(163, 191, 250, 0.4);
+        transition: all 0.2s ease;
+    }
+
+    .field-slider::-moz-range-thumb:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.5);
+    }
+
+    .slider-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: #868e96;
+        font-weight: 500;
+    }
+
+    /* Radio Group */
+    .radio-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+    }
+
+    .radio-option {
+        display: block;
+        cursor: pointer;
+    }
+
+    .radio-option input[type="radio"] {
+        display: none;
+    }
+
+    .radio-content {
+        background: #f8f9fa;
+        border: 2px solid #e0e3e7;
+        border-radius: 12px;
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .radio-option:hover .radio-content {
+        background: white;
+        border-color: #cbd0d8;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .radio-option.active .radio-content {
+        background: white;
+        border-color: #A3BFFA;
+        box-shadow: 0 4px 16px rgba(163, 191, 250, 0.2);
+    }
+
+    .radio-content i {
+        font-size: 1.5rem;
+        color: #A3BFFA;
+    }
+
+    .radio-option.active .radio-content i {
+        color: #7B9FE8;
+    }
+
+    .radio-text {
+        flex: 1;
+    }
+
+    .radio-title {
+        display: block;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1a1d29;
+        margin-bottom: 0.25rem;
+    }
+
+    .radio-desc {
+        display: block;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    /* Checkbox Group */
+    .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+    }
+
+    .checkbox-option {
+        display: block;
+        cursor: pointer;
+    }
+
+    .checkbox-option input[type="checkbox"] {
+        display: none;
+    }
+
+    .checkbox-content {
+        background: #f8f9fa;
+        border: 2px solid #e0e3e7;
+        border-radius: 12px;
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .checkbox-option:hover .checkbox-content {
+        background: white;
+        border-color: #cbd0d8;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .checkbox-option input[type="checkbox"]:checked ~ .checkbox-content {
+        background: white;
+        border-color: #A3BFFA;
+        box-shadow: 0 2px 12px rgba(163, 191, 250, 0.15);
+    }
+
+    .checkbox-icon {
+        width: 32px;
+        height: 32px;
+        background: #e9ecef;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .checkbox-option input[type="checkbox"]:checked ~ .checkbox-content .checkbox-icon {
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+    }
+
+    .checkbox-icon i {
+        font-size: 1.1rem;
+        color: #868e96;
+        transition: all 0.2s ease;
+    }
+
+    .checkbox-option input[type="checkbox"]:checked ~ .checkbox-content .checkbox-icon i {
+        color: white;
+    }
+
+    .checkbox-text {
+        flex: 1;
+    }
+
+    .checkbox-title {
+        display: block;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1a1d29;
+        margin-bottom: 0.25rem;
+    }
+
+    .checkbox-desc {
+        display: block;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .btn-secondary,
+    .btn-primary {
+        flex: 1;
+        padding: 1.125rem 2rem;
+        border: none;
+        border-radius: 14px;
+        font-size: 1.05rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.625rem;
+    }
+
+    .btn-secondary {
+        background: white;
+        color: #495057;
+        border: 2px solid #e0e3e7;
+    }
+
+    .btn-secondary:hover {
+        background: #f8f9fa;
+        border-color: #cbd0d8;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        color: white;
+        box-shadow: 0 4px 16px rgba(163, 191, 250, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(163, 191, 250, 0.4);
+    }
+
+    .btn-primary i,
+    .btn-secondary i {
+        font-size: 1.25rem;
+    }
+
+    /* Presets */
+    .presets-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    .presets-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1a1d29;
+        margin: 0 0 1.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+    }
+
+    .presets-title i {
+        color: #FFC107;
+    }
+
+    .presets-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .preset-card {
+        background: #f8f9fa;
+        border: 2px solid #e0e3e7;
+        border-radius: 14px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .preset-card:hover {
+        background: white;
+        border-color: #A3BFFA;
+        transform: translateY(-4px);
+        box-shadow: 0 6px 20px rgba(163, 191, 250, 0.15);
+    }
+
+    .preset-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        color: white;
+    }
+
+    .preset-icon.beginner {
+        background: linear-gradient(135deg, #B5EAD7, #8DD3BB);
+    }
+
+    .preset-icon.standard {
+        background: linear-gradient(135deg, #A3BFFA, #7B9FE8);
+    }
+
+    .preset-icon.intensive {
+        background: linear-gradient(135deg, #FF9800, #F57C00);
+    }
+
+    .preset-icon.review {
+        background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+    }
+
+    .preset-content {
+        flex: 1;
+    }
+
+    .preset-name {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #1a1d29;
+        margin: 0 0 0.25rem 0;
+    }
+
+    .preset-desc {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin: 0;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .page-header {
+            padding: 1.25rem 1rem;
+        }
+
+        .page-title {
+            font-size: 1.4rem;
+        }
+
+        .page-subtitle {
+            font-size: 0.9rem;
+        }
+
+        .page-content {
+            padding: 1.5rem 1rem;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .radio-group {
+            grid-template-columns: 1fr;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .presets-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .btn-back {
+            width: 44px;
+            height: 44px;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            font-size: 1.5rem;
+        }
+
+        .presets-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

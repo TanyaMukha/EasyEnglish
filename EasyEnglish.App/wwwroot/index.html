@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>EasyEnglish.App</title>
+    <base href="/" />
+
+    <!-- Loading CSS from a library via _content/ -->
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="bootstrap-icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/custom.css" />
+    <link rel="stylesheet" href="EasyEnglish.App.styles.css" />
+    <link rel="icon" href="data:,">
+</head>
+
+<body>
+
+    <div class="status-bar-safe-area"></div>
+
+    <div id="app">Loading...</div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <script src="_framework/blazor.webview.js" autostart="false"></script>
+    <script src="js/downloadHelper.js"></script>
+    <script src="js/keyboard-not-capitalize-first-letter.js"></script>
+
+    <script>
+        const contextMenuListeners = new Map();
+
+        window.initContextMenu = function (menuId, menuElementId, dotnetHelper) {
+            const clickHandler = function (e) {
+                // Перевірити чи клік НЕ всередині меню
+                const menuElement = document.getElementById(menuElementId);
+                if (menuElement && !menuElement.contains(e.target)) {
+                    dotnetHelper.invokeMethodAsync('HideMenu');
+                }
+            };
+
+            // Невелика затримка, щоб меню встигло відрендеритися
+            setTimeout(() => {
+                document.addEventListener('click', clickHandler, true);
+            }, 10);
+
+            contextMenuListeners.set(menuId, {
+                clickHandler,
+                dotnetHelper
+            });
+        };
+
+        window.disposeContextMenu = function (menuId) {
+            const listener = contextMenuListeners.get(menuId);
+            if (listener) {
+                document.removeEventListener('click', listener.clickHandler, true);
+                contextMenuListeners.delete(menuId);
+            }
+        };
+
+        window.copyText = async function (elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                const selectedText = element.value.substring(element.selectionStart, element.selectionEnd);
+                if (selectedText) {
+                    await navigator.clipboard.writeText(selectedText);
+                } else {
+                    await navigator.clipboard.writeText(element.value);
+                }
+            }
+        };
+
+        window.cutText = async function (elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                const selectedText = element.value.substring(element.selectionStart, element.selectionEnd);
+                if (selectedText) {
+                    await navigator.clipboard.writeText(selectedText);
+                    const start = element.selectionStart;
+                    const end = element.selectionEnd;
+                    element.value = element.value.substring(0, start) + element.value.substring(end);
+                    element.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }
+        };
+
+        window.pasteText = async function (elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                const text = await navigator.clipboard.readText();
+                const start = element.selectionStart;
+                const end = element.selectionEnd;
+                element.value = element.value.substring(0, start) + text + element.value.substring(end);
+                element.dispatchEvent(new Event('input', { bubbles: true }));
+                return element.value;
+            }
+            return '';
+        };
+
+        window.clearText = function (elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.value = '';
+                element.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        };
+    </script>
+
+    <script>
+        const selectableTextListeners = new Map();
+
+        window.initSelectableText = function (elementId, dotnetHelper) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const contextMenuHandler = function (e) {
+                const selectedText = window.getSelection().toString().trim();
+                const selection = window.getSelection();
+
+                if (selectedText && selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    if (element.contains(range.commonAncestorContainer)) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dotnetHelper.invokeMethodAsync('ShowMenu', e.clientX, e.clientY);
+                    }
+                }
+            };
+
+            const clickHandler = function (e) {
+                const selectedText = window.getSelection().toString().trim();
+                if (!selectedText) {
+                    dotnetHelper.invokeMethodAsync('HideMenu');
+                }
+            };
+
+            const selectionChangeHandler = function () {
+                const selectedText = window.getSelection().toString().trim();
+                const selection = window.getSelection();
+
+                if (!selectedText || (selection.rangeCount > 0 && !element.contains(selection.getRangeAt(0).commonAncestorContainer))) {
+                    dotnetHelper.invokeMethodAsync('HideMenu');
+                }
+            };
+
+            element.addEventListener('contextmenu', contextMenuHandler);
+            document.addEventListener('click', clickHandler);
+            document.addEventListener('selectionchange', selectionChangeHandler);
+
+            selectableTextListeners.set(elementId, {
+                contextMenuHandler,
+                clickHandler,
+                selectionChangeHandler,
+                element
+            });
+        };
+
+        window.copySelectedText = function () {
+            const selectedText = window.getSelection().toString();
+            if (selectedText) {
+                try {
+                    navigator.clipboard.writeText(selectedText);
+                    return selectedText;
+                } catch (err) {
+                    console.error('Failed to copy text:', err);
+                    return '';
+                }
+            }
+            return '';
+        };
+
+        window.disposeSelectableText = function (elementId) {
+            const listeners = selectableTextListeners.get(elementId);
+            if (listeners) {
+                const { element, contextMenuHandler, clickHandler, selectionChangeHandler } = listeners;
+                element.removeEventListener('contextmenu', contextMenuHandler);
+                document.removeEventListener('click', clickHandler);
+                document.removeEventListener('selectionchange', selectionChangeHandler);
+                selectableTextListeners.delete(elementId);
+            }
+        };
+    </script>
+</body>
+
+</html>

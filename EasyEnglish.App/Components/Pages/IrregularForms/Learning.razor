@@ -1,0 +1,204 @@
+﻿@page "/irregular-forms"
+@using EasyEnglish.App.Components.Shared
+
+<div class="irregular-forms-page">
+    <div class="header-section">
+        <h1 class="page-title">
+            <i class="bi bi-arrow-repeat"></i>
+            Irregular Forms
+        </h1>
+        <p class="page-description">Опануйте неправильні форми іменників, дієслів, прикметників та прислівників</p>
+    </div>
+
+    <!-- Nouns Section -->
+    <div class="category-section">
+        <h2 class="category-title">
+            <i class="bi bi-box"></i>
+            Іменники (Nouns)
+        </h2>
+        <div class="exercises-grid">
+            <IrregularCard
+                Title="Перегляд"
+                Description="Повторіть неправильні форми іменників"
+                Icon="bi-book"
+                Link="/review-irregular-nouns"
+                Type="review"
+                Color="blue"
+            />
+
+            <IrregularCard
+                Title="Введення"
+                Description="Практикуйте написання неправильних форм"
+                Icon="bi-keyboard"
+                Link="/input-irregular-nouns"
+                Type="input"
+                Color="light-blue"
+            />
+        </div>
+    </div>
+
+    <!-- Verbs Section -->
+    <div class="category-section">
+        <h2 class="category-title">
+            <i class="bi bi-lightning"></i>
+            Дієслова (Verbs)
+        </h2>
+        <div class="exercises-grid">
+            <IrregularCard
+                Title="Перегляд"
+                Description="Вивчіть неправильні дієслова та їх форми"
+                Icon="bi-book"
+                Link="/review-irregular-verbs"
+                Type="review"
+                Color="green"
+            />
+
+            <IrregularCard
+                Title="Введення"
+                Description="Практикуйте написання дієслів"
+                Icon="bi-keyboard"
+                Link="/input-irregular-verbs"
+                Type="input"
+                Color="mint"
+            />
+        </div>
+    </div>
+
+    <!-- Adjectives Section -->
+    <div class="category-section">
+        <h2 class="category-title">
+            <i class="bi bi-stars"></i>
+            Прикметники (Adjectives)
+        </h2>
+        <div class="exercises-grid">
+            <IrregularCard
+                Title="Перегляд"
+                Description="Розширте словник прикметників"
+                Icon="bi-book"
+                Link="/review-irregular-adjectives"
+                Type="review"
+                Color="purple"
+            />
+
+            <IrregularCard
+                Title="Введення"
+                Description="Тренуйте правопис прикметників"
+                Icon="bi-keyboard"
+                Link="/input-irregular-adjectives"
+                Type="input"
+                Color="lavender"
+            />
+        </div>
+    </div>
+
+    <!-- Adverbs Section -->
+    <div class="category-section">
+        <h2 class="category-title">
+            <i class="bi bi-speedometer"></i>
+            Прислівники (Adverbs)
+        </h2>
+        <div class="exercises-grid">
+            <IrregularCard
+                Title="Перегляд"
+                Description="Покращте розуміння прислівників"
+                Icon="bi-book"
+                Link="/review-irregular-adverbs"
+                Type="review"
+                Color="pink"
+            />
+
+            <IrregularCard
+                Title="Введення"
+                Description="Практикуйте написання прислівників"
+                Icon="bi-keyboard"
+                Link="/input-irregular-adverbs"
+                Type="input"
+                Color="coral"
+            />
+        </div>
+    </div>
+</div>
+
+@code {
+    
+}
+
+<style>
+    .irregular-forms-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    /* Header */
+    .header-section {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .page-title i {
+        color: #A3BFFA;
+    }
+
+    .page-description {
+        font-size: 1.1rem;
+        color: #666;
+        margin: 0;
+    }
+
+    /* Category Section */
+    .category-section {
+        margin-bottom: 3rem;
+    }
+
+    .category-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0 0 1.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .category-title i {
+        color: #A3BFFA;
+    }
+
+    .exercises-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .irregular-forms-page {
+            padding: 1.5rem 1rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+        }
+
+        .page-description {
+            font-size: 1rem;
+        }
+
+        .exercises-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+    }
+</style>

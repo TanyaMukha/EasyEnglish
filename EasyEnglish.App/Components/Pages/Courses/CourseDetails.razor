@@ -1,0 +1,172 @@
+@page "/courses/{id:int}"
+
+@using EasyEnglish.App.Components.Shared
+@using EasyEnglish.App.Models
+@using EasyEnglish.App.Services
+@inject NavigationManager Navigation
+@using EasyEnglish.App.Components.Shared.Breadcrumb
+
+<div class="page-content">
+    <Breadcrumb Items="breadcrumbs" />
+
+    <div class="units-grid">
+        @foreach (var unit in AvailableUnits)
+        {
+            <UnitPreviewCard Id="@unit.Id"
+                             Title="@unit.Title"
+                             Description="@unit.Description"
+                             ItemsCount="@unit.Words.Count"
+                             IsEditable="true"
+                             GoToViewPage="@((id) => NavigateToPage($"/courses/{course.Id}/units/{id}"))"
+                             GoToEditPage="@GoToEditPage"
+                             RemoveItem="@RemoveUnit"
+                             GoToLearningPage="GoToLearningPage" />
+        }
+    </div>
+    <div class="units-grid">
+        <UnitShortForm CourseId="@course.Id"
+                       OnUnitCreated="@(async () => await LoadData())" />
+    </div>
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    public CourseModel course { get; set; } = new();
+    private List<UnitModel> AvailableUnits { get; set; } = new();
+    private string Level { get; set; } = string.Empty;
+    private UnitModel newUnit { get; set; } = new();
+
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        course = await CourseService.GetByIdAsync(Id) ?? new CourseModel();
+        AvailableUnits = (await CourseService.GetUnitsAsync(Id)).ToList();
+        ResetNewUnit();
+
+        breadcrumbs = BreadcrumbBuilder.Create()
+            .WithLink("Courses", "/courses")
+            .WithActive(course.Title)
+            .Build();
+    }
+
+    private async Task LoadData()
+    {
+        AvailableUnits = (await CourseService.GetUnitsAsync(Id)).ToList();
+        StateHasChanged();
+    }
+
+    private void ResetNewUnit()
+    {
+        newUnit = new UnitModel
+        {
+            CourseId = Id
+        };
+    }
+
+    private async Task HandleCreateUnit()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(newUnit.Title))
+            {
+                return;
+            }
+
+            await UnitService.CreateAsync(newUnit);
+            AvailableUnits = (await CourseService.GetUnitsAsync(Id)).ToList();
+            ResetNewUnit();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating word list: {ex.Message}");
+        }
+    }
+
+    private async Task UpdateTitle(string newTitle)
+    {
+        if (course.Title != newTitle)
+        {
+            course.Title = newTitle;
+            await CourseService.UpdateAsync(course.Id, course);
+        }
+    }
+
+    private async Task UpdateDescription(string newDescription)
+    {
+        if (course.Description != newDescription)
+        {
+            course.Description = newDescription;
+            await CourseService.UpdateAsync(course.Id, course);
+        }
+    }
+
+    private void GoToEditPage(int id)
+    {
+        NavigateToPage($"/courses/{course.Id}/units/{id}/edit");
+    }
+
+    private void GoToLearningPage(int id)
+    {
+        NavigateToPage($"/learning/word-list/{id}");
+    }
+
+    private async Task RemoveUnit(int id)
+    {
+        try
+        {
+            await UnitService.DeleteAsync(id);
+            AvailableUnits = (await CourseService.GetUnitsAsync(Id)).ToList();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting word list: {ex.Message}");
+        }
+    }
+
+    private void AutoResizeTextarea(ChangeEventArgs e)
+    {
+        StateHasChanged();
+    }
+
+    private void NavigateToPage(string url)
+    {
+        Navigation.NavigateTo(url);
+    }
+}
+
+<style>
+    .page-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .header-section {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .units-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    @@media (max-width: 768px) {
+        .units-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (min-width: 769px) and (max-width: 1200px) {
+        .units-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>

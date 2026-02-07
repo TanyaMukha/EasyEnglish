@@ -1,0 +1,69 @@
+﻿@page "/courses/{id:int}/edit"
+@page "/courses/create"
+
+@using EasyEnglish.App.Components.Shared
+
+<h3>@(IsEditMode ? "Edit" : "Create") Course</h3>
+
+<EditForm Model="newCourse" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+
+    <InputTextField @bind-Value="newCourse.Title"
+            Label="Назва словника" />
+    <ValidationMessage For="@(() => newCourse.Title)" class="validation-message" />
+
+    <InputMultilineField @bind-Value="newCourse.Description"
+            Label="Опис"
+            Rows="1" />
+    <ValidationMessage For="@(() => newCourse.Description)" class="validation-message" />
+
+    <button type="submit" class="btn btn-primary">
+        @(IsEditMode ? "Update" : "Create")
+    </button>
+    <a href="/courses" class="btn btn-secondary">Отмена</a>
+</EditForm>
+
+@code {
+    [Parameter] public int Id { get; set; } = 0;
+
+    public CourseModel newCourse { get; set; } = new();
+
+    private bool IsEditMode => Id > 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsEditMode)
+        {
+            // Loading existing course for editing
+            newCourse = await CourseService.GetByIdAsync(Id)
+                ?? new CourseModel();
+        }
+        else
+        {
+            newCourse = new CourseModel();
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            if (IsEditMode)
+            {
+                await CourseService.UpdateAsync(newCourse.Id, newCourse);
+            }
+            else
+            {
+                Console.WriteLine($"New Course: {newCourse}");
+                await CourseService.CreateAsync(newCourse);
+            }
+
+            Navigation.NavigateTo("/courses");
+        }
+        catch (Exception ex)
+        {
+            // Handle error - you might want to show a toast or error message
+            Console.WriteLine($"Error saving course: {ex.Message}");
+        }
+    }
+}
