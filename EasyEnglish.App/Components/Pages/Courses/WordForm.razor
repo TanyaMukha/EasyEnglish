@@ -155,7 +155,8 @@
             .WithLink("Courses", "/courses")
             .WithLink(Word.Unit.Course.Title, $"/courses/{CourseId}")
             .WithLink(Word.Unit.Title, $"/courses/{CourseId}/units/{UnitId}")
-            .WithActive(Word.Word)
+            .WithLink(Word.Word, $"/courses/{CourseId}/units/{UnitId}/words/{Word.Id}")
+            .WithActive("Edit")
             .Build();
     }
 
@@ -196,7 +197,6 @@
             if (IsEditMode)
             {
                 BrowserConsole.LogInfoAsync($"✅ Word : { JsonSerializer.Serialize(Word) }");
-                Word.Unit = null;
                 await WordService.UpdateAsync(Word.Id, Word);
             }
             else
@@ -205,7 +205,7 @@
                 await WordService.CreateAsync(Word);
             }
 
-            Navigation.NavigateTo($"/courses/{CourseId}/units/{UnitId}");
+            Navigation.NavigateTo($"/courses/{CourseId}/units/{UnitId}/words/{Word.Id}");
         }
         catch (Exception ex)
         {

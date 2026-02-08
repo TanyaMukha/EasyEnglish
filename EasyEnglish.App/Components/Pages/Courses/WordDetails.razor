@@ -3,15 +3,50 @@
 @using EasyEnglish.App.Components.Shared
 @using EasyEnglish.App.Components.Shared.Breadcrumb
 
-<div class="word-details-page">
+<div class="word-details-page" @key="WordId">
     <div class="header-section">
         <Breadcrumb Items="breadcrumbs" />
 
         <div class="title-section">
-            <h1 class="word-title">@Word.Word</h1>
-            <a href="/courses/@CourseId/units/@UnitId/words/@WordId/edit" class="btn-edit" title="Edit">
-                <i class="bi bi-pencil"></i>
-            </a>
+            <div class="title-wrapper">
+                <h1 class="word-title">@Word.Word</h1>
+                <a href="/courses/@CourseId/units/@UnitId/words/@WordId/edit"
+                   class="btn-edit"
+                   title="Edit">
+                    <i class="bi bi-pencil"></i>
+                </a>
+            </div>
+
+            <div class="navigation-buttons">
+                @if (PreviousWordId.HasValue)
+                {
+                    <a href="/courses/@CourseId/units/@UnitId/words/@PreviousWordId"
+                       class="btn-nav"
+                       title="Previous word">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                }
+                else
+                {
+                    <button class="btn-nav" disabled>
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                }
+                @if (NextWordId.HasValue)
+                {
+                    <a href="/courses/@CourseId/units/@UnitId/words/@NextWordId"
+                       class="btn-nav"
+                       title="Next word">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                }
+                else
+                {
+                    <button class="btn-nav" disabled>
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                }
+            </div>
         </div>
 
         @if (!string.IsNullOrEmpty(Word.Transcription))
@@ -20,6 +55,7 @@
         }
     </div>
 
+    <!-- Решта коду без змін -->
     <div class="content-grid">
         @if (!string.IsNullOrEmpty(Word.Translation))
         {
@@ -113,15 +149,32 @@
     [Parameter] public int CourseId { get; set; }
     [Parameter] public int UnitId { get; set; }
     [Parameter] public int WordId { get; set; }
-    
+
     public WordModel Word { get; set; } = new();
+    public int? PreviousWordId { get; set; }
+    public int? NextWordId { get; set; }
 
     private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
-    
-    protected override async Task OnInitializedAsync()
+    private int _previousWordId = -1; // Для відстеження змін
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Завантажуємо дані тільки якщо WordId змінився
+        if (_previousWordId != WordId)
+        {
+            _previousWordId = WordId;
+            await LoadWordDataAsync();
+        }
+    }
+
+    private async Task LoadWordDataAsync()
     {
         Word = await WordService.GetByIdAsync(WordId) ?? new WordModel();
         BrowserConsole.LogInfoAsync($"✅ Word : {JsonSerializer.Serialize(Word)}");
+
+        var navigationIds = await WordService.GetNavigationIdsAsync(UnitId, WordId);
+        PreviousWordId = navigationIds.PreviousId;
+        NextWordId = navigationIds.NextId;
 
         breadcrumbs = BreadcrumbBuilder.Create()
             .WithLink("Courses", "/courses")
@@ -146,8 +199,17 @@
     .title-section {
         display: flex;
         align-items: center;
+        justify-content: space-between;
         gap: 1rem;
         margin-bottom: 0.5rem;
+    }
+
+    .title-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex: 1;
+        min-width: 0;
     }
 
     .word-title {
@@ -155,6 +217,40 @@
         font-weight: 700;
         color: #333;
         margin: 0;
+        word-break: break-word;
+    }
+
+    .navigation-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-nav {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 0.5rem 0.75rem;
+        color: #666;
+        text-decoration: none;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        min-width: 40px;
+    }
+
+    .btn-nav:not(:disabled):hover {
+        background: #f8f9fa;
+        border-color: #A3BFFA;
+        color: #A3BFFA;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-nav:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
     }
 
     .btn-edit {
@@ -170,13 +266,13 @@
         justify-content: center;
     }
 
-    .btn-edit:hover {
-        background: white;
-        border-color: #A3BFFA;
-        color: #A3BFFA;
-        transform: translateY(-2px);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
+        .btn-edit:hover {
+            background: white;
+            border-color: #A3BFFA;
+            color: #A3BFFA;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
 
     .transcription {
         font-size: 1.25rem;
@@ -185,36 +281,7 @@
         margin-bottom: 1rem;
     }
 
-    .meta-tags {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-    }
-
-    .tag {
-        padding: 0.25rem 0.75rem;
-        border-radius: 12px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-    }
-
-    .tag-speech {
-        background: #E3F2FD;
-        color: #1976D2;
-    }
-
-    .tag-level {
-        background: #F3E5F5;
-        color: #7B1FA2;
-    }
-
-    .tag-language {
-        background: #E8F5E9;
-        color: #388E3C;
-    }
-
+    /* Решта стилів залишаються без змін */
     .content-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -235,10 +302,6 @@
     .info-card:hover {
         border-color: #A3BFFA;
         box-shadow: 0 4px 12px rgba(163, 191, 250, 0.15);
-    }
-
-    .info-card.full-width {
-        grid-column: 1 / -1;
     }
 
     .card-icon {
@@ -396,6 +459,20 @@
     @@media (max-width: 768px) {
         .word-title {
             font-size: 2rem;
+        }
+
+        .title-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .title-wrapper {
+            order: 1;
+        }
+
+        .navigation-buttons {
+            order: 2;
+            justify-content: center;
         }
 
         .content-grid {

@@ -3,15 +3,20 @@ using EasyEnglish.Core.Entities;
 using EasyEnglish.Core.Interfaces.Repositories;
 using EasyEnglish.Core.Interfaces.Services;
 using EasyEnglish.Core.Models;
+using EasyEnglish.Data.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MukhaLab.SelectQueryParameters.Models;
 
 namespace EasyEnglish.Services.Services;
 public class WordService : BaseService<WordEntity, WordModel>, IWordService
 {
+    private readonly IWordRepository _wordRepository;
+
     public WordService(IWordRepository repository, IMapper mapper, ILogger<WordService> logger)
         : base(repository, mapper, logger)
     {
+        _wordRepository = repository;
     }
 
     public async Task<IEnumerable<WordModel>> GetAnyNextWordsAsync(int count)
@@ -70,5 +75,25 @@ public class WordService : BaseService<WordEntity, WordModel>, IWordService
         }
 
         return await this.UpdateRangeAsync(wordsToUpdate.Select(w => (w.Id, w)));
+    }
+
+    public async Task<(int? PreviousId, int? NextId)> GetNavigationIdsAsync(int unitId, int currentWordId)
+    {
+        try
+        {
+            _logger.LogDebug("Отримання ID сусідніх слів для слова {WordId} у модулі {UnitId}", currentWordId, unitId);
+
+            var navigationIds = await this._wordRepository.GetNavigationIdsAsync(unitId, currentWordId);
+
+            _logger.LogDebug("Попереднє слово: {PreviousId}, Наступне слово: {NextId}",
+                navigationIds.PreviousId, navigationIds.NextId);
+
+            return navigationIds;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Помилка при отриманні ID сусідніх слів для слова {WordId}", currentWordId);
+            throw;
+        }
     }
 }

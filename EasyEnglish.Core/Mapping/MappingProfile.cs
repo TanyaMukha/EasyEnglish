@@ -20,7 +20,8 @@ public class MappingProfile : Profile
         CreateMap<WordEntity, WordModel>()
             .ForMember(dest => dest.CourseId,
                 opt => opt.MapFrom(src => src.Unit != null ? src.Unit.CourseId : 0));
-        CreateMap<WordModel, WordEntity>();
+        CreateMap<WordModel, WordEntity>()
+            .ForMember(dest => dest.Unit, opt => opt.Ignore());
 
         CreateMap<ExampleEntity, ExampleModel>().ReverseMap();
         CreateMap<UnitEntity, UnitModel>().ReverseMap();
