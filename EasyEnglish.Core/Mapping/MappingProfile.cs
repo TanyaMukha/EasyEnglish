@@ -1,5 +1,6 @@
 using AutoMapper;
 using EasyEnglish.Core.Entities;
+using EasyEnglish.Core.Interfaces.Services;
 using EasyEnglish.Core.Models;
 
 namespace EasyEnglish.Core.Mapping;
@@ -22,6 +23,9 @@ public class MappingProfile : Profile
                 opt => opt.MapFrom(src => src.Unit != null ? src.Unit.CourseId : 0));
         CreateMap<WordModel, WordEntity>()
             .ForMember(dest => dest.Unit, opt => opt.Ignore());
+
+        CreateMap<UpdateWordRateRequest, WordModel>().ReverseMap();
+        CreateMap<UpdateWordRateRequest, WordEntity>();
 
         CreateMap<ExampleEntity, ExampleModel>().ReverseMap();
         CreateMap<UnitEntity, UnitModel>().ReverseMap();

@@ -31,7 +31,7 @@
                   TotalAttempts="@totalAttempts"
                   CorrectAnswers="@correctAnswers"
                   IncorrectAnswers="@incorrectAnswers"
-                  ShowNextButton="@isAnswerSubmitted"
+                  ShowNextButton="@(isAnswerSubmitted && (cardType != CardType.KnowOrNot || !isKnown))"
                   OnNextCard="@NextItem"
                   OnFinish="@FinishTest">
 
@@ -56,7 +56,8 @@
                                         isKnown="@isKnown"
                                         isVerified="@isVerified"
                                         OnSelfAssess="@SelfAssess"
-                                        OnVerifyAssessment="@VerifyAssessment" />
+                                        OnVerifyAssessment="@VerifyAssessment"
+                                        OnNext="@NextItem" />
             }
         </ChildContent>
 
@@ -252,6 +253,7 @@
     private void PrepareForNextCard()
     {
         isAnswerSubmitted = false;
+        isKnown = false;
         isVerified = false;
         selectedAnswer = null;
         if (cardType == CardType.SingleChoice)

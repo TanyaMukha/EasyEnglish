@@ -604,31 +604,3 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         return query.Where(lambda);
     }
 }
-
-//3. Приклад використання в репозиторії
-//Варіант А: Продовжуйте використовувати Scoped(БЕЗ ЗМІН) :
-//csharppublic class CourseRepository : BaseRepository<CourseEntity>, ICourseRepository
-//{
-//    // ✅ Працює як раніше - використовує Scoped DbContext
-//    public CourseRepository(
-//        IMapper mapper,
-//        EasyEnglishDbContext context,
-//        IUserContext userContext)
-//        : base(mapper, context, userContext)
-//    {
-//        ConfigureIncludes(new[] { "Units" });
-//    }
-//}
-//Варіант Б: Використовуйте Factory(НОВЕ):
-//csharppublic class CourseRepository : BaseRepository<CourseEntity>, ICourseRepository
-//{
-//    // ✅ Новий конструктор з Factory - потокобезпечний!
-//    public CourseRepository(
-//        IMapper mapper,
-//        IDbContextFactory<EasyEnglishDbContext> contextFactory,
-//        IUserContext? userContext = null)
-//        : base(mapper, contextFactory, userContext)
-//    {
-//        ConfigureIncludes(new[] { "Units" });
-//    }
-//}

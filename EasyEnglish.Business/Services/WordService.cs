@@ -60,21 +60,64 @@ public class WordService : BaseService<WordEntity, WordModel>, IWordService
         return await this.UpdateAsync(model!.Id, model);
     }
 
+    //public async Task<IEnumerable<WordModel>> UpdateWordRateRangeAsync(IEnumerable<UpdateWordRateRequest> words)
+    //{
+    //    List<WordModel> wordsToUpdate = new();
+
+    //    foreach (var word in words)
+    //    {
+    //        WordModel? model = await this.GetByIdAsync(word.Id);
+    //        if (model != null)
+    //        {
+    //            _mapper.Map(word, model);
+    //            wordsToUpdate.Add(model);
+    //        }
+    //    }
+
+    //    return await this.UpdateRangeAsync(wordsToUpdate.Select(w => (w.Id, w)));
+    //}
+
     public async Task<IEnumerable<WordModel>> UpdateWordRateRangeAsync(IEnumerable<UpdateWordRateRequest> words)
     {
-        List<WordModel> wordsToUpdate = new();
-
-        foreach (var word in words)
+        try
         {
-            WordModel? model = await this.GetByIdAsync(word.Id);
-            if (model != null)
-            {
-                _mapper.Map(word, model);
-                wordsToUpdate.Add(model);
-            }
-        }
+            _logger.LogDebug("Оновлення рейтингу для {Count} слів", words.Count());
 
-        return await this.UpdateRangeAsync(wordsToUpdate.Select(w => (w.Id, w)));
+            var wordsList = words.ToList();
+            var ids = wordsList.Select(w => w.Id).ToList();
+
+            // Отримуємо сутності БЕЗ навігаційних властивостей
+            var entities = await _repository.FindManyAsync(ids);
+
+            // Створюємо словник для швидкого пошуку
+            var entitiesDict = entities.ToDictionary(e => e.Id);
+
+            // Оновлюємо тільки необхідні поля
+            foreach (var word in wordsList)
+            {
+                if (entitiesDict.TryGetValue(word.Id, out var entity))
+                {
+                    //entity.Rate = word.Rate;
+                    //entity.ReviewCount = word.ReviewCount;
+                    //entity.LastReviewDate = word.LastReviewDate;
+                    _mapper.Map(word, entity);
+                }
+            }
+
+            // Оновлюємо сутності
+            await _repository.UpdateRangeAsync(entities);
+
+            // Повертаємо оновлені моделі (тепер завантажуємо з includes)
+            var updatedModels = await GetByIdsAsync(ids);
+
+            _logger.LogInformation("Оновлено рейтинг для {Count} слів", updatedModels.Count());
+            return updatedModels;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Помилка при оновленні рейтингу слів");
+            throw;
+        }
     }
 
     public async Task<(int? PreviousId, int? NextId)> GetNavigationIdsAsync(int unitId, int currentWordId)

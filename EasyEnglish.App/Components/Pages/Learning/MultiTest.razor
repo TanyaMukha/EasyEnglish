@@ -15,22 +15,22 @@
     <PageHeader Title="Мульті-тест" />
 
     <LearningCard 
-    Title="@GetTestTitle()"
-    HeaderClass="@GetHeaderClass()"
-    IconClass="@GetIconClass()"
-    Rate="@(currentItem?.Rate ?? 0)"
-    TotalCount="@totalItems"
-    CompletedCount="@completed"
-    IsLoading="@isLoading"
-    ErrorMessage="@errorMessage"
-    ShowStats="@showStats"
-    CompletedWords="@completed"
-    TotalAttempts="@totalAttempts"
-    CorrectAnswers="@correctAnswers"
-    IncorrectAnswers="@incorrectAnswers"
-    ShowNextButton="@(isAnswerSubmitted || currentTestType == "review-words")"
-    OnNextCard="@NextItem"
-    OnFinish="@FinishTest">
+        Title="@GetTestTitle()"
+        HeaderClass="@GetHeaderClass()"
+        IconClass="@GetIconClass()"
+        Rate="@(currentItem?.Rate ?? 0)"
+        TotalCount="@totalItems"
+        CompletedCount="@completed"
+        IsLoading="@isLoading"
+        ErrorMessage="@errorMessage"
+        ShowStats="@showStats"
+        CompletedWords="@completed"
+        TotalAttempts="@totalAttempts"
+        CorrectAnswers="@correctAnswers"
+        IncorrectAnswers="@incorrectAnswers"
+        ShowNextButton="@(GetShowNextButton())"
+        OnNextCard="@NextItem"
+        OnFinish="@FinishTest">
 
         <ChildContent>
             @if (currentItem != null && !string.IsNullOrEmpty(currentTestType))
@@ -38,17 +38,14 @@
                 @* Review Words *@
                 @if (currentTestType == "review-words")
                 {
-                    <WordInfoSection 
-                    Word="@currentItem.Word"
-                    Transcription="@currentItem.Transcription"
-                    Translation="@currentItem.Translation"
-                    Examples="@currentItem.Examples"
-                    ShowNoExamples="@false" />
-
-                    <DifficultyRatingSection 
-                    OnRate="@RateWord"
-                    IsRating="@isRating"
-                    LastRatedValue="@lastRatedValue" />
+                    <div class="info-card-body w-100">
+                        <WordInfoSection 
+                            Word="@currentItem.Word"
+                            Transcription="@currentItem.Transcription"
+                            Translation="@currentItem.Translation"
+                            Examples="@currentItem.Examples"
+                            ShowNoExamples=false />
+                    </div>
                 }
 
                 @* Word-to-Translation Tests *@
@@ -56,67 +53,71 @@
                 {
                     <WordSection Word="@currentItem.Word" Transcription="@currentItem.Transcription" />
                     <AnswerOptionSection 
-                    AnswerOptions="@answerOptions"
-                    IsAnswerSubmitted="@isAnswerSubmitted"
-                    CorrectAnswer="@currentItem.Translation"
-                    SelectedAnswer="@selectedAnswer"
-                    OnAnswerSelected="@CheckAnswer" />
+                        AnswerOptions="@answerOptions"
+                        IsAnswerSubmitted="@isAnswerSubmitted"
+                        CorrectAnswer="@currentItem.Translation"
+                        SelectedAnswer="@selectedAnswer"
+                        OnAnswerSelected="@CheckAnswer" />
                 }
                 else if (currentTestType == "word-to-translation-know-or-not")
                 {
                     <WordSection Word="@currentItem.Word" Transcription="@currentItem.Transcription" />
+                    @* word-to-translation-know-or-not *@
                     @if (!isSelfAssessed)
                     {
                         <AnswerKnowOrNotSection 
-                        isSelfAssessed="@false"
-                        isKnown="@false"
-                        isVerified="@false"
-                        OnSelfAssess="@SelfAssess"
-                        OnVerifyAssessment="@VerifyAssessment" />
+                            isSelfAssessed="@false"
+                            isKnown="@false"
+                            isVerified="@false"
+                            OnSelfAssess="@SelfAssess"
+                            OnVerifyAssessment="@VerifyAssessment"
+                            OnNext="@NextItem" />
                     }
                     else
                     {
                         <QuestionSection Text="@currentItem.Translation" />
                         <AnswerKnowOrNotSection 
-                        isSelfAssessed="@true"
-                        isKnown="@isKnown"
-                        isVerified="@isVerified"
-                        OnSelfAssess="@SelfAssess"
-                        OnVerifyAssessment="@VerifyAssessment" />
+                            isSelfAssessed="@true"
+                            isKnown="@isKnown"
+                            isVerified="@isVerified"
+                            OnSelfAssess="@SelfAssess"
+                            OnVerifyAssessment="@VerifyAssessment"
+                            OnNext="@NextItem" />
+                        }
                     }
-                }
 
                 @* Translation-to-Word Tests *@
                 else if (currentTestType == "translation-to-word-single-choice")
                 {
-                    <WordSection Word="@currentItem.Word" Transcription="@currentItem.Transcription" Hidden="@(!isAnswerSubmitted)" />
+                    @* <WordSection Word="@currentItem.Word" Transcription="@currentItem.Transcription" Hidden="@(!isAnswerSubmitted)" /> *@
                     <QuestionSection Text="@currentItem.Translation" />
                     <AnswerOptionSection 
-                    AnswerOptions="@answerOptions"
-                    IsAnswerSubmitted="@isAnswerSubmitted"
-                    CorrectAnswer="@currentItem.Word"
-                    SelectedAnswer="@selectedAnswer"
-                    OnAnswerSelected="@CheckAnswer" />
+                        AnswerOptions="@answerOptions"
+                        IsAnswerSubmitted="@isAnswerSubmitted"
+                        CorrectAnswer="@currentItem.Word"
+                        SelectedAnswer="@selectedAnswer"
+                        OnAnswerSelected="@CheckAnswer" />
                 }
                 else if (currentTestType == "translation-to-word-know-or-not")
                 {
                     <WordSection Word="@currentItem.Word" Transcription="@currentItem.Transcription" Hidden="@(!isSelfAssessed)" />
                     <QuestionSection Text="@currentItem.Translation" />
                     <AnswerKnowOrNotSection 
-                    isSelfAssessed="@isSelfAssessed"
-                    isKnown="@isKnown"
-                    isVerified="@isVerified"
-                    OnSelfAssess="@SelfAssess"
-                    OnVerifyAssessment="@VerifyAssessment" />
+                        isSelfAssessed="@isSelfAssessed"
+                        isKnown="@isKnown"
+                        isVerified="@isVerified"
+                        OnSelfAssess="@SelfAssess"
+                        OnVerifyAssessment="@VerifyAssessment"
+                        OnNext="@NextItem" />
                 }
                 else if (currentTestType == "translation-to-word-manual-input")
                 {
                     <WordSection Word="@currentItem.Word" Transcription="@currentItem.Transcription" Hidden="@(!isAnswerSubmitted)" />
                     <QuestionSection Text="@currentItem.Translation" />
                     <AnswerInputSection 
-                    isAnswerSubmitted="@isAnswerSubmitted"
-                    CorrectAnswer="@currentItem.Word"
-                    OnAnswerSubmitted="@CheckAnswer" />
+                        isAnswerSubmitted="@isAnswerSubmitted"
+                        CorrectAnswer="@currentItem.Word"
+                        OnAnswerSubmitted="@CheckAnswer" />
                 }
             }
         </ChildContent>
@@ -448,6 +449,23 @@
         }
     }
 
+    private bool GetShowNextButton()
+    {
+        // Для review-words завжди показувати
+        if (currentTestType == "review-words")
+            return true;
+
+        // Для know-or-not типів
+        if (currentTestType.Contains("know-or-not"))
+        {
+            // Показувати тільки коли обрано "Не знаю"
+            return isSelfAssessed && !isKnown;
+        }
+
+        // Для інших типів - стандартна логіка
+        return isAnswerSubmitted;
+    }
+
     private async Task FinishTest()
     {
         var wordsToUpdate = WordRatingCalculator.UpdateWordRate(items);
@@ -519,5 +537,26 @@
         max-width: 800px;
         margin: 0 auto;
         padding: 2rem 1rem;
+    }
+
+    .info-card-body {
+        padding: 2rem;
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        gap: 2rem;
+    }
+
+    @@media (max-width: 768px) {
+        .info-card-body {
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem;
+            gap: 1.5rem;
+        }
+
+        .page-content {
+            padding: 1rem 0.5rem;
+        }
     }
 </style>

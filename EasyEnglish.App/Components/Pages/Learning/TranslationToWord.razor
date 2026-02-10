@@ -32,34 +32,38 @@
                   TotalAttempts="@totalAttempts"
                   CorrectAnswers="@correctAnswers"
                   IncorrectAnswers="@incorrectAnswers"
-                  ShowNextButton="@isAnswerSubmitted"
+                  ShowNextButton="@(isAnswerSubmitted && (cardType != CardType.KnowOrNot || !isKnown))"
                   OnNextCard="@NextItem"
                   OnFinish="@FinishTest">
 
         <ChildContent>
-            <WordSection Word="@currentItem.Word" Transcription="@currentItem.Transcription" Hidden="@(!isAnswerSubmitted)" />
+            @if (cardType != CardType.SingleChoice)
+            {
+                        <WordSection Word="@currentItem.Word" Transcription="@currentItem.Transcription" Hidden="@(!isAnswerSubmitted)" />
+            }
             <QuestionSection Text="@currentItem.Translation" />
             @if (cardType == CardType.SingleChoice)
             {
-                <AnswerOptionSection AnswerOptions="@answerOptions"
-                                     IsAnswerSubmitted="@isAnswerSubmitted"
-                                     CorrectAnswer="@currentItem.Word"
-                                     SelectedAnswer="@selectedAnswer"
-                                     OnAnswerSelected="@CheckAnswer" />
+                        <AnswerOptionSection AnswerOptions="@answerOptions"
+                                             IsAnswerSubmitted="@isAnswerSubmitted"
+                                             CorrectAnswer="@currentItem.Word"
+                                             SelectedAnswer="@selectedAnswer"
+                                             OnAnswerSelected="@CheckAnswer" />
             }
             else if (cardType == CardType.KnowOrNot)
             {
-                <AnswerKnowOrNotSection isSelfAssessed="@isAnswerSubmitted"
-                                        isKnown="@isKnown"
-                                        isVerified="@isVerified"
-                                        OnSelfAssess="@SelfAssess"
-                                        OnVerifyAssessment="@VerifyAssessment" />
+                        <AnswerKnowOrNotSection isSelfAssessed="@isAnswerSubmitted"
+                                isKnown="@isKnown"
+                                isVerified="@isVerified"
+                                OnSelfAssess="@SelfAssess"
+                                OnVerifyAssessment="@VerifyAssessment"
+                                OnNext="@NextItem" />
             }
             else
             {
-                <AnswerInputSection isAnswerSubmitted="@isAnswerSubmitted"
-                                    CorrectAnswer="@currentItem.Word"
-                                    OnAnswerSubmitted="@CheckAnswer" />
+                        <AnswerInputSection isAnswerSubmitted="@isAnswerSubmitted"
+                                            CorrectAnswer="@currentItem.Word"
+                                            OnAnswerSubmitted="@CheckAnswer" />
             }
         </ChildContent>
 
@@ -259,6 +263,7 @@
     private void PrepareForNextCard()
     {
         isAnswerSubmitted = false;
+        isKnown = false;
         isVerified = false;
         selectedAnswer = null;
         if (cardType == CardType.SingleChoice)

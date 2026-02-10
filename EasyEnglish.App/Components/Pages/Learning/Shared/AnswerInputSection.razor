@@ -19,12 +19,7 @@
 }
 
 @if (isAnswerSubmitted)
-{
-    <div class="answer-reveal">
-        <p class="reveal-label">Правильна відповідь:</p>
-        <p class="reveal-answer">@CorrectAnswer</p>
-    </div>
-    
+{  
     <div class="feedback @alertClass">
         <i class="bi @(alertClass == "success" ? "bi-check-circle" : "bi-x-circle")"></i>
         @((MarkupString)CustomMarkdownRenderer.RenderCustomMarkdown(feedbackMessage ?? ""))

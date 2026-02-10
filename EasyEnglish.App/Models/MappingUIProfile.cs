@@ -26,14 +26,5 @@ public class MappingUIProfile : Profile
                 opt => opt.MapFrom(src => src.Unit != null ? src.Unit.CourseId : 0));
 
         CreateMap<WordTestModel, UpdateWordRateRequest>();
-
-        CreateMap<WordModel, UpdateWordRateRequest>();
-
-        CreateMap<UpdateWordRateRequest, WordModel>()
-            .AfterMap((src, dest) =>
-            {
-                dest.Unit = null;
-                dest.Examples = null;
-            });
     }
 }
