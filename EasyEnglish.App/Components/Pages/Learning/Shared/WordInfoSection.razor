@@ -2,23 +2,23 @@
 
 <div class="word-info-section">
     <h2 class="word-title">@Word</h2>
-    
+
     @if (!string.IsNullOrEmpty(Transcription))
     {
         <p class="transcription">[ @Transcription ]</p>
     }
-    
+
     @if (!string.IsNullOrEmpty(Translation))
     {
         <p class="translation">@Translation</p>
     }
-    
-    @if (Examples != null && Examples.Any())
+
+    @if (randomExample is not null)
     {
         <div class="example-section">
-            <p class="example-text">@Examples[0].Sentence</p>
+            <p class="example-text">@((MarkupString)CustomMarkdownRenderer.RenderCustomMarkdown(randomExample.Sentence))</p>
             <p class="example-translation">
-                <i>@Examples[0].Translation</i>
+                <i>@((MarkupString)CustomMarkdownRenderer.RenderCustomMarkdown(randomExample.Translation))</i>
             </p>
         </div>
     }
@@ -34,6 +34,22 @@
     [Parameter] public string? Translation { get; set; }
     [Parameter] public IList<ExampleModel>? Examples { get; set; }
     [Parameter] public bool ShowNoExamples { get; set; } = true;
+
+    private ExampleModel? randomExample;
+
+    protected override void OnParametersSet()
+    {
+        randomExample = GetRandomExample();
+    }
+
+    private ExampleModel? GetRandomExample()
+    {
+        if (Examples == null || !Examples.Any())
+            return null;
+
+        int randomIndex = Random.Shared.Next(Examples.Count);
+        return Examples[randomIndex];
+    }
 }
 
 <style>

@@ -87,5 +87,5 @@ public class IrregularFormEntity : AbstractEntity, IReviewInfo, IRateInfo, IAudi
     [Column("unit_id")]
     public int UnitId { get; set; }
 
-    public virtual UnitEntity? Unit { get; set; }
+    public UnitEntity? Unit { get; set; }
 }

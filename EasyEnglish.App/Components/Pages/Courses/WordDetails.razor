@@ -10,6 +10,14 @@
         <div class="title-section">
             <div class="title-wrapper">
                 <h1 class="word-title">@Word.Word</h1>
+
+                @if (Word.Pronunciation is { Length: > 0 })
+                {
+                    <span class="btn-audio" @onclick="PlayAudio" title="Play pronunciation">
+                        <i class="bi bi-volume-up-fill"></i>
+                    </span>
+                }
+
                 <a href="/courses/@CourseId/units/@UnitId/words/@WordId/edit"
                    class="btn-edit"
                    title="Edit">
@@ -154,6 +162,8 @@
     public int? PreviousWordId { get; set; }
     public int? NextWordId { get; set; }
 
+    private bool IsPlaying = false;
+
     private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
     private int _previousWordId = -1; // Для відстеження змін
 
@@ -182,6 +192,24 @@
             .WithLink(Word.Unit.Title, $"/courses/{CourseId}/units/{UnitId}")
             .WithActive(Word.Word)
             .Build();
+    }
+
+    private async Task PlayAudio()
+    {
+        if (IsPlaying)
+        {
+            AudioService.Stop();
+            IsPlaying = false;
+            return;
+        }
+
+        if (Word.Pronunciation is { Length: > 0 })
+        {
+            IsPlaying = true;
+            await AudioService.PlayAsync(Word.Pronunciation);
+            IsPlaying = false;
+            StateHasChanged();
+        }
     }
 }
 
@@ -219,6 +247,19 @@
         margin: 0;
         word-break: break-word;
     }
+
+    .btn-audio {
+        color: #ccc;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: color 0.2s;
+        display: flex;
+        align-items: center;
+    }
+
+        .btn-audio:hover {
+            color: #A3BFFA;
+        }
 
     .navigation-buttons {
         display: flex;

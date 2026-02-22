@@ -30,12 +30,12 @@
             @if (currentItem != null)
             {
                 <!-- Part of Speech Badge -->
-                @if (!string.IsNullOrEmpty(currentItem.PartOfSpeech))
-                {
-                    <div class="part-of-speech-badge">
-                        <span class="badge">@GetPartOfSpeechLabel(currentItem.PartOfSpeech)</span>
-                    </div>
-                }
+                @* @if (!string.IsNullOrEmpty(currentItem.PartOfSpeech)) *@
+                @* { *@
+                @*     <div class="part-of-speech-badge"> *@
+                @*         <span class="badge">@GetPartOfSpeechLabel(currentItem.PartOfSpeech)</span> *@
+                @*     </div> *@
+                @* } *@
 
                 <!-- Forms Display -->
                 <div class="forms-container">
@@ -90,12 +90,6 @@
                         </div>
                     }
                 </div>
-
-                <!-- Difficulty Rating -->
-                <DifficultyRatingSection 
-                    OnRate="@RateForm"
-                    IsRating="@isRating"
-                    LastRatedValue="@lastRatedValue" />
             }
         </ChildContent>
     </LearningCard>
@@ -223,10 +217,10 @@
     {
         return partOfSpeech?.ToLower() switch
         {
-            "verb" => "Verb (Дієслово)",
-            "noun" => "Noun (Іменник)",
-            "adjective" => "Adjective (Прикметник)",
-            "adverb" => "Adverb (Прислівник)",
+            "verb" => "Verb",
+            "noun" => "Noun",
+            "adjective" => "Adjective",
+            "adverb" => "Adverb",
             _ => partOfSpeech ?? ""
         };
     }
@@ -248,7 +242,7 @@
         {
             "verb" => formNumber switch
             {
-                1 => "Infinitive (Base Form)",
+                1 => "Infinitive",
                 2 => "Past Simple",
                 3 => "Past Participle",
                 _ => "Form"
@@ -309,9 +303,11 @@
     }
 
     .form-section {
-        background: #f8f9fa;
-        border-radius: 12px;
-        padding: 1.5rem;
+        display: grid;
+        grid-template-columns: 180px 1fr; /* первая колонка фиксированная, вторая растягивается */
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
     }
 
     .form-label {
@@ -320,12 +316,13 @@
         color: #666;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        margin: 0 0 1rem 0;
+        @* margin: 0 0 1rem 0; *@
     }
 
     .form-content {
         display: flex;
-        flex-direction: column;
+        @* flex-direction: column; *@
+        align-items: baseline;
         gap: 0.5rem;
     }
 

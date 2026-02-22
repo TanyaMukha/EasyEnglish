@@ -13,7 +13,6 @@
         Title="Введи слово"
         HeaderClass="pastel-green"
         IconClass="bi-keyboard"
-        Rate="@(currentItem?.Word?.Rate ?? 0)"
         TotalCount="@totalItems"
         CompletedCount="@completed"
         IsLoading="@isLoading"
@@ -141,32 +140,6 @@
                         </div>
                     }
                 </div>
-
-                <!-- Word Info (показується після перевірки) -->
-                @if (isAnswerSubmitted && currentItem.Word != null)
-                {
-                    <div class="word-info-section fade-in">
-                        <div class="word-card">
-                            <div class="word-header">
-                                <span class="word-main">@currentItem.Word.Word</span>
-                                @if (!string.IsNullOrEmpty(currentItem.Word.Transcription))
-                                {
-                                    <span class="word-transcription">[@currentItem.Word.Transcription]</span>
-                                }
-                            </div>
-                            @if (!string.IsNullOrEmpty(currentItem.Word.Translation))
-                            {
-                                <div class="word-translation">@currentItem.Word.Translation</div>
-                            }
-                        </div>
-                    </div>
-
-                    <!-- Rating Section -->
-                    <DifficultyRatingSection 
-                        OnRate="@RateExample"
-                        IsRating="@isRating"
-                        LastRatedValue="@lastRatedValue" />
-                }
             }
         </ChildContent>
     </LearningCard>
@@ -222,12 +195,6 @@
                     Sentence = "I ***go*** to school every day.",
                     Translation = "Я ходжу до школи щодня.",
                     WordId = 1,
-                    Word = new WordModel 
-                    { 
-                        Word = "go", 
-                        Transcription = "ɡəʊ",
-                        Translation = "йти, ходити"
-                    }
                 },
                 new ExampleModel 
                 { 
@@ -235,12 +202,6 @@
                     Sentence = "She **likes** to ***read*** books in the library.",
                     Translation = "Вона любить читати книги в бібліотеці.",
                     WordId = 2,
-                    Word = new WordModel 
-                    { 
-                        Word = "read", 
-                        Transcription = "riːd",
-                        Translation = "читати"
-                    }
                 }
             };
 

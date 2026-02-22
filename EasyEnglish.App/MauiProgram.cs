@@ -19,6 +19,7 @@ using EasyEnglish.App.Interfaces;
 using EasyEnglish.App.Models;
 using EasyEnglish.Cache.Extensions;
 using EasyEnglish.Core.Interfaces.Storage;
+using Plugin.Maui.Audio;
 
 namespace EasyEnglish.App;
 
@@ -176,6 +177,9 @@ public static class MauiProgram
         services.AddSingleton<IFileService, FileService>();
 
         //services.AddScoped<WordLearningService>();
+
+        services.AddSingleton(AudioManager.Current);
+        services.AddTransient<IAudioService, AudioService>();
 
         services.AddSingleton<ContextMenuService>();
     }

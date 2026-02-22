@@ -44,9 +44,9 @@ public class UnitEntity : AbstractEntity, IReviewInfo, IAuditInfo
     [Column("course_id")]
     public int CourseId { get; set; }
 
-    public virtual List<WordEntity> Words { get; set; } = new();
+    public List<WordEntity> Words { get; set; } = new();
 
-    public virtual List<IrregularFormEntity> IrregularForms { get; set; } = new();
+    public List<IrregularFormEntity> IrregularForms { get; set; } = new();
 
-    public virtual CourseEntity? Course { get; set; }
+    public CourseEntity? Course { get; set; }
 }

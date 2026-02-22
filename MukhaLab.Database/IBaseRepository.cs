@@ -13,9 +13,9 @@ public interface IBaseRepository<T>
     /// Retrieves all entities.
     /// </summary>
     /// <returns>A collection of all entities.</returns>
-    Task<IEnumerable<T>> GetAsync(QueryParameters parameters, bool disabledIncludes = false);
+    Task<IEnumerable<T>> GetAsync(QueryParameters parameters, bool includeRelatedEntities = true);
 
-    Task<PaginationInfo> GetPaginationInfoAsync(QueryParameters parameters, bool disabledIncludes = false);
+    Task<PaginationInfo> GetPaginationInfoAsync(QueryParameters parameters, bool includeRelatedEntities = true);
 
     /// <summary>
     /// Retrieves an entity by its unique identifier.
@@ -26,7 +26,7 @@ public interface IBaseRepository<T>
 
     Task<List<T>> FindManyAsync(params int[] ids);
 
-    Task<List<T>> FindManyAsync(IEnumerable<int> ids);
+    Task<List<T>> FindManyAsync(IEnumerable<int> ids, bool includeRelatedEntities = true);
 
     Task<int> CountAsync();
 

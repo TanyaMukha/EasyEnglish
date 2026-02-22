@@ -69,6 +69,18 @@
                             }
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="/splash"
+                           class="nav-link @GetNavClass("/splash")"
+                           @onclick="OnNavClick"
+                           title="@(isSidebarCollapsed && !isMobile ? "Index" : "")">
+                            <i class="nav-icon bi bi-house"></i>
+                            @if (!isSidebarCollapsed || isMobile)
+                            {
+                                <span class="nav-label">Index</span>
+                            }
+                        </a>
+                    </li>
                 </ul>
             </div>
 

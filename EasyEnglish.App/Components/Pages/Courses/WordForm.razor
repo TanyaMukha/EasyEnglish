@@ -244,15 +244,17 @@
         }
     }
 
-    private void PlayAudio()
+    private async Task PlayAudio()
     {
-        // Implement audio playback - you might need JS interop
-        // For now, just show a message
-        AudioUploadMessage = "Audio playback functionality not implemented yet";
+        if (Word.Pronunciation is { Length: > 0 })
+        {
+            await AudioService.PlayAsync(Word.Pronunciation);
+        }
     }
 
     private void RemoveAudio()
     {
+        AudioService.Stop();
         Word.Pronunciation = null;
         AudioUploadMessage = "Audio file removed";
     }

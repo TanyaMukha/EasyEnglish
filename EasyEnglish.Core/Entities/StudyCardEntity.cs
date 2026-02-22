@@ -48,5 +48,5 @@ public class StudyCardEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInf
     [Column("unit_id")]
     public int UnitId { get; set; }
 
-    public virtual UnitEntity? Unit { get; set; }
+    public UnitEntity? Unit { get; set; }
 }

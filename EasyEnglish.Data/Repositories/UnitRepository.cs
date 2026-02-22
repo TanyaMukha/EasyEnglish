@@ -19,6 +19,6 @@ public class UnitRepository : BaseRepository<UnitEntity, EasyEnglishDbContext>, 
         IUserContext? userContext = null)
         : base(mapper, contextFactory, userContext)
     {
-        ConfigureIncludes(new[] { "Words", "Course", "IrregularForms" });
+        ConfigureIncludes(new[] { "Words", "Course", "IrregularForms", "Words.Examples" });
     }
 }

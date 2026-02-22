@@ -2,60 +2,76 @@
 @using System.Globalization
 
 <div class="word-card" @onclick="@(() => Navigation.NavigateTo($"/courses/{word.CourseId}/units/{word.UnitId}/words/{word.Id}"))">
-                                <div class="word-card-header">
-                                    <div class="word-main">
-                                        <h3 class="word-text">@word.Word</h3>
+    <div class="word-card-header">
+        <div class="word-main">
+            <div class="word-title-row">
+                <h3 class="word-text">@word.Word</h3>
+                @if (word.Pronunciation is { Length: > 0 })
+                {
+                    <span class="audio-icon" @onclick:stopPropagation="true" @onclick="PlayAudio" title="Play pronunciation">
+                        <i class="bi bi-volume-up-fill"></i>
+                    </span>
+                }
+            </div>
             @if (!string.IsNullOrEmpty(word.Transcription))
             {
-                                                    <span class="word-transcription">[@word.Transcription]</span>
+                <span class="word-transcription">[@word.Transcription]</span>
             }
-                                    </div>
-                                    <div class="word-actions" @onclick:stopPropagation="true">
-                                        <a href="/courses/@word.CourseId/units/@word.UnitId/words/@word.Id/edit" 
-                                           class="action-btn" 
-                                           title="Редагувати">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                    </div>
-                                </div>
+        </div>
+        <div class="word-actions" @onclick:stopPropagation="true">
+            <a href="/courses/@word.CourseId/units/@word.UnitId/words/@word.Id/edit" 
+                class="action-btn" 
+                title="Редагувати">
+                <i class="bi bi-pencil"></i>
+            </a>
+        </div>
+    </div>
 
-                                <div class="word-card-body">
+    <div class="word-card-body">
         @if (!string.IsNullOrEmpty(word.Translation))
         {
-                                                <div class="word-info">
-                                                    <i class="bi bi-translate info-icon"></i>
-                                                    <span class="info-text">@word.Translation</span>
-                                                </div>
+            <div class="word-info">
+                <i class="bi bi-translate info-icon"></i>
+                <span class="info-text">@word.Translation</span>
+            </div>
         }
 
-                                </div>
+    </div>
 
-                                <div class="word-card-footer">
-                                    <div class="word-stats">
-                                        @* <i class="bi bi-card-text"></i> *@
-                                        @* <span>@word.Examples.Count examples</span> *@
-                                    </div>
-                                    <div class="word-stats">
+    <div class="word-card-footer">
+        <div class="word-stats">
+            <i class="bi bi-card-text"></i>
+            <span>@word.Examples.Count examples</span>
+        </div>
+        <div class="word-stats">
             @if (word.Rate > 0)
             {
-                                                    <span class="stat-item">
-                                                        <i class="bi bi-star-fill"></i>
+                <span class="stat-item">
+                    <i class="bi bi-star-fill"></i>
                     @word.Rate.ToString("F1", CultureInfo.InvariantCulture)
-                                                    </span>
+                </span>
             }
             @if (word.ReviewCount > 0)
             {
-                                                    <span class="stat-item">
-                                                        <i class="bi bi-arrow-repeat"></i>
+                <span class="stat-item">
+                    <i class="bi bi-arrow-repeat"></i>
                     @word.ReviewCount
-                                                    </span>
+                </span>
             }
-                                    </div>
-                                </div>
-                            </div>
+        </div>
+    </div>
+</div>
 
 @code {
     [Parameter] public WordModel word { get; set; }
+
+    private async Task PlayAudio()
+    {
+        if (word.Pronunciation is { Length: > 0 })
+        {
+            await AudioService.PlayAsync(word.Pronunciation);
+        }
+    }
 }
 
 <style>
@@ -87,6 +103,25 @@
     .word-main {
         flex: 1;
         min-width: 0;
+    }
+
+    .word-title-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .audio-icon {
+        color: #ccc;
+        font-size: 1.25rem;
+        cursor: pointer;
+        transition: color 0.2s;
+        display: flex;
+        align-items: center;
+    }
+
+    .audio-icon:hover {
+        color: #A3BFFA;
     }
 
     .word-text {

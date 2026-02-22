@@ -10,12 +10,24 @@
                 {
                     <span class="form-transcription">[@irregularForm.FirstFormTranscription]</span>
                 }
+                @if (irregularForm.FirstFormPronunciation is { Length: > 0 })
+                {
+                    <span class="audio-icon" @onclick:stopPropagation="true" @onclick="() => PlayAudio(irregularForm.FirstFormPronunciation)" title="Play">
+                        <i class="bi bi-volume-up-fill"></i>
+                    </span>
+                }
             </div>
             <div class="form-item">
                 <span class="form-word">@irregularForm.SecondForm</span>
                 @if (!string.IsNullOrEmpty(irregularForm.SecondFormTranscription))
                 {
                     <span class="form-transcription">[@irregularForm.SecondFormTranscription]</span>
+                }
+                @if (irregularForm.SecondFormPronunciation is { Length: > 0 })
+                {
+                    <span class="audio-icon" @onclick:stopPropagation="true" @onclick="() => PlayAudio(irregularForm.SecondFormPronunciation)" title="Play">
+                        <i class="bi bi-volume-up-fill"></i>
+                    </span>
                 }
             </div>
             @if (!string.IsNullOrEmpty(irregularForm.ThirdForm))
@@ -25,6 +37,12 @@
                     @if (!string.IsNullOrEmpty(irregularForm.ThirdFormTranscription))
                     {
                         <span class="form-transcription">[@irregularForm.ThirdFormTranscription]</span>
+                    }
+                    @if (irregularForm.ThirdFormPronunciation is { Length: > 0 })
+                    {
+                        <span class="audio-icon" @onclick:stopPropagation="true" @onclick="() => PlayAudio(irregularForm.ThirdFormPronunciation)" title="Play">
+                            <i class="bi bi-volume-up-fill"></i>
+                        </span>
                     }
                 </div>
             }
@@ -77,6 +95,14 @@
 @code {
     [Parameter] public IrregularFormModel irregularForm { get; set; }
 
+    private async Task PlayAudio(byte[]? audio)
+    {
+        if (audio is { Length: > 0 })
+        {
+            await AudioService.PlayAsync(audio);
+        }
+    }
+
     private string GetPartOfSpeechLabel()
     {
         return irregularForm.PartOfSpeech?.ToLower() switch
@@ -117,6 +143,19 @@
             display: flex;
             flex-direction: column;
             gap: 0.375rem;
+        }
+
+        .audio-icon {
+            color: #ccc;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .audio-icon:hover {
+            color: #A3BFFA;
         }
 
         .form-item {

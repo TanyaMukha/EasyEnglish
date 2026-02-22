@@ -64,5 +64,5 @@ public class TestCardEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInfo
     [Column("unit_id")]
     public int UnitId { get; set; }
 
-    public virtual UnitEntity? Unit { get; set; }
+    public UnitEntity? Unit { get; set; }
 }

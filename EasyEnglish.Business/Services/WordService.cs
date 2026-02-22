@@ -84,31 +84,24 @@ public class WordService : BaseService<WordEntity, WordModel>, IWordService
             _logger.LogDebug("Оновлення рейтингу для {Count} слів", words.Count());
 
             var wordsList = words.ToList();
-            var ids = wordsList.Select(w => w.Id).ToList();
+            List<int> ids = wordsList.Select(w => w.Id).ToList() ?? new List<int>();
 
-            // Отримуємо сутності БЕЗ навігаційних властивостей
-            var entities = await _repository.FindManyAsync(ids);
+            // ✅ Отримуємо БЕЗ includes для update
+            var entities = await _repository.FindManyAsync(ids, false);
 
-            // Створюємо словник для швидкого пошуку
             var entitiesDict = entities.ToDictionary(e => e.Id);
 
-            // Оновлюємо тільки необхідні поля
             foreach (var word in wordsList)
             {
                 if (entitiesDict.TryGetValue(word.Id, out var entity))
                 {
-                    //entity.Rate = word.Rate;
-                    //entity.ReviewCount = word.ReviewCount;
-                    //entity.LastReviewDate = word.LastReviewDate;
                     _mapper.Map(word, entity);
                 }
             }
 
-            // Оновлюємо сутності
             await _repository.UpdateRangeAsync(entities);
 
-            // Повертаємо оновлені моделі (тепер завантажуємо з includes)
-            var updatedModels = await GetByIdsAsync(ids);
+            var updatedModels = _mapper.Map<IEnumerable<WordModel>>(entities);
 
             _logger.LogInformation("Оновлено рейтинг для {Count} слів", updatedModels.Count());
             return updatedModels;

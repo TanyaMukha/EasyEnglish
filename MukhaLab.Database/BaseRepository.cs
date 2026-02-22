@@ -96,7 +96,7 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         TContext ctx,
         QueryParameters parameters,
         bool withoutPagination = false,
-        bool disabledIncludes = false)
+        bool includeRelatedEntities = true)
     {
         var set = GetDbSet(ctx);
         IQueryable<T> query = set;
@@ -110,7 +110,7 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         } : parameters;
 
         query = this.enableUserFiltering ? this.IncludeUserIdFilter(query) : query;
-        if (!disabledIncludes)
+        if (includeRelatedEntities)
         {
             query = this.IncludeProperties(query);
         }
@@ -122,7 +122,7 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
     /// <summary>
     /// Retrieves all entities as queryable, including default related entities if specified.
     /// </summary>
-    public virtual IQueryable<T> Get(QueryParameters parameters, bool disabledIncludes = false)
+    public virtual IQueryable<T> Get(QueryParameters parameters, bool includeRelatedEntities = true)
     {
         ArgumentNullException.ThrowIfNull(parameters);
 
@@ -132,20 +132,20 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
                 "Get(QueryParameters) cannot be used with Factory pattern. Use GetAsync instead.");
         }
 
-        return this.BuildSelectQuery(context!, parameters, false, disabledIncludes);
+        return this.BuildSelectQuery(context!, parameters, false, includeRelatedEntities);
     }
 
     /// <summary>
     /// Retrieves all entities as list asynchronously.
     /// </summary>
-    public virtual async Task<IEnumerable<T>> GetAsync(QueryParameters parameters, bool disabledIncludes = false)
+    public virtual async Task<IEnumerable<T>> GetAsync(QueryParameters parameters, bool includeRelatedEntities = true)
     {
         ArgumentNullException.ThrowIfNull(parameters);
 
         var (ctx, shouldDispose) = await GetContextAsync();
         try
         {
-            var query = this.BuildSelectQuery(ctx, parameters, false, disabledIncludes);
+            var query = this.BuildSelectQuery(ctx, parameters, false, includeRelatedEntities);
             return await query.AsNoTracking().ToListAsync();
         }
         finally
@@ -184,7 +184,7 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
     /// <summary>
     /// Gets pagination information synchronously.
     /// </summary>
-    public virtual PaginationInfo GetPaginationInfo(QueryParameters parameters, bool disabledIncludes = false)
+    public virtual PaginationInfo GetPaginationInfo(QueryParameters parameters, bool includeRelatedEntities = true)
     {
         ArgumentNullException.ThrowIfNull(parameters);
 
@@ -195,7 +195,7 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         }
 
         int countPerPage = parameters.RowCount ?? 0;
-        var query = this.BuildSelectQuery(context!, parameters, withoutPagination: true, disabledIncludes: disabledIncludes);
+        var query = this.BuildSelectQuery(context!, parameters, withoutPagination: true, includeRelatedEntities: includeRelatedEntities);
         var totalCount = query.Count();
 
         return new PaginationInfo
@@ -208,7 +208,7 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
     /// <summary>
     /// Gets pagination information asynchronously.
     /// </summary>
-    public virtual async Task<PaginationInfo> GetPaginationInfoAsync(QueryParameters parameters, bool disabledIncludes = false)
+    public virtual async Task<PaginationInfo> GetPaginationInfoAsync(QueryParameters parameters, bool includeRelatedEntities = true)
     {
         ArgumentNullException.ThrowIfNull(parameters);
 
@@ -216,7 +216,7 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         try
         {
             int countPerPage = parameters.RowCount ?? 0;
-            var query = this.BuildSelectQuery(ctx, parameters, withoutPagination: true, disabledIncludes: disabledIncludes);
+            var query = this.BuildSelectQuery(ctx, parameters, withoutPagination: true, includeRelatedEntities: includeRelatedEntities);
             var totalCount = await query.CountAsync();
 
             return new PaginationInfo
@@ -235,8 +235,13 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
     }
 
     /// <summary>
-    /// Finds entity by primary key(s).
+    /// Applies AsNoTracking when using Factory pattern to prevent tracking issues after dispose
     /// </summary>
+    protected IQueryable<T> ApplyTrackingBehavior(IQueryable<T> query, bool shouldDispose)
+    {
+        return shouldDispose ? query.AsNoTracking() : query;
+    }
+
     public virtual async Task<T?> FindAsync(params object[] keyValues)
     {
         if (keyValues == null || keyValues.Length == 0)
@@ -249,21 +254,74 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         {
             var set = GetDbSet(ctx);
 
-            // Якщо немає налаштованих включень, використовуємо стандартний FindAsync
+            // Якщо немає налаштованих включень
             if (this.includes == null || this.includes.Length == 0)
             {
-                return await set.FindAsync(keyValues);
+                var entity = await set.FindAsync(keyValues);
+
+                // ✅ Detach якщо використовуємо Factory
+                if (shouldDispose && entity != null)
+                {
+                    ctx.Entry(entity).State = EntityState.Detached;
+                }
+
+                return entity;
             }
 
-            // Для простоти припускаємо, що primary key - це Id
+            // Для запитів з includes використовуємо LINQ
             if (keyValues.Length == 1 && keyValues[0] is int id)
             {
                 IQueryable<T> query = set;
                 query = this.IncludeProperties(query);
+
+                // ✅ КРИТИЧНО: AsNoTracking для Factory pattern
+                query = ApplyTrackingBehavior(query, shouldDispose);
+
                 return await query.Where("Id == @0", id).FirstOrDefaultAsync();
             }
 
-            return await set.FindAsync(keyValues);
+            // Fallback для складних ключів
+            var result = await set.FindAsync(keyValues);
+
+            if (shouldDispose && result != null)
+            {
+                ctx.Entry(result).State = EntityState.Detached;
+            }
+
+            return result;
+        }
+        finally
+        {
+            if (shouldDispose)
+            {
+                await ctx.DisposeAsync();
+            }
+        }
+    }
+
+    public virtual async Task<List<T>> FindManyAsync(IEnumerable<int> ids, bool includeRelatedEntities = true)
+    {
+        if (ids == null || !ids.Any())
+        {
+            return new List<T>();
+        }
+
+        var idList = ids.ToList();
+        var (ctx, shouldDispose) = await GetContextAsync();
+        try
+        {
+            var set = GetDbSet(ctx);
+            IQueryable<T> query = set;
+
+            // ✅ Опціонально включаємо includes
+            if (includeRelatedEntities && this.includes != null && this.includes.Length > 0)
+            {
+                query = this.IncludeProperties(query);
+            }
+
+            query = ApplyTrackingBehavior(query, shouldDispose);
+
+            return await query.Where("Id in @0", idList).ToListAsync();
         }
         finally
         {
@@ -285,39 +343,6 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         }
 
         return await FindManyAsync((IEnumerable<int>)ids);
-    }
-
-    /// <summary>
-    /// Finds entities by multiple primary keys.
-    /// </summary>
-    public virtual async Task<List<T>> FindManyAsync(IEnumerable<int> ids)
-    {
-        if (ids == null || !ids.Any())
-        {
-            return new List<T>();
-        }
-
-        var idList = ids.ToList(); // Materialize для уникнення multiple enumeration
-        var (ctx, shouldDispose) = await GetContextAsync();
-        try
-        {
-            var set = GetDbSet(ctx);
-            IQueryable<T> query = set;
-
-            if (this.includes != null && this.includes.Length > 0)
-            {
-                query = this.IncludeProperties(query);
-            }
-
-            return await query.Where("Id in @0", idList).ToListAsync();
-        }
-        finally
-        {
-            if (shouldDispose)
-            {
-                await ctx.DisposeAsync();
-            }
-        }
     }
 
     /// <summary>

@@ -24,14 +24,14 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public virtual async Task<IEnumerable<TModel>> GetAllAsync(QueryParameters? parameters = null, bool disabledIncludes = false)
+    public virtual async Task<IEnumerable<TModel>> GetAllAsync(QueryParameters? parameters = null, bool includeRelatedEntities = true)
     {
         try
         {
             _logger.LogDebug("Отримання всіх записів типу {EntityType}", typeof(TEntity).Name);
 
             parameters ??= new QueryParameters();
-            var entities = await _repository.GetAsync(parameters, disabledIncludes);
+            var entities = await _repository.GetAsync(parameters, includeRelatedEntities);
             var models = _mapper.Map<IEnumerable<TModel>>(entities);
 
             _logger.LogDebug("Отримано {Count} записів", models.Count());
@@ -84,7 +84,7 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
     /// <summary>
     /// Отримує записи за кількома ідентифікаторами.
     /// </summary>
-    public virtual async Task<List<TModel>> GetByIdsAsync(IEnumerable<int> ids)
+    public virtual async Task<List<TModel>> GetByIdsAsync(IEnumerable<int> ids, bool includeRelatedEntities = true)
     {
         try
         {
@@ -241,23 +241,35 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
         {
             _logger.LogDebug("Оновлення {Count} записів типу {EntityType}", requests.Count(), typeof(TEntity).Name);
 
-            var entities = new List<TEntity>();
+            var requestsList = requests.ToList();
+            var ids = requestsList.Select(r => r.Id).ToList();
 
-            foreach (var (id, model) in requests)
+            // ✅ Отримуємо всі entities за один раз
+            var existingEntities = await _repository.FindManyAsync(ids);
+
+            if (existingEntities.Count != requestsList.Count)
             {
-                var existingEntity = await _repository.FindAsync(id);
-                if (existingEntity == null)
-                {
-                    throw new ArgumentException($"Запис з ID {id} не знайдено");
-                }
-
-                _mapper.Map(model, existingEntity);
-                entities.Add(existingEntity);
+                var foundIds = existingEntities.Select(e => e.Id).ToHashSet();
+                var missingIds = ids.Where(id => !foundIds.Contains(id)).ToList();
+                throw new ArgumentException($"Записи з ID {string.Join(", ", missingIds)} не знайдено");
             }
 
-            await _repository.UpdateRangeAsync(entities);
+            // Створюємо словник для швидкого пошуку
+            var entitiesDict = existingEntities.ToDictionary(e => e.Id);
 
-            var models = _mapper.Map<IEnumerable<TModel>>(entities);
+            // ✅ Маппимо models на існуючі entities
+            foreach (var (id, model) in requestsList)
+            {
+                if (entitiesDict.TryGetValue(id, out var existingEntity))
+                {
+                    _mapper.Map(model, existingEntity);
+                }
+            }
+
+            // ✅ Оновлюємо всі entities
+            await _repository.UpdateRangeAsync(existingEntities);
+
+            var models = _mapper.Map<IEnumerable<TModel>>(existingEntities);
             _logger.LogInformation("Оновлено {Count} записів типу {EntityType}", models.Count(), typeof(TEntity).Name);
 
             return models;
@@ -292,13 +304,13 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
         }
     }
 
-    public virtual async Task<PaginationInfo> GetPaginationInfoAsync(QueryParameters parameters, bool disabledIncludes = false)
+    public virtual async Task<PaginationInfo> GetPaginationInfoAsync(QueryParameters parameters, bool includeRelatedEntities = true)
     {
         try
         {
             _logger.LogDebug("Отримання інформації про пагінацію для типу {EntityType}", typeof(TEntity).Name);
 
-            var paginationInfo = await _repository.GetPaginationInfoAsync(parameters, disabledIncludes);
+            var paginationInfo = await _repository.GetPaginationInfoAsync(parameters, includeRelatedEntities);
 
             _logger.LogDebug("Пагінація: загальна кількість {TotalCount}, сторінок {TotalPages}",
                 paginationInfo.TotalCount, paginationInfo.TotalPages);

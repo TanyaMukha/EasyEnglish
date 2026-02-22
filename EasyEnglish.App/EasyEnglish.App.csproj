@@ -96,6 +96,7 @@
 		
 		<!-- Entity Framework for app -->
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.7" />
+		<PackageReference Include="Plugin.Maui.Audio" Version="4.0.0" />
     </ItemGroup>
 
 	<ItemGroup>

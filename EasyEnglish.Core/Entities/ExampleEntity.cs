@@ -21,5 +21,5 @@ public class ExampleEntity : AbstractEntity
     [Column("word_id")]
     public int WordId { get; set; }
 
-    public virtual WordEntity? Word { get; set; }
+    public WordEntity? Word { get; set; }
 }

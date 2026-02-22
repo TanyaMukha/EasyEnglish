@@ -38,5 +38,5 @@ public class CourseEntity : AbstractEntity, IGuidInfo, IAuditInfo
     [Column("updated_at")]
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual List<UnitEntity> Units { get; set; } = new();
+    public List<UnitEntity> Units { get; set; } = new();
 }

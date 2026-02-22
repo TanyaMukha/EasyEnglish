@@ -51,7 +51,7 @@ public class WordEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInfo
     [Column("unit_id")]
     public int UnitId { get; set; }
 
-    public virtual UnitEntity? Unit { get; set; }
+    public UnitEntity? Unit { get; set; }
 
-    public virtual List<ExampleEntity> Examples { get; set; } = new();
+    public List<ExampleEntity> Examples { get; set; } = new();
 }

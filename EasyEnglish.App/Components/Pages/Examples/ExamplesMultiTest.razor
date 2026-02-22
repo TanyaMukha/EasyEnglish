@@ -14,7 +14,6 @@
         Title="@GetTestTitle()"
         HeaderClass="@GetHeaderClass()"
         IconClass="@GetIconClass()"
-        Rate="@(currentItem?.Word?.Rate ?? 0)"
         TotalCount="@totalItems"
         CompletedCount="@completed"
         IsLoading="@isLoading"
@@ -31,237 +30,225 @@
         <ChildContent>
             @if (currentItem != null && !string.IsNullOrEmpty(currentTestType))
             {
-                <!-- Word Badge -->
-                @if (currentTestType != "review-examples" || isRated)
-                {
-                    <div class="word-badge-container">
-                        <div class="word-badge">
-                            <span class="word-text">@currentItem.Word?.Word</span>
-                            @if (!string.IsNullOrEmpty(currentItem.Word?.Transcription))
-                            {
-                                <span class="word-transcription">[@currentItem.Word.Transcription]</span>
-                            }
-                        </div>
-                    </div>
-                }
-
-                <!-- Review Examples - Простий перегляд -->
+                    <!-- Review Examples - Простий перегляд -->
                 @if (currentTestType == "review-examples")
                 {
-                    <div class="example-container">
-                        <!-- English Sentence -->
-                        <div class="sentence-section english">
-                            <div class="language-label">
-                                <i class="bi bi-translate"></i>
-                                English
-                            </div>
-                            <div class="sentence-text">
-                                @((MarkupString)ExampleMarkdownService.RenderMarkdownWithHidden(currentItem.Sentence, showHidden: true))
-                            </div>
-                        </div>
+                            <div class="example-container">
+                                <!-- English Sentence -->
+                                <div class="sentence-section english">
+                                    <div class="language-label">
+                                        <i class="bi bi-translate"></i>
+                                        English
+                                    </div>
+                                    <div class="sentence-text">
+                                @((MarkupString)ExampleMarkdownService.RenderMarkdown(currentItem.Sentence))
+                                    </div>
+                                </div>
 
-                        <!-- Translation -->
+                                <!-- Translation -->
                         @if (!string.IsNullOrEmpty(currentItem.Translation))
                         {
-                            <div class="sentence-section translation">
-                                <div class="language-label">
-                                    <i class="bi bi-arrow-return-right"></i>
-                                    Переклад
-                                </div>
-                                <div class="sentence-text">
+                                        <div class="sentence-section translation">
+                                            <div class="language-label">
+                                                <i class="bi bi-arrow-return-right"></i>
+                                                Переклад
+                                            </div>
+                                            <div class="sentence-text">
                                     @currentItem.Translation
-                                </div>
-                            </div>
+                                            </div>
+                                        </div>
                         }
-                    </div>
+                            </div>
 
-                    <!-- Rating Section -->
-                    <DifficultyRatingSection 
-                        OnRate="@RateExample"
-                        IsRating="@isRating"
-                        LastRatedValue="@lastRatedValue" />
+                            <!-- Rating Section -->
+                            <DifficultyRatingSection 
+                                OnRate="@RateExample"
+                                IsRating="@isRating"
+                                LastRatedValue="@lastRatedValue" />
                 }
 
-                <!-- Review Examples Blurred - Розмитий текст -->
+                    <!-- Review Examples Blurred - Розмитий текст -->
                 @if (currentTestType == "review-examples-blurred")
                 {
                     @if (!isRevealed)
                     {
-                        <div class="hint-container">
-                            <div class="hint-badge">
-                                <i class="bi bi-lightbulb"></i>
-                                <span>Натисніть на розмитий текст</span>
-                            </div>
-                        </div>
+                                    <div class="hint-container">
+                                        <div class="hint-badge">
+                                            <i class="bi bi-lightbulb"></i>
+                                            <span>Натисніть на розмитий текст</span>
+                                        </div>
+                                    </div>
                     }
 
-                    <div class="example-container">
-                        <!-- English Sentence with Blurred Part -->
-                        <div class="sentence-section english">
-                            <div class="language-label">
-                                <i class="bi bi-translate"></i>
-                                English
-                            </div>
-                            <div class="sentence-text">
+                            <div class="example-container">
+                                <!-- English Sentence with Blurred Part -->
+                                <div class="sentence-section english">
+                                    <div class="language-label">
+                                        <i class="bi bi-translate"></i>
+                                        English
+                                    </div>
+                                    <div class="sentence-text">
                                 @if (parsedSentence.beforeHidden != "")
                                 {
-                                    @((MarkupString)ExampleMarkdownService.RenderMarkdown(parsedSentence.beforeHidden))
-                                    <span class="hidden-word @(isRevealed ? "revealed" : "blurred")" 
-                                          @onclick="RevealHiddenText">
+                                    var marker = GetHiddenMarker();
+                                    @((MarkupString)ExampleMarkdownService.RenderMarkdown(parsedSentence.beforeHidden, marker))
+                                                <span class="hidden-word @(isRevealed ? "revealed" : "blurred")" 
+                                                      @onclick="RevealHiddenText">
                                         @parsedSentence.hiddenText
-                                    </span>
-                                    @((MarkupString)ExampleMarkdownService.RenderMarkdown(parsedSentence.afterHidden))
+                                                </span>
+                                    @((MarkupString)ExampleMarkdownService.RenderMarkdown(parsedSentence.afterHidden, marker))
                                 }
                                 else
                                 {
                                     @((MarkupString)ExampleMarkdownService.RenderMarkdown(currentItem.Sentence))
                                 }
-                            </div>
-                        </div>
+                                    </div>
+                                </div>
 
-                        <!-- Translation -->
+                                <!-- Translation -->
                         @if (isRevealed && !string.IsNullOrEmpty(currentItem.Translation))
                         {
-                            <div class="sentence-section translation fade-in">
-                                <div class="language-label">
-                                    <i class="bi bi-arrow-return-right"></i>
-                                    Переклад
-                                </div>
-                                <div class="sentence-text">
+                                        <div class="sentence-section translation fade-in">
+                                            <div class="language-label">
+                                                <i class="bi bi-arrow-return-right"></i>
+                                                Переклад
+                                            </div>
+                                            <div class="sentence-text">
                                     @currentItem.Translation
-                                </div>
-                            </div>
+                                            </div>
+                                        </div>
                         }
-                    </div>
+                            </div>
 
                     @if (isRevealed)
                     {
-                        <DifficultyRatingSection 
-                            OnRate="@RateExample"
-                            IsRating="@isRating"
-                            LastRatedValue="@lastRatedValue" />
+                                    <DifficultyRatingSection 
+                                        OnRate="@RateExample"
+                                        IsRating="@isRating"
+                                        LastRatedValue="@lastRatedValue" />
                     }
                 }
 
-                <!-- Input Examples - Введення слова -->
+                    <!-- Input Examples - Введення слова -->
                 @if (currentTestType == "input-examples")
                 {
                     @if (!isAnswerSubmitted)
                     {
-                        <div class="hint-container">
-                            <div class="hint-badge">
-                                <i class="bi bi-pencil"></i>
-                                <span>Введіть правильне слово</span>
-                            </div>
-                        </div>
+                                    <div class="hint-container">
+                                        <div class="hint-badge">
+                                            <i class="bi bi-pencil"></i>
+                                            <span>Введіть правильне слово</span>
+                                        </div>
+                                    </div>
                     }
 
-                    <div class="example-container">
-                        <!-- English Sentence with Input -->
-                        <div class="sentence-section english">
-                            <div class="language-label">
-                                <i class="bi bi-translate"></i>
-                                English
-                            </div>
-                            <div class="sentence-text">
+                            <div class="example-container">
+                                <!-- English Sentence with Input -->
+                                <div class="sentence-section english">
+                                    <div class="language-label">
+                                        <i class="bi bi-translate"></i>
+                                        English
+                                    </div>
+                                    <div class="sentence-text">
                                 @if (parsedSentence.beforeHidden != "")
                                 {
-                                    @((MarkupString)ExampleMarkdownService.RenderMarkdown(parsedSentence.beforeHidden))
-                                    
+                                    var marker = GetHiddenMarker();
+                                    @((MarkupString)ExampleMarkdownService.RenderMarkdown(parsedSentence.beforeHidden, marker))
+
                                     @if (!isAnswerSubmitted)
                                     {
-                                        <input type="text" 
-                                               class="word-input" 
-                                               @bind="userAnswer" 
-                                               @bind:event="oninput"
-                                               placeholder="..."
-                                               @onkeydown="@HandleKeyDown"
-                                               autofocus />
+                                                        <input type="text" 
+                                                               class="word-input" 
+                                                               @bind="userAnswer" 
+                                                               @bind:event="oninput"
+                                                               placeholder="..."
+                                                               @onkeydown="@HandleKeyDown"
+                                                               autofocus />
                                     }
                                     else
                                     {
-                                        <span class="answer-display @GetAnswerClass()">
+                                                        <span class="answer-display @GetAnswerClass()">
                                             @(isCorrect ? userAnswer : parsedSentence.hiddenText)
-                                        </span>
+                                                        </span>
                                     }
-                                    
-                                    @((MarkupString)ExampleMarkdownService.RenderMarkdown(parsedSentence.afterHidden))
+
+                                    @((MarkupString)ExampleMarkdownService.RenderMarkdown(parsedSentence.afterHidden, marker))
                                 }
                                 else
                                 {
                                     @((MarkupString)ExampleMarkdownService.RenderMarkdown(currentItem.Sentence))
                                 }
-                            </div>
-                        </div>
+                                    </div>
+                                </div>
 
-                        <!-- Submit Button -->
+                                <!-- Submit Button -->
                         @if (!isAnswerSubmitted && parsedSentence.hiddenText != "")
                         {
-                            <div class="submit-container">
-                                <button class="btn-submit" 
-                                        @onclick="CheckAnswer" 
-                                        disabled="@string.IsNullOrWhiteSpace(userAnswer)">
-                                    <i class="bi bi-check-circle"></i>
-                                    Перевірити
-                                </button>
-                            </div>
+                                        <div class="submit-container">
+                                            <button class="btn-submit" 
+                                                    @onclick="CheckAnswer" 
+                                                    disabled="@string.IsNullOrWhiteSpace(userAnswer)">
+                                                <i class="bi bi-check-circle"></i>
+                                                Перевірити
+                                            </button>
+                                        </div>
                         }
 
-                        <!-- Result Display -->
+                                <!-- Result Display -->
                         @if (isAnswerSubmitted)
                         {
-                            <div class="result-container @GetResultContainerClass()">
-                                <div class="result-header">
-                                    <div class="result-icon">
+                                        <div class="result-container @GetResultContainerClass()">
+                                            <div class="result-header">
+                                                <div class="result-icon">
                                         @if (isCorrect)
                                         {
-                                            <i class="bi bi-check-circle-fill"></i>
+                                                            <i class="bi bi-check-circle-fill"></i>
                                         }
                                         else
                                         {
-                                            <i class="bi bi-x-circle-fill"></i>
+                                                            <i class="bi bi-x-circle-fill"></i>
                                         }
-                                    </div>
-                                    <div class="result-message">
+                                                </div>
+                                                <div class="result-message">
                                         @(isCorrect ? "Правильно!" : "Не зовсім")
-                                    </div>
-                                </div>
-                                
+                                                </div>
+                                            </div>
+
                                 @if (!isCorrect)
                                 {
-                                    <div class="result-details">
-                                        <div class="user-answer-display">
-                                            Ваша відповідь: <strong>@userAnswer</strong>
-                                        </div>
-                                        <div class="correct-answer-display">
-                                            Правильна відповідь: <strong>@parsedSentence.hiddenText</strong>
-                                        </div>
-                                    </div>
+                                                    <div class="result-details">
+                                                        <div class="user-answer-display">
+                                                            Ваша відповідь: <strong>@userAnswer</strong>
+                                                        </div>
+                                                        <div class="correct-answer-display">
+                                                            Правильна відповідь: <strong>@parsedSentence.hiddenText</strong>
+                                                        </div>
+                                                    </div>
                                 }
-                            </div>
+                                        </div>
                         }
 
-                        <!-- Translation -->
+                                <!-- Translation -->
                         @if (isAnswerSubmitted && !string.IsNullOrEmpty(currentItem.Translation))
                         {
-                            <div class="sentence-section translation fade-in">
-                                <div class="language-label">
-                                    <i class="bi bi-arrow-return-right"></i>
-                                    Переклад
-                                </div>
-                                <div class="sentence-text">
+                                        <div class="sentence-section translation fade-in">
+                                            <div class="language-label">
+                                                <i class="bi bi-arrow-return-right"></i>
+                                                Переклад
+                                            </div>
+                                            <div class="sentence-text">
                                     @currentItem.Translation
-                                </div>
-                            </div>
+                                            </div>
+                                        </div>
                         }
-                    </div>
+                            </div>
 
                     @if (isAnswerSubmitted)
                     {
-                        <DifficultyRatingSection 
-                            OnRate="@RateExample"
-                            IsRating="@isRating"
-                            LastRatedValue="@lastRatedValue" />
+                                    <DifficultyRatingSection 
+                                        OnRate="@RateExample"
+                                        IsRating="@isRating"
+                                        LastRatedValue="@lastRatedValue" />
                     }
                 }
             }
@@ -311,6 +298,19 @@
         await LoadData();
     }
 
+    /// <summary>
+    /// Визначає який маркер використовувати для прихованого тексту залежно від типу тесту
+    /// </summary>
+    private ExampleMarkdownService.HiddenTextMarker GetHiddenMarker()
+    {
+        return currentTestType switch
+        {
+            "review-examples-blurred" => ExampleMarkdownService.HiddenTextMarker.Bold,
+            "input-examples" => ExampleMarkdownService.HiddenTextMarker.Bold,
+            _ => ExampleMarkdownService.HiddenTextMarker.None
+        };
+    }
+
     private void ParseQueryParameters()
     {
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
@@ -341,71 +341,48 @@
 
             // TODO: Завантажити приклади з сервісу
             // items = await ExampleService.GetAllAsync();
-            
+
             // Тимчасові дані для тестування
             items = new List<ExampleModel>
             {
-                new ExampleModel 
-                { 
+                new ExampleModel
+                {
                     Id = 1,
-                    Sentence = "I ***go*** to school every day.",
+                    Sentence = "I **go** to school every day.",
                     Translation = "Я ходжу до школи щодня.",
                     WordId = 1,
-                    Word = new WordModel 
-                    { 
-                        Word = "go", 
-                        Transcription = "ɡəʊ",
-                        Translation = "йти, ходити",
-                        Rate = 3
-                    }
                 },
-                new ExampleModel 
-                { 
+                new ExampleModel
+                {
                     Id = 2,
-                    Sentence = "She **likes** to ***read*** books in the library.",
+                    Sentence = "She likes to **read** books in the library.",
                     Translation = "Вона любить читати книги в бібліотеці.",
                     WordId = 2,
-                    Word = new WordModel 
-                    { 
-                        Word = "read", 
-                        Transcription = "riːd",
-                        Translation = "читати",
-                        Rate = 3
-                    }
                 },
-                new ExampleModel 
-                { 
+                new ExampleModel
+                {
                     Id = 3,
-                    Sentence = "We ***study*** English at school.",
+                    Sentence = "We **study** English at school.",
                     Translation = "Ми вивчаємо англійську в школі.",
                     WordId = 3,
-                    Word = new WordModel 
-                    { 
-                        Word = "study", 
-                        Transcription = "ˈstʌdi",
-                        Translation = "вивчати",
-                        Rate = 3
-                    }
                 }
             };
 
-            // Фільтрація прикладів для різних типів тестів
-            var filteredItems = items.ToList();
-            
-            // Для blurred та input потрібні тільки приклади з прихованим текстом
-            if (selectedTests.Contains("review-examples-blurred") || selectedTests.Contains("input-examples"))
-            {
-                filteredItems = items.Where(e => ExampleMarkdownService.HasHiddenText(e.Sentence)).ToList();
-            }
-
             // Create test items for each selected test type
-            foreach (var example in filteredItems)
+            foreach (var example in items)
             {
                 foreach (var testType in selectedTests)
                 {
+                    var marker = testType switch
+                    {
+                        "review-examples-blurred" => ExampleMarkdownService.HiddenTextMarker.Bold,
+                        "input-examples" => ExampleMarkdownService.HiddenTextMarker.Bold,
+                        _ => ExampleMarkdownService.HiddenTextMarker.None
+                    };
+
                     // Пропускаємо приклади без прихованого тексту для blurred та input
-                    if ((testType == "review-examples-blurred" || testType == "input-examples") 
-                        && !ExampleMarkdownService.HasHiddenText(example.Sentence))
+                    if (marker != ExampleMarkdownService.HiddenTextMarker.None
+                        && !ExampleMarkdownService.HasHiddenText(example.Sentence, marker))
                     {
                         continue;
                     }
@@ -418,7 +395,7 @@
             pendingItems = pendingItems
                 .OrderBy(x => Guid.NewGuid())
                 .ToList();
-            
+
             totalItems = pendingItems.Count;
 
             if (pendingItems.Any())
@@ -461,7 +438,8 @@
         // Parse hidden text for blurred and input tests
         if (testType == "review-examples-blurred" || testType == "input-examples")
         {
-            parsedSentence = ExampleMarkdownService.ParseHiddenText(example.Sentence);
+            var marker = GetHiddenMarker();
+            parsedSentence = ExampleMarkdownService.ParseHiddenText(example.Sentence, marker);
         }
 
         StateHasChanged();
@@ -481,7 +459,7 @@
 
         totalAttempts++;
         isCorrect = ExampleMarkdownService.CheckAnswer(userAnswer, parsedSentence.hiddenText);
-        
+
         if (isCorrect)
         {
             correctAnswers++;
@@ -515,15 +493,8 @@
             lastRatedValue = rating;
             StateHasChanged();
 
-            // TODO: Зберегти оцінку
-            // await WordService.UpdateRateAsync(currentItem.WordId, rating);
-            if (currentItem.Word != null)
-            {
-                currentItem.Word.Rate = (float)rating;
-            }
-
-            await BrowserConsole.LogInfoAsync($"Example rated with {rating}");
-            await Task.Delay(300);
+            // TODO: Зберегти оцінку через сервіс
+            // await ExampleService.RateExampleAsync(currentItem.Id, rating);
 
             isRated = true;
             StateHasChanged();
@@ -560,7 +531,7 @@
         else if (currentTestType == "input-examples")
         {
             if (isRating) return;
-            
+
             if (isCorrect)
             {
                 // Правильна відповідь - видаляємо
@@ -573,7 +544,7 @@
                 {
                     var item = pendingItems[currentIndex];
                     pendingItems.RemoveAt(currentIndex);
-                    
+
                     int offset = random.Next(2, 5);
                     int insertAt = Math.Min(currentIndex + offset, pendingItems.Count);
                     pendingItems.Insert(insertAt, item);
