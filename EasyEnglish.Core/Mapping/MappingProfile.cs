@@ -43,7 +43,8 @@ public class MappingProfile : Profile
 
         CreateMap<WordModel, WordEntity>()
             .ForMember(dest => dest.Unit, opt => opt.Ignore())
-            .ForMember(dest => dest.Examples, opt => opt.Ignore()); // ⚠️ Ignore зворотню навігацію
+            .ForMember(dest => dest.Examples, opt => opt.MapFrom(src => src.Examples));
+            //.ForMember(dest => dest.Examples, opt => opt.Ignore()); // ⚠️ Ignore зворотню навігацію
 
         CreateMap<UpdateWordRateRequest, WordModel>().ReverseMap();
         CreateMap<UpdateWordRateRequest, WordEntity>();

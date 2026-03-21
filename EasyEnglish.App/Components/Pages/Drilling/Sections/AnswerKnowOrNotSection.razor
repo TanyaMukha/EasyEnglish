@@ -1,0 +1,138 @@
+@* AnswerKnowOrNotSection.razor - Компонент для самооцінки знань *@
+
+@if (!isSelfAssessed)
+{
+    <div class="self-assess-section">
+        <p class="assess-question">Ви знаєте цю відповідь?</p>
+        <div class="self-assess-buttons">
+            <button class="btn-know" @onclick="() => SelfAssess(true)">
+                <i class="bi bi-check-lg"></i>
+                Знаю
+            </button>
+            <button class="btn-dont-know" @onclick="() => SelfAssess(false)">
+                <i class="bi bi-x-lg"></i>
+                Не знаю
+            </button>
+        </div>
+    </div>
+}
+else if (isKnown && !isVerified)
+{
+    <div class="verify-section">
+        <p class="verify-question">Ваша відповідь була правильною?</p>
+        <div class="action-buttons">
+            <button class="btn-correct" @onclick="() => VerifyAndContinue(true)">
+                <i class="bi bi-check-lg"></i>
+                Так
+            </button>
+            <button class="btn-incorrect" @onclick="() => VerifyAndContinue(false)">
+                <i class="bi bi-x-lg"></i>
+                Ні
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool isSelfAssessed { get; set; } = false;
+    [Parameter] public bool isKnown { get; set; } = false;
+    [Parameter] public bool isVerified { get; set; } = false;
+    [Parameter] public EventCallback<bool> OnSelfAssess { get; set; }
+    [Parameter] public EventCallback<bool> OnVerifyAssessment { get; set; }
+
+    private async Task SelfAssess(bool isKnow)
+    {
+        await OnSelfAssess.InvokeAsync(isKnow);
+        StateHasChanged();
+    }
+
+    private async Task VerifyAndContinue(bool isCorrectAssessment)
+    {
+        // Викликаємо верифікацію
+        await OnVerifyAssessment.InvokeAsync(isCorrectAssessment);
+    }
+}
+
+<style>
+    .self-assess-section,
+    .verify-section {
+        margin-top: 2rem;
+        width: 100%;
+    }
+
+    .assess-question,
+    .verify-question {
+        font-size: 1rem;
+        color: #666;
+        margin: 0 0 1rem 0;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    .self-assess-buttons,
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .btn-know,
+    .btn-dont-know,
+    .btn-correct,
+    .btn-incorrect {
+        flex: 1;
+        max-width: 200px;
+        padding: 1rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-know,
+    .btn-correct {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-know:hover,
+    .btn-correct:hover {
+        background: #218838;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-dont-know,
+    .btn-incorrect {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-dont-know:hover,
+    .btn-incorrect:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .self-assess-buttons,
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn-know,
+        .btn-dont-know,
+        .btn-correct,
+        .btn-incorrect {
+            max-width: none;
+        }
+    }
+</style>

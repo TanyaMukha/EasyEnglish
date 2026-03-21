@@ -6,6 +6,18 @@ public class QueryParameters
     public int? RowCount { get; init; }
     public List<SortDescriptor>? Sort { get; init; }
     public List<FilterParameter>? Filters { get; init; }
+
+    public QueryParameters(
+        int? pageNumber = null,
+        int? rowCount = null,
+        List<SortDescriptor>? sort = null,
+        List<FilterParameter>? filters = null)
+    {
+        PageNumber = rowCount is not null && pageNumber.HasValue ? pageNumber : 1;
+        RowCount = rowCount;
+        Sort = sort;
+        Filters = filters;
+    }
 }
 
 /*

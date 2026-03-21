@@ -1,0 +1,368 @@
+<div class="forms-container">
+
+    @if (!string.IsNullOrEmpty(_item.FirstFormTranslation))
+    {
+        <QuestionSection Text="@_item.FirstFormTranslation" />
+    }
+
+    @if (ShowFirstForm)
+    {
+        <div class="form-row">
+            <span class="form-label">@GetFormLabel(1)</span>
+            <div class="form-content">
+                <span class="form-word">@_item.FirstForm</span>
+            </div>
+        </div>    
+    }
+
+    @if (!Context.State.IsAnswerSubmitted)
+    {
+        <div class="input-section">
+
+            @if (!ShowFirstForm)
+            {
+                <div class="form-row">
+                    <input type="text"
+                    class="form-input"
+                    @bind="_userFirstForm"
+                    @bind:event="oninput"
+                    placeholder="@GetFormLabel(1)"
+                    @onkeydown="HandleKeyDown"
+                    autofocus />
+                </div>    
+            }
+
+            <div class="form-row">
+                <input type="text"
+                class="form-input"
+                @bind="_userSecondForm"
+                @bind:event="oninput"
+                placeholder="@GetFormLabel(2)"
+                @onkeydown="HandleKeyDown" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(_item.ThirdForm))
+            {
+                <div class="form-row">
+                    <input type="text"
+                    class="form-input"
+                    @bind="_userThirdForm"
+                    @bind:event="oninput"
+                    placeholder="@GetFormLabel(3)"
+                    @onkeydown="HandleKeyDown" />
+                </div>
+            }
+
+            <button class="btn-submit" @onclick="CheckAnswer" disabled="@(!_canSubmit)">
+                <i class="bi bi-check-circle"></i>
+                Перевірити
+            </button>
+
+        </div>
+    }
+    else
+    {
+        <div class="result-section">
+
+            @if (!ShowFirstForm)
+            {
+                <div class="feedback @(_isFirstFormCorrect ? "success" : "error")">
+                    <i class="bi @(_isFirstFormCorrect ? "bi-check-circle" : "bi-x-circle")"></i>
+                    <span>
+                        <strong>@GetFormLabel(1): </strong>
+                        @if (_isFirstFormCorrect)
+                        {
+                            <span>Правильно! <strong>@_item.FirstForm</strong></span>
+                        }
+                        else
+                        {
+                            <span>Ваша відповідь: <strong>@_userFirstForm</strong> · Правильно: <strong>@_item.FirstForm</strong></span>
+                        }
+                    </span>
+                </div>
+            }
+
+            <div class="feedback @(_isSecondFormCorrect ? "success" : "error")">
+                <i class="bi @(_isSecondFormCorrect ? "bi-check-circle" : "bi-x-circle")"></i>
+                <span>
+                    <strong>@GetFormLabel(2): </strong>
+                    @if (_isSecondFormCorrect)
+                    {
+                        <span>Правильно! <strong>@_item.SecondForm</strong></span>
+                    }
+                    else
+                    {
+                        <span>Ваша відповідь: <strong>@_userSecondForm</strong> · Правильно: <strong>@_item.SecondForm</strong></span>
+                    }
+                </span>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_item.ThirdForm))
+            {
+                <div class="feedback @(_isThirdFormCorrect ? "success" : "error")">
+                    <i class="bi @(_isThirdFormCorrect ? "bi-check-circle" : "bi-x-circle")"></i>
+                    <span>
+                        <strong>@GetFormLabel(3): </strong>
+                        @if (_isThirdFormCorrect)
+                        {
+                            <span>Правильно! <strong>@_item.ThirdForm</strong></span>
+                        }
+                        else
+                        {
+                            <span>Ваша відповідь: <strong>@_userThirdForm</strong> · Правильно: <strong>@_item.ThirdForm</strong></span>
+                        }
+                    </span>
+                </div>
+            }
+
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public TestCardContext Context { get; set; } = null!;
+    [Parameter] public bool ShowFirstForm { get; set; } = false;
+
+    private IrregularFormModel _item => Context.GetRawItem<IrregularFormModel>();
+
+    // Local UI state
+    private string _userFirstForm = string.Empty;
+    private string _userSecondForm = string.Empty;
+    private string _userThirdForm  = string.Empty;
+    private bool   _isFirstFormCorrect;
+    private bool   _isSecondFormCorrect;
+    private bool   _isThirdFormCorrect;
+
+    private bool _canSubmit =>
+        !string.IsNullOrWhiteSpace(_userFirstForm) &&
+        !string.IsNullOrWhiteSpace(_userSecondForm) &&
+        (string.IsNullOrEmpty(_item.ThirdForm) || !string.IsNullOrWhiteSpace(_userThirdForm));
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && _canSubmit && !Context.State.IsAnswerSubmitted)
+            CheckAnswer();
+    }
+
+    private void CheckAnswer()
+    {
+        if (!_canSubmit) return;
+
+        _isFirstFormCorrect = string.Equals(
+            _userFirstForm.Trim(),
+            _item.FirstForm.Trim(),
+            StringComparison.OrdinalIgnoreCase);
+
+        _isSecondFormCorrect = string.Equals(
+            _userSecondForm.Trim(),
+            _item.SecondForm.Trim(),
+            StringComparison.OrdinalIgnoreCase);
+
+        _isThirdFormCorrect = string.IsNullOrEmpty(_item.ThirdForm) ||
+            string.Equals(
+                _userThirdForm.Trim(),
+                _item.ThirdForm.Trim(),
+                StringComparison.OrdinalIgnoreCase);
+
+        var allCorrect = _isFirstFormCorrect && _isSecondFormCorrect && _isThirdFormCorrect;
+
+        Context.Callbacks.OnCheckAnswer.InvokeAsync(allCorrect);
+    }
+
+    // Скидаємо локальний стан при переході до нової картки
+    protected override void OnParametersSet()
+    {
+        if (!Context.State.IsAnswerSubmitted)
+        {
+            _userFirstForm      = string.Empty;
+            _userSecondForm      = string.Empty;
+            _userThirdForm       = string.Empty;
+            _isFirstFormCorrect = false;
+            _isSecondFormCorrect = false;
+            _isThirdFormCorrect  = false;
+            if (ShowFirstForm)
+                _userFirstForm = _item.FirstForm;
+        }
+    }
+
+    private static string GetPosLabel(string pos) => pos.ToLower() switch
+    {
+        "verb"      => "Verb · Дієслово",
+        "noun"      => "Noun · Іменник",
+        "adjective" => "Adjective · Прикметник",
+        "adverb"    => "Adverb · Прислівник",
+        _           => pos
+    };
+
+    private string GetFormLabel(int n)
+    {
+        if (string.IsNullOrEmpty(_item.PartOfSpeech))
+            return n switch { 1 => "First Form", 2 => "Second Form", _ => "Third Form" };
+
+        return _item.PartOfSpeech.ToLower() switch
+        {
+            "verb"      => n switch { 1 => "Infinitive", 2 => "Past Simple", _ => "Past Participle" },
+            "noun"      => n switch { 1 => "Singular", 2 => "Plural", _ => "Alt. Plural" },
+            "adjective" => n switch { 1 => "Positive", 2 => "Comparative", _ => "Superlative" },
+            "adverb"    => n switch { 1 => "Positive", 2 => "Comparative", _ => "Superlative" },
+            _           => $"Form {n}"
+        };
+    }
+
+    private async Task PlayAudio(byte[] pronunciation)
+    {
+        if (pronunciation is { Length: > 0 })
+        {
+            await AudioService.PlayAsync(pronunciation);
+        }
+    }
+}
+
+<style>
+    .forms-container {
+        margin-bottom: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    /* ── Показ першої форми (коли ShowFirstForm = true) ── */
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        align-items: baseline;
+        gap: 1rem;
+    }
+
+    .form-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #888;
+    }
+
+    .form-content {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .form-word {
+        font-size: 1.875rem;
+        font-weight: 700;
+    }
+
+    @@media (max-width: 768px) {
+        .form-row { grid-template-columns: 120px 1fr; }
+        .form-word { font-size: 1.5rem; }
+    }
+
+    /* ── Секція введення ── */
+    .input-section {
+        margin-top: 2rem;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.1rem;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #A3BFFA;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 1rem;
+        background: #A3BFFA;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+        background: #7B9FE8;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(123, 159, 232, 0.3);
+    }
+
+    .btn-submit:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    .btn-submit:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* ── Секція результатів ── */
+    .result-section {
+        margin-top: 1.5rem;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .feedback {
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 500;
+        width: 100%;
+        box-sizing: border-box;
+        animation: slideIn 0.25s ease;
+    }
+
+    .feedback i {
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .feedback.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .feedback.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    @@keyframes slideIn {
+        from { opacity: 0; transform: translateX(-12px); }
+        to   { opacity: 1; transform: translateX(0); }
+    }
+
+    @@media (max-width: 768px) {
+        .form-input  { font-size: 1rem; }
+        .btn-submit  { font-size: 1rem; }
+        .feedback    { font-size: 0.95rem; }
+    }
+</style>

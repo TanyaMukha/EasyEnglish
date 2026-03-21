@@ -40,7 +40,7 @@ public class IrregularFormModel : AbstractModel, IReviewInfo, IRateInfo, IAuditI
 
     public int ReviewCount { get; set; } = 0;
 
-    public float Rate { get; set; } = 0;
+    public float Rate { get; set; } = 3;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

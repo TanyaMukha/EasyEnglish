@@ -20,7 +20,7 @@
                 ItemsCount="@course.Units.Count"
                 IsEditable="true"
                 BadgeText="Словник"
-                GoToViewPage="@((id) => Navigation.NavigateTo($"/courses/{id}"))"
+                         GoToViewPage="@((id) => NavigationManager.NavigateTo($"/courses/{id}"))"
                 GoToEditPage="GoToEditPage"
                 RemoveItem="RemoveCourse"
             />
@@ -59,7 +59,7 @@
 
     private void GoToEditPage(int id)
     {
-        Navigation.NavigateTo($"/courses/{id}/edit");
+        NavigationManager.NavigateTo($"/courses/{id}/edit");
     }
 
     private async Task RemoveCourse(int id)

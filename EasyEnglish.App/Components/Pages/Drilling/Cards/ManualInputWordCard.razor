@@ -1,0 +1,21 @@
+@*
+    State.WordIsQuestion == false → питання Translation, вводимо Word (єдиний варіант для manual input)
+    State.WordIsQuestion == true  → питання Word, вводимо Translation (рідкісний напрямок)
+*@
+
+<WordSection Word="@_vm.Word" Transcription="@_vm.Transcription"
+             Hidden="@(!Context.State.IsAnswerSubmitted)" />
+
+<QuestionSection Text="@(_vm.Translation ?? "")" />
+
+<AnswerInputSection
+    isAnswerSubmitted="@Context.State.IsAnswerSubmitted"
+    CorrectAnswer="@(Context.State.CorrectAnswer ?? "")"
+    OnAnswerSubmitted="@Context.Callbacks.OnCheckAnswer" />
+
+@code {
+    [Parameter, EditorRequired]
+    public TestCardContext Context { get; set; } = null!;
+
+    private WordCardViewModel _vm => Context.ViewModel;
+}

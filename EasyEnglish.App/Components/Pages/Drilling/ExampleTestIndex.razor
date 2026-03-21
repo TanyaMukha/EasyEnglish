@@ -1,0 +1,179 @@
+@page "/drilling/examples-learning"
+
+<div class="page-content">
+    <PageHeader Title="Навчання прикладів" />
+
+    <div>
+        <InputCheckboxField Label="Вибрати всі" @bind-Value="_selectAll" @bind-Value:after="SelectAllChange" />
+    </div>
+
+    <div class="exercises-grid">
+        <ExerciseCard
+            Title="Перегляд прикладів"
+            Description="Переглядайте речення з перекладом для закріплення"
+            Icon="bi-eye"
+            Color="blue"
+            @bind-IsSelected="_reviewExamples" />
+
+        <ExerciseCard
+            Title="Угадай слово"
+            Description="Натисніть на розмите слово щоб його відкрити"
+            Icon="bi-search"
+            Color="purple"
+            @bind-IsSelected="_reviewBlurred" />
+
+        <ExerciseCard
+            Title="Введи слово"
+            Description="Надрукуйте пропущене слово у реченні"
+            Icon="bi-keyboard"
+            Color="mint"
+            @bind-IsSelected="_inputExamples" />
+    </div>
+
+    @if (_anySelected)
+    {
+        <div class="multi-test-section">
+            <div class="multi-test-card">
+                <div class="multi-test-info">
+                    <h3 class="multi-test-title">
+                        <i class="bi bi-collection"></i>
+                        Мульті-тест
+                    </h3>
+                    <p class="multi-test-description">
+                        Обрано вправ: <strong>@_selectedCount</strong>
+                    </p>
+                </div>
+                <button class="btn-multi-test" @onclick="StartMultiTest">
+                    <i class="bi bi-play-fill"></i>
+                    Почати мульті-тест
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool _selectAll;
+    private bool _reviewExamples;
+    private bool _reviewBlurred;
+    private bool _inputExamples;
+
+    private bool _anySelected => _reviewExamples || _reviewBlurred || _inputExamples;
+
+    private int _selectedCount
+    {
+        get
+        {
+            int count = 0;
+            if (_reviewExamples) count++;
+            if (_reviewBlurred)  count++;
+            if (_inputExamples)  count++;
+            return count;
+        }
+    }
+
+    private void SelectAllChange()
+    {
+        _reviewExamples = _selectAll;
+        _reviewBlurred  = _selectAll;
+        _inputExamples  = _selectAll;
+    }
+
+    private void StartMultiTest()
+    {
+        var keys = new List<string>();
+        if (_reviewExamples) keys.Add("review-examples");
+        if (_reviewBlurred)  keys.Add("review-examples-blurred");
+        if (_inputExamples)  keys.Add("input-examples");
+
+        NavigationManager.NavigateTo($"/drilling/examples-multi-test?tests={string.Join(",", keys)}");
+    }
+}
+
+<style>
+    .page-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .exercises-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .multi-test-section {
+        position: sticky;
+        bottom: 2rem;
+        z-index: 10;
+        animation: slideUp 0.3s ease-out;
+    }
+
+    @@keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .multi-test-card {
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        border-radius: 16px;
+        padding: 1.5rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+        box-shadow: 0 8px 24px rgba(163, 191, 250, 0.4);
+    }
+
+    .multi-test-info { flex: 1; }
+
+    .multi-test-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: white;
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .multi-test-description {
+        font-size: 1rem;
+        color: white;
+        margin: 0;
+        opacity: 0.95;
+    }
+
+    .btn-multi-test {
+        background: white;
+        color: #7B9FE8;
+        border: none;
+        border-radius: 12px;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-multi-test:hover  { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+    .btn-multi-test:active { transform: translateY(0); }
+
+    @@media (max-width: 768px) {
+        .page-content      { padding: 1.5rem 1rem; }
+        .exercises-grid    { grid-template-columns: 1fr; gap: 1rem; }
+        .multi-test-card   { flex-direction: column; text-align: center; padding: 1.5rem; }
+        .btn-multi-test    { width: 100%; justify-content: center; }
+        .multi-test-section { bottom: 1rem; }
+    }
+
+    @@media (min-width: 769px) and (max-width: 1024px) {
+        .exercises-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+</style>

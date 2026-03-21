@@ -3,7 +3,7 @@
 @using EasyEnglish.App.Components.Shared
 @using EasyEnglish.App.Models
 @using EasyEnglish.App.Services
-@inject NavigationManager Navigation
+@inject NavigationManager NavigationManager
 @using EasyEnglish.App.Components.Shared.Breadcrumb
 
 <div class="page-content">
@@ -134,7 +134,7 @@
 
     private void NavigateToPage(string url)
     {
-        Navigation.NavigateTo(url);
+        NavigationManager.NavigateTo(url);
     }
 }
 

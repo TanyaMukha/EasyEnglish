@@ -1,4 +1,4 @@
-﻿@namespace EasyEnglish.App.Components.Shared
+@namespace EasyEnglish.App.Components.Shared
 
 <div class="create-card">
     @if (!isExpanded)
@@ -21,7 +21,7 @@
                     {
                                 <button type="button" 
                                         class="action-btn" 
-                                        @onclick="@(() => Navigation.NavigateTo(FullFormUrl))" 
+                                        @onclick="@(() => NavigationManager.NavigateTo(FullFormUrl))" 
                                         title="Повна форма">
                                     <i class="bi bi-box-arrow-up-right"></i>
                                 </button>

@@ -1,0 +1,77 @@
+<div class="DrillingReviewCardContent">
+    <div class="example-container">
+
+        <div class="sentence-text">
+            @((MarkupString)ExampleMarkdownService.RenderMarkdownWithHidden(_item.Sentence, showHidden: true))
+        </div>
+
+        @if (!string.IsNullOrEmpty(_item.Translation))
+        {
+            <div class="sentence-text">
+                @((MarkupString)ExampleMarkdownService.RenderMarkdown(_item.Translation))
+            </div>
+        }
+
+    </div>
+
+    <DifficultyRatingSection
+        OnRate="@Context.Callbacks.OnRate"
+        IsRating="@Context.State.IsRating"
+        LastRatedValue="@Context.State.LastRatedValue" />
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public TestCardContext Context { get; set; } = null!;
+
+    private ExampleModel _item => Context.GetRawItem<ExampleModel>();
+}
+
+<style>
+    .example-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .sentence-section {
+        border-radius: 8px;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .sentence-section.english {
+        background: #F8F9FA;
+        border-left: 4px solid #A3BFFA;
+    }
+
+    .sentence-section.translation {
+        background: #F8F9FA;
+        border-left: 4px solid #dee2e6;
+    }
+
+    .language-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #666;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .sentence-text {
+        font-size: 1.25rem;
+        line-height: 1.8;
+        color: #333;
+    }
+
+    .sentence-text :deep(strong) { color: #1976D2; font-weight: 700; }
+    .sentence-text :deep(em)     { color: #7B1FA2; font-style: italic; }
+
+    @@media (max-width: 768px) {
+        .sentence-text { font-size: 1.125rem; }
+    }
+</style>

@@ -340,6 +340,10 @@ namespace EasyEnglish.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("last_review_date");
 
+                    b.Property<Guid>("RecordGuid")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("guid");
+
                     b.Property<int>("ReviewCount")
                         .HasColumnType("INTEGER")
                         .HasColumnName("review_count");
@@ -433,7 +437,7 @@ namespace EasyEnglish.Data.Migrations
             modelBuilder.Entity("EasyEnglish.Core.Entities.IrregularFormEntity", b =>
                 {
                     b.HasOne("EasyEnglish.Core.Entities.UnitEntity", "Unit")
-                        .WithMany()
+                        .WithMany("IrregularForms")
                         .HasForeignKey("UnitId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -492,6 +496,8 @@ namespace EasyEnglish.Data.Migrations
 
             modelBuilder.Entity("EasyEnglish.Core.Entities.UnitEntity", b =>
                 {
+                    b.Navigation("IrregularForms");
+
                     b.Navigation("Words");
                 });
 

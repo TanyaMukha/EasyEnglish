@@ -1,4 +1,4 @@
-﻿@namespace EasyEnglish.App.Components.Shared
+@namespace EasyEnglish.App.Components.Shared
 @inject IJSRuntime JSRuntime
 @implements IAsyncDisposable
 
@@ -38,7 +38,7 @@
         if (firstRender)
         {
             dotNetRef = DotNetObjectReference.Create(this);
-            await JSRuntime.InvokeVoidAsync("initSelectableText", elementId, dotNetRef);
+            // await JSRuntime.InvokeVoidAsync("initSelectableText", elementId, dotNetRef);
         }
     }
 
@@ -72,7 +72,7 @@
     {
         if (dotNetRef != null)
         {
-            await JSRuntime.InvokeVoidAsync("disposeSelectableText", elementId);
+            // await JSRuntime.InvokeVoidAsync("disposeSelectableText", elementId);
             dotNetRef.Dispose();
         }
     }

@@ -1,4 +1,4 @@
-﻿@page "/courses/{id:int}/edit"
+@page "/courses/{id:int}/edit"
 @page "/courses/create"
 
 @using EasyEnglish.App.Components.Shared
@@ -58,7 +58,7 @@
                 await CourseService.CreateAsync(newCourse);
             }
 
-            Navigation.NavigateTo("/courses");
+            NavigationManager.NavigateTo("/courses");
         }
         catch (Exception ex)
         {

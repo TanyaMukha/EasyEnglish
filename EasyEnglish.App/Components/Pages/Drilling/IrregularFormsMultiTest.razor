@@ -1,0 +1,68 @@
+@page "/drilling/irregular-forms-multi-test"
+@inject IIrregularFormService IrregularFormService
+@inject ILogger<IrregularFormsMultiTest> Logger
+
+<div class="page-content">
+    <PageHeader Title="Мульті-тест форм" />
+
+    <MultiTestHost TItem="IrregularFormModel"
+        Definitions="@_definitions"
+        Items="@_items"
+        IsLoading="@_isLoading"
+        ErrorMessage="@_errorMessage"
+        OnFinish="@(() => NavigationManager.NavigateTo("/drilling/irregular-forms"))" />
+</div>
+
+@code {
+    private List<IrregularFormModel>               _items       = [];
+    private List<TestDefinition<IrregularFormModel>> _definitions = [];
+    private bool    _isLoading;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _definitions = ParseTestKeys()
+            .Select(key => TestRegistry.GetIrregularFormTest(key))
+            .OfType<TestDefinition<IrregularFormModel>>()
+            .ToList();
+
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            _isLoading = true;
+            StateHasChanged();
+            _items = (await IrregularFormService.GetAllAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Помилка завантаження: {ex.Message}";
+            Logger.LogError(ex, "Error loading irregular forms for multi-test");
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private HashSet<string> ParseTestKeys()
+    {
+        var uri   = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        return (query["tests"] ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .ToHashSet();
+    }
+}
+
+<style>
+    .page-content {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+</style>

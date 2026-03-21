@@ -1,0 +1,214 @@
+@page "/drilling/learning-words"
+
+<div class="page-content">
+    <PageHeader Title="Навчання слів" />
+
+    <div>
+        <InputCheckboxField Label="Вибрати всі" @bind-Value="_selectAll" @bind-Value:after="SelectAllChange" />
+    </div>
+
+    <div class="exercises-grid">
+        <ExerciseCard
+            Title="Повторення слів"
+            Description="Переглядайте вивчені слова з перекладом для закріплення"
+            Icon="bi-book"
+            Color="blue"
+            @bind-IsSelected="_reviewWords" />
+
+        <ExerciseCard
+            Title="Переклад для слова"
+            Description="Оберіть правильний переклад для англійського слова"
+            Icon="bi-translate"
+            Color="green"
+            @bind-IsSelected="_wordToTranslationChoice" />
+
+        <ExerciseCard
+            Title="Перевірка перекладу"
+            Description="Підтвердіть, чи знаєте переклад слова"
+            Icon="bi-eye"
+            Color="purple"
+            @bind-IsSelected="_wordToTranslationKnowOrNot" />
+
+        <ExerciseCard
+            Title="Слово за перекладом"
+            Description="Знайдіть англійське слово за його перекладом"
+            Icon="bi-search"
+            Color="orange"
+            @bind-IsSelected="_translationToWordChoice" />
+
+        <ExerciseCard
+            Title="Перевірка слова"
+            Description="Підтвердіть, чи знаєте слово за перекладом"
+            Icon="bi-eye-slash"
+            Color="pink"
+            @bind-IsSelected="_translationToWordKnowOrNot" />
+
+        <ExerciseCard
+            Title="Напишіть слово"
+            Description="Введіть англійське слово за його перекладом"
+            Icon="bi-keyboard"
+            Color="mint"
+            @bind-IsSelected="_translationToWordManualInput" />
+    </div>
+
+    @if (_anySelected)
+    {
+        <div class="multi-test-section">
+            <div class="multi-test-card">
+                <div class="multi-test-info">
+                    <h3 class="multi-test-title">
+                        <i class="bi bi-collection"></i>
+                        Мульті-тест
+                    </h3>
+                    <p class="multi-test-description">
+                        Обрано вправ: <strong>@_selectedCount</strong>
+                    </p>
+                </div>
+                <button class="btn-multi-test" @onclick="StartMultiTest">
+                    <i class="bi bi-play-fill"></i>
+                    Почати мульті-тест
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool _selectAll;
+    private bool _reviewWords;
+    private bool _wordToTranslationChoice;
+    private bool _wordToTranslationKnowOrNot;
+    private bool _translationToWordChoice;
+    private bool _translationToWordKnowOrNot;
+    private bool _translationToWordManualInput;
+
+    private bool _anySelected =>
+        _reviewWords || _wordToTranslationChoice || _wordToTranslationKnowOrNot ||
+        _translationToWordChoice || _translationToWordKnowOrNot || _translationToWordManualInput;
+
+    private int _selectedCount
+    {
+        get
+        {
+            int count = 0;
+            if (_reviewWords)                  count++;
+            if (_wordToTranslationChoice)      count++;
+            if (_wordToTranslationKnowOrNot)   count++;
+            if (_translationToWordChoice)      count++;
+            if (_translationToWordKnowOrNot)   count++;
+            if (_translationToWordManualInput) count++;
+            return count;
+        }
+    }
+
+    private void SelectAllChange()
+    {
+        _reviewWords                  = _selectAll;
+        _wordToTranslationChoice      = _selectAll;
+        _wordToTranslationKnowOrNot   = _selectAll;
+        _translationToWordChoice      = _selectAll;
+        _translationToWordKnowOrNot   = _selectAll;
+        _translationToWordManualInput = _selectAll;
+    }
+
+    private void StartMultiTest()
+    {
+        var keys = new List<string>();
+        if (_reviewWords)                  keys.Add("review-words");
+        if (_wordToTranslationChoice)      keys.Add("word-to-translation-single-choice");
+        if (_wordToTranslationKnowOrNot)   keys.Add("word-to-translation-know-or-not");
+        if (_translationToWordChoice)      keys.Add("translation-to-word-single-choice");
+        if (_translationToWordKnowOrNot)   keys.Add("translation-to-word-know-or-not");
+        if (_translationToWordManualInput) keys.Add("translation-to-word-manual-input");
+
+        NavigationManager.NavigateTo($"/drilling/words-multi-test?tests={string.Join(",", keys)}");
+    }
+}
+
+<style>
+    .page-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .exercises-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .multi-test-section {
+        position: sticky;
+        bottom: 2rem;
+        z-index: 10;
+        animation: slideUp 0.3s ease-out;
+    }
+
+    @@keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .multi-test-card {
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        border-radius: 16px;
+        padding: 1.5rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+        box-shadow: 0 8px 24px rgba(163, 191, 250, 0.4);
+    }
+
+    .multi-test-info { flex: 1; }
+
+    .multi-test-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: white;
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .multi-test-description {
+        font-size: 1rem;
+        color: white;
+        margin: 0;
+        opacity: 0.95;
+    }
+
+    .btn-multi-test {
+        background: white;
+        color: #7B9FE8;
+        border: none;
+        border-radius: 12px;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-multi-test:hover  { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+    .btn-multi-test:active { transform: translateY(0); }
+
+    @@media (max-width: 768px) {
+        .page-content       { padding: 1.5rem 1rem; }
+        .exercises-grid     { grid-template-columns: 1fr; gap: 1rem; }
+        .multi-test-card    { flex-direction: column; text-align: center; padding: 1.5rem; }
+        .btn-multi-test     { width: 100%; justify-content: center; }
+        .multi-test-section { bottom: 1rem; }
+    }
+
+    @@media (min-width: 769px) and (max-width: 1024px) {
+        .exercises-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+</style>

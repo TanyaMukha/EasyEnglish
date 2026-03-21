@@ -117,7 +117,7 @@
                 await UnitService.CreateAsync(unit);
             }
 
-            Navigation.NavigateTo($"/courses/{unit.CourseId}");
+            NavigationManager.NavigateTo($"/courses/{unit.CourseId}");
         }
         catch (Exception ex)
         {

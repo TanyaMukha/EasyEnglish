@@ -1,0 +1,62 @@
+@inject VoiceAvailabilityService AvailabilityService
+@implements IAsyncDisposable
+
+@if (_missing.Count > 0)
+{
+    <div class="voice-setup-banner">
+        @foreach (var item in _missing)
+        {
+            <div class="voice-warning-item">
+                <span>⚠️ <strong>@LangLabel(item.Language)</strong> — голос не знайдено</span>
+                <p>@item.InstallInstructions</p>
+
+                <div class="voice-warning-actions">
+                    @if (item.CanOpenSettings)
+                    {
+                        <button @onclick="() => OpenSettingsAsync(item.Language)">
+                            ⚙️ Відкрити налаштування
+                        </button>
+                    }
+                    <button @onclick="RecheckAsync">🔄 Перевірити знову</button>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<VoiceAvailabilityResult> _missing = [];
+
+    protected override async Task OnInitializedAsync()
+        => await RecheckAsync();
+
+    private async Task RecheckAsync()
+    {
+        var results = await AvailabilityService.CheckAllAsync();
+        _missing    = results.Where(r => !r.IsAvailable).ToList();
+        StateHasChanged();
+    }
+
+    private async Task OpenSettingsAsync(SpeechLanguage lang)
+    {
+#if ANDROID
+        if (lang == SpeechLanguage.Ukrainian)
+            AndroidVoiceInstallHelper.RequestLanguageInstall();
+        else
+            AndroidVoiceInstallHelper.OpenTtsSettings();
+#elif WINDOWS
+        await Launcher.OpenAsync("ms-settings:speech");
+#endif
+        await Task.CompletedTask;
+    }
+
+    private static string LangLabel(SpeechLanguage lang) => lang switch
+    {
+        SpeechLanguage.EnglishBritish  => "English (British)",
+        SpeechLanguage.EnglishAmerican => "English (American)",
+        SpeechLanguage.Ukrainian       => "Українська",
+        _ => lang.ToString()
+    };
+
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+}

@@ -7,10 +7,11 @@ using Microsoft.Extensions.Logging;
 using MukhaLab.SelectQueryParameters.Models;
 using EasyEnglish.Core.Options;
 using EasyEnglish.Core.Enums;
+using MukhaLab.Database;
 
 namespace EasyEnglish.Services.Services;
 
-public class CourseService : BaseService<CourseEntity, CourseModel>, ICourseService
+public class CourseService : BaseWithGuidService<CourseEntity, CourseModel>, ICourseService
 {
     private readonly IUnitService unitService;
     private readonly IWordService wordService;
@@ -25,6 +26,11 @@ public class CourseService : BaseService<CourseEntity, CourseModel>, ICourseServ
     {
         this.unitService = unitService ?? throw new ArgumentNullException(nameof(unitService));
         this.wordService = wordService ?? throw new ArgumentNullException(nameof(wordService));
+    }
+
+    public async Task<CourseModel?> GetByGuidAsync(Guid guid)
+    {
+        return _mapper.Map<CourseModel>(await _repository.FindAsync(guid));
     }
 
     public async Task<IEnumerable<UnitModel>> GetUnitsAsync(int courseId)

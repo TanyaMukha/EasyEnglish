@@ -1,0 +1,31 @@
+@*
+    Напрямок визначається з State.CorrectAnswer:
+      - CorrectAnswer == vm.Translation  →  питання: Word,        відповідь: Translation
+      - CorrectAnswer == vm.Word         →  питання: Translation,  відповідь: Word
+*@
+
+@if (_wordToTranslation)
+{
+    <WordSection Word="@_vm.Word" Transcription="@_vm.Transcription" />
+}
+else
+{
+    <QuestionSection Text="@(_vm.Translation ?? "")" />
+}
+
+<AnswerOptionSection
+    AnswerOptions="@Context.State.AnswerOptions.ToList()"
+    IsAnswerSubmitted="@Context.State.IsAnswerSubmitted"
+    CorrectAnswer="@(Context.State.CorrectAnswer ?? "")"
+    OnAnswerSelected="@Context.Callbacks.OnCheckAnswer" />
+
+@code {
+    [Parameter, EditorRequired]
+    public TestCardContext Context { get; set; } = null!;
+
+    private WordCardViewModel _vm => Context.ViewModel;
+
+    // Якщо правильна відповідь — це Translation, значить питання — Word
+    private bool _wordToTranslation =>
+        Context.State.CorrectAnswer == _vm.Translation;
+}

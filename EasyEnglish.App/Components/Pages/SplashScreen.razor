@@ -1,6 +1,6 @@
 @page "/splash"
 @using Microsoft.AspNetCore.Components
-@inject NavigationManager Navigation
+@inject NavigationManager NavigNavigationManageration
 @implements IDisposable
 
 <div class="splash-container">
@@ -45,7 +45,7 @@
             if (_progress >= 100)
             {
                 _timer?.Stop();
-                await InvokeAsync(() => Navigation.NavigateTo("/"));
+                await InvokeAsync(() => NavigationManager.NavigateTo("/"));
                 return;
             }
 

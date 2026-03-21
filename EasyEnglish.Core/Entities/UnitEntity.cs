@@ -7,8 +7,11 @@ using EasyEnglish.Core.Interfaces.Fields;
 namespace EasyEnglish.Core.Entities;
 
 [Table("units")]
-public class UnitEntity : AbstractEntity, IReviewInfo, IAuditInfo
+public class UnitEntity : AbstractEntity, IReviewInfo, IAuditInfo, IGuidRecord
 {
+    [Column("guid")]
+    public Guid RecordGuid { get; set; } = Guid.NewGuid();
+
     [NotNull]
     [MaxLength(200)]
     [Column("title")]

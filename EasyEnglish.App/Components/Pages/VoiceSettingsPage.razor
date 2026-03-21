@@ -1,0 +1,87 @@
+@page "/settings/voices"
+@using EasyEnglish.App.Services.Speech
+@inject VoicePickerViewModel ViewModel
+@inject VoiceAvailabilityService Availability
+@implements IAsyncDisposable
+
+<div class="voice-settings-page">
+    <h2>🎙 Налаштування голосів</h2>
+
+    @if (ViewModel.IsLoading)
+    {
+        <p>⏳ Завантаження голосів...</p>
+    }
+    else if (ViewModel.ErrorMessage is not null)
+    {
+        <p class="error">❌ @ViewModel.ErrorMessage</p>
+    }
+    else
+    {
+        @foreach (var group in ViewModel.Groups)
+        {
+            var lang = group.Language;
+            var selected = ViewModel.GetSelected(lang);
+
+            <div class="voice-group">
+                <h3>@group.Label</h3>
+
+                @if (group.Voices.Count == 0)
+                {
+                    <p class="no-voices">
+                        ⚠️ Голосів не знайдено.
+                        Встановіть мовний пакет у системних налаштуваннях.
+                    </p>
+                }
+                else
+                {
+                    @foreach (var voice in group.Voices)
+                    {
+                        var isSelected = selected?.Id == voice.Id;
+
+                        <div class="voice-item @(isSelected ? "selected" : "")"
+                             @onclick="() => Select(lang, voice)">
+
+                            <span class="radio">@(isSelected ? "●" : "○")</span>
+
+                            <span class="voice-name">@voice.DisplayName</span>
+
+                            @if (!voice.IsLocalService)
+                            {
+                                <span class="badge online" title="Потребує інтернету">
+                                    🌐 онлайн
+                                </span>
+                            }
+
+                            <button class="btn-preview"
+                                    @onclick:stopPropagation="true"
+                                    @onclick="() => ViewModel.PreviewAsync(voice)">
+                                ▶
+                            </button>
+                        </div>
+                    }
+                }
+            </div>
+        }
+
+        <button class="btn-reload" @onclick="ReloadAsync">🔄 Оновити список</button>
+    }
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+        => await ViewModel.LoadAsync();
+
+    private void Select(SpeechLanguage lang, LocaleInfo voice)
+    {
+        ViewModel.SetSelected(lang, voice);
+        StateHasChanged();
+    }
+
+    private async Task ReloadAsync()
+    {
+        ViewModel.InvalidateCache();
+        await ViewModel.LoadAsync();
+    }
+
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+}

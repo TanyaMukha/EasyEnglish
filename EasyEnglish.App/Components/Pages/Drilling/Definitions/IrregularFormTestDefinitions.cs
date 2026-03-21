@@ -1,0 +1,160 @@
+using EasyEnglish.Core.Models;
+using EasyEnglish.App.Components.Pages.Drilling.Models;
+using ReviewWordCard = EasyEnglish.App.Components.Pages.Drilling.Cards.ReviewWordsCard;
+using SingleChoiceCard = EasyEnglish.App.Components.Pages.Drilling.Cards.SingleChoiceWordCard;
+using ManualInputCard = EasyEnglish.App.Components.Pages.Drilling.Cards.ManualInputWordCard;
+using ReviewIrregularFormsCard = EasyEnglish.App.Components.Pages.Drilling.Cards.ReviewIrregularFormsCard;
+using InputIrregularFormsCard = EasyEnglish.App.Components.Pages.Drilling.Cards.InputIrregularFormsCard;
+
+namespace EasyEnglish.App.Components.Pages.Drilling.Definitions;
+
+// ── Shared mapper ─────────────────────────────────────────────────────────────
+
+file static class IrregularVm
+{
+    // FirstForm виступає як "Word" — всі картки слів працюють без змін
+    internal static WordCardViewModel From(IrregularFormModel f) => new(
+        Word:          f.FirstForm             ?? "",
+        Transcription: f.FirstFormTranscription,
+        Translation:   f.FirstFormTranslation,
+        Pronunciation: f.FirstFormPronunciation
+    );
+
+    internal static IReadOnlyList<string> Distractors(
+        string                           correct,
+        IReadOnlyList<WordCardViewModel> pool,
+        Func<WordCardViewModel, string?> selector)
+        => pool
+            .Where(vm => selector(vm) != correct && !string.IsNullOrEmpty(selector(vm)))
+            .Select(vm => selector(vm)!)
+            .Distinct()
+            .OrderBy(_ => Guid.NewGuid())
+            .Take(3)
+            .ToList();
+
+    internal static IReadOnlyList<string> ShuffledOptions(string correct, IReadOnlyList<string> distractors)
+        => new[] { correct }.Concat(distractors).OrderBy(_ => Guid.NewGuid()).ToList();
+}
+
+// ── Review ────────────────────────────────────────────────────────────────────
+
+public sealed class ReviewIrregularFormsDef : TestDefinition<IrregularFormModel>
+{
+    public override string Key         => "review-irregular-forms";
+    public override string Title       => "Перегляд форм";
+    public override string HeaderClass => "pastel-blue";
+    public override string IconClass   => "bi-book";
+
+    public override WordCardViewModel  BuildViewModel(IrregularFormModel item) => IrregularVm.From(item);
+    public override bool               ShowNextButton(TestState s)              => true;
+    public override NextItemAction     GetNextAction(TestState s)               => NextItemAction.Remove;
+    public override Type               ComponentType                             => typeof(ReviewWordCard);
+}
+
+// ── Single-choice: Word → Translation ────────────────────────────────────────
+
+public sealed class IrregularWordToTranslationSingleChoiceDef : TestDefinition<IrregularFormModel>
+{
+    public override string Key         => "irregular-word-to-translation-single-choice";
+    public override string Title       => "Переклад форми";
+    public override string HeaderClass => "pastel-yellow";
+    public override string IconClass   => "bi-question-circle";
+
+    public override bool CanApplyTo(IrregularFormModel item) =>
+        !string.IsNullOrEmpty(item.FirstFormTranslation);
+
+    public override WordCardViewModel BuildViewModel(IrregularFormModel item) => IrregularVm.From(item);
+
+    public override void PrepareState(
+        WordCardViewModel vm, IReadOnlyList<IrregularFormModel> all,
+        Func<IrregularFormModel, WordCardViewModel> build, TestState state)
+    {
+        var pool = all.Select(build).ToList();
+        state.AnswerOptions = IrregularVm.ShuffledOptions(
+            vm.Translation ?? "",
+            IrregularVm.Distractors(vm.Translation ?? "", pool, v => v.Translation));
+    }
+
+    public override string?        GetCorrectAnswer(WordCardViewModel vm) => vm.Translation;
+    public override bool           ShowNextButton(TestState s)            => s.IsAnswerSubmitted;
+    public override NextItemAction GetNextAction(TestState s)             => s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
+    public override Type           ComponentType                           => typeof(SingleChoiceCard);
+}
+
+// ── Single-choice: Translation → Word ────────────────────────────────────────
+
+public sealed class IrregularTranslationToWordSingleChoiceDef : TestDefinition<IrregularFormModel>
+{
+    public override string Key          => "irregular-translation-to-word-single-choice";
+    public override string Title        => "Форма за перекладом";
+    public override string HeaderClass  => "pastel-orange";
+    public override string IconClass    => "bi-chat-text";
+    public override bool   WordIsQuestion => false;
+
+    public override bool CanApplyTo(IrregularFormModel item) =>
+        !string.IsNullOrEmpty(item.FirstFormTranslation);
+
+    public override WordCardViewModel BuildViewModel(IrregularFormModel item) => IrregularVm.From(item);
+
+    public override void PrepareState(
+        WordCardViewModel vm, IReadOnlyList<IrregularFormModel> all,
+        Func<IrregularFormModel, WordCardViewModel> build, TestState state)
+    {
+        var pool = all.Select(build).ToList();
+        state.AnswerOptions = IrregularVm.ShuffledOptions(
+            vm.Word,
+            IrregularVm.Distractors(vm.Word, pool, v => v.Word));
+    }
+
+    public override string?        GetCorrectAnswer(WordCardViewModel vm) => vm.Word;
+    public override bool           ShowNextButton(TestState s)            => s.IsAnswerSubmitted;
+    public override NextItemAction GetNextAction(TestState s)             => s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
+    public override Type           ComponentType                           => typeof(SingleChoiceCard);
+}
+
+// ── Manual input: Translation → Word ─────────────────────────────────────────
+
+public sealed class IrregularTranslationToWordManualInputDef : TestDefinition<IrregularFormModel>
+{
+    public override string Key          => "irregular-translation-to-word-manual-input";
+    public override string Title        => "Напишіть форму";
+    public override string HeaderClass  => "pastel-green";
+    public override string IconClass    => "bi-keyboard";
+    public override bool   WordIsQuestion => false;
+
+    public override bool CanApplyTo(IrregularFormModel item) =>
+        !string.IsNullOrEmpty(item.FirstFormTranslation);
+
+    public override WordCardViewModel  BuildViewModel(IrregularFormModel item) => IrregularVm.From(item);
+    public override string?            GetCorrectAnswer(WordCardViewModel vm)   => vm.Word;
+    public override bool               ShowNextButton(TestState s)              => s.IsAnswerSubmitted;
+    public override NextItemAction     GetNextAction(TestState s)               => s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
+    public override Type               ComponentType                             => typeof(ManualInputCard);
+}
+
+public sealed class ReviewIrregularFormsCardDef : TestDefinition<IrregularFormModel>
+{
+    public override string Key => "review-irregular-forms-card";
+    public override string Title => "Картка форм";
+    public override string HeaderClass => "pastel-blue";
+    public override string IconClass => "bi-card-list";
+
+    // RawItem-картка — BuildViewModel не потрібен
+    public override bool ShowNextButton(TestState s) => true;
+    public override NextItemAction GetNextAction(TestState s) => NextItemAction.Remove;
+    public override Type ComponentType => typeof(ReviewIrregularFormsCard);
+}
+
+public sealed class InputIrregularFormsDef : TestDefinition<IrregularFormModel>
+{
+    public override string Key => "input-irregular-forms";
+    public override string Title => "Введіть форми";
+    public override string HeaderClass => "pastel-green";
+    public override string IconClass => "bi-keyboard";
+
+    // RawItem-картка — BuildViewModel не потрібен
+    public override bool ShowNextButton(TestState s) => s.IsAnswerSubmitted;
+    public override NextItemAction GetNextAction(TestState s) =>
+        s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
+    public override Type ComponentType => typeof(InputIrregularFormsCard);
+}

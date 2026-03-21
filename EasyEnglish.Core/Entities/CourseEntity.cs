@@ -7,7 +7,7 @@ using EasyEnglish.Core.Interfaces.Fields;
 namespace EasyEnglish.Core.Entities;
 
 [Table("courses")]
-public class CourseEntity : AbstractEntity, IGuidInfo, IAuditInfo
+public class CourseEntity : AbstractEntity, IGuidInfo, IAuditInfo, IGuidRecord
 {
     /// <summary>
     /// Gets or sets the identifier of the entity.

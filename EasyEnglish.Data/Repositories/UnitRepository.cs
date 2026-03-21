@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace EasyEnglish.Data.Repositories;
 
-public class UnitRepository : BaseRepository<UnitEntity, EasyEnglishDbContext>, IUnitRepository
+public class UnitRepository : BaseWithGuidRepository<UnitEntity, EasyEnglishDbContext>, IUnitRepository
 {
     public UnitRepository(
         IMapper mapper,

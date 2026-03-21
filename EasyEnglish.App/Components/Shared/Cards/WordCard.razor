@@ -1,7 +1,7 @@
 @namespace EasyEnglish.App.Components.Shared
 @using System.Globalization
 
-<div class="word-card" @onclick="@(() => Navigation.NavigateTo($"/courses/{word.CourseId}/units/{word.UnitId}/words/{word.Id}"))">
+<div class="word-card" @onclick="@(() => NavigationManager.NavigateTo($"/courses/{word.CourseId}/units/{word.UnitId}/words/{word.Id}"))">
     <div class="word-card-header">
         <div class="word-main">
             <div class="word-title-row">

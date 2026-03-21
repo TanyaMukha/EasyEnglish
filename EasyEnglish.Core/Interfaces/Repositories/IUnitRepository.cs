@@ -3,6 +3,6 @@ using MukhaLab.Database;
 
 namespace EasyEnglish.Core.Interfaces.Repositories;
 
-public interface IUnitRepository : IBaseRepository<UnitEntity>
+public interface IUnitRepository : IBaseWithGuidRepository<UnitEntity>
 {
 }

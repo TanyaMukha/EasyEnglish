@@ -80,6 +80,12 @@
 
         <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
         <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+        <AndroidResource Remove="Components\Pages\Examples\**" />
+        <Compile Remove="Components\Pages\Examples\**" />
+        <Content Remove="Components\Pages\Examples\**" />
+        <EmbeddedResource Remove="Components\Pages\Examples\**" />
+        <MauiXaml Remove="Components\Pages\Examples\**" />
+        <None Remove="Components\Pages\Examples\**" />
 
 		<!-- Embedded Resource -->
 		<EmbeddedResource Include="appsettings.json" />
@@ -87,6 +93,7 @@
 
     <ItemGroup>
         <!-- .NET MAUI -->
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="Markdig" Version="0.44.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.81" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.81" />
@@ -97,6 +104,7 @@
 		<!-- Entity Framework for app -->
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.7" />
 		<PackageReference Include="Plugin.Maui.Audio" Version="4.0.0" />
+		<PackageReference Include="System.Speech" Version="10.0.3" />
     </ItemGroup>
 
 	<ItemGroup>
@@ -118,7 +126,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Components\Pages\Examples\" />
+	  <Folder Include="Services\SpeechRecognition\" />
 	</ItemGroup>
 
 </Project>

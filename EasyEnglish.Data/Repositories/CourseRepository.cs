@@ -6,7 +6,7 @@ using MukhaLab.Database;
 
 namespace EasyEnglish.Data.Repositories;
 
-public class CourseRepository : BaseRepository<CourseEntity, EasyEnglishDbContext>, ICourseRepository
+public class CourseRepository : BaseWithGuidRepository<CourseEntity, EasyEnglishDbContext>, ICourseRepository
 {
     public CourseRepository(
         IMapper mapper, 

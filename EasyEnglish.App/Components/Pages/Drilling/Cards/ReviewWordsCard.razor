@@ -1,0 +1,22 @@
+<div class="DrillingReviewCardContent">
+    <WordInfoSection
+        Word="@_vm.Word"
+        Transcription="@_vm.Transcription"
+        Translation="@_vm.Translation"
+        Examples=[]
+        Pronunciation="@_vm.Pronunciation"
+        ShowNoExamples="false" />
+
+    <DifficultyRatingSection
+        OnRate="@Context.Callbacks.OnRate"
+        IsRating="@Context.State.IsRating"
+        LastRatedValue="@Context.State.LastRatedValue" />
+</div>
+
+
+@code {
+    [Parameter, EditorRequired]
+    public TestCardContext Context { get; set; } = null!;
+
+    private WordCardViewModel _vm => Context.ViewModel;
+}

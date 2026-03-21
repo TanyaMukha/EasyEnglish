@@ -1,5 +1,5 @@
-﻿@using EasyEnglish.App.Models
-@inject NavigationManager Navigation
+@using EasyEnglish.App.Models
+@inject NavigationManager NavigationManager
 
 <div class="info-card @ColorClass @(!string.IsNullOrWhiteSpace(Link) ? "clickable" : "")" @onclick="@HandleClick">
     @if (!string.IsNullOrWhiteSpace(IconClass))
@@ -225,7 +225,7 @@
 
     private void NavigateToPage(string page)
     {
-        Navigation.NavigateTo(page);
+        NavigationManager.NavigateTo(page);
     }
 }
 

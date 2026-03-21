@@ -205,7 +205,7 @@
                 await WordService.CreateAsync(Word);
             }
 
-            Navigation.NavigateTo($"/courses/{CourseId}/units/{UnitId}/words/{Word.Id}");
+            NavigationManager.NavigateTo($"/courses/{CourseId}/units/{UnitId}/words/{Word.Id}");
         }
         catch (Exception ex)
         {

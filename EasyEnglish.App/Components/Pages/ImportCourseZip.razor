@@ -1,0 +1,794 @@
+@page "/import-course-zip"
+@using EasyEnglish.App.Components.Shared
+@using EasyEnglish.App.Interfaces
+@using EasyEnglish.Core.Models
+@using EasyEnglish.Services
+@inject CourseZipBackupService ZipBackupService
+@inject IFileService FileService
+@inject ICourseService CourseService
+@inject IUnitService UnitService
+@inject IWordService WordService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Імпорт курсу</PageTitle>
+
+<div class="page-wrapper">
+    <div class="scroll-area">
+        <div class="edit-page">
+
+            <!-- ═══════════ HEADER ═══════════ -->
+            <div class="header-section">
+                <h1 class="page-title">
+                    <i class="bi bi-box-arrow-in-down"></i>
+                    Імпорт курсу
+                </h1>
+                <p class="page-description">
+                    Завантажте ZIP-архів курсу — він може містити кілька модулів та аудіофайли.
+                </p>
+            </div>
+
+            <div class="form-container">
+
+                <!-- ═══════════ STEP 1 — PICK FILE ═══════════ -->
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <i class="bi bi-1-circle"></i>
+                        Виберіть архів
+                    </h2>
+
+                    <div class="file-picker-section">
+                        <button class="btn-file-picker" @onclick="PickZipFile" disabled="@isProcessing">
+                            <i class="bi bi-file-earmark-zip"></i>
+                            @(selectedFileName ?? "Виберіть .zip файл...")
+                        </button>
+                    </div>
+
+                    @if (importError != null)
+                    {
+                        <div class="alert alert-error">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <div>
+                                <strong>Помилка:</strong>
+                                <p>@importError</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- ═══════════ STEP 2 — PREVIEW ═══════════ -->
+                @if (manifest != null)
+                {
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <i class="bi bi-2-circle"></i>
+                            Інформація про курс
+                        </h2>
+
+                        <!-- Duplicate course warning + import mode choice -->
+                        @if (existingCourse != null)
+                        {
+                            <div class="alert alert-warning">
+                                <i class="bi bi-arrow-repeat"></i>
+                                <div>
+                                    <strong>Курс вже імпортовано</strong>
+                                    <p>
+                                        «<strong>@existingCourse.Title</strong>» з таким самим GUID вже є в базі.
+                                        Оберіть дію:
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="radio-group">
+                                <div class="radio-option @(importMode == ImportMode.Update ? "radio-option--active" : "")"
+                                     @onclick="@(() => importMode = ImportMode.Update)">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                    <div>
+                                        <strong>Оновити наявний курс</strong>
+                                        <span>Модулі з тим самим GUID оновляться; нові — додадуться</span>
+                                    </div>
+                                </div>
+                                <div class="radio-option @(importMode == ImportMode.CreateNew ? "radio-option--active" : "")"
+                                     @onclick="@(() => importMode = ImportMode.CreateNew)">
+                                    <i class="bi bi-plus-circle"></i>
+                                    <div>
+                                        <strong>Створити новий курс</strong>
+                                        <span>Буде створено окремий курс незалежно від наявного</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Course metadata -->
+                        <div class="info-card">
+                            <div class="info-row">
+                                <span class="info-label">Назва</span>
+                                <span class="info-value"><strong>@manifest.CourseTitle</strong></span>
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(manifest.CourseDescription))
+                            {
+                                <div class="info-row">
+                                    <span class="info-label">Опис</span>
+                                    <span class="info-value">@manifest.CourseDescription</span>
+                                </div>
+                            }
+                            <div class="info-row">
+                                <span class="info-label">GUID курсу</span>
+                                <span class="info-value info-value--mono">@manifest.CourseGuid</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Дата експорту</span>
+                                <span class="info-value">
+                                    @manifest.ExportedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Версія</span>
+                                <span class="info-value">@manifest.SchemaVersion</span>
+                            </div>
+                        </div>
+
+                        <!-- Units list -->
+                        <div class="units-list">
+                            @foreach (var entry in manifest.Units)
+                            {
+                                <div class="unit-item">
+                                    <div class="unit-item__icon">
+                                        <i class="bi bi-journal-text"></i>
+                                    </div>
+                                    <div class="unit-item__body">
+                                        <span class="unit-item__title">@entry.Title</span>
+                                        <span class="unit-item__meta">
+                                            @entry.WordCount слів
+                                            @if (entry.AudioFiles.Count > 0)
+                                            {
+                                                <span class="badge-audio">
+                                                    <i class="bi bi-volume-up"></i>
+                                                    @entry.AudioFiles.Count аудіо
+                                                </span>
+                                            }
+                                        </span>
+                                    </div>
+                                    @if (existingUnitGuids.Contains(entry.UnitGuid))
+                                    {
+                                        <span class="badge badge-update">оновлення</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-new">новий</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Deferred full data load -->
+                        @if (importResult == null && !isLoadingUnits)
+                        {
+                            <button class="btn-secondary" @onclick="LoadFullImportData">
+                                <i class="bi bi-eye"></i>
+                                Завантажити дані модулів для перевірки
+                            </button>
+                        }
+                        @if (isLoadingUnits)
+                        {
+                            <div class="loading-row">
+                                <span class="spinner spinner--dark"></span>
+                                Читання модулів...
+                            </div>
+                        }
+                    </div>
+
+                    <!-- ═══════════ STEP 3 — OPTIONS ═══════════ -->
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <i class="bi bi-3-circle"></i>
+                            Параметри імпорту
+                        </h2>
+
+                        <div class="checkbox-group">
+                            @if (manifest.Options.IncludeExamples)
+                            {
+                                <InputCheckboxField @bind-Value="importOptions.includeExamples"
+                                    Label="Приклади використання"
+                                    Icon="bi-file-text" />
+                            }
+                            @if (manifest.Options.IncludeLearningProgress)
+                            {
+                                <InputCheckboxField @bind-Value="importOptions.includeLearningProgress"
+                                    Label="Прогрес вивчення"
+                                    Icon="bi-tags" />
+                            }
+                            @if (manifest.Options.IsFullBackup)
+                            {
+                                <InputCheckboxField @bind-Value="importOptions.isFullBackup"
+                                    Label="Відновити як резервну копію (зберегти ID)"
+                                    Icon="bi-list-ul" />
+                            }
+                        </div>
+                    </div>
+
+                    <!-- ═══════════ STEP 4 — SAVE ═══════════ -->
+                    <div class="form-section">
+                        @if (importSuccess != null)
+                        {
+                            <div class="alert alert-success">
+                                <i class="bi bi-check-circle"></i>
+                                <div><p>@importSuccess</p></div>
+                            </div>
+                        }
+
+                        <div class="form-actions">
+                            <button class="btn-submit"
+                                    @onclick="SaveImport"
+                                    disabled="@(isProcessing || importResult == null)">
+                                @if (isProcessing)
+                                {
+                                    <span class="spinner"></span>
+                                    <text>Збереження...</text>
+                                }
+                                else if (importMode == ImportMode.Update && existingCourse != null)
+                                {
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                    <text>Оновити «@existingCourse.Title»</text>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-save"></i>
+                                    <text>Зберегти курс (@manifest.Units.Count модулів)</text>
+                                }
+                            </button>
+                        </div>
+
+                        @if (importResult == null && manifest != null)
+                        {
+                            <p class="hint">
+                                <i class="bi bi-info-circle"></i>
+                                Спочатку завантажте дані модулів, щоб активувати збереження.
+                            </p>
+                        }
+                    </div>
+                }
+
+            </div>
+            <div class="keyboard-spacer"></div>
+        </div>
+    </div>
+</div>
+
+@code {
+    // ── State ─────────────────────────────────────────────────────────────────
+    private string?                selectedFileName;
+    private byte[]?                zipBytes;
+
+    private CoursePackageManifest? manifest;
+    private CourseImportResult?    importResult;
+    private CourseModel?           existingCourse;
+    private HashSet<Guid>          existingUnitGuids = [];
+
+    private UnitBackupOptions importOptions = new();
+    private ImportMode        importMode    = ImportMode.CreateNew;
+
+    private bool    isProcessing   = false;
+    private bool    isLoadingUnits = false;
+    private string? importError;
+    private string? importSuccess;
+
+    private enum ImportMode { CreateNew, Update }
+
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            (function() {
+                document.addEventListener('focusin', function(e) {
+                    const el = e.target;
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
+                        setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+                    }
+                });
+            })();
+        ");
+    }
+
+    // ── Step 1: pick ZIP ──────────────────────────────────────────────────────
+
+    private async Task PickZipFile()
+    {
+        ClearState();
+        isProcessing = true;
+
+        try
+        {
+            zipBytes = await FileService.PickAndReadFileBytesAsync("application/zip", ".zip");
+
+            if (zipBytes is null || zipBytes.Length == 0)
+                return;
+
+            await ParseManifestAsync();
+        }
+        catch (Exception ex)
+        {
+            importError    = $"Помилка при читанні файлу: {ex.Message}";
+            selectedFileName = null;
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    // ── Step 2a: read manifest (fast) ─────────────────────────────────────────
+
+    private async Task ParseManifestAsync()
+    {
+        using var ms = new MemoryStream(zipBytes!);
+        manifest = await ZipBackupService.ReadManifestAsync(ms);
+
+        if (manifest is null)
+        {
+            importError = "Не вдалося прочитати course.json з архіву.";
+            return;
+        }
+
+        selectedFileName = $"{manifest.CourseTitle}.zip";
+
+        // Duplicate-course check.
+        existingCourse    = await CourseService.GetByGuidAsync(manifest.CourseGuid);
+        existingUnitGuids = [];
+        importMode        = ImportMode.CreateNew;
+
+        if (existingCourse != null)
+        {
+            importMode = ImportMode.Update;
+            var guids = manifest.Units.Select(u => u.UnitGuid).ToList();
+            existingUnitGuids = (await UnitService.GetExistingGuidsAsync(guids)).ToHashSet();
+        }
+
+        importOptions = new UnitBackupOptions
+        {
+            includeExamples         = manifest.Options.IncludeExamples,
+            includeLearningProgress = manifest.Options.IncludeLearningProgress,
+            isFullBackup            = manifest.Options.IsFullBackup,
+        };
+    }
+
+    // ── Step 2b: load full unit data (deferred) ───────────────────────────────
+
+    private async Task LoadFullImportData()
+    {
+        if (zipBytes is null || manifest is null) return;
+
+        isLoadingUnits = true;
+        importError    = null;
+        StateHasChanged();
+
+        try
+        {
+            using var ms = new MemoryStream(zipBytes);
+            importResult = await ZipBackupService.ImportFromZipAsync(ms, manifest);
+        }
+        catch (Exception ex)
+        {
+            importError = $"Помилка читання модулів: {ex.Message}";
+        }
+        finally
+        {
+            isLoadingUnits = false;
+            StateHasChanged();
+        }
+    }
+
+    // ── Step 3: save ──────────────────────────────────────────────────────────
+
+    private async Task SaveImport()
+    {
+        if (importResult is null || manifest is null) return;
+
+        isProcessing = true;
+        importError  = null;
+        importSuccess = null;
+
+        try
+        {
+            // 1. Resolve or create course record.
+            CourseModel targetCourse;
+            bool isCopy = importMode == ImportMode.CreateNew && existingCourse != null;
+
+            if (importMode == ImportMode.Update && existingCourse != null)
+            {
+                targetCourse = existingCourse;
+            }
+            else
+            {
+                targetCourse = new CourseModel
+                {
+                    // Full backup (not a copy) → keep original GUID so future re-imports
+                    // will detect this course and offer the Update flow.
+                    // Copy or regular import → fresh GUID to avoid collision.
+                    RecordGuid  = importOptions.isFullBackup && !isCopy
+                        ? manifest.CourseGuid
+                        : Guid.NewGuid(),
+                    Title       = isCopy
+                        ? $"{manifest.CourseTitle} (копія)"
+                        : manifest.CourseTitle,
+                    Description = manifest.CourseDescription,
+                };
+                targetCourse = await CourseService.CreateAsync(targetCourse);
+            }
+
+            int added   = 0;
+            int updated = 0;
+
+            // 2. Process each unit.
+            foreach (var (entry, unit) in importResult.Units)
+            {
+                if (!importOptions.includeExamples)
+                    unit.RemoveExamples();
+
+                if (!importOptions.includeLearningProgress)
+                    unit.ClearLearningProgress();
+
+                bool isExistingUnit = existingUnitGuids.Contains(entry.UnitGuid);
+
+                if (importMode == ImportMode.Update && isExistingUnit)
+                {
+                    var dbUnit = await UnitService.GetByGuidAsync(entry.UnitGuid);
+                    if (dbUnit != null)
+                    {
+                        unit.Id       = dbUnit.Id;
+                        unit.CourseId = targetCourse.Id;
+                        await UnitService.UpdateAsync(unit.Id, unit);   // returns updated model (ignored here)
+                        updated++;
+                        continue;
+                    }
+                }
+
+                // New unit — reset all DB keys.
+                unit.Id         = 0;
+                unit.CourseId   = targetCourse.Id;
+                unit.CreatedAt  = DateTime.UtcNow;
+                unit.UpdatedAt  = null;
+
+                // Copy → each unit needs its own fresh GUID so it's not confused
+                // with the original on a future import.
+                if (isCopy)
+                    unit.RecordGuid = Guid.NewGuid();
+
+                if (!importOptions.isFullBackup || isCopy)
+                {
+                    unit.LastReviewDate = null;
+                    unit.ReviewCount    = 0;
+                }
+
+                // Words: clear keys but leave UnitId = 0 for now —
+                // we will set the real UnitId after the unit is persisted.
+                if (unit.Words is not null)
+                {
+                    foreach (var word in unit.Words)
+                    {
+                        word.Id        = 0;
+                        word.UnitId    = 0;   // will be fixed below
+                        word.CreatedAt = DateTime.UtcNow;
+                        word.UpdatedAt = null;
+                    }
+                }
+
+                var savedUnit = await UnitService.CreateAsync(unit);
+
+                // CreateAsync returns the persisted model with the real PK —
+                // use it to set UnitId on words before saving them.
+                if (unit.Words is { Count: > 0 })
+                {
+                    foreach (var word in unit.Words)
+                    {
+                        word.UnitId = savedUnit.Id;
+                        await WordService.CreateAsync(word);
+                    }
+                }
+
+                added++;
+            }
+
+            importSuccess = importMode == ImportMode.Update
+                ? $"Курс «{targetCourse.Title}» оновлено: +{added} нових, ↻{updated} оновлених модулів."
+                : $"Курс «{targetCourse.Title}» імпортовано: {added} модулів, "
+                  + $"{importResult.TotalWords} слів, {importResult.TotalAudioFiles} аудіофайлів.";
+        }
+        catch (Exception ex)
+        {
+            importError = $"Помилка збереження: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private void ClearState()
+    {
+        importError      = null;
+        importSuccess    = null;
+        manifest         = null;
+        importResult     = null;
+        existingCourse   = null;
+        existingUnitGuids = [];
+        selectedFileName = null;
+        zipBytes         = null;
+    }
+}
+
+<style>
+    .page-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+        border-top: 1px solid #e0e0e0;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .scroll-area {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .keyboard-spacer { height: 0; }
+
+    .edit-page {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    /* ── Header ── */
+    .header-section { margin-bottom: 2rem; }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .page-title i { color: #A3BFFA; }
+    .page-description { color: #666; font-size: 1rem; margin: 0; }
+
+    /* ── Form ── */
+    .form-container {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .form-section { display: flex; flex-direction: column; gap: 0.75rem; }
+    .form-section:not(:last-child) { margin-bottom: 2rem; }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-title i { color: #A3BFFA; }
+
+    /* ── File picker ── */
+    .file-picker-section { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .btn-file-picker {
+        padding: 0.875rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 500;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: 2px dashed #A3BFFA;
+        background: rgba(163,191,250,0.05);
+        color: #5a7fb8;
+        transition: all 0.2s;
+    }
+
+    .btn-file-picker:hover:not(:disabled) { background: rgba(163,191,250,0.12); border-color: #7ea0f0; }
+    .btn-file-picker:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-file-picker i { font-size: 1.25rem; flex-shrink: 0; }
+
+    /* ── Info card ── */
+    .info-card {
+        background: #f8f9fa;
+        border: 1px solid #e8eaed;
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .info-row { display: flex; gap: 1rem; font-size: 0.9rem; align-items: baseline; }
+    .info-label { flex: 0 0 120px; color: #666; font-weight: 500; }
+    .info-value { color: #333; }
+    .info-value--mono { font-family: monospace; font-size: 0.78rem; color: #555; word-break: break-all; }
+
+    /* ── Units list ── */
+    .units-list { display: flex; flex-direction: column; gap: 0.4rem; }
+
+    .unit-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        background: #fafafa;
+    }
+
+    .unit-item__icon { font-size: 1.2rem; color: #A3BFFA; flex-shrink: 0; }
+
+    .unit-item__body { flex: 1; display: flex; flex-direction: column; gap: 0.15rem; }
+    .unit-item__title { font-weight: 600; color: #333; font-size: 0.95rem; }
+    .unit-item__meta  { font-size: 0.8rem; color: #888; display: flex; align-items: center; gap: 0.5rem; }
+
+    .badge-audio {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        background: rgba(163,191,250,0.15);
+        color: #5a7fb8;
+        padding: 0.1rem 0.5rem;
+        border-radius: 99px;
+        font-size: 0.75rem;
+    }
+
+    /* ── Badges ── */
+    .badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.2rem 0.6rem;
+        border-radius: 99px;
+        flex-shrink: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .badge-new    { background: rgba(181,234,215,0.3); color: #1a7a56; }
+    .badge-update { background: rgba(163,191,250,0.3); color: #3558a8; }
+
+    /* ── Import mode radio ── */
+    .radio-group { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .radio-option {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.875rem 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .radio-option:hover { border-color: #c5d4f8; }
+
+    .radio-option i { font-size: 1.2rem; color: #aaa; flex-shrink: 0; margin-top: 0.1rem; }
+    .radio-option div { display: flex; flex-direction: column; gap: 0.2rem; }
+    .radio-option strong { font-size: 0.95rem; color: #333; }
+    .radio-option span   { font-size: 0.82rem; color: #777; }
+
+    .radio-option--active { border-color: #A3BFFA; background: rgba(163,191,250,0.07); }
+    .radio-option--active i { color: #A3BFFA; }
+
+    /* ── Buttons ── */
+    .btn-secondary {
+        padding: 0.7rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: 1.5px solid #A3BFFA;
+        background: transparent;
+        color: #5a7fb8;
+        transition: all 0.2s;
+        align-self: flex-start;
+    }
+
+    .btn-secondary:hover { background: rgba(163,191,250,0.1); }
+
+    .btn-submit {
+        padding: 0.875rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: none;
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        color: white;
+        box-shadow: 0 4px 12px rgba(163,191,250,0.3);
+        transition: all 0.2s;
+    }
+
+    .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(163,191,250,0.4); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .form-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem; }
+
+    .hint { font-size: 0.85rem; color: #888; margin: 0.25rem 0 0; display: flex; align-items: center; gap: 0.4rem; }
+
+    /* ── Spinner ── */
+    .spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,0.5);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s linear infinite;
+        flex-shrink: 0;
+    }
+
+    .spinner--dark { border-color: rgba(90,127,184,0.3); border-top-color: #5a7fb8; }
+
+    @@keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-row { display: flex; align-items: center; gap: 0.6rem; color: #5a7fb8; font-size: 0.9rem; }
+
+    /* ── Checkbox ── */
+    .checkbox-group { display: flex; flex-direction: column; gap: 0; }
+
+    /* ── Alerts ── */
+    .alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        border-radius: 10px;
+        border: 1px solid;
+    }
+
+    .alert i { font-size: 1.25rem; flex-shrink: 0; margin-top: 0.125rem; }
+    .alert div { flex: 1; }
+    .alert strong { display: block; margin-bottom: 0.25rem; }
+    .alert p { margin: 0; }
+
+    .alert-success { background: rgba(181,234,215,0.15); color: #155724; border-color: rgba(181,234,215,0.5); }
+    .alert-success i { color: #28a745; }
+
+    .alert-error { background: rgba(220,53,69,0.1); color: #721c24; border-color: rgba(220,53,69,0.3); }
+    .alert-error i { color: #dc3545; }
+
+    .alert-warning { background: rgba(255,193,7,0.1); color: #856404; border-color: rgba(255,193,7,0.4); }
+    .alert-warning i { color: #d4a017; }
+
+    /* ── Responsive ── */
+    @@media (max-width: 768px) {
+        .edit-page { padding: 1.5rem 1rem; }
+        .form-container { padding: 1.25rem; }
+        .page-title { font-size: 1.75rem; }
+        .info-row { flex-direction: column; gap: 0.1rem; }
+        .btn-submit, .btn-file-picker { width: 100%; justify-content: center; }
+        .keyboard-spacer { height: 350px; }
+    }
+</style>

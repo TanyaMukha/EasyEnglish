@@ -8,7 +8,7 @@ using EasyEnglish.Core.Models;
 /// <summary>
 /// Service for importing and exporting dictionary data in JSON format.
 /// </summary>
-internal class UnitBackupService
+public class UnitBackupService
 {
     private readonly JsonSerializerOptions jsonOptions;
 

@@ -20,6 +20,7 @@ using EasyEnglish.App.Models;
 using EasyEnglish.Cache.Extensions;
 using EasyEnglish.Core.Interfaces.Storage;
 using Plugin.Maui.Audio;
+using EasyEnglish.App.Services.Speech;
 
 namespace EasyEnglish.App;
 
@@ -168,6 +169,7 @@ public static class MauiProgram
     {
         services.AddScoped<IUserContext, NullUserContext>();
         services.AddScoped<UnitBackupService>();
+        services.AddScoped<CourseZipBackupService>();
 
         services.AddSingleton<IStorageService, LocalStorageService>();
         services.AddSingleton<ProgressService>();
@@ -181,7 +183,23 @@ public static class MauiProgram
         services.AddSingleton(AudioManager.Current);
         services.AddTransient<IAudioService, AudioService>();
 
-        services.AddSingleton<ContextMenuService>();
+        //services.AddAudio();
+
+        services.AddSingleton<ITextToSpeech>(_ => TextToSpeech.Default);
+        services.AddSingleton<VoiceSettingsService>();
+        services.AddSingleton<VoiceAvailabilityService>();
+        services.AddScoped<VoicePickerViewModel>();
+        services.AddScoped<SpeechPlayer>();
+
+#if WINDOWS
+        services.AddSingleton<IVoiceProvider, WindowsVoiceProvider>();
+        services.AddSingleton<ISpeechEngine,  WindowsSpeechEngine>();
+#else
+        services.AddSingleton<IVoiceProvider, MauiVoiceProvider>();
+        services.AddSingleton<ISpeechEngine, MauiSpeechEngine>();
+#endif
+
+        services.AddSingleton<ISpeechService, MauiSpeechService>();
     }
 
     private static void ConfigureAutoMapper(IServiceCollection services)

@@ -1,0 +1,194 @@
+@typeparam TItem
+
+<DrillingPageLayout
+    Title="@(_currentDef?.Title ?? DefaultTitle)"
+    HeaderClass="@(_currentDef?.HeaderClass ?? "pastel-blue")"
+    IconClass="@(_currentDef?.IconClass ?? "bi-collection")"
+    Rate="@Rate"
+    TotalCount="@_totalItems"
+    CompletedCount="@_completed"
+    IsLoading="@IsLoading"
+    ErrorMessage="@ErrorMessage"
+    ShowStats="@_showStats"
+    CompletedWords="@_completed"
+    TotalAttempts="@_totalAttempts"
+    CorrectAnswers="@_correctAnswers"
+    IncorrectAnswers="@_incorrectAnswers"
+    ShowNextButton="@(_currentDef?.ShowNextButton(_state) ?? false)"
+    OnNextCard="@OnNextAsync"
+    OnFinish="@OnFinish">
+
+    <ChildContent>
+        @if (_currentDef is not null && _cardParams.Count > 0)
+        {
+            <DynamicComponent
+            Type="@_currentDef.ComponentType"
+            Parameters="@_cardParams" />
+        }
+    </ChildContent>
+</DrillingPageLayout>
+
+@code {
+    // ── Parameters ────────────────────────────────────────────────────────────
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<TestDefinition<TItem>> Definitions { get; set; } = [];
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<TItem> Items { get; set; } = [];
+
+    [Parameter, EditorRequired]
+    public EventCallback OnFinish { get; set; }
+
+    [Parameter] public string  DefaultTitle  { get; set; } = "Мульті-тест";
+    [Parameter] public bool    IsLoading     { get; set; }
+    [Parameter] public string? ErrorMessage  { get; set; }
+    [Parameter] public float   Rate          { get; set; }
+
+    // ── Private state ─────────────────────────────────────────────────────────
+
+    private readonly TestState _state = new();
+    private readonly Random    _rng   = new();
+
+    private List<(TItem item, TestDefinition<TItem> def)> _pending = [];
+    private int                         _currentIndex;
+    private TItem?                      _currentItem;
+    private WordCardViewModel?          _currentViewModel;
+    private TestDefinition<TItem>?      _currentDef;
+    private Dictionary<string, object?> _cardParams = [];
+
+    private int  _totalItems;
+    private int  _completed       => _totalItems - _pending.Count;
+    private int  _correctAnswers;
+    private int  _incorrectAnswers;
+    private int  _totalAttempts;
+    private bool _showStats;
+
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
+
+    protected override void OnParametersSet()
+    {
+        if (_totalItems == 0 && Items.Count > 0 && Definitions.Count > 0)
+            BuildQueue();
+    }
+
+    private void BuildQueue()
+    {
+        _pending = Items
+            .SelectMany(item => Definitions
+                .Where(def => def.CanApplyTo(item))
+                .Select(def => (item, def)))
+            .OrderBy(_ => _rng.NextDouble())
+            .ToList();
+
+        _totalItems = _pending.Count;
+
+        if (_pending.Count > 0)
+            LoadCurrent();
+    }
+
+    private void LoadCurrent()
+    {
+        if (_pending.Count == 0) return;
+
+        var (item, def) = _pending[_currentIndex];
+        _currentItem = item;
+        _currentDef  = def;
+
+        _state.Reset();
+
+        _currentViewModel = def.BuildViewModel(item);
+
+        _state.CorrectAnswer  = def.GetCorrectAnswer(_currentViewModel);
+        _state.WordIsQuestion = def.WordIsQuestion;
+
+        def.PrepareState(_currentViewModel, Items, def.BuildViewModel, _state);
+
+        RebuildCardParams();
+    }
+
+    private void RebuildCardParams()
+    {
+        if (_currentDef is null || _currentViewModel is null) return;
+
+        var callbacks = new TestCallbacks(
+            OnCheckAnswer: EventCallback.Factory.Create<bool>(this, HandleCheckAnswer),
+            OnReveal:      EventCallback.Factory.Create(this, HandleReveal),
+            OnRate:        EventCallback.Factory.Create<double>(this, HandleRate)
+        );
+
+        var context = new TestCardContext
+        {
+            ViewModel = _currentViewModel,
+            RawItem   = _currentItem as object,
+            State     = _state,
+            Callbacks = callbacks,
+        };
+
+        _cardParams = new Dictionary<string, object?> { ["Context"] = context };
+    }
+
+    // ── Callbacks ─────────────────────────────────────────────────────────────
+
+    private void HandleCheckAnswer(bool isCorrect)
+    {
+        _state.IsAnswerSubmitted = true;
+        _state.IsCorrect         = isCorrect;
+        _totalAttempts++;
+
+        if (isCorrect) _correctAnswers++;
+        else           _incorrectAnswers++;
+
+        RebuildCardParams();
+        StateHasChanged();
+    }
+
+    private void HandleReveal()
+    {
+        _state.IsRevealed = true;
+        _totalAttempts++;
+        RebuildCardParams();
+        StateHasChanged();
+    }
+
+    private void HandleRate(double rating)
+    {
+        _state.LastRatedValue = rating;
+        _state.IsRated        = true;
+        RebuildCardParams();
+        StateHasChanged();
+    }
+
+    // ── Navigation ────────────────────────────────────────────────────────────
+
+    private Task OnNextAsync()
+    {
+        if (_currentDef is null) return Task.CompletedTask;
+
+        if (_currentDef.GetNextAction(_state) == NextItemAction.Remove)
+        {
+            _pending.RemoveAt(_currentIndex);
+        }
+        else
+        {
+            var entry    = _pending[_currentIndex];
+            var offset   = _rng.Next(2, 5);
+            var insertAt = Math.Min(_currentIndex + offset, _pending.Count - 1);
+            _pending.RemoveAt(_currentIndex);
+            _pending.Insert(insertAt, entry);
+        }
+
+        if (_pending.Count > 0)
+        {
+            _currentIndex %= _pending.Count;
+            LoadCurrent();
+        }
+        else
+        {
+            _showStats = true;
+        }
+
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+}

@@ -1,8 +1,8 @@
 @namespace EasyEnglish.App.Components.Shared
 @using System.Globalization
 
-<div class="irregular-form-card" @onclick="@(() => Navigation.NavigateTo($"/courses/{irregularForm.Unit.CourseId}/units/{irregularForm.UnitId}/irregular-forms/{irregularForm.Id}"))">
-    <div class="card-header">
+<div class="irregular-form-card" @onclick="@(() => NavigationManager.NavigateTo($"/courses/{irregularForm.Unit.CourseId}/units/{irregularForm.UnitId}/irregular-forms/{irregularForm.Id}"))">
+    <div class="card-header p-0">
         <div class="forms-list">
             <div class="form-item">
                 <span class="form-word">@irregularForm.FirstForm</span>
@@ -56,7 +56,7 @@
         </div>
     </div>
 
-    <div class="card-body">
+    <div class="card-body p-0">
         @if (!string.IsNullOrEmpty(irregularForm.FirstFormTranslation))
         {
             <div class="form-info">
@@ -66,7 +66,7 @@
         }
     </div>
 
-    <div class="card-footer">
+    <div class="card-footer p-0">
         <div class="form-badges">
             @if (!string.IsNullOrEmpty(irregularForm.PartOfSpeech))
             {
@@ -250,7 +250,7 @@
             justify-content: space-between;
             align-items: center;
             gap: 1rem;
-            padding-top: 0.75rem;
+            padding-top: 0.75rem !important;
             border-top: 1px solid #f0f0f0;
             background: transparent;
         }

@@ -1,0 +1,66 @@
+@*
+    State.WordIsQuestion == true  → показуємо Word, після self-assess розкриваємо Translation
+    State.WordIsQuestion == false → Word прихований, питання Translation, Word з'являється після
+*@
+
+@if (Context.State.WordIsQuestion)
+{
+    <WordSection Word="@_vm.Word" Transcription="@_vm.Transcription" />
+
+    @if (_isSelfAssessed)
+    {
+        <QuestionSection Text="@(_vm.Translation ?? "")" />
+    }
+}
+else
+{
+    <WordSection Word="@_vm.Word" Transcription="@_vm.Transcription"
+                 Hidden="@(!_isSelfAssessed)" />
+    <QuestionSection Text="@(_vm.Translation ?? "")" />
+}
+
+<AnswerKnowOrNotSection
+    isSelfAssessed="@_isSelfAssessed"
+    isKnown="@_isKnown"
+    isVerified="@_isVerified"
+    OnSelfAssess="@HandleSelfAssess"
+    OnVerifyAssessment="@HandleVerifyAssessment" />
+
+@code {
+    [Parameter, EditorRequired]
+    public TestCardContext Context { get; set; } = null!;
+
+    private WordCardViewModel _vm => Context.ViewModel;
+
+    // Локальний стан — більше не залежить від TestState
+    private bool _isSelfAssessed;
+    private bool _isKnown;
+    private bool _isVerified;
+
+    private async Task HandleSelfAssess(bool knows)
+    {
+        _isSelfAssessed = true;
+        _isKnown        = knows;
+
+        // Не знає — одразу фінальний результат: неправильно
+        if (!knows)
+            await Context.Callbacks.OnCheckAnswer.InvokeAsync(false);
+    }
+
+    private async Task HandleVerifyAssessment(bool isCorrect)
+    {
+        _isVerified = true;
+        await Context.Callbacks.OnCheckAnswer.InvokeAsync(isCorrect);
+    }
+
+    // Скидаємо локальний стан при переході до нової картки
+    protected override void OnParametersSet()
+    {
+        if (!Context.State.IsAnswerSubmitted)
+        {
+            _isSelfAssessed = false;
+            _isKnown        = false;
+            _isVerified     = false;
+        }
+    }
+}

@@ -1,0 +1,67 @@
+@page "/drilling/words-multi-test"
+
+<div class="page-content">
+    <PageHeader Title="Мульті-тест" />
+
+    <MultiTestHost TItem="WordTestModel"
+        Definitions="@_definitions"
+        Items="@_items"
+        Rate="@(_items.FirstOrDefault()?.Rate ?? 0)"
+        IsLoading="@_isLoading"
+        ErrorMessage="@_errorMessage"
+        OnFinish="@FinishTest" />
+</div>
+
+@code {
+    private List<WordTestModel> _items = [];
+    private List<TestDefinition<WordTestModel>> _definitions = [];
+    private bool _isLoading;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var keys = ParseTestKeys();
+        _definitions = TestRegistry.WordTests
+            .Where(d => keys.Contains(d.Key))
+            .ToList();
+
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            _isLoading = true;
+            var result = await DailyWordsService.GetWordsForToday();
+            _items = mapper.Map<List<WordTestModel>>(result.Words);
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Помилка завантаження: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task FinishTest()
+    {
+        var toUpdate = WordRatingCalculator.UpdateWordRate(_items);
+        await WordService.UpdateWordRateRangeAsync(mapper.Map<List<UpdateWordRateRequest>>(toUpdate));
+        DailyWordsService.ClearCache();
+        NavigationManager.NavigateTo("/drilling/learning-words");
+    }
+
+    private HashSet<string> ParseTestKeys()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        return (query["tests"] ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).ToHashSet();
+    }
+}
+
+<style>
+    .page-content { max-width: 800px; margin: 0 auto; padding: 2rem 1rem; }
+</style>

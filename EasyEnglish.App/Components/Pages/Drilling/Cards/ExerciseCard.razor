@@ -1,0 +1,357 @@
+<div class="exercise-card @ColorClass @(IsSelected ? "selected" : "")" @onclick="HandleCardClick">
+    <div class="exercise-header">
+        <div class="exercise-icon @ColorClass">
+            <i class="bi @Icon"></i>
+        </div>
+        <div class="exercise-title-box">
+            <h3 class="exercise-title">@Title</h3>
+        </div>    
+    </div>
+
+    <div class="exercise-content">
+        <p class="exercise-description">@Description</p>
+    </div>
+
+    <div class="exercise-footer">
+        @if (IsSelectable)
+        {
+            <div class="exercise-checkbox" @onclick:stopPropagation="true">
+                <input type="checkbox"
+                       class="checkbox-input"
+                       checked="@IsSelected"
+                       @onchange="HandleCheckboxChange" />
+                <span class="checkbox-custom"></span>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Description { get; set; } = string.Empty;
+    [Parameter] public string Icon { get; set; } = "bi-card-text";
+    [Parameter] public string Link { get; set; } = "#";
+    [Parameter] public string Color { get; set; } = "blue";
+    [Parameter] public bool IsSelectable { get; set; } = true;
+
+    [Parameter] public bool IsSelected { get; set; }
+    [Parameter] public EventCallback<bool> IsSelectedChanged { get; set; }
+
+    private string ColorClass => $"color-{Color.ToLower()}";
+
+    private async Task HandleCardClick()
+    {
+        if (IsSelectable)
+        {
+            IsSelected = !IsSelected;
+            await IsSelectedChanged.InvokeAsync(IsSelected);
+        }
+    }
+
+    private async Task HandleCheckboxChange(ChangeEventArgs e)
+    {
+        IsSelected = (bool)(e.Value ?? false);
+        await IsSelectedChanged.InvokeAsync(IsSelected);
+    }
+}
+
+<style>
+    .exercise-card {
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 16px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        position: relative;
+    
+
+        .exercise-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .exercise-card.selected {
+            border-width: 2px;
+            box-shadow: 0 4px 16px rgba(163, 191, 250, 0.2);
+        }
+
+        /* Color variations */
+        .exercise-card.color-green:hover {
+            border-color: #66BB6A;
+        }
+
+        .exercise-card.color-green.selected {
+            border-color: #66BB6A;
+            background: #F1F8F4;
+        }
+
+        .exercise-card.color-purple:hover {
+            border-color: #AB47BC;
+        }
+
+        .exercise-card.color-purple.selected {
+            border-color: #AB47BC;
+            background: #F3E5F5;
+        }
+
+        .exercise-card.color-orange:hover {
+            border-color: #FFA726;
+        }
+
+        .exercise-card.color-orange.selected {
+            border-color: #FFA726;
+            background: #FFF3E0;
+        }
+
+        .exercise-card.color-yellow:hover {
+            border-color: #FFCA28;
+        }
+
+        .exercise-card.color-yellow.selected {
+            border-color: #FFCA28;
+            background: #FFFDE7;
+        }
+
+        .exercise-card.color-pink:hover {
+            border-color: #EC407A;
+        }
+
+        .exercise-card.color-pink.selected {
+            border-color: #EC407A;
+            background: #FCE4EC;
+        }
+
+        .exercise-card.color-lavender:hover {
+            border-color: #9575CD;
+        }
+
+        .exercise-card.color-lavender.selected {
+            border-color: #9575CD;
+            background: #EDE7F6;
+        }
+
+        .exercise-card.color-mint:hover {
+            border-color: #26A69A;
+        }
+
+        .exercise-card.color-mint.selected {
+            border-color: #26A69A;
+            background: #E0F2F1;
+        }
+
+        .exercise-card.color-sage:hover {
+            border-color: #66BB6A;
+        }
+
+        .exercise-card.color-sage.selected {
+            border-color: #66BB6A;
+            background: #E8F5E9;
+        }
+
+        .exercise-card.color-blue:hover {
+            border-color: #42A5F5;
+        }
+
+        .exercise-card.color-blue.selected {
+            border-color: #42A5F5;
+            background: #E3F2FD;
+        }
+
+        /* Header */
+        .exercise-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .exercise-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            color: white;
+        }
+
+        .exercise-icon.color-green {
+            background: linear-gradient(135deg, #66BB6A, #4CAF50);
+        }
+
+        .exercise-icon.color-purple {
+            background: linear-gradient(135deg, #AB47BC, #8E24AA);
+        }
+
+        .exercise-icon.color-orange {
+            background: linear-gradient(135deg, #FFA726, #FB8C00);
+        }
+
+        .exercise-icon.color-yellow {
+            background: linear-gradient(135deg, #FFCA28, #FFA000);
+        }
+
+        .exercise-icon.color-pink {
+            background: linear-gradient(135deg, #EC407A, #D81B60);
+        }
+
+        .exercise-icon.color-lavender {
+            background: linear-gradient(135deg, #9575CD, #7E57C2);
+        }
+
+        .exercise-icon.color-mint {
+            background: linear-gradient(135deg, #26A69A, #00897B);
+        }
+
+        .exercise-icon.color-sage {
+            background: linear-gradient(135deg, #66BB6A, #43A047);
+        }
+
+        .exercise-icon.color-blue {
+            background: linear-gradient(135deg, #42A5F5, #1E88E5);
+        }
+
+        /* Checkbox */
+        .exercise-checkbox {
+            position: relative;
+            width: 24px;
+            height: 24px;
+        }
+
+        .checkbox-input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            margin: 0;
+        }
+
+        .checkbox-custom {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            background: white;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .checkbox-custom::after {
+            content: "";
+            display: none;
+            width: 6px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .checkbox-input:checked ~ .checkbox-custom {
+            background: linear-gradient(135deg, #A3BFFA, #7B9FE8);
+            border-color: #A3BFFA;
+        }
+
+        .checkbox-input:checked ~ .checkbox-custom::after {
+            display: block;
+        }
+
+        /* Content */
+        .exercise-content {
+            flex: 1;
+        }
+
+        .exercise-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .exercise-title-box {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            height: 100%;
+            flex: 1;
+        }
+
+        .exercise-description {
+            font-size: 0.95rem;
+            color: #666;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        /* Footer */
+        .exercise-footer {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .exercise-count {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .exercise-count i {
+            color: #A3BFFA;
+            font-size: 1rem;
+        }
+
+        .btn-start {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 0.625rem 1.25rem;
+            color: #666;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-start:hover {
+            background: white;
+            border-color: #A3BFFA;
+            color: #A3BFFA;
+            transform: scale(1.05);
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .exercise-card {
+                padding: 1.25rem;
+            }
+
+            .exercise-title {
+                font-size: 1.1rem;
+            }
+
+            .exercise-description {
+                font-size: 0.9rem;
+            }
+        }
+    }
+</style>

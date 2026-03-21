@@ -1,0 +1,169 @@
+@if (!Context.State.IsRevealed)
+{
+    <div class="hint-container">
+        <div class="hint-badge">
+            <i class="bi bi-lightbulb"></i>
+            <span>Натисніть на розмитий текст, щоб побачити слово</span>
+        </div>
+    </div>
+}
+
+<div class="example-container">
+
+    <div class="sentence-text">
+        @if (_parsed.beforeHidden != string.Empty)
+        {
+            @((MarkupString)ExampleMarkdownService.RenderMarkdown(_parsed.beforeHidden))
+            <span class="hidden-word @(Context.State.IsRevealed ? "revealed" : "blurred")"
+                    @onclick="Reveal">
+                @_parsed.hiddenText
+            </span>
+            @((MarkupString)ExampleMarkdownService.RenderMarkdown(_parsed.afterHidden))
+        }
+        else
+        {
+            @((MarkupString)ExampleMarkdownService.RenderMarkdown(_item.Sentence))
+        }
+    </div>
+
+    <div class="sentence-text">
+        @((MarkupString)ExampleMarkdownService.RenderMarkdown(_item.Translation))
+    </div>
+
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public TestCardContext Context { get; set; } = null!;
+
+    private ExampleModel _item => Context.GetRawItem<ExampleModel>();
+
+    private (string beforeHidden, string hiddenText, string afterHidden) _parsed =>
+        ExampleMarkdownService.ParseHiddenText(_item.Sentence);
+
+    private void Reveal() => Context.Callbacks.OnReveal.InvokeAsync();
+}
+
+<style>
+    /* ── Hint ── */
+    .hint-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .hint-badge {
+        background: #EFF4FF;
+        border: 1px solid #C7D7F9;
+        padding: 0.625rem 1.25rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #3B5FC0;
+        font-weight: 600;
+        font-size: 0.9375rem;
+    }
+
+    /* ── Sentences ── */
+    .example-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .sentence-section {
+        border-radius: 8px;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .sentence-section.english {
+        background: #F8F9FA;
+        border-left: 4px solid #A3BFFA;
+    }
+
+    .sentence-section.translation {
+        background: #F8F9FA;
+        border-left: 4px solid #dee2e6;
+    }
+
+    .language-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #666;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .sentence-text {
+        font-size: 1.25rem;
+        line-height: 1.8;
+        color: #333;
+    }
+
+    /* ── Hidden word ── */
+    .hidden-word {
+        display: inline-block;
+        padding: 0.125rem 0.5rem;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .hidden-word.blurred {
+        background: #E9ECEF;
+        color: transparent;
+        text-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+        user-select: none;
+    }
+
+    .hidden-word.blurred:hover {
+        background: #DEE2E6;
+        transform: scale(1.05);
+    }
+
+    .hidden-word.blurred::before {
+        content: "?";
+        position: absolute;
+        left: 50%; top: 50%;
+        transform: translate(-50%, -50%);
+        color: #6C757D;
+        font-weight: 700;
+        font-size: 1.25rem;
+    }
+
+    .hidden-word.revealed {
+        background: #FFF3CD;
+        color: #856404;
+        font-weight: 700;
+        border: 1px solid #FFEEBA;
+        text-shadow: none;
+        animation: reveal 0.4s ease;
+    }
+
+    @@keyframes reveal {
+        0%   { transform: scale(0.85); opacity: 0; }
+        60%  { transform: scale(1.08); }
+        100% { transform: scale(1);    opacity: 1; }
+    }
+
+    .sentence-text :deep(strong) { color: #1976D2; font-weight: 700; }
+    .sentence-text :deep(em)     { color: #7B1FA2; font-style: italic; }
+
+    .fade-in { animation: fadeIn 0.5s ease; }
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @@media (max-width: 768px) {
+        .sentence-text { font-size: 1.125rem; }
+        .hint-badge    { font-size: 0.875rem; }
+    }
+</style>

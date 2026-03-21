@@ -1,0 +1,40 @@
+@page "/vocab-player"
+
+@inject SpeechPlayer Player
+@implements IAsyncDisposable
+
+<div class="vocab-player">
+    <button @onclick="PlayExamples" disabled="@Player.IsPlaying">▶ Play</button>
+    <button @onclick="Player.StopAsync" disabled="@(!Player.IsPlaying)">■ Stop</button>
+</div>
+
+@code {
+    // ── приклад: слово "schedule" + переклад
+    private readonly List<SpeechSegment> _examples =
+        [
+            // Британська основна + американська для вставок
+        new(
+        "The word **schedule** is pronounced differently in British and American English.",
+        SpeechLanguage.EnglishBritish,
+        SpeechLanguage.EnglishAmerican
+    ),
+        // Переклад українською
+        new(
+            "Слово **schedule** означає розклад або план.",
+            SpeechLanguage.Ukrainian,
+            SpeechLanguage.EnglishBritish
+        ),
+        // Речення-приклад британською з українським поясненням
+        new(
+            "What's your **розклад** for tomorrow? — Який у тебе план на завтра?",
+            SpeechLanguage.EnglishBritish,
+            SpeechLanguage.Ukrainian
+        ),
+    ];
+
+    private Task PlayExamples()
+        => Player.PlayAsync(_examples, pauseBetween: TimeSpan.FromSeconds(1.5));
+
+    public async ValueTask DisposeAsync()
+        => await Player.StopAsync();
+}

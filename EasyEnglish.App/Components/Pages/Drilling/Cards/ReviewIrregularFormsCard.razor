@@ -1,0 +1,168 @@
+<div class="DrillingReviewCardContent">
+    <div class="forms-container">
+
+        @if (!string.IsNullOrEmpty(_item.FirstFormTranslation))
+        {
+            <QuestionSection Text="@_item.FirstFormTranslation" />
+        }
+
+        <div class="form-row">
+            <span class="form-label">@GetFormLabel(1)</span>
+            <div class="form-content">
+                <span class="form-word">@_item.FirstForm</span>
+                @if (!string.IsNullOrEmpty(_item.FirstFormTranscription))
+                {
+                    <span class="form-transcription">[@_item.FirstFormTranscription]</span>
+                }
+                @if (_item.FirstFormPronunciation is { Length: > 0 })
+                {
+                    <span class="audio-icon" @onclick:stopPropagation="true" @onclick="async () => await PlayAudio(_item.FirstFormPronunciation)" title="Play pronunciation">
+                        <i class="bi bi-volume-up-fill"></i>
+                    </span>
+                }
+            </div>
+        </div>
+
+        <div class="form-row">
+            <span class="form-label">@GetFormLabel(2)</span>
+            <div class="form-content">
+                <span class="form-word">@_item.SecondForm</span>
+                @if (!string.IsNullOrEmpty(_item.SecondFormTranscription))
+                {
+                    <span class="form-transcription">[@_item.SecondFormTranscription]</span>
+                }
+                @if (!string.IsNullOrEmpty(_item.SecondFormTranslation))
+                {
+                    <span class="form-translation">@_item.SecondFormTranslation</span>
+                }
+                @if (_item.SecondFormPronunciation is { Length: > 0 })
+                {
+                    <span class="audio-icon" @onclick:stopPropagation="true" @onclick="async () => await PlayAudio(_item.SecondFormPronunciation)" title="Play pronunciation">
+                        <i class="bi bi-volume-up-fill"></i>
+                    </span>
+                }
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(_item.ThirdForm))
+        {
+            <div class="form-row">
+                <span class="form-label">@GetFormLabel(3)</span>
+                <div class="form-content">
+                    <span class="form-word">@_item.ThirdForm</span>
+                    @if (!string.IsNullOrEmpty(_item.ThirdFormTranscription))
+                    {
+                        <span class="form-transcription">[@_item.ThirdFormTranscription]</span>
+                    }
+                    @if (!string.IsNullOrEmpty(_item.ThirdFormTranslation))
+                    {
+                        <span class="form-translation">@_item.ThirdFormTranslation</span>
+                    }
+                    @if (_item.ThirdFormPronunciation is { Length: > 0 })
+                    {
+                        <span class="audio-icon" @onclick:stopPropagation="true" @onclick="async () => await PlayAudio(_item.ThirdFormPronunciation)" title="Play pronunciation">
+                            <i class="bi bi-volume-up-fill"></i>
+                        </span>
+                    }
+                </div>
+            </div>
+        }
+
+    </div>
+
+    <DifficultyRatingSection OnRate="@Context.Callbacks.OnRate"
+                             IsRating="@Context.State.IsRating"
+                             LastRatedValue="@Context.State.LastRatedValue" />
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public TestCardContext Context { get; set; } = null!;
+
+    private IrregularFormModel _item => Context.GetRawItem<IrregularFormModel>();
+
+    private static string GetPosLabel(string pos) => pos.ToLower() switch
+    {
+        "verb"      => "Verb · Дієслово",
+        "noun"      => "Noun · Іменник",
+        "adjective" => "Adjective · Прикметник",
+        "adverb"    => "Adverb · Прислівник",
+        _           => pos
+    };
+
+    private string GetFormLabel(int n)
+    {
+        if (string.IsNullOrEmpty(_item.PartOfSpeech))
+            return n switch { 1 => "First Form", 2 => "Second Form", _ => "Third Form" };
+
+        return _item.PartOfSpeech.ToLower() switch
+        {
+            "verb"      => n switch { 1 => "Infinitive", 2 => "Past Simple", _ => "Past Participle" },
+            "noun"      => n switch { 1 => "Singular", 2 => "Plural", _ => "Alt. Plural" },
+            "adjective" => n switch { 1 => "Positive", 2 => "Comparative", _ => "Superlative" },
+            "adverb"    => n switch { 1 => "Positive", 2 => "Comparative", _ => "Superlative" },
+            _           => $"Form {n}"
+        };
+    }
+
+    private async Task PlayAudio(byte[] pronunciation)
+    {
+        if (pronunciation is { Length: > 0 })
+        {
+            await AudioService.PlayAsync(pronunciation);
+        }
+    }
+}
+
+<style>
+    .forms-container {
+        margin-bottom: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 160px 1fr;
+        align-items: baseline;
+        gap: 1rem;
+    }
+
+    .form-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #888;
+    }
+
+    .form-content {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .form-word {
+        font-size: 1.875rem;
+        font-weight: 700;
+        /* color: #333; */
+    }
+
+    .form-transcription {
+        font-size: 1.125rem;
+        color: #777;
+        font-style: italic;
+    }
+
+    @@media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 120px 1fr;
+        }
+
+        .form-word        { font-size: 1.5rem; }
+        .form-transcription { font-size: 1rem; }
+    }
+</style>

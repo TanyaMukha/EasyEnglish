@@ -5,10 +5,11 @@ using EasyEnglish.Core.Interfaces.Repositories;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using MukhaLab.SelectQueryParameters.Models;
+using MukhaLab.Database;
 
 namespace EasyEnglish.Services.Services;
 
-public class UnitService : BaseService<UnitEntity, UnitModel>, IUnitService
+public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitService
 {
     private readonly IWordService wordService;
 

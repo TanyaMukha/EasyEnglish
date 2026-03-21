@@ -6,7 +6,7 @@ namespace EasyEnglish.Core.Models;
 /// <summary>
 /// Расширенная модель словаря с дополнительными вычисляемыми свойствами
 /// </summary>
-public partial class CourseModel : AbstractModel, IGuidInfo, IAuditInfo
+public partial class CourseModel : AbstractModel, IGuidInfo, IAuditInfo, IGuidRecord
 {
     public Guid RecordGuid { get; set; } = Guid.NewGuid();
 
