@@ -1,6 +1,8 @@
 @namespace EasyEnglish.App.Components.Shared
 @using System.Globalization
 
+@inject SpeechPlayer Player
+
 <div class="word-card" @onclick="@(() => NavigationManager.NavigateTo($"/courses/{word.CourseId}/units/{word.UnitId}/words/{word.Id}"))">
     <div class="word-card-header">
         <div class="word-main">
@@ -9,6 +11,12 @@
                 @if (word.Pronunciation is { Length: > 0 })
                 {
                     <span class="audio-icon" @onclick:stopPropagation="true" @onclick="PlayAudio" title="Play pronunciation">
+                        <i class="bi bi-volume-up-fill"></i>
+                    </span>
+                }
+                else
+                {
+                    <span class="play-icon" @onclick:stopPropagation="true" @onclick="PlayWord" title="Play pronunciation">
                         <i class="bi bi-volume-up-fill"></i>
                     </span>
                 }
@@ -72,6 +80,9 @@
             await AudioService.PlayAsync(word.Pronunciation);
         }
     }
+
+    private Task PlayWord()
+        => Player.PlayTextAsync(word.Word, SpeechLanguage.EnglishBritish);
 }
 
 <style>
@@ -122,6 +133,19 @@
 
     .audio-icon:hover {
         color: #A3BFFA;
+    }
+
+    .play-icon {
+        color: #ccc;
+        font-size: 1.25rem;
+        cursor: pointer;
+        transition: color 0.8s;
+        display: flex;
+        align-items: center;
+    }
+
+    .play-icon:hover {
+        color: #FFBFFA;
     }
 
     .word-text {

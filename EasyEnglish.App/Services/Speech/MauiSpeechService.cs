@@ -31,6 +31,17 @@ public sealed class MauiSpeechService : ISpeechService
         _settingsService = settingsService;
     }
 
+    public async Task SpeakTextAsync(string text, SpeechLanguage language, CancellationToken ct = default)
+    {
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, _cts.Token);
+
+        linked.Token.ThrowIfCancellationRequested();
+
+        var voice = await ResolveVoiceAsync(language);
+        if (voice is not null)
+            await _engine.SpeakAsync(text, voice, linked.Token);
+    }
+    
     public async Task SpeakSegmentAsync(SpeechSegment segment, CancellationToken ct = default)
     {
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, _cts.Token);

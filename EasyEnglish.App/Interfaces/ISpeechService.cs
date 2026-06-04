@@ -6,6 +6,8 @@ public interface ISpeechService
 {
     bool IsSpeaking { get; }
 
+    Task SpeakTextAsync(string text, SpeechLanguage language, CancellationToken ct = default);
+
     /// <summary>Озвучити один сегмент (з можливими включеннями іншою мовою).</summary>
     Task SpeakSegmentAsync(SpeechSegment segment, CancellationToken ct = default);
 

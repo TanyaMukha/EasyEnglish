@@ -27,6 +27,28 @@ public sealed class SpeechPlayer : IAsyncDisposable
         catch (OperationCanceledException) { }
     }
 
+    public async Task PlayAsync(SpeechSegment segment)
+    {
+        await StopAsync();
+        _cts = new CancellationTokenSource();
+        try
+        {
+            await _service.SpeakSegmentAsync(segment, _cts.Token);
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    public async Task PlayTextAsync(string text, SpeechLanguage language)
+    {
+        await StopAsync();
+        _cts = new CancellationTokenSource();
+        try
+        {
+            await _service.SpeakTextAsync(text, language, _cts.Token);
+        }
+        catch (OperationCanceledException) { }
+    }
+
     public async Task StopAsync()
     {
         if (_cts is not null)
