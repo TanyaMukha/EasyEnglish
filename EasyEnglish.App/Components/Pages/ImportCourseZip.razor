@@ -1,14 +1,15 @@
 @page "/import-course-zip"
 @using EasyEnglish.App.Components.Shared
 @using EasyEnglish.App.Interfaces
+@using EasyEnglish.Core.Mapping
 @using EasyEnglish.Core.Models
 @using EasyEnglish.Services
 @inject CourseZipBackupService ZipBackupService
 @inject IFileService FileService
 @inject ICourseService CourseService
 @inject IUnitService UnitService
-@inject IWordService WordService
 @inject IJSRuntime JSRuntime
+@inject AutoMapper.IMapper Mapper
 
 <PageTitle>Імпорт курсу</PageTitle>
 
@@ -64,15 +65,14 @@
                             Інформація про курс
                         </h2>
 
-                        <!-- Duplicate course warning + import mode choice -->
-                        @if (existingCourse != null)
+                        @if (existingCourse != null && manifest.Options.IsFullBackup)
                         {
                             <div class="alert alert-warning">
                                 <i class="bi bi-arrow-repeat"></i>
                                 <div>
                                     <strong>Курс вже імпортовано</strong>
                                     <p>
-                                        «<strong>@existingCourse.Title</strong>» з таким самим GUID вже є в базі.
+                                        «<b>@existingCourse.Title</b>» з таким самим GUID вже є в базі.
                                         Оберіть дію:
                                     </p>
                                 </div>
@@ -97,8 +97,20 @@
                                 </div>
                             </div>
                         }
+                        else if (existingCourse != null)
+                        {
+                            <div class="alert alert-warning">
+                                <i class="bi bi-info-circle"></i>
+                                <div>
+                                    <strong>Курс вже існує</strong>
+                                    <p>
+                                        «<strong>@existingCourse.Title</strong>» з таким самим GUID вже є в базі.
+                                        Оскільки це не повна резервна копія, буде створено окрему копію курсу.
+                                    </p>
+                                </div>
+                            </div>
+                        }
 
-                        <!-- Course metadata -->
                         <div class="info-card">
                             <div class="info-row">
                                 <span class="info-label">Назва</span>
@@ -127,7 +139,6 @@
                             </div>
                         </div>
 
-                        <!-- Units list -->
                         <div class="units-list">
                             @foreach (var entry in manifest.Units)
                             {
@@ -148,11 +159,11 @@
                                             }
                                         </span>
                                     </div>
-                                    @if (existingUnitGuids.Contains(entry.UnitGuid))
+                                    @if (importMode == ImportMode.Update && existingUnitGuids.Contains(entry.UnitGuid))
                                     {
                                         <span class="badge badge-update">оновлення</span>
                                     }
-                                    else
+                                    else if (importMode == ImportMode.Update)
                                     {
                                         <span class="badge badge-new">новий</span>
                                     }
@@ -160,21 +171,7 @@
                             }
                         </div>
 
-                        <!-- Deferred full data load -->
-                        @if (importResult == null && !isLoadingUnits)
-                        {
-                            <button class="btn-secondary" @onclick="LoadFullImportData">
-                                <i class="bi bi-eye"></i>
-                                Завантажити дані модулів для перевірки
-                            </button>
-                        }
-                        @if (isLoadingUnits)
-                        {
-                            <div class="loading-row">
-                                <span class="spinner spinner--dark"></span>
-                                Читання модулів...
-                            </div>
-                        }
+
                     </div>
 
                     <!-- ═══════════ STEP 3 — OPTIONS ═══════════ -->
@@ -187,19 +184,19 @@
                         <div class="checkbox-group">
                             @if (manifest.Options.IncludeExamples)
                             {
-                                <InputCheckboxField @bind-Value="importOptions.includeExamples"
+                                <InputCheckboxField @bind-Value="importOptions.IncludeExamples"
                                     Label="Приклади використання"
                                     Icon="bi-file-text" />
                             }
                             @if (manifest.Options.IncludeLearningProgress)
                             {
-                                <InputCheckboxField @bind-Value="importOptions.includeLearningProgress"
+                                <InputCheckboxField @bind-Value="importOptions.IncludeLearningProgress"
                                     Label="Прогрес вивчення"
                                     Icon="bi-tags" />
                             }
                             @if (manifest.Options.IsFullBackup)
                             {
-                                <InputCheckboxField @bind-Value="importOptions.isFullBackup"
+                                <InputCheckboxField @bind-Value="importOptions.IsFullBackup"
                                     Label="Відновити як резервну копію (зберегти ID)"
                                     Icon="bi-list-ul" />
                             }
@@ -219,7 +216,7 @@
                         <div class="form-actions">
                             <button class="btn-submit"
                                     @onclick="SaveImport"
-                                    disabled="@(isProcessing || importResult == null)">
+                                    disabled="@isProcessing">
                                 @if (isProcessing)
                                 {
                                     <span class="spinner"></span>
@@ -238,13 +235,7 @@
                             </button>
                         </div>
 
-                        @if (importResult == null && manifest != null)
-                        {
-                            <p class="hint">
-                                <i class="bi bi-info-circle"></i>
-                                Спочатку завантажте дані модулів, щоб активувати збереження.
-                            </p>
-                        }
+
                     </div>
                 }
 
@@ -255,7 +246,6 @@
 </div>
 
 @code {
-    // ── State ─────────────────────────────────────────────────────────────────
     private string?                selectedFileName;
     private byte[]?                zipBytes;
 
@@ -268,13 +258,10 @@
     private ImportMode        importMode    = ImportMode.CreateNew;
 
     private bool    isProcessing   = false;
-    private bool    isLoadingUnits = false;
     private string? importError;
     private string? importSuccess;
 
     private enum ImportMode { CreateNew, Update }
-
-    // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -292,8 +279,6 @@
         ");
     }
 
-    // ── Step 1: pick ZIP ──────────────────────────────────────────────────────
-
     private async Task PickZipFile()
     {
         ClearState();
@@ -310,7 +295,7 @@
         }
         catch (Exception ex)
         {
-            importError    = $"Помилка при читанні файлу: {ex.Message}";
+            importError      = $"Помилка при читанні файлу: {ex.Message}";
             selectedFileName = null;
         }
         finally
@@ -319,8 +304,6 @@
             StateHasChanged();
         }
     }
-
-    // ── Step 2a: read manifest (fast) ─────────────────────────────────────────
 
     private async Task ParseManifestAsync()
     {
@@ -335,65 +318,43 @@
 
         selectedFileName = $"{manifest.CourseTitle}.zip";
 
-        // Duplicate-course check.
         existingCourse    = await CourseService.GetByGuidAsync(manifest.CourseGuid);
         existingUnitGuids = [];
         importMode        = ImportMode.CreateNew;
 
         if (existingCourse != null)
         {
-            importMode = ImportMode.Update;
+            // Оновлення доступне лише для повного бекапу — тільки тоді збережені Id
+            importMode = manifest.Options.IsFullBackup
+                ? ImportMode.Update
+                : ImportMode.CreateNew;
+
             var guids = manifest.Units.Select(u => u.UnitGuid).ToList();
             existingUnitGuids = (await UnitService.GetExistingGuidsAsync(guids)).ToHashSet();
         }
 
         importOptions = new UnitBackupOptions
         {
-            includeExamples         = manifest.Options.IncludeExamples,
-            includeLearningProgress = manifest.Options.IncludeLearningProgress,
-            isFullBackup            = manifest.Options.IsFullBackup,
+            IncludeExamples         = manifest.Options.IncludeExamples,
+            IncludeLearningProgress = manifest.Options.IncludeLearningProgress,
+            IsFullBackup            = manifest.Options.IsFullBackup,
         };
     }
 
-    // ── Step 2b: load full unit data (deferred) ───────────────────────────────
-
-    private async Task LoadFullImportData()
-    {
-        if (zipBytes is null || manifest is null) return;
-
-        isLoadingUnits = true;
-        importError    = null;
-        StateHasChanged();
-
-        try
-        {
-            using var ms = new MemoryStream(zipBytes);
-            importResult = await ZipBackupService.ImportFromZipAsync(ms, manifest);
-        }
-        catch (Exception ex)
-        {
-            importError = $"Помилка читання модулів: {ex.Message}";
-        }
-        finally
-        {
-            isLoadingUnits = false;
-            StateHasChanged();
-        }
-    }
-
-    // ── Step 3: save ──────────────────────────────────────────────────────────
-
     private async Task SaveImport()
     {
-        if (importResult is null || manifest is null) return;
+        if (manifest is null || zipBytes is null) return;
 
-        isProcessing = true;
-        importError  = null;
+        isProcessing  = true;
+        importError   = null;
         importSuccess = null;
 
         try
         {
-            // 1. Resolve or create course record.
+            // Завантажуємо дані модулів прямо тут
+            using var msLoad = new MemoryStream(zipBytes);
+            importResult = await ZipBackupService.ImportFromZipAsync(msLoad, manifest);
+            // 1. Resolve or create course.
             CourseModel targetCourse;
             bool isCopy = importMode == ImportMode.CreateNew && existingCourse != null;
 
@@ -405,10 +366,7 @@
             {
                 targetCourse = new CourseModel
                 {
-                    // Full backup (not a copy) → keep original GUID so future re-imports
-                    // will detect this course and offer the Update flow.
-                    // Copy or regular import → fresh GUID to avoid collision.
-                    RecordGuid  = importOptions.isFullBackup && !isCopy
+                    RecordGuid  = importOptions.IsFullBackup && !isCopy
                         ? manifest.CourseGuid
                         : Guid.NewGuid(),
                     Title       = isCopy
@@ -418,77 +376,39 @@
                 };
                 targetCourse = await CourseService.CreateAsync(targetCourse);
             }
-                
+
             int added   = 0;
             int updated = 0;
 
-            // 2. Process each unit.
-            foreach (var (entry, unit) in importResult.Units)
+            // 2. Build mapping options once — same for all units in this import.
+            var mappingOptions = importOptions.ToMappingOptions(isCopy);
+
+            // 3. Process each unit.
+            foreach (var (entry, rawUnit) in importResult.Units)
             {
-                if (!importOptions.includeExamples)
-                    unit.RemoveExamples();
+                // Apply user-selected import options via AutoMapper.
+                // IrregularForms and Words (including Examples) are handled
+                // by their respective MappingActions.
+                var unit = Mapper.Map<UnitModel>(rawUnit, opts =>
+                    opts.Items[UnitMappingOptions.Key] = mappingOptions);
 
-                if (!importOptions.includeLearningProgress)
-                    unit.ClearLearningProgress();
+                unit.CourseId = targetCourse.Id;
 
-                bool isExistingUnit = existingUnitGuids.Contains(entry.UnitGuid);
-
-                if (importMode == ImportMode.Update && isExistingUnit)
+                if (importMode == ImportMode.Update && existingUnitGuids.Contains(entry.UnitGuid))
                 {
                     var dbUnit = await UnitService.GetByGuidAsync(entry.UnitGuid);
                     if (dbUnit != null)
                     {
-                        unit.Id       = dbUnit.Id;
-                        unit.CourseId = targetCourse.Id;
-                        await UnitService.UpdateAsync(unit.Id, unit);   // returns updated model (ignored here)
+                        unit.Id = dbUnit.Id;
+                        await UnitService.UpdateAsync(unit.Id, unit);
                         updated++;
                         continue;
                     }
                 }
 
-                // New unit — reset all DB keys.
-                unit.Id         = 0;
-                unit.CourseId   = targetCourse.Id;
-                unit.CreatedAt  = DateTime.UtcNow;
-                unit.UpdatedAt  = null;
-
-                // Copy → each unit needs its own fresh GUID so it's not confused
-                // with the original on a future import.
-                if (isCopy)
-                    unit.RecordGuid = Guid.NewGuid();
-
-                if (!importOptions.isFullBackup || isCopy)
-                {
-                    unit.LastReviewDate = null;
-                    unit.ReviewCount    = 0;
-                }
-
-                // Words: clear keys but leave UnitId = 0 for now —
-                // we will set the real UnitId after the unit is persisted.
-                if (unit.Words is not null)
-                {
-                    foreach (var word in unit.Words)
-                    {
-                        word.Id        = 0;
-                        word.UnitId    = 0;   // will be fixed below
-                        word.CreatedAt = DateTime.UtcNow;
-                        word.UpdatedAt = null;
-                    }
-                }
-
-                var savedUnit = await UnitService.CreateAsync(unit);
-
-                // CreateAsync returns the persisted model with the real PK —
-                // use it to set UnitId on words before saving them.
-                if (unit.Words is { Count: > 0 })
-                {
-                    foreach (var word in unit.Words)
-                    {
-                        word.UnitId = savedUnit.Id;
-                        await WordService.CreateAsync(word);
-                    }
-                }
-
+                // New unit — UnitId on words/irregularForms is set to 0 by
+                // MappingActions; EF will fix FKs on cascade insert.
+                await UnitService.CreateAsync(unit);
                 added++;
             }
 
@@ -508,18 +428,16 @@
         }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
     private void ClearState()
     {
-        importError      = null;
-        importSuccess    = null;
-        manifest         = null;
-        importResult     = null;
-        existingCourse   = null;
+        importError       = null;
+        importSuccess     = null;
+        manifest          = null;
+        importResult      = null;
+        existingCourse    = null;
         existingUnitGuids = [];
-        selectedFileName = null;
-        zipBytes         = null;
+        selectedFileName  = null;
+        zipBytes          = null;
     }
 }
 
@@ -549,7 +467,6 @@
         padding: 2rem 1rem;
     }
 
-    /* ── Header ── */
     .header-section { margin-bottom: 2rem; }
 
     .page-title {
@@ -565,7 +482,6 @@
     .page-title i { color: #A3BFFA; }
     .page-description { color: #666; font-size: 1rem; margin: 0; }
 
-    /* ── Form ── */
     .form-container {
         background: white;
         border: 1px solid #e0e0e0;
@@ -589,7 +505,6 @@
 
     .section-title i { color: #A3BFFA; }
 
-    /* ── File picker ── */
     .file-picker-section { display: flex; flex-direction: column; gap: 0.5rem; }
 
     .btn-file-picker {
@@ -611,7 +526,6 @@
     .btn-file-picker:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn-file-picker i { font-size: 1.25rem; flex-shrink: 0; }
 
-    /* ── Info card ── */
     .info-card {
         background: #f8f9fa;
         border: 1px solid #e8eaed;
@@ -627,7 +541,6 @@
     .info-value { color: #333; }
     .info-value--mono { font-family: monospace; font-size: 0.78rem; color: #555; word-break: break-all; }
 
-    /* ── Units list ── */
     .units-list { display: flex; flex-direction: column; gap: 0.4rem; }
 
     .unit-item {
@@ -641,7 +554,6 @@
     }
 
     .unit-item__icon { font-size: 1.2rem; color: #A3BFFA; flex-shrink: 0; }
-
     .unit-item__body { flex: 1; display: flex; flex-direction: column; gap: 0.15rem; }
     .unit-item__title { font-weight: 600; color: #333; font-size: 0.95rem; }
     .unit-item__meta  { font-size: 0.8rem; color: #888; display: flex; align-items: center; gap: 0.5rem; }
@@ -657,7 +569,6 @@
         font-size: 0.75rem;
     }
 
-    /* ── Badges ── */
     .badge {
         font-size: 0.7rem;
         font-weight: 700;
@@ -671,7 +582,6 @@
     .badge-new    { background: rgba(181,234,215,0.3); color: #1a7a56; }
     .badge-update { background: rgba(163,191,250,0.3); color: #3558a8; }
 
-    /* ── Import mode radio ── */
     .radio-group { display: flex; flex-direction: column; gap: 0.5rem; }
 
     .radio-option {
@@ -686,16 +596,13 @@
     }
 
     .radio-option:hover { border-color: #c5d4f8; }
-
     .radio-option i { font-size: 1.2rem; color: #aaa; flex-shrink: 0; margin-top: 0.1rem; }
     .radio-option div { display: flex; flex-direction: column; gap: 0.2rem; }
     .radio-option strong { font-size: 0.95rem; color: #333; }
     .radio-option span   { font-size: 0.82rem; color: #777; }
-
     .radio-option--active { border-color: #A3BFFA; background: rgba(163,191,250,0.07); }
     .radio-option--active i { color: #A3BFFA; }
 
-    /* ── Buttons ── */
     .btn-secondary {
         padding: 0.7rem 1.5rem;
         border-radius: 10px;
@@ -737,7 +644,6 @@
 
     .hint { font-size: 0.85rem; color: #888; margin: 0.25rem 0 0; display: flex; align-items: center; gap: 0.4rem; }
 
-    /* ── Spinner ── */
     .spinner {
         display: inline-block;
         width: 16px;
@@ -755,10 +661,8 @@
 
     .loading-row { display: flex; align-items: center; gap: 0.6rem; color: #5a7fb8; font-size: 0.9rem; }
 
-    /* ── Checkbox ── */
     .checkbox-group { display: flex; flex-direction: column; gap: 0; }
 
-    /* ── Alerts ── */
     .alert {
         display: flex;
         align-items: flex-start;
@@ -782,7 +686,6 @@
     .alert-warning { background: rgba(255,193,7,0.1); color: #856404; border-color: rgba(255,193,7,0.4); }
     .alert-warning i { color: #d4a017; }
 
-    /* ── Responsive ── */
     @@media (max-width: 768px) {
         .edit-page { padding: 1.5rem 1rem; }
         .form-container { padding: 1.25rem; }

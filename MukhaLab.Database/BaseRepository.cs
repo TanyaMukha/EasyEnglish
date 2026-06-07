@@ -8,8 +8,8 @@ using MukhaLab.SelectQueryParameters.Models;
 namespace MukhaLab.Database;
 
 /// <summary>
-/// Base implementation of a service providing CRUD operations with optional lazy loading of related entities.
-/// Thread-safe when using IDbContextFactory.
+/// Base implementation of a repository providing CRUD operations.
+/// Thread-safe. Each operation creates and disposes its own DbContext via IDbContextFactory.
 /// </summary>
 /// <typeparam name="T">The type of the entity.</typeparam>
 /// <typeparam name="TContext">The type of the DbContext.</typeparam>
@@ -17,16 +17,12 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
     where T : class
     where TContext : DbContext
 {
-    protected readonly TContext? context;
-    protected readonly IDbContextFactory<TContext>? contextFactory;
-    protected readonly DbSet<T>? dbSet;
+    protected readonly IDbContextFactory<TContext> contextFactory;
     protected readonly IMapper mapper;
     protected readonly IUserContext? userContext;
     protected string[] includes = Array.Empty<string>();
     protected string[] userIdPropertyPaths = Array.Empty<string>();
     protected bool enableUserFiltering = false;
-
-    private readonly bool useFactory;
 
     public BaseRepository(
         IMapper mapper,
@@ -39,57 +35,6 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         this.contextFactory = contextFactory;
         this.userContext = userContext;
         this.enableUserFiltering = userContext != null;
-        this.useFactory = true;
-        this.context = null;
-        this.dbSet = null;
-    }
-
-    // ✅ Конструктор зі звичайним DbContext (для існуючого коду)
-    public BaseRepository(IMapper mapper, TContext context, IUserContext userContext)
-        : this(mapper, context, userContext, true)
-    {
-    }
-
-    public BaseRepository(IMapper mapper, TContext context)
-        : this(mapper, context, null, false)
-    {
-    }
-
-    private BaseRepository(IMapper mapper, TContext context, IUserContext? userContext, bool enableUserFiltering)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(context.Set<T>());
-
-        this.context = context;
-        this.dbSet = context.Set<T>();
-        this.mapper = mapper;
-        this.userContext = userContext;
-        this.enableUserFiltering = enableUserFiltering;
-        this.useFactory = false;
-        this.contextFactory = null;
-    }
-
-    /// <summary>
-    /// Gets DbContext - creates new if using Factory, returns existing if using Scoped.
-    /// IMPORTANT: When using Factory, caller must dispose the context!
-    /// </summary>
-    protected async Task<(TContext context, bool shouldDispose)> GetContextAsync()
-    {
-        if (useFactory)
-        {
-            var ctx = await contextFactory!.CreateDbContextAsync();
-            return (ctx, shouldDispose: true);
-        }
-
-        return (context!, shouldDispose: false);
-    }
-
-    /// <summary>
-    /// Gets DbSet from context.
-    /// </summary>
-    protected DbSet<T> GetDbSet(TContext ctx)
-    {
-        return useFactory ? ctx.Set<T>() : dbSet!;
     }
 
     private IQueryable<T> BuildSelectQuery(
@@ -98,8 +43,7 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         bool withoutPagination = false,
         bool includeRelatedEntities = true)
     {
-        var set = GetDbSet(ctx);
-        IQueryable<T> query = set;
+        IQueryable<T> query = ctx.Set<T>();
 
         var queryParameters = withoutPagination ? new QueryParameters
         {
@@ -120,89 +64,28 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
     }
 
     /// <summary>
-    /// Retrieves all entities as queryable, including default related entities if specified.
-    /// </summary>
-    public virtual IQueryable<T> Get(QueryParameters parameters, bool includeRelatedEntities = true)
-    {
-        ArgumentNullException.ThrowIfNull(parameters);
-
-        if (useFactory)
-        {
-            throw new InvalidOperationException(
-                "Get(QueryParameters) cannot be used with Factory pattern. Use GetAsync instead.");
-        }
-
-        return this.BuildSelectQuery(context!, parameters, false, includeRelatedEntities);
-    }
-
-    /// <summary>
     /// Retrieves all entities as list asynchronously.
     /// </summary>
     public virtual async Task<IEnumerable<T>> GetAsync(QueryParameters parameters, bool includeRelatedEntities = true)
     {
         ArgumentNullException.ThrowIfNull(parameters);
 
-        var (ctx, shouldDispose) = await GetContextAsync();
-        try
-        {
-            var query = this.BuildSelectQuery(ctx, parameters, false, includeRelatedEntities);
-            return await query.AsNoTracking().ToListAsync();
-        }
-        finally
-        {
-            if (shouldDispose)
-            {
-                await ctx.DisposeAsync();
-            }
-        }
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+        var query = this.BuildSelectQuery(ctx, parameters, false, includeRelatedEntities);
+        return await query.AsNoTracking().ToListAsync();
     }
 
     public virtual async Task<int> CountAsync()
     {
-        var (ctx, shouldDispose) = await GetContextAsync();
-        try
-        {
-            var set = GetDbSet(ctx);
-            return await set.CountAsync();
-        }
-        finally
-        {
-            if (shouldDispose)
-            {
-                await ctx.DisposeAsync();
-            }
-        }
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+        return await ctx.Set<T>().CountAsync();
     }
 
     private int GetPageCount(int totalCount, int countPerPage)
     {
         return countPerPage > 0
-                ? (totalCount + countPerPage - 1) / countPerPage
-                : 1;
-    }
-
-    /// <summary>
-    /// Gets pagination information synchronously.
-    /// </summary>
-    public virtual PaginationInfo GetPaginationInfo(QueryParameters parameters, bool includeRelatedEntities = true)
-    {
-        ArgumentNullException.ThrowIfNull(parameters);
-
-        if (useFactory)
-        {
-            throw new InvalidOperationException(
-                "GetPaginationInfo(QueryParameters) cannot be used with Factory pattern. Use GetPaginationInfoAsync instead.");
-        }
-
-        int countPerPage = parameters.RowCount ?? 0;
-        var query = this.BuildSelectQuery(context!, parameters, withoutPagination: true, includeRelatedEntities: includeRelatedEntities);
-        var totalCount = query.Count();
-
-        return new PaginationInfo
-        {
-            TotalCount = totalCount,
-            TotalPages = this.GetPageCount(totalCount, countPerPage),
-        };
+            ? (totalCount + countPerPage - 1) / countPerPage
+            : 1;
     }
 
     /// <summary>
@@ -212,34 +95,16 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
     {
         ArgumentNullException.ThrowIfNull(parameters);
 
-        var (ctx, shouldDispose) = await GetContextAsync();
-        try
-        {
-            int countPerPage = parameters.RowCount ?? 0;
-            var query = this.BuildSelectQuery(ctx, parameters, withoutPagination: true, includeRelatedEntities: includeRelatedEntities);
-            var totalCount = await query.CountAsync();
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+        int countPerPage = parameters.RowCount ?? 0;
+        var query = this.BuildSelectQuery(ctx, parameters, withoutPagination: true, includeRelatedEntities: includeRelatedEntities);
+        var totalCount = await query.CountAsync();
 
-            return new PaginationInfo
-            {
-                TotalCount = totalCount,
-                TotalPages = this.GetPageCount(totalCount, countPerPage),
-            };
-        }
-        finally
+        return new PaginationInfo
         {
-            if (shouldDispose)
-            {
-                await ctx.DisposeAsync();
-            }
-        }
-    }
-
-    /// <summary>
-    /// Applies AsNoTracking when using Factory pattern to prevent tracking issues after dispose
-    /// </summary>
-    protected IQueryable<T> ApplyTrackingBehavior(IQueryable<T> query, bool shouldDispose)
-    {
-        return shouldDispose ? query.AsNoTracking() : query;
+            TotalCount = totalCount,
+            TotalPages = this.GetPageCount(totalCount, countPerPage),
+        };
     }
 
     public virtual async Task<T?> FindAsync(params object[] keyValues)
@@ -249,54 +114,38 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
             return null;
         }
 
-        var (ctx, shouldDispose) = await GetContextAsync();
-        try
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+
+        // Якщо немає налаштованих включень
+        if (this.includes == null || this.includes.Length == 0)
         {
-            var set = GetDbSet(ctx);
+            var entity = await ctx.Set<T>().FindAsync(keyValues);
 
-            // Якщо немає налаштованих включень
-            if (this.includes == null || this.includes.Length == 0)
+            if (entity != null)
             {
-                var entity = await set.FindAsync(keyValues);
-
-                // ✅ Detach якщо використовуємо Factory
-                if (shouldDispose && entity != null)
-                {
-                    ctx.Entry(entity).State = EntityState.Detached;
-                }
-
-                return entity;
+                ctx.Entry(entity).State = EntityState.Detached;
             }
 
-            // Для запитів з includes використовуємо LINQ
-            if (keyValues.Length == 1 && keyValues[0] is int id)
-            {
-                IQueryable<T> query = set;
-                query = this.IncludeProperties(query);
-
-                // ✅ КРИТИЧНО: AsNoTracking для Factory pattern
-                query = ApplyTrackingBehavior(query, shouldDispose);
-
-                return await query.Where("Id == @0", id).FirstOrDefaultAsync();
-            }
-
-            // Fallback для складних ключів
-            var result = await set.FindAsync(keyValues);
-
-            if (shouldDispose && result != null)
-            {
-                ctx.Entry(result).State = EntityState.Detached;
-            }
-
-            return result;
+            return entity;
         }
-        finally
+
+        // Для запитів з includes використовуємо LINQ + AsNoTracking
+        if (keyValues.Length == 1 && keyValues[0] is int id)
         {
-            if (shouldDispose)
-            {
-                await ctx.DisposeAsync();
-            }
+            IQueryable<T> query = ctx.Set<T>();
+            query = this.IncludeProperties(query);
+            return await query.AsNoTracking().Where("Id == @0", id).FirstOrDefaultAsync();
         }
+
+        // Fallback для складних ключів
+        var result = await ctx.Set<T>().FindAsync(keyValues);
+
+        if (result != null)
+        {
+            ctx.Entry(result).State = EntityState.Detached;
+        }
+
+        return result;
     }
 
     public virtual async Task<List<T>> FindManyAsync(IEnumerable<int> ids, bool includeRelatedEntities = true)
@@ -307,29 +156,15 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         }
 
         var idList = ids.ToList();
-        var (ctx, shouldDispose) = await GetContextAsync();
-        try
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+        IQueryable<T> query = ctx.Set<T>();
+
+        if (includeRelatedEntities && this.includes != null && this.includes.Length > 0)
         {
-            var set = GetDbSet(ctx);
-            IQueryable<T> query = set;
-
-            // ✅ Опціонально включаємо includes
-            if (includeRelatedEntities && this.includes != null && this.includes.Length > 0)
-            {
-                query = this.IncludeProperties(query);
-            }
-
-            query = ApplyTrackingBehavior(query, shouldDispose);
-
-            return await query.Where("Id in @0", idList).ToListAsync();
+            query = this.IncludeProperties(query);
         }
-        finally
-        {
-            if (shouldDispose)
-            {
-                await ctx.DisposeAsync();
-            }
-        }
+
+        return await query.AsNoTracking().Where("Id in @0", idList).ToListAsync();
     }
 
     /// <summary>
@@ -352,42 +187,20 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        var (ctx, shouldDispose) = await GetContextAsync();
-        try
-        {
-            var set = GetDbSet(ctx);
-            set.Add(entity);
-            await ctx.SaveChangesAsync();
-            return entity;
-        }
-        finally
-        {
-            if (shouldDispose)
-            {
-                await ctx.DisposeAsync();
-            }
-        }
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+        ctx.Set<T>().Add(entity);
+        await ctx.SaveChangesAsync();
+        return entity;
     }
 
     public virtual async Task<IEnumerable<T>> AddRangeAsync(IEnumerable<T> entities)
     {
         ArgumentNullException.ThrowIfNull(entities);
 
-        var (ctx, shouldDispose) = await GetContextAsync();
-        try
-        {
-            var set = GetDbSet(ctx);
-            set.AddRange(entities);
-            await ctx.SaveChangesAsync();
-            return entities;
-        }
-        finally
-        {
-            if (shouldDispose)
-            {
-                await ctx.DisposeAsync();
-            }
-        }
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+        ctx.Set<T>().AddRange(entities);
+        await ctx.SaveChangesAsync();
+        return entities;
     }
 
     /// <summary>
@@ -397,54 +210,27 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        var (ctx, shouldDispose) = await GetContextAsync();
-        try
-        {
-            var set = GetDbSet(ctx);
-            set.Update(entity);
-            int result = await ctx.SaveChangesAsync();
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+        ctx.Set<T>().Update(entity);
+        int result = await ctx.SaveChangesAsync();
 
-            if (result == 0)
-            {
-                throw new InvalidOperationException($"Entity of type {typeof(T).Name} was not updated. It may not exist or has not changed.");
-            }
-
-            return entity;
-        }
-        finally
+        if (result == 0)
         {
-            if (shouldDispose)
-            {
-                await ctx.DisposeAsync();
-            }
+            throw new InvalidOperationException(
+                $"Entity of type {typeof(T).Name} was not updated. It may not exist or has not changed.");
         }
+
+        return entity;
     }
 
     public virtual async Task<IEnumerable<T>> UpdateRangeAsync(IEnumerable<T> entities)
     {
         ArgumentNullException.ThrowIfNull(entities);
 
-        var (ctx, shouldDispose) = await GetContextAsync();
-        try
-        {
-            var set = GetDbSet(ctx);
-            set.UpdateRange(entities);
-            int result = await ctx.SaveChangesAsync();
-
-            //if (result == 0)
-            //{
-            //    throw new InvalidOperationException($"Entity of type {typeof(T).Name} was not updated. It may not exist or has not changed.");
-            //}
-
-            return entities;
-        }
-        finally
-        {
-            if (shouldDispose)
-            {
-                await ctx.DisposeAsync();
-            }
-        }
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+        ctx.Set<T>().UpdateRange(entities);
+        await ctx.SaveChangesAsync();
+        return entities;
     }
 
     /// <summary>
@@ -452,50 +238,39 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
     /// </summary>
     public virtual async Task<bool> RemoveAsync(params object[] keyValues)
     {
-        var (ctx, shouldDispose) = await GetContextAsync();
-        try
-        {
-            var entity = await this.GetByIdAndEnsureExistsAsync(keyValues);
+        await using var ctx = await contextFactory.CreateDbContextAsync();
 
-            var set = GetDbSet(ctx);
-            set.Remove(entity);
-            int res = await ctx.SaveChangesAsync();
-            return res > 0;
-        }
-        finally
+        var entity = await ctx.Set<T>().FindAsync(keyValues);
+        if (entity == null)
         {
-            if (shouldDispose)
-            {
-                await ctx.DisposeAsync();
-            }
+            throw new InvalidOperationException(
+                $"Entity of type {typeof(T).Name} with keys {string.Join(", ", keyValues)} was not found.");
         }
+
+        ctx.Set<T>().Remove(entity);
+        int res = await ctx.SaveChangesAsync();
+        return res > 0;
     }
 
     public virtual async Task<bool> RemoveRangeAsync(IEnumerable<object[]> keyValuesList)
     {
-        var (ctx, shouldDispose) = await GetContextAsync();
-        try
-        {
-            var entities = new List<T>();
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+        var entities = new List<T>();
 
-            foreach (var keyValues in keyValuesList)
-            {
-                var entity = await this.GetByIdAndEnsureExistsAsync(keyValues);
-                entities.Add(entity);
-            }
-
-            var set = GetDbSet(ctx);
-            set.RemoveRange(entities);
-            int res = await ctx.SaveChangesAsync();
-            return res > 0;
-        }
-        finally
+        foreach (var keyValues in keyValuesList)
         {
-            if (shouldDispose)
+            var entity = await ctx.Set<T>().FindAsync(keyValues);
+            if (entity == null)
             {
-                await ctx.DisposeAsync();
+                throw new InvalidOperationException(
+                    $"Entity of type {typeof(T).Name} with keys {string.Join(", ", keyValues)} was not found.");
             }
+            entities.Add(entity);
         }
+
+        ctx.Set<T>().RemoveRange(entities);
+        int res = await ctx.SaveChangesAsync();
+        return res > 0;
     }
 
     public virtual async Task<bool> RemoveRangeAsync(IEnumerable<T> entities)
@@ -503,21 +278,10 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         if (entities == null || !entities.Any())
             return false;
 
-        var (ctx, shouldDispose) = await GetContextAsync();
-        try
-        {
-            var set = GetDbSet(ctx);
-            set.RemoveRange(entities);
-            int res = await ctx.SaveChangesAsync();
-            return res > 0;
-        }
-        finally
-        {
-            if (shouldDispose)
-            {
-                await ctx.DisposeAsync();
-            }
-        }
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+        ctx.Set<T>().RemoveRange(entities);
+        int res = await ctx.SaveChangesAsync();
+        return res > 0;
     }
 
     /// <summary>
@@ -526,7 +290,46 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
     protected virtual async Task<T> GetByIdAndEnsureExistsAsync(params object[] keyValues)
     {
         var entity = await this.FindAsync(keyValues);
-        return entity ?? throw new InvalidOperationException($"Entity of type {typeof(T).Name} with keys {keyValues} was not found.");
+        return entity ?? throw new InvalidOperationException(
+            $"Entity of type {typeof(T).Name} with keys {string.Join(", ", keyValues)} was not found.");
+    }
+
+    /// <summary>
+    /// Executes multiple operations in a single transaction.
+    /// Use when you need atomicity across several SaveChanges calls within one repository.
+    /// </summary>
+    public virtual async Task<TResult> ExecuteInTransactionAsync<TResult>(
+        Func<TContext, Task<TResult>> operation)
+    {
+        ArgumentNullException.ThrowIfNull(operation);
+
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+        await using var transaction = await ctx.Database.BeginTransactionAsync();
+        try
+        {
+            var result = await operation(ctx);
+            await transaction.CommitAsync();
+            return result;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Executes multiple operations in a single transaction without a return value.
+    /// </summary>
+    public virtual async Task ExecuteInTransactionAsync(Func<TContext, Task> operation)
+    {
+        ArgumentNullException.ThrowIfNull(operation);
+
+        await ExecuteInTransactionAsync<object?>(async ctx =>
+        {
+            await operation(ctx);
+            return null;
+        });
     }
 
     public void ConfigureIncludes(string[] includes)
@@ -616,7 +419,7 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Ошибка при разборе пути '{path}': {ex.Message}", ex);
+                throw new InvalidOperationException($"Помилка при розборі шляху '{path}': {ex.Message}", ex);
             }
         }
 

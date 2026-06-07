@@ -1,3 +1,5 @@
+using AutoMapper;
+using EasyEnglish.Core.Mapping;
 using EasyEnglish.Core.Models;
 using System.IO.Compression;
 using System.Text;
@@ -16,29 +18,34 @@ namespace EasyEnglish.Services;
 /// my_course.zip
 /// ├── course.json              ← CoursePackageManifest (includes export options)
 /// ├── units/
-/// │   ├── unit_1.json          ← UnitModel only (no options — they are global, stored once in course.json)
+/// │   ├── unit_1.json
 /// │   └── unit_2.json
 /// └── audio/
 ///     ├── apple.mp3            ← stem = SanitizeFileName(word.Word)
 ///     └── banana.mp3
 /// </code>
 ///
-/// Options (includeExamples, includeLearningProgress, isFullBackup) are stored once
-/// in course.json and never duplicated inside unit files.
-/// NOTE: <see cref="UnitBackupService.ExportToJson"/> mutates the model it receives,
-/// so this service serialises units via <see cref="BuildUnitDto"/> to keep
-/// original models intact.
+/// Options (IncludeExamples, IncludeLearningProgress, IsFullBackup) are stored once
+/// in course.json. Unit files never contain options — they always carry the full
+/// model snapshot produced by AutoMapper according to those options.
 /// </summary>
 public class CourseZipBackupService
 {
+    private readonly IMapper _mapper;
+
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
-        WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        WriteIndented          = true,
+        PropertyNamingPolicy   = JsonNamingPolicy.CamelCase,
+        Encoder                = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Converters = { new JsonStringEnumConverter() },
+        Converters             = { new JsonStringEnumConverter() },
     };
+
+    public CourseZipBackupService(IMapper mapper)
+    {
+        _mapper = mapper;
+    }
 
     // =========================================================================
     // EXPORT
@@ -54,38 +61,44 @@ public class CourseZipBackupService
         IEnumerable<UnitModel> units,
         UnitBackupOptions options)
     {
+        var mappingOptions = options.ToMappingOptions();
+
         using var ms = new MemoryStream();
 
         using (var archive = new ZipArchive(ms, ZipArchiveMode.Create, leaveOpen: true))
         {
             var manifest = new CoursePackageManifest
             {
-                CourseGuid              = course.RecordGuid,
-                CourseTitle             = course.Title,
-                CourseDescription       = course.Description,
-                ExportedAt              = DateTime.UtcNow,
+                CourseGuid        = course.RecordGuid,
+                CourseTitle       = course.Title,
+                CourseDescription = course.Description,
+                ExportedAt        = DateTime.UtcNow,
                 Options = new CourseExportOptions
                 {
-                    IncludeExamples         = options.includeExamples,
-                    IncludeLearningProgress = options.includeLearningProgress,
-                    IsFullBackup            = options.isFullBackup,
+                    IncludeExamples         = options.IncludeExamples,
+                    IncludeLearningProgress = options.IncludeLearningProgress,
+                    IsFullBackup            = options.IsFullBackup,
                 },
             };
 
             var writtenAudio = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            int unitIndex = 1;
+            int unitIndex    = 1;
 
             foreach (var unit in units)
             {
+                // Map to DTO — source model is never mutated.
+                var dto = _mapper.Map<UnitModel>(unit, opts =>
+                    opts.Items[UnitMappingOptions.Key] = mappingOptions);
+
                 var unitEntry = new UnitManifestEntry
                 {
-                    UnitGuid  = unit.RecordGuid,
+                    UnitGuid  = unit.RecordGuid,    // always from original
                     FileName  = $"units/unit_{unitIndex}.json",
                     Title     = unit.Title,
                     WordCount = unit.Words?.Count ?? 0,
                 };
 
-                // Write audio files (original model untouched).
+                // Write audio from original model; strip bytes from DTO.
                 if (unit.Words is not null)
                 {
                     foreach (var word in unit.Words.Where(w => w.Pronunciation is { Length: > 0 }))
@@ -98,8 +111,13 @@ public class CourseZipBackupService
                     }
                 }
 
-                // Serialise UnitModel directly — options are global and live in course.json only.
-                var dto      = BuildUnitDto(unit, options);
+                // Pronunciation was already set to null by WordMappingAction
+                // (Words are mapped via Model→Model, Pronunciation is not mapped).
+                // Explicit safety-clear in case mapping config changes:
+                if (dto.Words is not null)
+                    foreach (var w in dto.Words)
+                        w.Pronunciation = null;
+
                 var unitJson = JsonSerializer.Serialize(dto, JsonOpts);
                 await WriteEntryAsync(archive, unitEntry.FileName, Encoding.UTF8.GetBytes(unitJson));
 
@@ -107,7 +125,6 @@ public class CourseZipBackupService
                 unitIndex++;
             }
 
-            // Manifest written last so unit list is complete.
             var manifestJson = JsonSerializer.Serialize(manifest, JsonOpts);
             await WriteEntryAsync(archive, "course.json", Encoding.UTF8.GetBytes(manifestJson));
         }
@@ -149,20 +166,13 @@ public class CourseZipBackupService
         var audioCache = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
         foreach (var ae in archive.Entries.Where(e =>
             e.FullName.StartsWith("audio/", StringComparison.OrdinalIgnoreCase) &&
-            e.FullName.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase)))
+            e.FullName.EndsWith(".mp3",    StringComparison.OrdinalIgnoreCase)))
         {
-            await using var s   = ae.Open();
-            using var buf       = new MemoryStream();
+            await using var s  = ae.Open();
+            using var buf      = new MemoryStream();
             await s.CopyToAsync(buf);
             audioCache[ae.FullName] = buf.ToArray();
         }
-
-        var options = new UnitBackupOptions
-        {
-            includeExamples         = manifest.Options.IncludeExamples,
-            includeLearningProgress = manifest.Options.IncludeLearningProgress,
-            isFullBackup            = manifest.Options.IsFullBackup,
-        };
 
         var units = new List<(UnitManifestEntry Entry, UnitModel Unit)>();
 
@@ -189,7 +199,7 @@ public class CourseZipBackupService
                 }
             }
 
-            // GUID comes from the manifest (JSON payload may not carry it).
+            // GUID comes from the manifest (authoritative source).
             unit.RecordGuid = unitEntry.UnitGuid;
 
             units.Add((unitEntry, unit));
@@ -198,7 +208,6 @@ public class CourseZipBackupService
         return new CourseImportResult
         {
             Manifest = manifest,
-            Options  = options,
             Units    = units,
         };
     }
@@ -206,48 +215,6 @@ public class CourseZipBackupService
     // =========================================================================
     // HELPERS
     // =========================================================================
-
-    /// <summary>
-    /// Creates a <see cref="UnitModel"/> DTO by projecting the source model
-    /// according to <paramref name="options"/>. The source is never mutated.
-    /// Pronunciation bytes are stripped (they live in separate audio entries).
-    /// Options themselves are NOT included — they belong to course.json only.
-    /// </summary>
-    private static UnitModel BuildUnitDto(UnitModel source, UnitBackupOptions options)
-    {
-        var words = source.Words?
-            .Select(w => new WordModel
-            {
-                Id            = options.isFullBackup ? w.Id : 0,
-                Word          = w.Word,
-                Transcription = w.Transcription,
-                Translation   = w.Translation,
-                Pronunciation = null,   // stored as audio file
-                UnitId        = options.isFullBackup ? w.UnitId : 0,
-                CreatedAt     = options.isFullBackup ? w.CreatedAt : DateTime.UtcNow,
-                UpdatedAt     = options.isFullBackup ? w.UpdatedAt : null,
-                LastReviewDate = options.includeLearningProgress ? w.LastReviewDate : null,
-                ReviewCount   = options.includeLearningProgress ? w.ReviewCount : 0,
-                Rate          = options.includeLearningProgress ? w.Rate : 3f,
-                Examples      = options.includeExamples ? w.Examples : [],
-            })
-            .ToList();
-
-        return new UnitModel
-        {
-            Id             = options.isFullBackup ? source.Id : 0,
-            RecordGuid     = source.RecordGuid,
-            Title          = source.Title,
-            Description    = source.Description,
-            Content        = source.Content,
-            CourseId       = options.isFullBackup ? source.CourseId : 0,
-            CreatedAt      = options.isFullBackup ? source.CreatedAt : DateTime.UtcNow,
-            UpdatedAt      = options.isFullBackup ? source.UpdatedAt : null,
-            LastReviewDate = options.includeLearningProgress ? source.LastReviewDate : null,
-            ReviewCount    = options.includeLearningProgress ? source.ReviewCount : 0,
-            Words          = words,
-        };
-    }
 
     /// <summary>
     /// Converts a word string into a safe ZIP path segment.
@@ -274,9 +241,8 @@ public class CourseZipBackupService
 
 public class CourseImportResult
 {
-    public CoursePackageManifest Manifest { get; init; } = null!;
-    public UnitBackupOptions     Options  { get; init; } = new();
-    public List<(UnitManifestEntry Entry, UnitModel Unit)> Units { get; init; } = [];
+    public CoursePackageManifest                           Manifest { get; init; } = null!;
+    public List<(UnitManifestEntry Entry, UnitModel Unit)> Units    { get; init; } = [];
 
     public int TotalWords      => Units.Sum(u => u.Unit.Words?.Count ?? 0);
     public int TotalAudioFiles => Units.Sum(u => u.Entry.AudioFiles.Count);

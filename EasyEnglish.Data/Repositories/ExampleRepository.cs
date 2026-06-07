@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using EasyEnglish.Core.Entities;
 using EasyEnglish.Core.Interfaces.Repositories;
+using Microsoft.EntityFrameworkCore;
 using MukhaLab.Database;
 using System;
 using System.Collections.Generic;
@@ -12,8 +13,8 @@ namespace EasyEnglish.Data.Repositories;
 
 public class ExampleRepository : BaseRepository<ExampleEntity, EasyEnglishDbContext>, IExampleRepository
 {
-    public ExampleRepository(IMapper mapper, EasyEnglishDbContext context, IUserContext userContext)
-        : base(mapper, context, userContext)
+    public ExampleRepository(IMapper mapper, IDbContextFactory<EasyEnglishDbContext> contextFactory, IUserContext userContext)
+        : base(mapper, contextFactory, userContext)
     {
     }
 }

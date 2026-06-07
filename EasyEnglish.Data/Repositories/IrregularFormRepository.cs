@@ -14,8 +14,8 @@ public class IrregularFormRepository : BaseRepository<IrregularFormEntity, EasyE
     /// </summary>
     private static readonly string[] RelativedEntities = new[] { "Unit" };
 
-    public IrregularFormRepository(IMapper mapper, EasyEnglishDbContext context, IUserContext userContext)
-        : base(mapper, context, userContext)
+    public IrregularFormRepository(IMapper mapper, IDbContextFactory<EasyEnglishDbContext> contextFactory, IUserContext userContext)
+        : base(mapper, contextFactory, userContext)
     {
         this.ConfigureIncludes(RelativedEntities);
     }

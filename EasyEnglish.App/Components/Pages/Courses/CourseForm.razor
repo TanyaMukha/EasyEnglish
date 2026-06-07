@@ -3,25 +3,27 @@
 
 @using EasyEnglish.App.Components.Shared
 
-<h3>@(IsEditMode ? "Edit" : "Create") Course</h3>
+<div class="page-content">
+    <h3>@(IsEditMode ? "Edit" : "Create") Course</h3>
 
-<EditForm Model="newCourse" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
+    <EditForm Model="newCourse" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
 
-    <InputTextField @bind-Value="newCourse.Title"
-            Label="Назва словника" />
-    <ValidationMessage For="@(() => newCourse.Title)" class="validation-message" />
+        <InputTextField @bind-Value="newCourse.Title"
+                        Label="Назва словника" />
+        <ValidationMessage For="@(() => newCourse.Title)" class="validation-message" />
 
-    <InputMultilineField @bind-Value="newCourse.Description"
-            Label="Опис"
-            Rows="1" />
-    <ValidationMessage For="@(() => newCourse.Description)" class="validation-message" />
+        <InputMultilineField @bind-Value="newCourse.Description"
+                             Label="Опис"
+                             Rows="1" />
+        <ValidationMessage For="@(() => newCourse.Description)" class="validation-message" />
 
-    <button type="submit" class="btn btn-primary">
-        @(IsEditMode ? "Update" : "Create")
-    </button>
-    <a href="/courses" class="btn btn-secondary">Отмена</a>
-</EditForm>
+        <button type="submit" class="btn btn-primary">
+            @(IsEditMode ? "Update" : "Create")
+        </button>
+        <a href="/courses" class="btn btn-secondary">Отмена</a>
+    </EditForm>
+</div>
 
 @code {
     [Parameter] public int Id { get; set; } = 0;

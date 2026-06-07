@@ -105,13 +105,13 @@
                                          Placeholder="my_course" />
 
                     <div class="checkbox-group">
-                        <InputCheckboxField @bind-Value="options.includeExamples"
+                        <InputCheckboxField @bind-Value="options.IncludeExamples"
                             Label="Приклади використання"
                             Icon="bi-file-text" />
-                        <InputCheckboxField @bind-Value="options.includeLearningProgress"
+                        <InputCheckboxField @bind-Value="options.IncludeLearningProgress"
                             Label="Прогрес вивчення"
                             Icon="bi-tags" />
-                        <InputCheckboxField @bind-Value="options.isFullBackup"
+                        <InputCheckboxField @bind-Value="options.IsFullBackup"
                             Label="Резервна копія (зберегти ID для відновлення)"
                             Icon="bi-list-ul" />
                     </div>
@@ -207,7 +207,7 @@
 
         selectedCourse = availableCourses.FirstOrDefault(c => c.Id == selectedCourseId);
         availableUnits = (await CourseService.GetUnitsAsync(selectedCourseId)).ToList();
-        selectedUnitIds = availableUnits.Select(u => u.Id).ToHashSet();   // all selected by default
+        selectedUnitIds = availableUnits.Select(u => u.Id).ToHashSet();
 
         if (selectedCourse != null)
             exportFileName = CourseZipBackupService.SanitizeFileName(selectedCourse.Title)
@@ -235,8 +235,7 @@
 
         try
         {
-            // Preserve selected order from availableUnits list.
-            var orderedIds   = availableUnits.Where(u => selectedUnitIds.Contains(u.Id)).Select(u => u.Id);
+            var orderedIds    = availableUnits.Where(u => selectedUnitIds.Contains(u.Id)).Select(u => u.Id);
             var unitsToExport = new List<UnitModel>();
 
             foreach (var id in orderedIds)
@@ -336,7 +335,6 @@
 
     .section-title i { color: #A3BFFA; }
 
-    /* ── Info card ── */
     .info-card {
         background: #f8f9fa;
         border: 1px solid #e8eaed;
@@ -352,7 +350,6 @@
     .info-value { color: #333; }
     .info-value--mono { font-family: monospace; font-size: 0.78rem; color: #555; word-break: break-all; }
 
-    /* ── Units ── */
     .units-list { display: flex; flex-direction: column; gap: 0.4rem; }
 
     .unit-item {
@@ -401,7 +398,6 @@
 
     .btn-link:hover { color: #3558a8; }
 
-    /* ── Options ── */
     .checkbox-group { display: flex; flex-direction: column; gap: 0; }
 
     .form-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem; }

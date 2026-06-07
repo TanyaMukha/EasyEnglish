@@ -127,12 +127,10 @@ public static class MauiProgram
         builder.Services.AddDbContextFactory<EasyEnglishDbContext>(options =>
         {
             options.UseSqlite(connectionString);
-        });
-
-        // ✅ Scoped DbContext для існуючих репозиторіїв
-        builder.Services.AddDbContext<EasyEnglishDbContext>(options =>
-        {
-            options.UseSqlite(connectionString);
+            options.UseSqlite(connectionString, sqliteOptions =>
+            {
+                sqliteOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+            });
 #if DEBUG
             // options.EnableSensitiveDataLogging();
             // options.EnableDetailedErrors();
@@ -168,8 +166,12 @@ public static class MauiProgram
     private static void RegisterServices(IServiceCollection services)
     {
         services.AddScoped<IUserContext, NullUserContext>();
-        services.AddScoped<UnitBackupService>();
         services.AddScoped<CourseZipBackupService>();
+
+        services.AddTransient<UnitMappingAction>();
+        services.AddTransient<WordMappingAction>();
+        services.AddTransient<ExampleMappingAction>();
+        services.AddTransient<IrregularFormMappingAction>();
 
         services.AddSingleton<IStorageService, LocalStorageService>();
         services.AddSingleton<ProgressService>();
