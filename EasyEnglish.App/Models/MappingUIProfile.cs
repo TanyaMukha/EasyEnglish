@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using EasyEnglish.Core.Interfaces.Services;
 using EasyEnglish.Core.Models;
 
@@ -23,7 +23,11 @@ public class MappingUIProfile : Profile
 
         CreateMap<WordModel, WordTestModel>()
             .ForMember(dest => dest.CourseId,
-                opt => opt.MapFrom(src => src.Unit != null ? src.Unit.CourseId : 0));
+                opt => opt.MapFrom(src => src.Unit != null ? src.Unit.CourseId : 0))
+            .ForMember(dest => dest.Examples, opt => opt.MapFrom(src => src.Examples))
+            .ForMember(dest => dest.Unit, opt => opt.Ignore())
+            // Явно скидаємо AfterMap який міг успадкуватись з WordModel→WordModel
+            .AfterMap((src, dest, ctx) => { });
 
         CreateMap<WordTestModel, UpdateWordRateRequest>();
     }

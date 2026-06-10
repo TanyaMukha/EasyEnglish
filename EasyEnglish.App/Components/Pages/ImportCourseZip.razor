@@ -72,7 +72,7 @@
                                 <div>
                                     <strong>Курс вже імпортовано</strong>
                                     <p>
-                                        «<b>@existingCourse.Title</b>» з таким самим GUID вже є в базі.
+                                        «<strong>@existingCourse.Title</strong>» з таким самим GUID вже є в базі.
                                         Оберіть дію:
                                     </p>
                                 </div>
@@ -95,6 +95,14 @@
                                         <span>Буде створено окремий курс незалежно від наявного</span>
                                     </div>
                                 </div>
+                                <div class="radio-option @(importMode == ImportMode.MergeInto ? "radio-option--active" : "")"
+                                     @onclick="@(() => importMode = ImportMode.MergeInto)">
+                                    <i class="bi bi-diagram-3"></i>
+                                    <div>
+                                        <strong>Злити з іншим курсом</strong>
+                                        <span>Модулі будуть додані до обраного курсу з новими GUID</span>
+                                    </div>
+                                </div>
                             </div>
                         }
                         else if (existingCourse != null)
@@ -109,6 +117,58 @@
                                     </p>
                                 </div>
                             </div>
+
+                            <div class="radio-group">
+                                <div class="radio-option @(importMode == ImportMode.CreateNew ? "radio-option--active" : "")"
+                                     @onclick="@(() => importMode = ImportMode.CreateNew)">
+                                    <i class="bi bi-plus-circle"></i>
+                                    <div>
+                                        <strong>Створити копію курсу</strong>
+                                        <span>Буде створено окремий курс з новими GUID</span>
+                                    </div>
+                                </div>
+                                <div class="radio-option @(importMode == ImportMode.MergeInto ? "radio-option--active" : "")"
+                                     @onclick="@(() => importMode = ImportMode.MergeInto)">
+                                    <i class="bi bi-diagram-3"></i>
+                                    <div>
+                                        <strong>Злити з іншим курсом</strong>
+                                        <span>Модулі будуть додані до обраного курсу з новими GUID</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="radio-group">
+                                <div class="radio-option @(importMode == ImportMode.CreateNew ? "radio-option--active" : "")"
+                                     @onclick="@(() => importMode = ImportMode.CreateNew)">
+                                    <i class="bi bi-plus-circle"></i>
+                                    <div>
+                                        <strong>Створити новий курс</strong>
+                                        <span>Модулі будуть імпортовані в новий курс</span>
+                                    </div>
+                                </div>
+                                <div class="radio-option @(importMode == ImportMode.MergeInto ? "radio-option--active" : "")"
+                                     @onclick="@(() => importMode = ImportMode.MergeInto)">
+                                    <i class="bi bi-diagram-3"></i>
+                                    <div>
+                                        <strong>Злити з існуючим курсом</strong>
+                                        <span>Модулі будуть додані до обраного курсу з новими GUID</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        @if (importMode == ImportMode.MergeInto)
+                        {
+                            <InputSelectField @bind-Value="mergeTargetCourseId"
+                                              Label="Курс для злиття"
+                                              EmptyOption="Виберіть курс...">
+                                @foreach (var c in availableCourses)
+                                {
+                                    <option value="@c.Id">@c.Title</option>
+                                }
+                            </InputSelectField>
                         }
 
                         <div class="info-card">
@@ -227,6 +287,12 @@
                                     <i class="bi bi-arrow-clockwise"></i>
                                     <text>Оновити «@existingCourse.Title»</text>
                                 }
+                                else if (importMode == ImportMode.MergeInto && mergeTargetCourseId > 0)
+                                {
+                                    var target = availableCourses.FirstOrDefault(c => c.Id == mergeTargetCourseId);
+                                    <i class="bi bi-diagram-3"></i>
+                                    <text>Злити з «@(target?.Title ?? "...")»</text>
+                                }
                                 else
                                 {
                                     <i class="bi bi-save"></i>
@@ -256,12 +322,14 @@
 
     private UnitBackupOptions importOptions = new();
     private ImportMode        importMode    = ImportMode.CreateNew;
+    private int               mergeTargetCourseId = 0;
+    private List<CourseModel> availableCourses = [];
 
     private bool    isProcessing   = false;
     private string? importError;
     private string? importSuccess;
 
-    private enum ImportMode { CreateNew, Update }
+    private enum ImportMode { CreateNew, Update, MergeInto }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -322,6 +390,9 @@
         existingUnitGuids = [];
         importMode        = ImportMode.CreateNew;
 
+        // Завантажуємо всі курси для злиття
+        availableCourses = (await CourseService.GetAllAsync()).ToList();
+
         if (existingCourse != null)
         {
             // Оновлення доступне лише для повного бекапу — тільки тоді збережені Id
@@ -344,6 +415,11 @@
     private async Task SaveImport()
     {
         if (manifest is null || zipBytes is null) return;
+        if (importMode == ImportMode.MergeInto && mergeTargetCourseId == 0)
+        {
+            importError = "Оберіть курс для злиття.";
+            return;
+        }
 
         isProcessing  = true;
         importError   = null;
@@ -361,6 +437,12 @@
             if (importMode == ImportMode.Update && existingCourse != null)
             {
                 targetCourse = existingCourse;
+            }
+            else if (importMode == ImportMode.MergeInto)
+            {
+                var mergeTarget = availableCourses.FirstOrDefault(c => c.Id == mergeTargetCourseId)
+                    ?? throw new InvalidOperationException("Оберіть курс для злиття.");
+                targetCourse = mergeTarget;
             }
             else
             {
@@ -381,7 +463,10 @@
             int updated = 0;
 
             // 2. Build mapping options once — same for all units in this import.
-            var mappingOptions = importOptions.ToMappingOptions(isCopy);
+            // MergeInto завжди скидає Id і генерує нові Guid — модулі незалежні від оригіналу.
+            var mappingOptions = importMode == ImportMode.MergeInto
+                ? importOptions.ToMappingOptions(isCopy: true)
+                : importOptions.ToMappingOptions(isCopy);
 
             // 3. Process each unit.
             foreach (var (entry, rawUnit) in importResult.Units)
@@ -414,8 +499,10 @@
 
             importSuccess = importMode == ImportMode.Update
                 ? $"Курс «{targetCourse.Title}» оновлено: +{added} нових, ↻{updated} оновлених модулів."
-                : $"Курс «{targetCourse.Title}» імпортовано: {added} модулів, "
-                  + $"{importResult.TotalWords} слів, {importResult.TotalAudioFiles} аудіофайлів.";
+                : importMode == ImportMode.MergeInto
+                    ? $"Додано {added} модулів до курсу «{targetCourse.Title}»: {importResult.TotalWords} слів, {importResult.TotalAudioFiles} аудіофайлів."
+                    : $"Курс «{targetCourse.Title}» імпортовано: {added} модулів, "
+                      + $"{importResult.TotalWords} слів, {importResult.TotalAudioFiles} аудіофайлів.";
         }
         catch (Exception ex)
         {
@@ -430,14 +517,16 @@
 
     private void ClearState()
     {
-        importError       = null;
-        importSuccess     = null;
-        manifest          = null;
-        importResult      = null;
-        existingCourse    = null;
-        existingUnitGuids = [];
-        selectedFileName  = null;
-        zipBytes          = null;
+        importError         = null;
+        importSuccess       = null;
+        manifest            = null;
+        importResult        = null;
+        existingCourse      = null;
+        existingUnitGuids   = [];
+        selectedFileName    = null;
+        zipBytes            = null;
+        mergeTargetCourseId = 0;
+        availableCourses    = [];
     }
 }
 

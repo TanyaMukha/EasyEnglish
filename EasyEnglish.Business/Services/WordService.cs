@@ -87,7 +87,7 @@ public class WordService : BaseService<WordEntity, WordModel>, IWordService
             List<int> ids = wordsList.Select(w => w.Id).ToList() ?? new List<int>();
 
             // ✅ Отримуємо БЕЗ includes для update
-            var entities = await _repository.FindManyAsync(ids, false);
+            var entities = await _repository.FindManyAsync(ids);
 
             var entitiesDict = entities.ToDictionary(e => e.Id);
 

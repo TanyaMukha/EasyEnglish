@@ -14,6 +14,5 @@ public class CourseRepository : BaseWithGuidRepository<CourseEntity, EasyEnglish
         IUserContext? userContext = null) 
         : base(mapper, contextFactory, userContext)
     {
-        ConfigureIncludes(new[] { "Units" });
     }
 }

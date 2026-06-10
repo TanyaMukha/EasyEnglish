@@ -1,5 +1,6 @@
 @page "/courses"
 @using System.Dynamic
+@using EasyEnglish.Core.Presets
 @using MukhaLab.SelectQueryParameters.Models
 @using System.Collections.Generic
 @using EasyEnglish.App.Components.Shared
@@ -43,7 +44,7 @@
     {
         try
         {
-            AvailableCourses = await CourseService.GetAllAsync(null, true);
+            AvailableCourses = await CourseService.GetAllAsync(null, CourseIncludes.Full);
             BrowserConsole.LogInfoAsync($"Loaded {AvailableCourses?.Count() ?? 0} courses");
         }
         catch (Exception ex)
@@ -83,12 +84,6 @@
 }
 
 <style>
-    .page-content {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
-    }
-
     .courses-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));

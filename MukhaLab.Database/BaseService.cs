@@ -24,18 +24,15 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public virtual async Task<IEnumerable<TModel>> GetAllAsync(QueryParameters? parameters = null, bool includeRelatedEntities = true)
+    public virtual async Task<IEnumerable<TModel>> GetAllAsync(QueryParameters? parameters = null, string[]? includes = null)
     {
         try
         {
             _logger.LogDebug("Отримання всіх записів типу {EntityType}", typeof(TEntity).Name);
 
             parameters ??= new QueryParameters();
-            var entities = await _repository.GetAsync(parameters, includeRelatedEntities);
-            var models = _mapper.Map<IEnumerable<TModel>>(entities);
-
-            _logger.LogDebug("Отримано {Count} записів", models.Count());
-            return models;
+            var entities = await _repository.GetAsync(parameters, includes);
+            return _mapper.Map<IEnumerable<TModel>>(entities);
         }
         catch (Exception ex)
         {
@@ -44,13 +41,13 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
         }
     }
 
-    public virtual async Task<TModel?> GetByIdAsync(int id)
+    public virtual async Task<TModel?> GetByIdAsync(int id, string[]? includes = null)
     {
         try
         {
             _logger.LogDebug("Отримання запису з ID {Id} типу {EntityType}", id, typeof(TEntity).Name);
 
-            var entity = await _repository.FindAsync(id);
+            var entity = await _repository.FindAsync(id, includes);
             if (entity == null)
             {
                 _logger.LogWarning("Запис з ID {Id} не знайдено", id);
@@ -84,7 +81,7 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
     /// <summary>
     /// Отримує записи за кількома ідентифікаторами.
     /// </summary>
-    public virtual async Task<List<TModel>> GetByIdsAsync(IEnumerable<int> ids, bool includeRelatedEntities = true)
+    public virtual async Task<List<TModel>> GetByIdsAsync(IEnumerable<int> ids, string[]? includes = null)
     {
         try
         {
@@ -97,7 +94,7 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
             _logger.LogDebug("Отримання {Count} записів типу {EntityType} за ідентифікаторами",
                 idList.Count, typeof(TEntity).Name);
 
-            var entities = await _repository.FindManyAsync(idList);
+            var entities = await _repository.FindManyAsync(idList, includes);
 
             if (entities == null || entities.Count == 0)
             {
@@ -304,13 +301,13 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
         }
     }
 
-    public virtual async Task<PaginationInfo> GetPaginationInfoAsync(QueryParameters parameters, bool includeRelatedEntities = true)
+    public virtual async Task<PaginationInfo> GetPaginationInfoAsync(QueryParameters parameters)
     {
         try
         {
             _logger.LogDebug("Отримання інформації про пагінацію для типу {EntityType}", typeof(TEntity).Name);
 
-            var paginationInfo = await _repository.GetPaginationInfoAsync(parameters, includeRelatedEntities);
+            var paginationInfo = await _repository.GetPaginationInfoAsync(parameters);
 
             _logger.LogDebug("Пагінація: загальна кількість {TotalCount}, сторінок {TotalPages}",
                 paginationInfo.TotalCount, paginationInfo.TotalPages);

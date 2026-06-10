@@ -51,7 +51,7 @@ public class CourseService : BaseWithGuidService<CourseEntity, CourseModel>, ICo
 
         if (unitService is not null)
         {
-            return await this.unitService.GetAllAsync(parameters, true);
+            return await this.unitService.GetAllAsync(parameters);
         }
         else
         {
@@ -169,7 +169,7 @@ public class CourseService : BaseWithGuidService<CourseEntity, CourseModel>, ICo
             Sort = sort
         };
 
-        IEnumerable<WordModel> words = await this.wordService.GetAllAsync(parameters, true);
+        IEnumerable<WordModel> words = await this.wordService.GetAllAsync(parameters);
 
         if (options!.ShuffleWords)
         {

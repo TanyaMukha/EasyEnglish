@@ -13,20 +13,12 @@ public interface IBaseRepository<T>
     /// Retrieves all entities.
     /// </summary>
     /// <returns>A collection of all entities.</returns>
-    Task<IEnumerable<T>> GetAsync(QueryParameters parameters, bool includeRelatedEntities = true);
-
-    Task<PaginationInfo> GetPaginationInfoAsync(QueryParameters parameters, bool includeRelatedEntities = true);
-
-    /// <summary>
-    /// Retrieves an entity by its unique identifier.
-    /// </summary>
-    /// <param name="id">The unique identifier of the entity.</param>
-    /// <returns>The entity if found; otherwise, <c>null</c>.</returns>
+    Task<IEnumerable<T>> GetAsync(QueryParameters parameters, string[]? includes = null);
+    Task<PaginationInfo> GetPaginationInfoAsync(QueryParameters parameters);
+    Task<T?> FindAsync(int id, string[]? includes = null);
     Task<T?> FindAsync(params object[] keyValues);
-
+    Task<List<T>> FindManyAsync(IEnumerable<int> ids, string[]? includes = null);
     Task<List<T>> FindManyAsync(params int[] ids);
-
-    Task<List<T>> FindManyAsync(IEnumerable<int> ids, bool includeRelatedEntities = true);
 
     Task<int> CountAsync();
 

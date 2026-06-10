@@ -9,14 +9,8 @@ namespace EasyEnglish.Data.Repositories;
 
 public class IrregularFormRepository : BaseRepository<IrregularFormEntity, EasyEnglishDbContext>, IIrregularFormRepository
 {
-    /// <summary>
-    /// Gets navigation property paths to be included by default when querying Tag entities.
-    /// </summary>
-    private static readonly string[] RelativedEntities = new[] { "Unit" };
-
     public IrregularFormRepository(IMapper mapper, IDbContextFactory<EasyEnglishDbContext> contextFactory, IUserContext userContext)
         : base(mapper, contextFactory, userContext)
     {
-        this.ConfigureIncludes(RelativedEntities);
     }
 }

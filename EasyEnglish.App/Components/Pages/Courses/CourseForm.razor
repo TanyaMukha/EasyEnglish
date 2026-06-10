@@ -2,27 +2,50 @@
 @page "/courses/create"
 
 @using EasyEnglish.App.Components.Shared
+@using EasyEnglish.App.Components.Shared.Breadcrumb
 
 <div class="page-content">
-    <h3>@(IsEditMode ? "Edit" : "Create") Course</h3>
+    <div class="header-section">
+        <Breadcrumb Items="breadcrumbs" />
 
-    <EditForm Model="newCourse" OnValidSubmit="HandleValidSubmit">
-        <DataAnnotationsValidator />
+        <h1 class="page-title">
+            <i class="bi @(IsEditMode ? "bi-pencil" : "bi-plus-circle")"></i>
+            @(IsEditMode ? "Edit" : "Create") Course
+        </h1>
+    </div>
 
-        <InputTextField @bind-Value="newCourse.Title"
-                        Label="Назва словника" />
-        <ValidationMessage For="@(() => newCourse.Title)" class="validation-message" />
+    <div class="edit-form-container">
+        <EditForm Model="newCourse" OnValidSubmit="HandleValidSubmit" class="edit-form">
+            <DataAnnotationsValidator />
 
-        <InputMultilineField @bind-Value="newCourse.Description"
-                             Label="Опис"
-                             Rows="1" />
-        <ValidationMessage For="@(() => newCourse.Description)" class="validation-message" />
+            <div class="form-section">
+                <h2 class="section-title">
+                    <i class="bi bi-info-circle"></i>
+                    Основна інформація
+                </h2>
 
-        <button type="submit" class="btn btn-primary">
-            @(IsEditMode ? "Update" : "Create")
-        </button>
-        <a href="/courses" class="btn btn-secondary">Отмена</a>
-    </EditForm>
+                <InputTextField @bind-Value="newCourse.Title"
+                                Label="Назва словника" />
+                <ValidationMessage For="@(() => newCourse.Title)" class="validation-message" />
+
+                <InputMultilineField @bind-Value="newCourse.Description"
+                                     Label="Опис"
+                                     Rows="1" />
+                <ValidationMessage For="@(() => newCourse.Description)" class="validation-message" />
+            </div>
+
+            <div class="form-actions">
+                <a href="/courses" class="btn-cancel">
+                    <i class="bi bi-x-lg"></i>
+                    Скасувати
+                </a>
+                <button type="submit" class="btn-submit">
+                    <i class="bi @(IsEditMode ? "bi-check-lg" : "bi-plus-lg")"></i>
+                    @(IsEditMode ? "Оновити" : "Створити")
+                </button>
+            </div>
+        </EditForm>
+    </div>
 </div>
 
 @code {
@@ -31,6 +54,8 @@
     public CourseModel newCourse { get; set; } = new();
 
     private bool IsEditMode => Id > 0;
+
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -44,6 +69,11 @@
         {
             newCourse = new CourseModel();
         }
+
+        breadcrumbs = BreadcrumbBuilder.Create()
+            .WithLink("Courses", "/courses")
+            .WithLink(newCourse.Title, $"/courses/{Id}")
+            .Build();
     }
 
     private async Task HandleValidSubmit()
@@ -69,3 +99,145 @@
         }
     }
 }
+
+<style>
+    .header-section {
+        margin-bottom: 2rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .page-title i {
+        color: #A3BFFA;
+    }
+
+    .form-container {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .edit-form {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .form-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0 0 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .section-title i {
+        color: #A3BFFA;
+    }
+
+    .validation-message {
+        color: #dc3545;
+        font-size: 0.85rem;
+        margin-top: -1rem;
+        margin-bottom: 0.5rem;
+        padding-left: 0.5rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        padding-top: 1.5rem;
+        border-top: 2px solid #f0f0f0;
+        margin-top: 1rem;
+    }
+
+    .btn-cancel,
+    .btn-submit {
+        padding: 0.875rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        border: none;
+    }
+
+    .btn-cancel {
+        background: #f8f9fa;
+        color: #666;
+        border: 1px solid #dee2e6;
+    }
+
+    .btn-cancel:hover {
+        background: white;
+        border-color: #999;
+        color: #333;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        color: white;
+        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.3);
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(163, 191, 250, 0.4);
+    }
+
+    .btn-submit:active,
+    .btn-cancel:active {
+        transform: translateY(0);
+    }
+
+    @@media (max-width: 768px) {
+        .edit-page {
+            padding: 1.5rem 1rem;
+        }
+
+        .form-container {
+            padding: 1.5rem;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+        }
+
+        .form-actions {
+            flex-direction: column-reverse;
+        }
+
+        .btn-cancel,
+        .btn-submit {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>

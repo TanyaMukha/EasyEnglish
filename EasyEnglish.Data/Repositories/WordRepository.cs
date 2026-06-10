@@ -14,7 +14,6 @@ public class WordRepository : BaseRepository<WordEntity, EasyEnglishDbContext>, 
         IUserContext? userContext = null)
         : base(mapper, contextFactory, userContext)
     {
-        ConfigureIncludes(new[] { "Examples", "Unit", "Unit.Course" });
     }
 
     public async Task<(int? PreviousId, int? NextId)> GetNavigationIdsAsync(int unitId, int currentWordId)

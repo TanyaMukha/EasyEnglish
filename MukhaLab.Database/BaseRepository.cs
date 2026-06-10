@@ -20,7 +20,6 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
     protected readonly IDbContextFactory<TContext> contextFactory;
     protected readonly IMapper mapper;
     protected readonly IUserContext? userContext;
-    protected string[] includes = Array.Empty<string>();
     protected string[] userIdPropertyPaths = Array.Empty<string>();
     protected bool enableUserFiltering = false;
 
@@ -37,11 +36,19 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         this.enableUserFiltering = userContext != null;
     }
 
+    private IQueryable<T> ApplyIncludes(IQueryable<T> query, IEnumerable<string> paths)
+    {
+        if (paths is not null)
+            foreach (var include in paths.Where(p => !string.IsNullOrWhiteSpace(p)).Distinct())
+                query = query.Include(include);
+        return query;
+    }
+
     private IQueryable<T> BuildSelectQuery(
-        TContext ctx,
-        QueryParameters parameters,
-        bool withoutPagination = false,
-        bool includeRelatedEntities = true)
+    TContext ctx,
+    QueryParameters parameters,
+    bool withoutPagination = false,
+    string[]? includes = null)
     {
         IQueryable<T> query = ctx.Set<T>();
 
@@ -54,10 +61,7 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         } : parameters;
 
         query = this.enableUserFiltering ? this.IncludeUserIdFilter(query) : query;
-        if (includeRelatedEntities)
-        {
-            query = this.IncludeProperties(query);
-        }
+        query = ApplyIncludes(query, includes);   // <-- было if (includeRelatedEntities)
         query = query.ApplyQueryParameters(queryParameters);
 
         return query;
@@ -66,13 +70,14 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
     /// <summary>
     /// Retrieves all entities as list asynchronously.
     /// </summary>
-    public virtual async Task<IEnumerable<T>> GetAsync(QueryParameters parameters, bool includeRelatedEntities = true)
+    public virtual async Task<IEnumerable<T>> GetAsync(
+    QueryParameters parameters, string[]? includes = null)
     {
         ArgumentNullException.ThrowIfNull(parameters);
-
         await using var ctx = await contextFactory.CreateDbContextAsync();
-        var query = this.BuildSelectQuery(ctx, parameters, false, includeRelatedEntities);
-        return await query.AsNoTracking().ToListAsync();
+        var query = BuildSelectQuery(ctx, parameters, false, includes);
+        var entities = await query.AsNoTracking().ToListAsync();
+        return entities;
     }
 
     public virtual async Task<int> CountAsync()
@@ -91,13 +96,15 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
     /// <summary>
     /// Gets pagination information asynchronously.
     /// </summary>
-    public virtual async Task<PaginationInfo> GetPaginationInfoAsync(QueryParameters parameters, bool includeRelatedEntities = true)
+    public virtual async Task<PaginationInfo> GetPaginationInfoAsync(QueryParameters parameters)
     {
         ArgumentNullException.ThrowIfNull(parameters);
 
         await using var ctx = await contextFactory.CreateDbContextAsync();
         int countPerPage = parameters.RowCount ?? 0;
-        var query = this.BuildSelectQuery(ctx, parameters, withoutPagination: true, includeRelatedEntities: includeRelatedEntities);
+
+        // явно без includes — для COUNT вони не потрібні
+        var query = this.BuildSelectQuery(ctx, parameters, withoutPagination: true, includes: Array.Empty<string>());
         var totalCount = await query.CountAsync();
 
         return new PaginationInfo
@@ -107,75 +114,57 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         };
     }
 
-    public virtual async Task<T?> FindAsync(params object[] keyValues)
+    public virtual async Task<T?> FindAsync(int id, string[]? includes = null)
     {
-        if (keyValues == null || keyValues.Length == 0)
-        {
-            return null;
-        }
-
         await using var ctx = await contextFactory.CreateDbContextAsync();
 
-        // Якщо немає налаштованих включень
-        if (this.includes == null || this.includes.Length == 0)
+        var includesToApply = includes ?? [];
+
+        if (includesToApply.Length == 0)
         {
-            var entity = await ctx.Set<T>().FindAsync(keyValues);
-
+            var entity = await ctx.Set<T>().FindAsync(id);
             if (entity != null)
-            {
                 ctx.Entry(entity).State = EntityState.Detached;
-            }
-
             return entity;
         }
 
-        // Для запитів з includes використовуємо LINQ + AsNoTracking
+        IQueryable<T> query = ApplyIncludes(ctx.Set<T>(), includesToApply);
+        return await query.AsNoTracking().Where("Id == @0", id).FirstOrDefaultAsync();
+    }
+
+    public virtual async Task<T?> FindAsync(params object[] keyValues)
+    {
+        if (keyValues == null || keyValues.Length == 0)
+            return null;
+
+        // одиночний int-ключ -> перегрузка з підтримкою includes
         if (keyValues.Length == 1 && keyValues[0] is int id)
-        {
-            IQueryable<T> query = ctx.Set<T>();
-            query = this.IncludeProperties(query);
-            return await query.AsNoTracking().Where("Id == @0", id).FirstOrDefaultAsync();
-        }
+            return await FindAsync(id);
 
-        // Fallback для складних ключів
+        // складені ключі: includes по рядкових шляхах тут не застосовуються
+        await using var ctx = await contextFactory.CreateDbContextAsync();
         var result = await ctx.Set<T>().FindAsync(keyValues);
-
         if (result != null)
-        {
             ctx.Entry(result).State = EntityState.Detached;
-        }
-
         return result;
     }
 
-    public virtual async Task<List<T>> FindManyAsync(IEnumerable<int> ids, bool includeRelatedEntities = true)
+    public virtual async Task<List<T>> FindManyAsync(IEnumerable<int> ids, string[]? includes = null)
     {
         if (ids == null || !ids.Any())
-        {
             return new List<T>();
-        }
 
         var idList = ids.ToList();
         await using var ctx = await contextFactory.CreateDbContextAsync();
-        IQueryable<T> query = ctx.Set<T>();
-
-        if (includeRelatedEntities && this.includes != null && this.includes.Length > 0)
-        {
-            query = this.IncludeProperties(query);
-        }
+        var query = ApplyIncludes(ctx.Set<T>(), includes);
 
         return await query.AsNoTracking().Where("Id in @0", idList).ToListAsync();
     }
 
-    /// <summary>
-    /// Finds entities by multiple primary keys.
-    /// </summary>
     public virtual async Task<List<T>> FindManyAsync(params int[] ids)
     {
         if (ids == null || ids.Length == 0)
-        {
             return new List<T>();
-        }
 
         return await FindManyAsync((IEnumerable<int>)ids);
     }
@@ -332,32 +321,9 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         });
     }
 
-    public void ConfigureIncludes(string[] includes)
-    {
-        this.includes = includes.Distinct().ToArray() ?? Array.Empty<string>();
-    }
-
     public void ConfigureUserIdField(string[] userIdPropertyPaths)
     {
         this.userIdPropertyPaths = userIdPropertyPaths;
-    }
-
-    /// <summary>
-    /// Includes related entities using string-based paths (avoids duplicates).
-    /// </summary>
-    protected virtual IQueryable<T> IncludeProperties(IQueryable<T> query, params string[] additionalIncludes)
-    {
-        var allIncludes = this.includes
-            .Concat(additionalIncludes ?? Array.Empty<string>())
-            .Where(p => !string.IsNullOrWhiteSpace(p))
-            .Distinct();
-
-        foreach (var include in allIncludes)
-        {
-            query = query.Include(include);
-        }
-
-        return query;
     }
 
     protected virtual IQueryable<T> IncludeUserIdFilter(IQueryable<T> query)

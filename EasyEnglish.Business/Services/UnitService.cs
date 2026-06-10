@@ -6,11 +6,13 @@ using AutoMapper;
 using Microsoft.Extensions.Logging;
 using MukhaLab.SelectQueryParameters.Models;
 using MukhaLab.Database;
+using EasyEnglish.Data.Repositories;
 
 namespace EasyEnglish.Services.Services;
 
 public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitService
 {
+    private readonly IUnitRepository unitRepository;
     private readonly IWordService wordService;
 
     public UnitService(
@@ -20,7 +22,14 @@ public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitServ
         IWordService wordService)
         : base(repository, mapper, logger)
     {
+        this.unitRepository = repository;
         this.wordService = wordService ?? throw new ArgumentNullException(nameof(wordService));
+    }
+
+    public async Task<IReadOnlyList<UnitCardModel>> GetCardsAsync(int courseId)
+    {
+        _logger.LogDebug("Завантаження карток юнітів для курсу {CourseId}", courseId);
+        return await this.unitRepository.GetCardsAsync(courseId);
     }
 
     public async Task<IEnumerable<WordModel>> GetWordsAsync(int unitId)
@@ -39,6 +48,6 @@ public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitServ
             }
         };
 
-        return await this.wordService.GetAllAsync(parameters, true);
+        return await this.wordService.GetAllAsync(parameters);
     }
 }

@@ -64,8 +64,8 @@ public class WordTestModel : WordModel
     public TestModel Tests { get; set; } = new();
 
     // Обчислювані властивості для UI
-    public float CurrentRating { get; set; } // Розраховується на льоту
-    public bool NeedsReview { get; set; } // Чи потребує повторення
+    public float CurrentRating { get; set; } = 3; // Розраховується на льоту
+    public bool NeedsReview { get; set; } = false; // Чи потребує повторення
     public DateTime? NextReviewDate { get; set; } // Рекомендована дата наступного повторення
     public int? DaysSinceLastReview { get; set; } 
 }

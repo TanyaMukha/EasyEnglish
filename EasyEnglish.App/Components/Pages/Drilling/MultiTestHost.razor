@@ -74,12 +74,12 @@
 
     private void BuildQueue()
     {
-        _pending = Items
-            .SelectMany(item => Definitions
-                .Where(def => def.CanApplyTo(item))
-                .Select(def => (item, def)))
-            .OrderBy(_ => _rng.NextDouble())
-            .ToList();
+        _pending = Definitions
+            .SelectMany(def => Items
+                .Where(def.CanApplyTo)
+                .OrderBy(_ => _rng.NextDouble())   // слова перемішані всередині типу
+                .Select(item => (item, def)))
+            .ToList();                              // типи йдуть у порядку Definitions
 
         _totalItems = _pending.Count;
 
