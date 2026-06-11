@@ -1,4 +1,4 @@
-﻿@namespace EasyEnglish.App.Components.Shared
+@namespace EasyEnglish.App.Components.Shared
 
 <PreviewCard
     Id="@Id"
@@ -15,13 +15,13 @@
         <div class="d-flex align-items-center">
             <div class="card-progress w-100">
                 <div class="progress-stacked">
-                    <div class="progress" style="width: 15%">
+                    <div class="progress" style="width: @GreenRateCount%">
                         <div class="progress-bar bg-success"></div>
                     </div>
-                    <div class="progress" style="width: 30%">
+                    <div class="progress" style="width: @YellowRateCount%">
                         <div class="progress-bar bg-warning"></div>
                     </div>
-                    <div class="progress" style="width: 55%">
+                    <div class="progress" style="width: @RedRateCount%">
                         <div class="progress-bar bg-danger"></div>
                     </div>
                 </div>
@@ -38,6 +38,9 @@
     [Parameter] public required string Title { get; set; }
     [Parameter] public string? Description { get; set; }
     [Parameter] public required int ItemsCount { get; set; } = 0;
+    [Parameter] public float GreenRateCount { get; set; } = 0.0f;
+    [Parameter] public float YellowRateCount { get; set; } = 0.0f;
+    [Parameter] public float RedRateCount { get; set; } = 0.0f;
     [Parameter] public string? BadgeText { get; set; }
     [Parameter] public bool IsEditable { get; set; } = false;
 

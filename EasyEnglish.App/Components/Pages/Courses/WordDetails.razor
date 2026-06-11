@@ -179,7 +179,7 @@
 
     private async Task LoadWordDataAsync()
     {
-        Word = await WordService.GetByIdAsync(WordId) ?? new WordModel();
+        Word = await WordService.GetByIdAsync(WordId, WordIncludes.Full) ?? new WordModel();
         BrowserConsole.LogInfoAsync($"✅ Word : {JsonSerializer.Serialize(Word)}");
 
         var navigationIds = await WordService.GetNavigationIdsAsync(UnitId, WordId);

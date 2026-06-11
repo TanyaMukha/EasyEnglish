@@ -18,7 +18,7 @@ public class UnitRepository : BaseWithGuidRepository<UnitEntity, EasyEnglishDbCo
     {
     }
 
-    public async Task<List<UnitCardModel>> GetCardsAsync(int courseId)
+    public async Task<List<UnitCardModel>> GetUnitCardsAsync(int courseId)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();
 
@@ -32,11 +32,17 @@ public class UnitRepository : BaseWithGuidRepository<UnitEntity, EasyEnglishDbCo
                 RecordGuid = u.RecordGuid,
                 Title = u.Title,
                 Description = u.Description,
-                TotalWordsCount = u.Words.Count,
-                EasyWordsCount = u.Words.Count(w => w.Rate < RateExtensions.EasyMax),
-                MediumWordsCount = u.Words.Count(w => w.Rate >= RateExtensions.EasyMax
-                                                   && w.Rate < RateExtensions.HardMin),
-                HardWordsCount = u.Words.Count(w => w.Rate >= RateExtensions.HardMin),
+
+                TotalCount = u.Words.Count + u.IrregularForms.Count,
+
+                EasyCount = u.Words.Count(w => w.Rate < RateExtensions.EasyMax)
+                + u.IrregularForms.Count(f => f.Rate < RateExtensions.EasyMax),
+
+                MediumCount = u.Words.Count(w => w.Rate >= RateExtensions.EasyMax && w.Rate < RateExtensions.HardMin)
+                + u.IrregularForms.Count(f => f.Rate >= RateExtensions.EasyMax && f.Rate < RateExtensions.HardMin),
+
+                HardCount = u.Words.Count(w => w.Rate >= RateExtensions.HardMin)
+                + u.IrregularForms.Count(f => f.Rate >= RateExtensions.HardMin),
             })
             .ToListAsync();
     }

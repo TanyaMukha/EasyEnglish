@@ -26,10 +26,10 @@ public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitServ
         this.wordService = wordService ?? throw new ArgumentNullException(nameof(wordService));
     }
 
-    public async Task<IReadOnlyList<UnitCardModel>> GetCardsAsync(int courseId)
+    public async Task<IReadOnlyList<UnitCardModel>> GetUnitCardsAsync(int courseId)
     {
         _logger.LogDebug("Завантаження карток юнітів для курсу {CourseId}", courseId);
-        return await this.unitRepository.GetCardsAsync(courseId);
+        return await this.unitRepository.GetUnitCardsAsync(courseId);
     }
 
     public async Task<IEnumerable<WordModel>> GetWordsAsync(int unitId)

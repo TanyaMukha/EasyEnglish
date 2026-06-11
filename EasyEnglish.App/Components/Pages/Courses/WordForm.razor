@@ -141,7 +141,7 @@
         if (IsEditMode)
         {
             // Loading existeding course item for editing
-            Word = await WordService.GetByIdAsync(WordId)
+            Word = await WordService.GetByIdAsync(WordId, WordIncludes.Full)
                 ?? new WordModel();
             BrowserConsole.LogInfoAsync($"✅ Word : {JsonSerializer.Serialize(Word)}");
         }

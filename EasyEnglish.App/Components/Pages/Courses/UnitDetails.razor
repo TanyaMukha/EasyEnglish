@@ -314,7 +314,7 @@
         try
         {
             isLoading = true;
-            Unit = await UnitService.GetByIdAsync(UnitId) ?? new UnitModel();
+            Unit = await UnitService.GetByIdAsync(UnitId, UnitIncludes.Full) ?? new UnitModel();
             AvailableUnits = (await CourseService.GetUnitsAsync(Unit.CourseId))
                 .Select(wl => new OptionDefinition { Id = wl.Id, Title = wl.Title })
                 .ToList();

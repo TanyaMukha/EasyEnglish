@@ -239,7 +239,7 @@
             var unitsToExport = new List<UnitModel>();
 
             foreach (var id in orderedIds)
-                unitsToExport.Add(await UnitService.GetByIdAsync(id));
+                unitsToExport.Add(await UnitService.GetByIdAsync(id, UnitIncludes.Full));
 
             var zipBytes = await ZipBackupService.ExportCourseToZipAsync(
                 selectedCourse, unitsToExport, options);

@@ -7,8 +7,8 @@ public class UnitCardModel
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
 
-    public int EasyWordsCount { get; set; }
-    public int MediumWordsCount { get; set; }
-    public int HardWordsCount { get; set; }
-    public int TotalWordsCount { get; set; }
+    public int EasyCount { get; set; }
+    public int MediumCount { get; set; }
+    public int HardCount { get; set; }
+    public int TotalCount { get; set; }
 }

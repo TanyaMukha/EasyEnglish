@@ -1,4 +1,4 @@
-@* WordInfoSection.razor - Повна інформація про слово (для Review) *@
+@inject SpeechPlayer Player
 
 <div class="word-info-section">
     <div class="word-title-row">
@@ -6,6 +6,12 @@
         @if (Pronunciation is { Length: > 0 })
         {
             <span class="audio-icon" @onclick:stopPropagation="true" @onclick="PlayAudio" title="Play pronunciation">
+                <i class="bi bi-volume-up-fill"></i>
+            </span>
+        }
+        else
+        {
+            <span class="play-icon" @onclick:stopPropagation="true" @onclick="PlayWord" title="Play pronunciation">
                 <i class="bi bi-volume-up-fill"></i>
             </span>
         }
@@ -67,6 +73,9 @@
             await AudioService.PlayAsync(Pronunciation);
         }
     }
+
+    private Task PlayWord()
+        => Player.PlayTextAsync(Word, SpeechLanguage.EnglishBritish);
 }
 
 <style>
@@ -96,6 +105,19 @@
 
     .audio-icon:hover {
         color: #A3BFFA;
+    }
+
+    .play-icon {
+        color: #ccc;
+        font-size: 2.25rem;
+        cursor: pointer;
+        transition: color 0.8s;
+        display: flex;
+        align-items: center;
+    }
+
+    .play-icon:hover {
+        color: #FFBFFA;
     }
 
     .word-title {

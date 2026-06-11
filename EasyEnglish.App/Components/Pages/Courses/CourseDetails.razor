@@ -15,7 +15,10 @@
             <UnitPreviewCard Id="@unit.Id"
                              Title="@unit.Title"
                              Description="@unit.Description"
-                             ItemsCount="@unit.Words.Count"
+                             ItemsCount="@unit.TotalCount"
+                             GreenRateCount="@(unit.EasyCount/(unit.TotalCount > 0 ? unit.TotalCount : 1)*100)"
+                             YellowRateCount="@(unit.MediumCount/(unit.TotalCount > 0 ? unit.TotalCount : 1)*100)"
+                             RedRateCount="@(unit.HardCount/(unit.TotalCount > 0 ? unit.TotalCount : 1)*100)"
                              IsEditable="true"
                              GoToViewPage="@((id) => NavigateToPage($"/courses/{course.Id}/units/{id}"))"
                              GoToEditPage="@GoToEditPage"
@@ -25,7 +28,7 @@
     </div>
     <div class="units-grid">
         <UnitShortForm CourseId="@course.Id"
-                       OnUnitCreated="@(async () => await LoadData())" />
+        OnUnitCreated="@(async () => await LoadData())" />
     </div>
 </div>
 
@@ -33,7 +36,7 @@
     [Parameter] public int Id { get; set; }
 
     public CourseModel course { get; set; } = new();
-    private List<UnitModel> AvailableUnits { get; set; } = new();
+    private List<UnitCardModel> AvailableUnits { get; set; } = new();
     private string Level { get; set; } = string.Empty;
     private UnitModel newUnit { get; set; } = new();
 
@@ -42,7 +45,7 @@
     protected override async Task OnInitializedAsync()
     {
         course = await CourseService.GetByIdAsync(Id) ?? new CourseModel();
-        AvailableUnits = (await CourseService.GetUnitsAsync(Id)).ToList();
+        AvailableUnits = (await UnitService.GetUnitCardsAsync(Id)).ToList();
         ResetNewUnit();
 
         breadcrumbs = BreadcrumbBuilder.Create()
@@ -53,7 +56,7 @@
 
     private async Task LoadData()
     {
-        AvailableUnits = (await CourseService.GetUnitsAsync(Id)).ToList();
+        AvailableUnits = (await UnitService.GetUnitCardsAsync(Id)).ToList();
         StateHasChanged();
     }
 
@@ -75,9 +78,8 @@
             }
 
             await UnitService.CreateAsync(newUnit);
-            AvailableUnits = (await CourseService.GetUnitsAsync(Id)).ToList();
+            await LoadData();
             ResetNewUnit();
-            StateHasChanged();
         }
         catch (Exception ex)
         {
@@ -118,8 +120,7 @@
         try
         {
             await UnitService.DeleteAsync(id);
-            AvailableUnits = (await CourseService.GetUnitsAsync(Id)).ToList();
-            StateHasChanged();
+            await LoadData();
         }
         catch (Exception ex)
         {
