@@ -151,7 +151,7 @@
         outline: none;
         transition: border-color 0.2s;
         font-size: 1rem;
-        color: #333;
+        color: var(--text-primary);
         font-family: inherit;
         box-shadow: none;
     }
@@ -174,7 +174,7 @@
         left: 0.5rem;
         top: 50%;
         transform: translateY(-50%);
-        color: #999;
+        color: var(--text-muted);
         font-size: 1rem;
         pointer-events: none;
         transition: all 0.2s ease-out;
@@ -201,7 +201,7 @@
         font-size: 1.25rem;
         cursor: pointer;
         padding: 0.25rem 0.5rem;
-        color: #666;
+        color: var(--text-secondary);
         transition: color 0.2s;
     }
 
@@ -219,7 +219,7 @@
         left: 0;
         right: 0;
         margin-top: 0.5rem;
-        background: white;
+        background: var(--surface);
         border: 1px solid #ddd;
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -234,7 +234,7 @@
         align-items: center;
         padding: 0.75rem 1rem;
         border-bottom: 1px solid #eee;
-        background: #f8f9fa;
+        background: var(--surface-alt);
         border-radius: 8px 8px 0 0;
         font-weight: 600;
     }
@@ -244,7 +244,7 @@
         border: none;
         font-size: 1.5rem;
         cursor: pointer;
-        color: #666;
+        color: var(--text-secondary);
         padding: 0;
         width: 2rem;
         height: 2rem;
@@ -256,7 +256,7 @@
 
     .close-button:hover {
         background: #e9ecef;
-        color: #333;
+        color: var(--text-primary);
     }
 
     .keyboard-content {
@@ -274,7 +274,7 @@
     .group-title {
         font-size: 0.875rem;
         font-weight: 600;
-        color: #666;
+        color: var(--text-secondary);
         margin-bottom: 0.5rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -290,8 +290,8 @@
         min-width: 2.5rem;
         height: 2.5rem;
         padding: 0.5rem;
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
+        background: var(--surface-alt);
+        border: 1px solid var(--border-muted);
         border-radius: 6px;
         cursor: pointer;
         font-size: 1.1rem;

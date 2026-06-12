@@ -1,0 +1,319 @@
+/* ============================================================
+   utilities.css — заміна bootstrap.
+   Містить ТІЛЬКИ ті утиліти/компоненти, що реально використовуються
+   в розмітці проєкту. Bootstrap-icons підключені окремо і лишаються.
+   ============================================================ */
+
+/* ---------- Layout utilities ---------- */
+
+.d-flex { display: flex !important; }
+.flex-column { flex-direction: column !important; }
+.justify-content-center { justify-content: center !important; }
+.justify-content-between { justify-content: space-between !important; }
+.justify-content-end { justify-content: flex-end !important; }
+.align-items-center { align-items: center !important; }
+.align-items-end { align-items: flex-end !important; }
+.align-content-between { align-content: space-between !important; }
+.align-content-end { align-content: flex-end !important; }
+
+.w-100 { width: 100% !important; }
+.h-100 { height: 100% !important; }
+
+.gap-2 { gap: 0.5rem !important; }
+.gap-3 { gap: 1rem !important; }
+.gap-4 { gap: 1.5rem !important; }
+
+.mt-2 { margin-top: 0.5rem !important; }
+.mt-3 { margin-top: 1rem !important; }
+.mt-4 { margin-top: 1.5rem !important; }
+.mb-5 { margin-bottom: 3rem !important; }
+.me-2 { margin-right: 0.5rem !important; }
+.p-0 { padding: 0 !important; }
+
+.text-center { text-align: center !important; }
+.text-muted { color: var(--text-muted) !important; }
+
+/* Спрощена сітка — використовується тільки row + col-md-5 */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -0.75rem;
+}
+
+.row > * {
+    padding: 0 0.75rem;
+}
+
+.col-md-5 {
+    flex: 0 0 auto;
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .col-md-5 {
+        width: 41.6667%;
+    }
+}
+
+/* ---------- Visually hidden (для скрінрідерів) ---------- */
+
+.visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* ---------- Spinner ---------- */
+
+@keyframes spinner-border {
+    to { transform: rotate(360deg); }
+}
+
+.spinner-border {
+    display: inline-block;
+    width: 2rem;
+    height: 2rem;
+    vertical-align: -0.125em;
+    border: 0.25em solid currentcolor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: 0.75s linear infinite spinner-border;
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.2em;
+}
+
+/* ---------- Progress bar ---------- */
+
+.progress {
+    display: flex;
+    height: 1rem;
+    overflow: hidden;
+    font-size: 0.75rem;
+    background-color: #e9ecef; /* трек лишається світлим в обох темах — лічильник завжди читається */
+    border-radius: 0.5rem;
+}
+
+.progress-bar {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    background-color: var(--accent);
+    transition: width 0.6s ease;
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+    display: inline-block;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid transparent;
+    border-radius: 0.375rem;
+    background-color: transparent;
+    color: var(--text-primary);
+    transition: all 0.15s ease-in-out;
+}
+
+.btn:disabled {
+    opacity: 0.65;
+    pointer-events: none;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.25rem;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-dark);
+    border-color: var(--accent-dark);
+}
+
+.btn-secondary {
+    color: var(--text-secondary);
+    background-color: var(--surface-alt);
+    border-color: var(--border-muted);
+}
+
+.btn-secondary:hover {
+    color: var(--text-primary);
+    background-color: var(--surface);
+    border-color: var(--text-muted);
+}
+
+.btn-danger {
+    color: #fff;
+    background-color: var(--danger);
+    border-color: var(--danger);
+}
+
+.btn-danger:hover {
+    background-color: #bb2d3b;
+    border-color: #b02a37;
+}
+
+.btn-outline-danger {
+    color: var(--danger);
+    border-color: var(--danger);
+}
+
+.btn-outline-danger:hover {
+    color: #fff;
+    background-color: var(--danger);
+}
+
+.btn-outline-secondary {
+    color: var(--text-secondary);
+    border-color: var(--border-muted);
+}
+
+.btn-outline-secondary:hover {
+    color: var(--text-primary);
+    background-color: var(--surface-alt);
+}
+
+.btn-link {
+    color: var(--accent);
+    text-decoration: underline;
+    border: none;
+    background: none;
+}
+
+/* ---------- Alerts ---------- */
+
+.alert {
+    position: relative;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: 0.5rem;
+}
+
+.alert-info {
+    color: var(--text-primary);
+    background-color: var(--info-bg);
+    border-color: var(--accent);
+}
+
+.alert-danger {
+    color: var(--danger);
+    background-color: var(--danger-bg);
+    border-color: var(--danger);
+}
+
+.alert-success {
+    color: var(--success);
+    background-color: var(--surface-alt);
+    border-color: var(--success);
+}
+
+.alert-warning {
+    color: var(--text-primary);
+    background-color: var(--surface-alt);
+    border-color: var(--warning);
+}
+
+/* ---------- Badge ---------- */
+
+.badge {
+    display: inline-block;
+    padding: 0.35em 0.65em;
+    font-size: 0.75em;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.375rem;
+    background-color: var(--text-muted);
+}
+
+.bg-primary { background-color: var(--accent) !important; }
+.bg-danger { background-color: var(--danger) !important; }
+.bg-success { background-color: var(--success) !important; }
+
+/* ---------- Form control ---------- */
+
+.form-control {
+    display: block;
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+    background-color: var(--surface);
+    border: 1px solid var(--border-muted);
+    border-radius: 0.375rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 0.25rem var(--accent-shadow);
+}
+
+/* ---------- Card ---------- */
+
+.card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+}
+
+.card-body {
+    flex: 1 1 auto;
+    padding: 1rem;
+}
+
+/* ---------- Table ---------- */
+
+.table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    border-collapse: collapse;
+}
+
+.table th,
+.table td {
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--surface-alt);
+}

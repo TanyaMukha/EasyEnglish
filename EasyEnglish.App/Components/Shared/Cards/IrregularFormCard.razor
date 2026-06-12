@@ -118,8 +118,8 @@
 
 <style>
     .irregular-form-card {
-        background: white;
-        border: 1px solid #e0e0e0;
+        background: var(--surface);
+        border: 1px solid var(--border);
         border-radius: 12px;
         padding: 1.5rem;
         cursor: pointer;
@@ -168,13 +168,13 @@
         .form-word {
             font-size: 1.125rem;
             font-weight: 600;
-            color: #333;
+            color: var(--text-primary);
             word-break: break-word;
         }
 
         .form-transcription {
             font-size: 0.875rem;
-            color: #666;
+            color: var(--text-secondary);
             font-style: italic;
         }
 
@@ -191,11 +191,11 @@
         }
 
         .action-btn {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
+            background: var(--surface-alt);
+            border: 1px solid var(--border-muted);
             border-radius: 8px;
             padding: 0.5rem;
-            color: #666;
+            color: var(--text-secondary);
             text-decoration: none;
             transition: all 0.2s;
             display: flex;
@@ -206,7 +206,7 @@
         }
 
         .action-btn:hover {
-            background: white;
+            background: var(--surface);
             border-color: #A3BFFA;
             color: #A3BFFA;
             transform: scale(1.1);
@@ -235,7 +235,7 @@
         }
 
         .info-text {
-            color: #666;
+            color: var(--text-secondary);
             font-size: 0.95rem;
             line-height: 1.5;
             overflow: hidden;
@@ -251,7 +251,7 @@
             align-items: center;
             gap: 1rem;
             padding-top: 0.75rem !important;
-            border-top: 1px solid #f0f0f0;
+            border-top: 1px solid var(--border-light);
             background: transparent;
         }
 
@@ -284,7 +284,7 @@
             align-items: center;
             gap: 0.25rem;
             font-size: 0.85rem;
-            color: #666;
+            color: var(--text-secondary);
             font-weight: 500;
         }
 

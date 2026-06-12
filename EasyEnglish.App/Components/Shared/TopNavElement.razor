@@ -278,7 +278,7 @@
     background: transparent;
     font-size: 1.1rem;
     font-weight: 600;
-    color: #333;
+    color: var(--text-primary);
     outline: none;
     cursor: pointer;
     padding: 0.25rem 0.5rem;
@@ -315,7 +315,7 @@
     opacity: 0;
     font-size: 0.75rem;
     transition: opacity 0.2s;
-    color: #666;
+    color: var(--text-secondary);
     }
 
     .editable-field:hover .edit-icon {
@@ -325,12 +325,12 @@
     .info-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #333;
+    color: var(--text-primary);
     }
 
     .info-description {
     font-size: 0.85rem;
-    color: #666;
+    color: var(--text-secondary);
     }
 
     .editable-input {
@@ -338,7 +338,7 @@
     border-radius: 4px;
     padding: 0.25rem 0.5rem;
     outline: none;
-    background: white;
+    background: var(--surface);
     transition: border-color 0.2s;
     }
 
@@ -349,13 +349,13 @@
     .title-input {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #333;
+    color: var(--text-primary);
     min-width: 200px;
     }
 
     .description-input {
     font-size: 0.85rem;
-    color: #666;
+    color: var(--text-secondary);
     min-width: 250px;
     }
 
@@ -378,7 +378,7 @@
     }
 
     .icon-btn-small.cancel {
-    color: #999;
+    color: var(--text-muted);
     }
 
     .icon-btn-small.cancel:hover {
@@ -421,7 +421,7 @@
     align-items: center;
     gap: 1rem;
     padding: 0.75rem 1rem;
-    background: white;
+    background: var(--surface);
     border-radius: 8px;
     transition: box-shadow 0.2s;
     }
@@ -432,7 +432,7 @@
 
     .word-number {
     font-size: 0.875rem;
-    color: #999;
+    color: var(--text-muted);
     min-width: 1.5rem;
     text-align: center;
     font-weight: 500;
@@ -452,7 +452,7 @@
     outline: none;
     transition: border-color 0.2s;
     font-size: 1rem;
-    color: #333;
+    color: var(--text-primary);
     }
 
     .minimal-input::placeholder {
@@ -465,7 +465,7 @@
     }
 
     .minimal-input:hover:not(:focus) {
-    border-bottom-color: #e0e0e0;
+    border-bottom-color: var(--border);
     }
 
     .btn-icon {

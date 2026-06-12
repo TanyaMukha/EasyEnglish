@@ -1,0 +1,131 @@
+/* ============================================================
+   theme.css — дизайн-токени, базовий reset, світла/темна теми.
+   Світла тема = значення, що раніше були захардкоджені на сторінках,
+   тому в light mode вигляд не змінюється.
+   ============================================================ */
+
+:root {
+    /* Акцентна палітра (бренд, однакова в обох темах) */
+    --accent: #A3BFFA;
+    --accent-dark: #8FA9E8;
+    --accent-green: #B5EAD7;
+    --accent-green-dark: #A3D9C2;
+    --accent-gradient: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+    --accent-gradient-hover: linear-gradient(135deg, #8FA9E8, #A3D9C2);
+    --accent-shadow: rgba(163, 191, 250, 0.3);
+    --accent-shadow-strong: rgba(163, 191, 250, 0.4);
+
+    /* Поверхні */
+    --bg-page: #f8f9fa;        /* фон застосунку */
+    --surface: #ffffff;        /* картки, панелі, сайдбар */
+    --surface-alt: #f8f9fa;    /* другорядні панелі, hover */
+    --surface-hover: #f1f3f5;
+
+    /* Межі */
+    --border: #e0e0e0;
+    --border-muted: #dee2e6;
+    --border-light: #f0f0f0;
+
+    /* Текст */
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --text-muted: #999999;
+
+    /* Тіні */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+    /* Статуси */
+    --danger: #dc3545;
+    --danger-bg: #fff5f5;
+    --success: #28a745;
+    --warning: #ffc107;
+    --info-bg: #e7f3fe;
+}
+
+[data-theme="dark"] {
+    --bg-page: #16181d;
+    --surface: #23262f;
+    --surface-alt: #1b1e25;
+    --surface-hover: #2a2e38;
+
+    --border: #3a3f4b;
+    --border-muted: #3a3f4b;
+    --border-light: #2e323c;
+
+    --text-primary: #e8eaf0;
+    --text-secondary: #b3b9c6;
+    --text-muted: #828a99;
+
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.55);
+
+    --danger-bg: #3a2326;
+    --info-bg: #1f2c3a;
+
+    color-scheme: dark;
+}
+
+/* ============================================================
+   Базовий reset (раніше це робив bootstrap)
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+    background-color: var(--bg-page);
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+p {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+a {
+    color: var(--accent);
+}
+
+img, svg {
+    vertical-align: middle;
+}
+
+button, input, select, textarea {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+label {
+    display: inline-block;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid var(--border);
+    margin: 1rem 0;
+    opacity: 1;
+}

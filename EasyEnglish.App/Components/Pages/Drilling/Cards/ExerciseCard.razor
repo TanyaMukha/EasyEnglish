@@ -57,8 +57,8 @@
 
 <style>
     .exercise-card {
-        background: white;
-        border: 2px solid #e0e0e0;
+        background: var(--surface);
+        border: 2px solid var(--border);
         border-radius: 16px;
         padding: 1.5rem;
         cursor: pointer;
@@ -239,9 +239,9 @@
             left: 0;
             width: 24px;
             height: 24px;
-            border: 2px solid #dee2e6;
+            border: 2px solid var(--border-muted);
             border-radius: 6px;
-            background: white;
+            background: var(--surface);
             transition: all 0.2s;
             display: flex;
             align-items: center;
@@ -275,7 +275,7 @@
         .exercise-title {
             font-size: 1.25rem;
             font-weight: 600;
-            color: #333;
+            color: var(--text-primary);
             margin: 0;
         }
 
@@ -289,7 +289,7 @@
 
         .exercise-description {
             font-size: 0.95rem;
-            color: #666;
+            color: var(--text-secondary);
             margin: 0;
             line-height: 1.5;
         }
@@ -300,7 +300,7 @@
             justify-content: flex-end;
             align-items: center;
             padding-top: 1rem;
-            border-top: 1px solid #f0f0f0;
+            border-top: 1px solid var(--border-light);
         }
 
         .exercise-count {
@@ -308,7 +308,7 @@
             align-items: center;
             gap: 0.5rem;
             font-size: 0.9rem;
-            color: #666;
+            color: var(--text-secondary);
             font-weight: 500;
         }
 
@@ -318,11 +318,11 @@
         }
 
         .btn-start {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
+            background: var(--surface-alt);
+            border: 1px solid var(--border-muted);
             border-radius: 10px;
             padding: 0.625rem 1.25rem;
-            color: #666;
+            color: var(--text-secondary);
             font-weight: 600;
             text-decoration: none;
             transition: all 0.2s;
@@ -333,7 +333,7 @@
         }
 
         .btn-start:hover {
-            background: white;
+            background: var(--surface);
             border-color: #A3BFFA;
             color: #A3BFFA;
             transform: scale(1.05);

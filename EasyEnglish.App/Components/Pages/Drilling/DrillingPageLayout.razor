@@ -157,56 +157,18 @@ else
         gap: 1rem;
     }
 
-    .spinner {
-        color: #A3BFFA;
-    }
-
-    .loading-text {
-        color: #666;
-        font-size: 1rem;
-        margin: 0;
-    }
-
-    .error-container {
-        background: #fff5f5;
+.error-container {
+        background: var(--danger-bg);
         border: 1px solid #feb2b2;
         border-radius: 12px;
     }
 
-    .error-icon {
-        width: 64px;
-        height: 64px;
-        background: #fed7d7;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .error-icon i {
-        font-size: 2rem;
-        color: #dc3545;
-    }
-
-    .error-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #333;
-        margin: 0;
-    }
-
-    .error-message {
-        color: #666;
-        margin: 0;
-        text-align: center;
-    }
-
-    .btn-back {
+.btn-back {
         margin-top: 1.5rem;
         padding: 0.75rem 1.5rem;
-        background: white;
-        color: #666;
-        border: 1px solid #dee2e6;
+        background: var(--surface);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-muted);
         border-radius: 8px;
         font-size: 1rem;
         font-weight: 500;
@@ -218,14 +180,14 @@ else
     }
 
     .btn-back:hover {
-        background: #f8f9fa;
+        background: var(--surface-alt);
         border-color: #A3BFFA;
         color: #A3BFFA;
     }
 
     /* Test Card */
     .test-card {
-        background: white;
+        background: var(--surface);
         border-radius: 12px;
         overflow: hidden;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -363,13 +325,13 @@ else
     .stats-title {
         font-size: 2rem;
         font-weight: 700;
-        color: #333;
+        color: var(--text-primary);
         margin: 0 0 0.5rem 0;
     }
 
     .stats-subtitle {
         font-size: 1.1rem;
-        color: #666;
+        color: var(--text-secondary);
         margin: 0;
     }
 
@@ -381,8 +343,8 @@ else
     }
 
     .stat-card {
-        background: white;
-        border: 1px solid #dee2e6;
+        background: var(--surface);
+        border: 1px solid var(--border-muted);
         border-radius: 12px;
         padding: 1.5rem;
         display: flex;
@@ -414,7 +376,7 @@ else
     .stat-card .stat-icon {
         width: 48px;
         height: 48px;
-        background: white;
+        background: var(--surface);
         border-radius: 8px;
         display: flex;
         align-items: center;
@@ -441,13 +403,13 @@ else
     .stat-value {
         font-size: 1.75rem;
         font-weight: 700;
-        color: #333;
+        color: var(--text-primary);
         margin: 0;
     }
 
     .stat-label {
         font-size: 0.9rem;
-        color: #666;
+        color: var(--text-secondary);
         margin: 0;
     }
 

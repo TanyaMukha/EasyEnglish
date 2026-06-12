@@ -65,8 +65,8 @@
 
 <style>  
     .preview-card {
-        background: white;
-        border: 1px solid #e0e0e0;
+        background: var(--surface);
+        border: 1px solid var(--border);
         border-radius: 12px;
         padding: 1.5rem;
         cursor: pointer;
@@ -100,7 +100,7 @@
     .card-title {
         font-size: 1.25rem;
         font-weight: 600;
-        color: #333;
+        color: var(--text-primary);
         margin: 0 0 0.5rem 0;
         line-height: 1.3;
         overflow: hidden;
@@ -112,7 +112,7 @@
 
     .card-description {
         font-size: 0.95rem;
-        color: #666;
+        color: var(--text-secondary);
         margin: 0;
         line-height: 1.5;
         overflow: hidden;
@@ -138,11 +138,11 @@
     }
 
     .action-btn {
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
+        background: var(--surface-alt);
+        border: 1px solid var(--border-muted);
         border-radius: 8px;
         padding: 0.5rem 0.75rem;
-        color: #666;
+        color: var(--text-secondary);
         cursor: pointer;
         transition: all 0.2s;
         display: flex;
@@ -151,7 +151,7 @@
     }
 
     .action-btn:hover {
-        background: white;
+        background: var(--surface);
         border-color: #A3BFFA;
         color: #A3BFFA;
         transform: translateY(-2px);
@@ -176,7 +176,7 @@
         justify-content: space-between;
         align-items: center;
         padding-top: 1rem;
-        border-top: 1px solid #e0e0e0;
+        border-top: 1px solid var(--border);
         margin-top: auto;
         background: transparent;
     }
@@ -186,7 +186,7 @@
         align-items: center;
         gap: 0.5rem;
         font-size: 0.9rem;
-        color: #666;
+        color: var(--text-secondary);
         font-weight: 500;
     }
 

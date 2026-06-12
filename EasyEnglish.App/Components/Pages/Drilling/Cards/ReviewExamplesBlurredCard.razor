@@ -79,13 +79,13 @@
     }
 
     .sentence-section.english {
-        background: #F8F9FA;
+        background: var(--surface-alt);
         border-left: 4px solid #A3BFFA;
     }
 
     .sentence-section.translation {
-        background: #F8F9FA;
-        border-left: 4px solid #dee2e6;
+        background: var(--surface-alt);
+        border-left: 4px solid var(--border-muted);
     }
 
     .language-label {
@@ -93,7 +93,7 @@
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        color: #666;
+        color: var(--text-secondary);
         margin-bottom: 0.75rem;
         display: flex;
         align-items: center;
@@ -103,7 +103,7 @@
     .sentence-text {
         font-size: 1.25rem;
         line-height: 1.8;
-        color: #333;
+        color: var(--text-primary);
     }
 
     /* ── Hidden word ── */
@@ -124,7 +124,7 @@
     }
 
     .hidden-word.blurred:hover {
-        background: #DEE2E6;
+        background: var(--border-muted);
         transform: scale(1.05);
     }
 

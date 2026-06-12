@@ -157,30 +157,11 @@ else
 }
 
 <style>
-    /* Loading State */
-    .loading-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 4rem 2rem;
-        gap: 1rem;
-    }
 
-    .spinner {
-        color: #A3BFFA;
-    }
-
-    .loading-text {
-        color: #666;
-        font-size: 1rem;
-        margin: 0;
-    }
-
-    /* Table Container */
+/* Table Container */
     .table-container {
-        background: white;
-        border: 1px solid #e0e0e0;
+        background: var(--surface);
+        border: 1px solid var(--border);
         border-radius: 12px;
         overflow: hidden;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -194,8 +175,8 @@ else
     }
 
     .data-table thead {
-        background: #f8f9fa;
-        border-bottom: 2px solid #e0e0e0;
+        background: var(--surface-alt);
+        border-bottom: 2px solid var(--border);
     }
 
     .data-table th {
@@ -203,7 +184,7 @@ else
         text-align: left;
         font-size: 0.85rem;
         font-weight: 600;
-        color: #666;
+        color: var(--text-secondary);
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
@@ -219,7 +200,7 @@ else
     }
 
     .data-table tbody tr {
-        border-bottom: 1px solid #f0f0f0;
+        border-bottom: 1px solid var(--border-light);
         transition: all 0.2s;
     }
 
@@ -228,26 +209,26 @@ else
     }
 
     .data-table tbody tr:hover {
-        background: #f8f9fa;
+        background: var(--surface-alt);
     }
 
     .data-table td {
         padding: 1rem;
-        color: #333;
+        color: var(--text-primary);
         font-size: 0.95rem;
         vertical-align: middle;
     }
 
     .index-cell {
         text-align: center;
-        color: #999;
+        color: var(--text-muted);
         font-weight: 500;
         font-size: 0.9rem;
     }
 
     .bold-cell {
         font-weight: 600;
-        color: #333;
+        color: var(--text-primary);
     }
 
     .actions-cell {
@@ -271,9 +252,9 @@ else
         border-radius: 8px;
         text-decoration: none;
         transition: all 0.2s;
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
-        color: #666;
+        background: var(--surface-alt);
+        border: 1px solid var(--border-muted);
+        color: var(--text-secondary);
     }
 
     .action-btn:hover {
@@ -282,13 +263,13 @@ else
     }
 
     .action-btn-view:hover {
-        background: white;
+        background: var(--surface);
         border-color: #A3BFFA;
         color: #A3BFFA;
     }
 
     .action-btn-edit:hover {
-        background: white;
+        background: var(--surface);
         border-color: #A3BFFA;
         color: #A3BFFA;
     }
@@ -323,10 +304,10 @@ else
         min-width: 40px;
         height: 40px;
         padding: 0.5rem 0.75rem;
-        background: white;
-        border: 1px solid #dee2e6;
+        background: var(--surface);
+        border: 1px solid var(--border-muted);
         border-radius: 8px;
-        color: #666;
+        color: var(--text-secondary);
         font-weight: 500;
         cursor: pointer;
         transition: all 0.2s;
@@ -334,7 +315,7 @@ else
     }
 
     .page-link:hover:not(.disabled .page-link) {
-        background: #f8f9fa;
+        background: var(--surface-alt);
         border-color: #A3BFFA;
         color: #A3BFFA;
     }
@@ -350,84 +331,7 @@ else
         cursor: not-allowed;
     }
 
-    /* Error State */
-    .error-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 4rem 2rem;
-        background: #fff5f5;
-        border: 1px solid #feb2b2;
-        border-radius: 12px;
-        gap: 1rem;
-    }
-
-    .error-icon {
-        width: 64px;
-        height: 64px;
-        background: #fed7d7;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .error-icon i {
-        font-size: 2rem;
-        color: #dc3545;
-    }
-
-    .error-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #333;
-        margin: 0;
-    }
-
-    .error-message {
-        color: #666;
-        margin: 0;
-        text-align: center;
-    }
-
-    /* Empty State */
-    .empty-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 4rem 2rem;
-        background: #f8f9fa;
-        border: 1px solid #e0e0e0;
-        border-radius: 12px;
-        gap: 1rem;
-    }
-
-    .empty-icon {
-        width: 64px;
-        height: 64px;
-        background: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 2px solid #e0e0e0;
-    }
-
-    .empty-icon i {
-        font-size: 2rem;
-        color: #999;
-    }
-
-    .empty-message {
-        color: #666;
-        font-size: 1rem;
-        margin: 0;
-        text-align: center;
-    }
-
-    /* Responsive */
+/* Responsive */
     @@media (max-width: 768px) {
         .table-container {
             overflow-x: auto;

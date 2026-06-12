@@ -321,7 +321,7 @@
     .hero-title {
         font-size: 2.5rem;
         font-weight: 700;
-        color: #333;
+        color: var(--text-primary);
         margin: 0 0 0.5rem 0;
         display: flex;
         align-items: center;
@@ -345,7 +345,7 @@
 
     .hero-subtitle {
         font-size: 1.1rem;
-        color: #666;
+        color: var(--text-secondary);
         margin: 0;
     }
 
@@ -358,8 +358,8 @@
     }
 
     .stat-card {
-        background: white;
-        border: 1px solid #e0e0e0;
+        background: var(--surface);
+        border: 1px solid var(--border);
         border-radius: 16px;
         padding: 1.5rem;
         display: flex;
@@ -405,14 +405,14 @@
     .stat-value {
         font-size: 2rem;
         font-weight: 700;
-        color: #333;
+        color: var(--text-primary);
         line-height: 1;
         margin-bottom: 0.25rem;
     }
 
     .stat-label {
         font-size: 0.9rem;
-        color: #666;
+        color: var(--text-secondary);
         margin-bottom: 0.5rem;
     }
 
@@ -436,7 +436,7 @@
 
     .progress-bar-container {
         height: 6px;
-        background: #f0f0f0;
+        background: var(--border-light);
         border-radius: 3px;
         overflow: hidden;
         margin-top: 0.5rem;
@@ -464,23 +464,19 @@
     .section-title {
         font-size: 1.5rem;
         font-weight: 600;
-        color: #333;
+        color: var(--text-primary);
         margin: 0;
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
 
-    .section-title i {
-        color: #A3BFFA;
-    }
-
-    .btn-change {
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
+.btn-change {
+        background: var(--surface-alt);
+        border: 1px solid var(--border-muted);
         border-radius: 10px;
         padding: 0.625rem 1.25rem;
-        color: #666;
+        color: var(--text-secondary);
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s;
@@ -490,7 +486,7 @@
     }
 
     .btn-change:hover {
-        background: white;
+        background: var(--surface);
         border-color: #A3BFFA;
         color: #A3BFFA;
         transform: translateY(-2px);
@@ -535,7 +531,7 @@
     }
 
     .btn-start {
-        background: white;
+        background: var(--surface);
         color: #7B9FE8;
         border: none;
         border-radius: 12px;
@@ -579,8 +575,8 @@
     }
 
     .stats-card {
-        background: white;
-        border: 1px solid #e0e0e0;
+        background: var(--surface);
+        border: 1px solid var(--border);
         border-radius: 12px;
         padding: 1.5rem;
     }
@@ -590,14 +586,14 @@
         align-items: center;
         gap: 0.5rem;
         font-size: 0.9rem;
-        color: #666;
+        color: var(--text-secondary);
         margin-bottom: 1rem;
     }
 
     .stats-card-value {
         font-size: 2.5rem;
         font-weight: 700;
-        color: #333;
+        color: var(--text-primary);
     }
 
     .stats-card-value.success {
@@ -610,7 +606,7 @@
 
     .success-bar {
         height: 8px;
-        background: #f0f0f0;
+        background: var(--border-light);
         border-radius: 4px;
         overflow: hidden;
         margin-top: 1rem;
@@ -631,8 +627,8 @@
     }
 
     .action-card {
-        background: white;
-        border: 1px solid #e0e0e0;
+        background: var(--surface);
+        border: 1px solid var(--border);
         border-radius: 12px;
         padding: 1.5rem;
         text-decoration: none;
@@ -665,20 +661,20 @@
     .action-title {
         font-size: 1.1rem;
         font-weight: 600;
-        color: #333;
+        color: var(--text-primary);
         margin: 0;
     }
 
     .action-description {
         font-size: 0.9rem;
-        color: #666;
+        color: var(--text-secondary);
         margin: 0;
     }
 
     /* Empty State */
     .empty-state {
-        background: #f8f9fa;
-        border: 1px solid #e0e0e0;
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
         border-radius: 12px;
         padding: 3rem 2rem;
         text-align: center;
@@ -687,23 +683,23 @@
     .empty-icon {
         width: 80px;
         height: 80px;
-        background: white;
+        background: var(--surface);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         margin: 0 auto 1rem;
-        border: 2px solid #e0e0e0;
+        border: 2px solid var(--border);
     }
 
     .empty-icon i {
         font-size: 2.5rem;
-        color: #999;
+        color: var(--text-muted);
     }
 
     .empty-message {
         font-size: 1.1rem;
-        color: #666;
+        color: var(--text-secondary);
         margin: 0 0 1.5rem 0;
     }
 

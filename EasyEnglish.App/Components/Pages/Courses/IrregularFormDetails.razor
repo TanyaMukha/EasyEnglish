@@ -357,46 +357,8 @@
 }
 
 <style>
-    .header-section {
-        margin-bottom: 2rem;
-    }
 
-    .title-section {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-bottom: 0.75rem;
-    }
-
-    .word-title {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: #333;
-        margin: 0;
-    }
-
-    .btn-edit {
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        padding: 0.5rem 0.75rem;
-        color: #666;
-        text-decoration: none;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .btn-edit:hover {
-        background: white;
-        border-color: #A3BFFA;
-        color: #A3BFFA;
-        transform: translateY(-2px);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .meta-tags {
+.meta-tags {
         display: flex;
         gap: 0.5rem;
         flex-wrap: wrap;
@@ -420,83 +382,13 @@
         margin-bottom: 2.5rem;
     }
 
-    .section-title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #333;
-        margin: 0 0 1.25rem 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .section-title i {
-        color: #A3BFFA;
-    }
-
-    .content-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1rem;
-    }
-
-    .info-card {
-        background: white;
-        border: 1px solid #e0e0e0;
-        border-radius: 12px;
-        padding: 1.25rem;
-        display: flex;
-        gap: 1rem;
-        transition: all 0.2s;
-    }
-
-    .info-card:hover {
-        border-color: #A3BFFA;
-        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.15);
-    }
-
-    .card-icon {
-        width: 40px;
-        height: 40px;
-        background: #f8f9fa;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #A3BFFA;
-        font-size: 1.25rem;
-        flex-shrink: 0;
-    }
-
-    .card-content {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .card-title {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #666;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin: 0 0 0.5rem 0;
-    }
-
-    .card-text {
-        font-size: 1rem;
-        color: #333;
-        line-height: 1.6;
-        margin: 0;
-        word-wrap: break-word;
-    }
-
-    .transcription-text {
+.transcription-text {
         font-style: italic;
-        color: #666;
+        color: var(--text-secondary);
     }
 
     .btn-play {
-        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        background: var(--accent-gradient);
         color: white;
         border: none;
         border-radius: 8px;
@@ -511,86 +403,17 @@
 
     .btn-play:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.3);
+        box-shadow: 0 4px 12px var(--accent-shadow);
     }
 
     .btn-play i {
         font-size: 1.1rem;
     }
 
-    .stats-section {
-        margin-top: 2.5rem;
-        padding-top: 2rem;
-        border-top: 2px solid #f0f0f0;
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-    }
-
-    .stat-card {
-        background: white;
-        border: 1px solid #e0e0e0;
-        border-radius: 12px;
-        padding: 1.25rem;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        transition: all 0.2s;
-    }
-
-    .stat-card:hover {
-        border-color: #A3BFFA;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.15);
-    }
-
-    .stat-icon {
-        width: 48px;
-        height: 48px;
-        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 1.5rem;
-        flex-shrink: 0;
-    }
-
-    .stat-content {
-        flex: 1;
-    }
-
-    .stat-label {
-        font-size: 0.85rem;
-        color: #666;
-        margin-bottom: 0.25rem;
-    }
-
-    .stat-value {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #333;
-    }
-
-    @@media (max-width: 768px) {
+@@media (max-width: 768px) {
         .irregular-form-details-page {
             padding: 1.5rem 1rem;
         }
 
-        .word-title {
-            font-size: 2rem;
-        }
-
-        .content-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
-    }
+}
 </style>

@@ -235,12 +235,12 @@
     }
 
     .form-row:hover {
-        background: #f1f3f5;
+        background: var(--surface-hover);
     }
 
     .form-number {
         font-size: 0.9rem;
-        color: #999;
+        color: var(--text-muted);
         font-weight: 600;
         min-width: 1.5rem;
         text-align: center;
@@ -262,9 +262,9 @@
 
     .remove-btn {
         background: transparent;
-        border: 1px solid #dee2e6;
+        border: 1px solid var(--border-muted);
         border-radius: 8px;
-        color: #999;
+        color: var(--text-muted);
         cursor: pointer;
         padding: 0.5rem;
         transition: all 0.2s;
@@ -278,7 +278,7 @@
     }
 
     .remove-btn:hover {
-        background: #fff5f5;
+        background: var(--danger-bg);
         border-color: #dc3545;
         color: #dc3545;
     }
@@ -292,7 +292,7 @@
         gap: 0.75rem;
         margin-top: auto;
         padding-top: 1rem;
-        border-top: 1px solid #e0e0e0;
+        border-top: 1px solid var(--border);
     }
 
     .btn-cancel,
@@ -311,27 +311,21 @@
         font-size: 0.95rem;
     }
 
-    .btn-cancel {
-        background: #f8f9fa;
-        color: #666;
-        border: 1px solid #dee2e6;
-    }
-
-    .btn-cancel:hover {
-        background: white;
-        border-color: #999;
-        color: #333;
+.btn-cancel:hover {
+        background: var(--surface);
+        border-color: var(--text-muted);
+        color: var(--text-primary);
     }
 
     .btn-secondary {
         flex: 1;
-        background: #f8f9fa;
-        color: #666;
-        border: 1px solid #dee2e6;
+        background: var(--surface-alt);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-muted);
     }
 
     .btn-secondary:hover {
-        background: white;
+        background: var(--surface);
         border-color: #A3BFFA;
         color: #A3BFFA;
         transform: translateY(-2px);
@@ -356,15 +350,7 @@
         transform: translateY(0);
     }
 
-    .validation-message {
-        color: #dc3545;
-        font-size: 0.85rem;
-        margin-top: -1rem;
-        margin-bottom: 0.5rem;
-        padding-left: 0.5rem;
-    }
-
-    /* Scrollbar styling */
+/* Scrollbar styling */
     .forms-list::-webkit-scrollbar {
         width: 6px;
     }

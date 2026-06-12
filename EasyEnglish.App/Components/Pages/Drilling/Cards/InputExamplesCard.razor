@@ -148,13 +148,13 @@
     }
 
     .sentence-section.english {
-        background: #F8F9FA;
+        background: var(--surface-alt);
         border-left: 4px solid #A3BFFA;
     }
 
     .sentence-section.translation {
-        background: #F8F9FA;
-        border-left: 4px solid #dee2e6;
+        background: var(--surface-alt);
+        border-left: 4px solid var(--border-muted);
     }
 
     .language-label {
@@ -162,7 +162,7 @@
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        color: #666;
+        color: var(--text-secondary);
         margin-bottom: 0.75rem;
         display: flex;
         align-items: center;
@@ -172,7 +172,7 @@
     .sentence-text {
         font-size: 1.25rem;
         line-height: 1.8;
-        color: #333;
+        color: var(--text-primary);
         display: flex;
         flex-wrap: wrap;
         align-items: center;
@@ -185,9 +185,9 @@
         min-width: 120px;
         padding: 0.25rem 0.75rem;
         font-size: 1.25rem;
-        border: 2px solid #dee2e6;
+        border: 2px solid var(--border-muted);
         border-radius: 6px;
-        background: white;
+        background: var(--surface);
         outline: none;
         transition: border-color 0.2s;
     }

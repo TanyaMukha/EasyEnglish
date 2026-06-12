@@ -416,7 +416,7 @@
 
     /* Header */
     .page-header {
-        background: white;
+        background: var(--surface);
         border-bottom: 1px solid rgba(0, 0, 0, 0.06);
         padding: 1.5rem 2rem;
         display: flex;
@@ -429,7 +429,7 @@
     }
 
     .btn-back {
-        background: #f8f9fa;
+        background: var(--surface-alt);
         border: 1px solid #e0e3e7;
         border-radius: 12px;
         padding: 0.75rem;
@@ -445,7 +445,7 @@
     }
 
     .btn-back:hover {
-        background: white;
+        background: var(--surface);
         border-color: #A3BFFA;
         color: #A3BFFA;
         transform: translateX(-3px);
@@ -459,7 +459,7 @@
     .page-title {
         font-size: 1.75rem;
         font-weight: 700;
-        color: #1a1d29;
+        color: var(--text-primary);
         margin: 0 0 0.25rem 0;
         letter-spacing: -0.02em;
     }
@@ -479,7 +479,7 @@
 
     /* Settings Card */
     .settings-card {
-        background: white;
+        background: var(--surface);
         border-radius: 20px;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
         margin-bottom: 1.5rem;
@@ -496,7 +496,7 @@
     }
 
     .card-header {
-        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        background: linear-gradient(135deg, var(--surface-alt) 0%, #ffffff 100%);
         padding: 2rem;
         border-bottom: 1px solid rgba(0, 0, 0, 0.06);
         display: flex;
@@ -530,7 +530,7 @@
     .card-title {
         font-size: 1.4rem;
         font-weight: 700;
-        color: #1a1d29;
+        color: var(--text-primary);
         margin: 0 0 0.25rem 0;
         letter-spacing: -0.01em;
     }
@@ -560,7 +560,7 @@
         gap: 0.5rem;
         font-size: 1rem;
         font-weight: 600;
-        color: #1a1d29;
+        color: var(--text-primary);
         margin-bottom: 0.75rem;
     }
 
@@ -585,11 +585,11 @@
         border: 2px solid #e0e3e7;
         border-radius: 12px;
         font-size: 1rem;
-        background: white;
+        background: var(--surface);
         cursor: pointer;
         transition: all 0.2s ease;
         font-weight: 500;
-        color: #1a1d29;
+        color: var(--text-primary);
     }
 
     .field-select:hover {
@@ -689,7 +689,7 @@
     }
 
     .radio-content {
-        background: #f8f9fa;
+        background: var(--surface-alt);
         border: 2px solid #e0e3e7;
         border-radius: 12px;
         padding: 1.25rem;
@@ -700,14 +700,14 @@
     }
 
     .radio-option:hover .radio-content {
-        background: white;
+        background: var(--surface);
         border-color: #cbd0d8;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
 
     .radio-option.active .radio-content {
-        background: white;
+        background: var(--surface);
         border-color: #A3BFFA;
         box-shadow: 0 4px 16px rgba(163, 191, 250, 0.2);
     }
@@ -729,7 +729,7 @@
         display: block;
         font-size: 1rem;
         font-weight: 600;
-        color: #1a1d29;
+        color: var(--text-primary);
         margin-bottom: 0.25rem;
     }
 
@@ -757,7 +757,7 @@
     }
 
     .checkbox-content {
-        background: #f8f9fa;
+        background: var(--surface-alt);
         border: 2px solid #e0e3e7;
         border-radius: 12px;
         padding: 1.25rem;
@@ -768,13 +768,13 @@
     }
 
     .checkbox-option:hover .checkbox-content {
-        background: white;
+        background: var(--surface);
         border-color: #cbd0d8;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     }
 
     .checkbox-option input[type="checkbox"]:checked ~ .checkbox-content {
-        background: white;
+        background: var(--surface);
         border-color: #A3BFFA;
         box-shadow: 0 2px 12px rgba(163, 191, 250, 0.15);
     }
@@ -813,7 +813,7 @@
         display: block;
         font-size: 1rem;
         font-weight: 600;
-        color: #1a1d29;
+        color: var(--text-primary);
         margin-bottom: 0.25rem;
     }
 
@@ -847,13 +847,13 @@
     }
 
     .btn-secondary {
-        background: white;
+        background: var(--surface);
         color: #495057;
         border: 2px solid #e0e3e7;
     }
 
     .btn-secondary:hover {
-        background: #f8f9fa;
+        background: var(--surface-alt);
         border-color: #cbd0d8;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -877,7 +877,7 @@
 
     /* Presets */
     .presets-card {
-        background: white;
+        background: var(--surface);
         border-radius: 20px;
         padding: 2rem;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
@@ -886,7 +886,7 @@
     .presets-title {
         font-size: 1.25rem;
         font-weight: 700;
-        color: #1a1d29;
+        color: var(--text-primary);
         margin: 0 0 1.5rem 0;
         display: flex;
         align-items: center;
@@ -904,7 +904,7 @@
     }
 
     .preset-card {
-        background: #f8f9fa;
+        background: var(--surface-alt);
         border: 2px solid #e0e3e7;
         border-radius: 14px;
         padding: 1.5rem;
@@ -918,7 +918,7 @@
     }
 
     .preset-card:hover {
-        background: white;
+        background: var(--surface);
         border-color: #A3BFFA;
         transform: translateY(-4px);
         box-shadow: 0 6px 20px rgba(163, 191, 250, 0.15);
@@ -958,7 +958,7 @@
     .preset-name {
         font-size: 1.05rem;
         font-weight: 700;
-        color: #1a1d29;
+        color: var(--text-primary);
         margin: 0 0 0.25rem 0;
     }
 
@@ -982,11 +982,7 @@
             font-size: 0.9rem;
         }
 
-        .page-content {
-            padding: 1.5rem 1rem;
-        }
-
-        .card-header {
+.card-header {
             padding: 1.5rem;
             flex-direction: column;
             align-items: flex-start;

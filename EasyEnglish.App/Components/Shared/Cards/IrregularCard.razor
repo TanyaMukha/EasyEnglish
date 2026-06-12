@@ -47,8 +47,8 @@
 
 <style>
     .irregular-card {
-        background: white;
-        border: 2px solid #e0e0e0;
+        background: var(--surface);
+        border: 2px solid var(--border);
         border-radius: 16px;
         padding: 1.5rem;
         text-decoration: none;
@@ -185,13 +185,13 @@
     .card-title {
         font-size: 1.25rem;
         font-weight: 600;
-        color: #333;
+        color: var(--text-primary);
         margin: 0 0 0.5rem 0;
     }
 
     .card-description {
         font-size: 0.95rem;
-        color: #666;
+        color: var(--text-secondary);
         margin: 0;
         line-height: 1.5;
     }
@@ -202,17 +202,17 @@
         justify-content: flex-end;
         align-items: center;
         padding-top: 1rem;
-        border-top: 1px solid #f0f0f0;
+        border-top: 1px solid var(--border-light);
         background-color: transparent;
     }
 
     /* Button - Same as ExerciseCard */
     .btn-start {
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
+        background: var(--surface-alt);
+        border: 1px solid var(--border-muted);
         border-radius: 10px;
         padding: 0.625rem 1.25rem;
-        color: #666;
+        color: var(--text-secondary);
         font-weight: 600;
         transition: all 0.2s;
         display: flex;
@@ -222,7 +222,7 @@
     }
 
     .irregular-card:hover .btn-start {
-        background: white;
+        background: var(--surface);
         border-color: #A3BFFA;
         color: #A3BFFA;
         transform: scale(1.05);

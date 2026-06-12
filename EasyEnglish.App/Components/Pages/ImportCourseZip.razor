@@ -537,8 +537,8 @@
         height: 100vh;
         height: 100dvh;
         overflow: hidden;
-        border-top: 1px solid #e0e0e0;
-        border-bottom: 1px solid #e0e0e0;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
     }
 
     .scroll-area {
@@ -556,45 +556,32 @@
         padding: 2rem 1rem;
     }
 
-    .header-section { margin-bottom: 2rem; }
-
-    .page-title {
+.page-title {
         font-size: 2rem;
         font-weight: 700;
-        color: #333;
+        color: var(--text-primary);
         margin: 0 0 0.5rem 0;
         display: flex;
         align-items: center;
         gap: 0.75rem;
     }
 
-    .page-title i { color: #A3BFFA; }
-    .page-description { color: #666; font-size: 1rem; margin: 0; }
+    .page-description { color: var(--text-secondary); font-size: 1rem; margin: 0; }
 
-    .form-container {
-        background: white;
-        border: 1px solid #e0e0e0;
-        border-radius: 16px;
-        padding: 2rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-
-    .form-section { display: flex; flex-direction: column; gap: 0.75rem; }
+.form-section { display: flex; flex-direction: column; gap: 0.75rem; }
     .form-section:not(:last-child) { margin-bottom: 2rem; }
 
     .section-title {
         font-size: 1.25rem;
         font-weight: 600;
-        color: #333;
+        color: var(--text-primary);
         margin: 0 0 0.5rem 0;
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
 
-    .section-title i { color: #A3BFFA; }
-
-    .file-picker-section { display: flex; flex-direction: column; gap: 0.5rem; }
+.file-picker-section { display: flex; flex-direction: column; gap: 0.5rem; }
 
     .btn-file-picker {
         padding: 0.875rem 1.5rem;
@@ -616,7 +603,7 @@
     .btn-file-picker i { font-size: 1.25rem; flex-shrink: 0; }
 
     .info-card {
-        background: #f8f9fa;
+        background: var(--surface-alt);
         border: 1px solid #e8eaed;
         border-radius: 10px;
         padding: 1rem 1.25rem;
@@ -626,8 +613,8 @@
     }
 
     .info-row { display: flex; gap: 1rem; font-size: 0.9rem; align-items: baseline; }
-    .info-label { flex: 0 0 120px; color: #666; font-weight: 500; }
-    .info-value { color: #333; }
+    .info-label { flex: 0 0 120px; color: var(--text-secondary); font-weight: 500; }
+    .info-value { color: var(--text-primary); }
     .info-value--mono { font-family: monospace; font-size: 0.78rem; color: #555; word-break: break-all; }
 
     .units-list { display: flex; flex-direction: column; gap: 0.4rem; }
@@ -637,14 +624,14 @@
         align-items: center;
         gap: 0.75rem;
         padding: 0.75rem 1rem;
-        border: 1px solid #e0e0e0;
+        border: 1px solid var(--border);
         border-radius: 10px;
         background: #fafafa;
     }
 
     .unit-item__icon { font-size: 1.2rem; color: #A3BFFA; flex-shrink: 0; }
     .unit-item__body { flex: 1; display: flex; flex-direction: column; gap: 0.15rem; }
-    .unit-item__title { font-weight: 600; color: #333; font-size: 0.95rem; }
+    .unit-item__title { font-weight: 600; color: var(--text-primary); font-size: 0.95rem; }
     .unit-item__meta  { font-size: 0.8rem; color: #888; display: flex; align-items: center; gap: 0.5rem; }
 
     .badge-audio {
@@ -678,7 +665,7 @@
         align-items: flex-start;
         gap: 0.75rem;
         padding: 0.875rem 1rem;
-        border: 2px solid #e0e0e0;
+        border: 2px solid var(--border);
         border-radius: 10px;
         cursor: pointer;
         transition: all 0.15s;
@@ -687,7 +674,7 @@
     .radio-option:hover { border-color: #c5d4f8; }
     .radio-option i { font-size: 1.2rem; color: #aaa; flex-shrink: 0; margin-top: 0.1rem; }
     .radio-option div { display: flex; flex-direction: column; gap: 0.2rem; }
-    .radio-option strong { font-size: 0.95rem; color: #333; }
+    .radio-option strong { font-size: 0.95rem; color: var(--text-primary); }
     .radio-option span   { font-size: 0.82rem; color: #777; }
     .radio-option--active { border-color: #A3BFFA; background: rgba(163,191,250,0.07); }
     .radio-option--active i { color: #A3BFFA; }
@@ -776,9 +763,9 @@
     .alert-warning i { color: #d4a017; }
 
     @@media (max-width: 768px) {
-        .edit-page { padding: 1.5rem 1rem; }
+
         .form-container { padding: 1.25rem; }
-        .page-title { font-size: 1.75rem; }
+
         .info-row { flex-direction: column; gap: 0.1rem; }
         .btn-submit, .btn-file-picker { width: 100%; justify-content: center; }
         .keyboard-spacer { height: 350px; }

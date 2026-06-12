@@ -268,127 +268,12 @@
 
 
 <style>
-    .header-section {
-        margin-bottom: 2rem;
-    }
 
-    .page-title {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #333;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .page-title i {
-        color: #A3BFFA;
-    }
-
-    .form-container {
-        background: white;
-        border: 1px solid #e0e0e0;
-        border-radius: 16px;
-        padding: 2rem;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    }
-
-    .edit-form {
-        display: flex;
-        flex-direction: column;
-        gap: 2rem;
-    }
-
-    .form-section {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .section-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #333;
-        margin: 0 0 1rem 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 2px solid #f0f0f0;
-    }
-
-    .section-title i {
-        color: #A3BFFA;
-    }
-
-    .validation-message {
-        color: #dc3545;
-        font-size: 0.85rem;
-        margin-top: -1rem;
-        margin-bottom: 0.5rem;
-        padding-left: 0.5rem;
-    }
-
-    .form-actions {
-        display: flex;
-        gap: 1rem;
-        justify-content: flex-end;
-        padding-top: 1.5rem;
-        border-top: 2px solid #f0f0f0;
-        margin-top: 1rem;
-    }
-
-    .btn-cancel,
-    .btn-submit {
-        padding: 0.875rem 2rem;
-        border-radius: 10px;
-        font-weight: 600;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        text-decoration: none;
-        border: none;
-    }
-
-    .btn-cancel {
-        background: #f8f9fa;
-        color: #666;
-        border: 1px solid #dee2e6;
-    }
-
-    .btn-cancel:hover {
-        background: white;
-        border-color: #999;
-        color: #333;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .btn-submit {
-        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
-        color: white;
-        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.3);
-    }
-
-    .btn-submit:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(163, 191, 250, 0.4);
-    }
-
-    .btn-submit:active,
-    .btn-cancel:active {
-        transform: translateY(0);
-    }
-
-    .remove-btn {
+.remove-btn {
         background: transparent;
-        border: 1px solid #dee2e6;
+        border: 1px solid var(--border-muted);
         border-radius: 8px;
-        color: #999;
+        color: var(--text-muted);
         cursor: pointer;
         padding: 0.5rem;
         transition: all 0.2s;
@@ -402,36 +287,12 @@
     }
 
     .remove-btn:hover {
-        background: #fff5f5;
+        background: var(--danger-bg);
         border-color: #dc3545;
         color: #dc3545;
     }
 
     .remove-btn i {
         font-size: 0.9rem;
-    }
-
-    @@media (max-width: 768px) {
-        .edit-page {
-            padding: 1.5rem 1rem;
-        }
-
-        .form-container {
-            padding: 1.5rem;
-        }
-
-        .page-title {
-            font-size: 1.75rem;
-        }
-
-        .form-actions {
-            flex-direction: column-reverse;
-        }
-
-        .btn-cancel,
-        .btn-submit {
-            width: 100%;
-            justify-content: center;
-        }
     }
 </style>

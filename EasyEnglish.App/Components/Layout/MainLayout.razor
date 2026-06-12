@@ -190,6 +190,15 @@
 
         <!-- Footer -->
         <div class="nav-footer">
+            <button class="theme-toggle" @onclick="ToggleTheme"
+                    title="@(currentTheme == "dark" ? "Світла тема" : "Темна тема")">
+                <i class="bi @(currentTheme == "dark" ? "bi-sun" : "bi-moon")"></i>
+                @if (!isSidebarCollapsed || isMobile)
+                {
+                    <span>@(currentTheme == "dark" ? "Світла тема" : "Темна тема")</span>
+                }
+            </button>
+
             @if (!isSidebarCollapsed || isMobile)
             {
                 <p class="footer-text">© @DateTime.Now.Year EasyEnglish</p>
@@ -254,6 +263,7 @@
     private bool isSidebarOpen = false;
     private bool isSidebarCollapsed = true; // Початковий стан - згорнуте
     private bool isMobile = false;
+    private string currentTheme = "light";
     private int windowWidth = 0;
     private int windowHeight = 0;
     private DotNetObjectReference<MainLayout>? dotNetRef;
@@ -271,7 +281,9 @@
             
             // Ініціалізуємо JavaScript helper
             await JSRuntime.InvokeVoidAsync("mainLayoutHelper.initialize", dotNetRef);
-            
+
+            currentTheme = await JSRuntime.InvokeAsync<string>("themeHelper.get");
+
             StateHasChanged();
         }
     }
@@ -329,6 +341,11 @@
             windowWidth = 0;
             windowHeight = 0;
         }
+    }
+
+    private async Task ToggleTheme()
+    {
+        currentTheme = await JSRuntime.InvokeAsync<string>("themeHelper.toggle");
     }
 
     private void ToggleSidebar()
@@ -392,7 +409,7 @@
     .app-layout {
         display: flex;
         min-height: 100vh;
-        background-color: #f8f9fa;
+        background-color: var(--surface-alt);
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         position: relative;
     }
@@ -409,7 +426,7 @@
     }
 
     .content-wrapper {
-        background-color: #FFFFFF;
+        background-color: var(--surface);
         min-height: 100vh;
     }
 
@@ -442,7 +459,7 @@
     .burger-line {
         width: 24px;
         height: 3px;
-        background: white;
+        background: var(--surface);
         border-radius: 2px;
         margin: 3px 0;
         transition: all 0.3s ease;
@@ -489,16 +506,16 @@
         left: 0;
         height: 100vh;
         width: 280px;
-        background: white;
-        border-right: 1px solid #e0e0e0;
+        background: var(--surface);
+        border-right: 1px solid var(--border);
         display: flex;
         flex-direction: column;
         transition: all 0.3s ease;
         overflow-y: auto;
         overflow-x: hidden;
 
-        border-top: 1px solid #e0e0e0;
-        border-bottom: 1px solid #e0e0e0;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
     }
 
     .app-sidebar.collapsed {
@@ -511,7 +528,7 @@
         align-items: center;
         justify-content: space-between;
         padding: 1.5rem 1rem;
-        border-bottom: 1px solid #e0e0e0;
+        border-bottom: 1px solid var(--border);
         min-height: 80px;
     }
 
@@ -565,14 +582,14 @@
         border: 2px solid transparent;
         background: transparent;
         border-radius: 8px;
-        color: #666;
+        color: var(--text-secondary);
         cursor: pointer;
         transition: all 0.2s ease;
         font-size: 1.2rem;
     }
 
     .close-button:hover {
-        background: white;
+        background: var(--surface);
         border-color: #A3BFFA;
         color: #A3BFFA;
     }
@@ -593,7 +610,7 @@
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        color: #999;
+        color: var(--text-muted);
         margin: 0 0 0.5rem 0.75rem;
         white-space: nowrap;
     }
@@ -617,7 +634,7 @@
         align-items: center;
         gap: 0.75rem;
         padding: 0.75rem 1rem;
-        color: #666;
+        color: var(--text-secondary);
         text-decoration: none;
         border-radius: 10px;
         transition: all 0.2s ease;
@@ -632,8 +649,8 @@
     }
 
     .nav-link:hover {
-        background-color: #f8f9fa;
-        color: #333;
+        background-color: var(--surface-alt);
+        color: var(--text-primary);
     }
 
     .nav-link.active {
@@ -659,7 +676,7 @@
     /* ===== SIDEBAR FOOTER ===== */
     .nav-footer {
         padding: 1rem 1.5rem;
-        border-top: 1px solid #e0e0e0;
+        border-top: 1px solid var(--border);
         margin-top: auto;
     }
 
@@ -668,9 +685,33 @@
         text-align: center;
     }
 
+    .theme-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding: 0.6rem;
+        margin-bottom: 0.75rem;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--surface-alt);
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .theme-toggle:hover {
+        border-color: #A3BFFA;
+        color: #A3BFFA;
+    }
+
     .footer-text {
         margin: 0;
-        color: #999;
+        color: var(--text-muted);
         font-size: 0.75rem;
         text-align: center;
     }
@@ -681,7 +722,7 @@
     }
 
     .app-sidebar::-webkit-scrollbar-track {
-        background: #f8f9fa;
+        background: var(--surface-alt);
     }
 
     .app-sidebar::-webkit-scrollbar-thumb {
