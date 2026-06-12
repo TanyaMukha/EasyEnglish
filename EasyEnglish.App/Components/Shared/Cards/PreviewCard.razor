@@ -137,6 +137,13 @@
         opacity: 1;
     }
 
+    /* На тач-пристроях немає hover — кнопки дій завжди видимі */
+    @@media (hover: none), (pointer: coarse) {
+        .card-actions {
+            opacity: 1;
+        }
+    }
+
     .action-btn {
         background: var(--surface-alt);
         border: 1px solid var(--border-muted);

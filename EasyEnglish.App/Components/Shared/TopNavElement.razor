@@ -322,6 +322,13 @@
     opacity: 1;
     }
 
+    /* На тач-пристроях немає hover — іконка редагування завжди видима */
+    @@media (hover: none), (pointer: coarse) {
+        .editable-field .edit-icon {
+            opacity: 1;
+        }
+    }
+
     .info-title {
     font-size: 1.1rem;
     font-weight: 600;

@@ -94,7 +94,7 @@
                         <SelectableText>
                             <div class="example-sentence">
                                 <i class="bi bi-quote"></i>
-                                @example.Sentence
+                                <span>@((MarkupString)ExampleMarkdownService.RenderMarkdown(example.Sentence))</span>
                             </div>
                         </SelectableText>
                         @if (!string.IsNullOrEmpty(example.Translation))
@@ -102,7 +102,7 @@
                             <SelectableText>
                                 <div class="example-translation">
                                     <i class="bi bi-arrow-return-right"></i>
-                                    @example.Translation
+                                    <span>@((MarkupString)ExampleMarkdownService.RenderMarkdown(example.Translation))</span>
                                 </div>
                             </SelectableText>
                         }

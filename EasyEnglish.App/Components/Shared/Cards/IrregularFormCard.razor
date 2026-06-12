@@ -303,4 +303,11 @@
     .irregular-form-card:hover .form-actions {
         opacity: 1;
     }
+
+    /* На тач-пристроях немає hover — кнопки дій завжди видимі */
+    @@media (hover: none), (pointer: coarse) {
+        .form-actions {
+            opacity: 1;
+        }
+    }
 </style>
