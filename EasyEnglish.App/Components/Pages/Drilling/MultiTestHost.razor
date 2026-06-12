@@ -139,6 +139,9 @@
         if (isCorrect) _correctAnswers++;
         else           _incorrectAnswers++;
 
+        if (_currentItem is not null)
+            _currentDef?.RecordAnswer(_currentItem, isCorrect);
+
         RebuildCardParams();
         StateHasChanged();
     }
@@ -155,6 +158,10 @@
     {
         _state.LastRatedValue = rating;
         _state.IsRated        = true;
+
+        if (_currentItem is not null)
+            _currentDef?.RecordRating(_currentItem, rating);
+
         RebuildCardParams();
         StateHasChanged();
     }
@@ -167,6 +174,9 @@
 
         if (_currentDef.GetNextAction(_state) == NextItemAction.Remove)
         {
+            if (_currentItem is not null)
+                _currentDef.OnItemCompleted(_currentItem);
+
             _pending.RemoveAt(_currentIndex);
         }
         else

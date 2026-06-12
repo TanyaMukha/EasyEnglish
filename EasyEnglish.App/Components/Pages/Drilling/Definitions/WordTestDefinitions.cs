@@ -1,4 +1,5 @@
 using EasyEnglish.App.Models;
+using EasyEnglish.App.Services;
 using EasyEnglish.App.Components.Pages.Drilling.Models;
 using ReviewWordCard   = EasyEnglish.App.Components.Pages.Drilling.Cards.ReviewWordsCard;
 using SingleChoiceCard = EasyEnglish.App.Components.Pages.Drilling.Cards.SingleChoiceWordCard;
@@ -48,6 +49,9 @@ public sealed class ReviewWordsDef : TestDefinition<WordTestModel>
     public override bool               ShowNextButton(TestState s)        => true;
     public override NextItemAction     GetNextAction(TestState s)         => NextItemAction.Remove;
     public override Type               ComponentType                       => typeof(ReviewWordCard);
+
+    public override void RecordRating(WordTestModel item, double rating) => item.Rate = (float)rating;
+    public override void OnItemCompleted(WordTestModel item)             => item.RecordReview();
 }
 
 // ── Single-choice: Word → Translation ────────────────────────────────────────
@@ -75,6 +79,9 @@ public sealed class WordToTranslationSingleChoiceDef : TestDefinition<WordTestMo
     public override bool           ShowNextButton(TestState s)            => s.IsAnswerSubmitted;
     public override NextItemAction GetNextAction(TestState s)             => s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
     public override Type           ComponentType                           => typeof(SingleChoiceCard);
+
+    public override void RecordAnswer(WordTestModel item, bool isCorrect) =>
+        item.RecordTestAnswer(CardDirection.WordToTranslation, CardType.SingleChoice, isCorrect);
 }
 
 // ── Single-choice: Translation → Word ────────────────────────────────────────
@@ -103,6 +110,9 @@ public sealed class TranslationToWordSingleChoiceDef : TestDefinition<WordTestMo
     public override bool           ShowNextButton(TestState s)            => s.IsAnswerSubmitted;
     public override NextItemAction GetNextAction(TestState s)             => s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
     public override Type           ComponentType                           => typeof(SingleChoiceCard);
+
+    public override void RecordAnswer(WordTestModel item, bool isCorrect) =>
+        item.RecordTestAnswer(CardDirection.TranslationToWord, CardType.SingleChoice, isCorrect);
 }
 
 // ── Know-or-not: Word → Translation ──────────────────────────────────────────
@@ -119,6 +129,9 @@ public sealed class WordToTranslationKnowOrNotDef : TestDefinition<WordTestModel
     public override bool               ShowNextButton(TestState s)        => s.IsAnswerSubmitted;
     public override NextItemAction     GetNextAction(TestState s)         => s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
     public override Type               ComponentType                       => typeof(KnowOrNotCard);
+
+    public override void RecordAnswer(WordTestModel item, bool isCorrect) =>
+        item.RecordTestAnswer(CardDirection.WordToTranslation, CardType.KnowOrNot, isCorrect);
 }
 
 // ── Know-or-not: Translation → Word ──────────────────────────────────────────
@@ -136,6 +149,9 @@ public sealed class TranslationToWordKnowOrNotDef : TestDefinition<WordTestModel
     public override bool               ShowNextButton(TestState s)        => s.IsAnswerSubmitted;
     public override NextItemAction     GetNextAction(TestState s)         => s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
     public override Type               ComponentType                       => typeof(KnowOrNotCard);
+
+    public override void RecordAnswer(WordTestModel item, bool isCorrect) =>
+        item.RecordTestAnswer(CardDirection.TranslationToWord, CardType.KnowOrNot, isCorrect);
 }
 
 // ── Manual input: Translation → Word ─────────────────────────────────────────
@@ -153,4 +169,7 @@ public sealed class TranslationToWordManualInputDef : TestDefinition<WordTestMod
     public override bool               ShowNextButton(TestState s)             => s.IsAnswerSubmitted;
     public override NextItemAction     GetNextAction(TestState s)              => s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
     public override Type               ComponentType                            => typeof(ManualInputCard);
+
+    public override void RecordAnswer(WordTestModel item, bool isCorrect) =>
+        item.RecordTestAnswer(CardDirection.TranslationToWord, CardType.ManualInput, isCorrect);
 }

@@ -77,5 +77,7 @@ public class MappingProfile : Profile
         // Model → Model з опціями
         CreateMap<IrregularFormModel, IrregularFormModel>()
             .AfterMap<IrregularFormMappingAction>();
+
+        CreateMap<UpdateWordRateRequest, IrregularFormEntity>();
     }
 } 

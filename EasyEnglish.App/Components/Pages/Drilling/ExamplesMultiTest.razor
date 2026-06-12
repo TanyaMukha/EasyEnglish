@@ -3,17 +3,18 @@
 <div class="page-content">
     <PageHeader Title="Мульті-тест прикладів" />
 
-    <MultiTestHost TItem="ExampleModel"
+    <MultiTestHost TItem="ExampleTestModel"
     Definitions="@_definitions"
     Items="@_items"
     IsLoading="@_isLoading"
     ErrorMessage="@_errorMessage"
-    OnFinish="@(() => NavigationManager.NavigateTo("/drilling/examples-learning"))" />
+    OnFinish="@FinishTest" />
 </div>
 
 @code {
-    private List<ExampleModel> _items = [];
-    private List<TestDefinition<ExampleModel>> _definitions = [];
+    private List<WordTestModel> _words = [];
+    private List<ExampleTestModel> _items = [];
+    private List<TestDefinition<ExampleTestModel>> _definitions = [];
     private bool _isLoading;
     private string? _errorMessage;
 
@@ -33,7 +34,16 @@
         {
             _isLoading = true;
             var result = await DailyWordsService.GetWordsForToday();
-            _items = result.Words.Select(x => x.Examples.First()).ToList();
+            _words = mapper.Map<List<WordTestModel>>(result.Words);
+            _items = _words
+                .Where(w => w.Examples is { Count: > 0 })
+                .Select(w =>
+                {
+                    var example = mapper.Map<ExampleTestModel>(w.Examples!.First());
+                    example.TestWord = w;
+                    return example;
+                })
+                .ToList();
         }
         catch (Exception ex)
         {
@@ -44,6 +54,14 @@
             _isLoading = false;
             StateHasChanged();
         }
+    }
+
+    private async Task FinishTest()
+    {
+        var toUpdate = WordRatingCalculator.UpdateWordRate(_words);
+        await WordService.UpdateWordRateRangeAsync(mapper.Map<List<UpdateWordRateRequest>>(toUpdate));
+        DailyWordsService.ClearCache();
+        NavigationManager.NavigateTo("/drilling/examples-learning");
     }
 
     private HashSet<string> ParseTestKeys()

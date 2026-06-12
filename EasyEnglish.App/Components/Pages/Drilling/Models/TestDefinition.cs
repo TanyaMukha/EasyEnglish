@@ -39,6 +39,27 @@ public abstract class TestDefinition<TItem>
         Func<TItem, WordCardViewModel> allBuildVm,
         TestState                      state) { }
 
+    // ── Result recording ──────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Записує фінальний результат відповіді в статистику item-а
+    /// (наприклад, item.Tests[direction][type]). За замовчуванням — no-op.
+    /// Викликається MultiTestHost при кожному OnCheckAnswer.
+    /// </summary>
+    public virtual void RecordAnswer(TItem item, bool isCorrect) { }
+
+    /// <summary>
+    /// Записує ручну оцінку складності (review-картки) в item.
+    /// За замовчуванням — no-op. Викликається MultiTestHost при OnRate.
+    /// </summary>
+    public virtual void RecordRating(TItem item, double rating) { }
+
+    /// <summary>
+    /// Викликається коли item завершено (Next з NextItemAction.Remove).
+    /// Review-визначення оновлюють тут дату перегляду. За замовчуванням — no-op.
+    /// </summary>
+    public virtual void OnItemCompleted(TItem item) { }
+
     // ── Correctness ───────────────────────────────────────────────────────────
 
     /// <summary>

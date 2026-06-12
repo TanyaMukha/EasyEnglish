@@ -109,9 +109,10 @@ public static class WordRatingCalculator
     /// <summary>
     /// Розраховує поточний рейтинг з урахуванням часу, що минув з моменту останнього перегляду
     /// </summary>
-    public static float CalculateCurrentRate(
-        WordTestModel word,
+    public static float CalculateCurrentRate<T>(
+        T word,
         DateTime? referenceDate = null)
+        where T : ITestSessionItem
     {
         DateTime now = referenceDate ?? DateTime.UtcNow;
 
@@ -137,11 +138,12 @@ public static class WordRatingCalculator
         return currentRating;
     }
 
-    public static List<WordTestModel> UpdateWordRate(List<WordTestModel> items)
+    public static List<T> UpdateWordRate<T>(List<T> items)
+        where T : ITestSessionItem
     {
         try
         {
-            var wordsToUpdate = new List<WordTestModel>();
+            var wordsToUpdate = new List<T>();
 
             // Обробляємо кожне слово окремо
             foreach (var word in items)
@@ -163,16 +165,17 @@ public static class WordRatingCalculator
         }
         catch (Exception ex)
         {
-            return new List<WordTestModel>();
+            return new List<T>();
         }
     }
 
     /// <summary>
     /// Оновлює рейтинг та статистику одного слова на основі результатів тестування
     /// </summary>
-    /// <param name="wordViewModel">ViewModel слова з результатами тестів</param>
-    /// <returns>WordModel з оновленими даними для збереження в базу</returns>
-    public static WordTestModel UpdateWordAfterSession(WordTestModel word)
+    /// <param name="word">Модель з результатами тестів сесії</param>
+    /// <returns>Модель з оновленими даними для збереження в базу</returns>
+    public static T UpdateWordAfterSession<T>(T word)
+        where T : ITestSessionItem
     {
         // Перевіряємо чи є тести для цього слова
         if (word.Tests == null)

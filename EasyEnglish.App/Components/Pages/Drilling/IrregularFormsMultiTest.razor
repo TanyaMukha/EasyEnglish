@@ -5,17 +5,17 @@
 <div class="page-content">
     <PageHeader Title="Мульті-тест форм" />
 
-    <MultiTestHost TItem="IrregularFormModel"
+    <MultiTestHost TItem="IrregularFormTestModel"
         Definitions="@_definitions"
         Items="@_items"
         IsLoading="@_isLoading"
         ErrorMessage="@_errorMessage"
-        OnFinish="@(() => NavigationManager.NavigateTo("/drilling/irregular-forms"))" />
+        OnFinish="@FinishTest" />
 </div>
 
 @code {
-    private List<IrregularFormModel>               _items       = [];
-    private List<TestDefinition<IrregularFormModel>> _definitions = [];
+    private List<IrregularFormTestModel>               _items       = [];
+    private List<TestDefinition<IrregularFormTestModel>> _definitions = [];
     private bool    _isLoading;
     private string? _errorMessage;
 
@@ -23,7 +23,7 @@
     {
         _definitions = ParseTestKeys()
             .Select(key => TestRegistry.GetIrregularFormTest(key))
-            .OfType<TestDefinition<IrregularFormModel>>()
+            .OfType<TestDefinition<IrregularFormTestModel>>()
             .ToList();
 
         await LoadData();
@@ -35,7 +35,8 @@
         {
             _isLoading = true;
             StateHasChanged();
-            _items = (await IrregularFormService.GetAllAsync()).ToList();
+            var forms = (await IrregularFormService.GetAllAsync()).ToList();
+            _items = mapper.Map<List<IrregularFormTestModel>>(forms);
         }
         catch (Exception ex)
         {
@@ -47,6 +48,13 @@
             _isLoading = false;
             StateHasChanged();
         }
+    }
+
+    private async Task FinishTest()
+    {
+        var toUpdate = WordRatingCalculator.UpdateWordRate(_items);
+        await IrregularFormService.UpdateRateRangeAsync(mapper.Map<List<UpdateWordRateRequest>>(toUpdate));
+        NavigationManager.NavigateTo("/drilling/irregular-forms");
     }
 
     private HashSet<string> ParseTestKeys()

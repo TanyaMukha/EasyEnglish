@@ -20,14 +20,14 @@ public static class TestRegistry
         new TranslationToWordManualInputDef(),
     ];
 
-    public static IReadOnlyList<TestDefinition<ExampleModel>> ExampleTests { get; } =
+    public static IReadOnlyList<TestDefinition<ExampleTestModel>> ExampleTests { get; } =
     [
         new ReviewExamplesTestDef(),
         new ReviewExamplesBlurredTestDef(),
         new InputExamplesTestDef(),
     ];
 
-    public static IReadOnlyList<TestDefinition<IrregularFormModel>> IrregularFormTests { get; } =
+    public static IReadOnlyList<TestDefinition<IrregularFormTestModel>> IrregularFormTests { get; } =
     [
         new ReviewIrregularFormsDef(),
         new IrregularWordToTranslationSingleChoiceDef(),
@@ -37,7 +37,7 @@ public static class TestRegistry
         new InputIrregularFormsDef(),
     ];
 
-    public static TestDefinition<WordTestModel>?      GetWordTest(string key)          => WordTests.FirstOrDefault(t => t.Key == key);
-    public static TestDefinition<ExampleModel>?       GetExampleTest(string key)       => ExampleTests.FirstOrDefault(t => t.Key == key);
-    public static TestDefinition<IrregularFormModel>? GetIrregularFormTest(string key) => IrregularFormTests.FirstOrDefault(t => t.Key == key);
+    public static TestDefinition<WordTestModel>?          GetWordTest(string key)          => WordTests.FirstOrDefault(t => t.Key == key);
+    public static TestDefinition<ExampleTestModel>?       GetExampleTest(string key)       => ExampleTests.FirstOrDefault(t => t.Key == key);
+    public static TestDefinition<IrregularFormTestModel>? GetIrregularFormTest(string key) => IrregularFormTests.FirstOrDefault(t => t.Key == key);
 }

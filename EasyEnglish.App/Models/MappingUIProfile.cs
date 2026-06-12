@@ -30,5 +30,14 @@ public class MappingUIProfile : Profile
             .AfterMap((src, dest, ctx) => { });
 
         CreateMap<WordTestModel, UpdateWordRateRequest>();
+
+        CreateMap<IrregularFormModel, IrregularFormTestModel>()
+            // Явно скидаємо AfterMap який міг успадкуватись з IrregularFormModel→IrregularFormModel
+            .AfterMap((src, dest, ctx) => { });
+
+        CreateMap<IrregularFormTestModel, UpdateWordRateRequest>();
+
+        CreateMap<ExampleModel, ExampleTestModel>()
+            .ForMember(dest => dest.TestWord, opt => opt.Ignore());
     }
 }

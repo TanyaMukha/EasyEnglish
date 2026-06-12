@@ -56,7 +56,43 @@ public class DailyGoal
     public int Count { get; set; }
 }
 
-public class WordTestModel : WordModel
+/// <summary>
+/// Модель, що накопичує результати тест-сесії та має рейтинг.
+/// Реалізується тестовими моделями слів і неправильних дієслів —
+/// WordRatingCalculator працює з будь-якою з них однаково.
+/// </summary>
+public interface ITestSessionItem
+{
+    float Rate { get; set; }
+    DateTime? LastReviewDate { get; set; }
+    int ReviewCount { get; set; }
+    DateTime? UpdatedAt { get; set; }
+    int LastTotalAttempts { get; set; }
+    int LastIncorrectAttempts { get; set; }
+    TestModel Tests { get; }
+}
+
+public static class TestSessionItemExtensions
+{
+    /// <summary>Записує одну відповідь у статистику сесії.</summary>
+    public static void RecordTestAnswer(
+        this ITestSessionItem item, CardDirection direction, CardType type, bool isCorrect)
+    {
+        var result = item.Tests[direction][type];
+        result.TotalAttempts++;
+        if (isCorrect)
+            result.CorrectAnswers++;
+    }
+
+    /// <summary>Фіксує перегляд картки (review-тести без відповідей).</summary>
+    public static void RecordReview(this ITestSessionItem item)
+    {
+        item.LastReviewDate = DateTime.UtcNow;
+        item.ReviewCount++;
+    }
+}
+
+public class WordTestModel : WordModel, ITestSessionItem
 {
     public int LastTotalAttempts { get; set; } = 0;
     public int LastIncorrectAttempts { get; set; } = 0;
@@ -67,7 +103,24 @@ public class WordTestModel : WordModel
     public float CurrentRating { get; set; } = 3; // Розраховується на льоту
     public bool NeedsReview { get; set; } = false; // Чи потребує повторення
     public DateTime? NextReviewDate { get; set; } // Рекомендована дата наступного повторення
-    public int? DaysSinceLastReview { get; set; } 
+    public int? DaysSinceLastReview { get; set; }
+}
+
+public class IrregularFormTestModel : IrregularFormModel, ITestSessionItem
+{
+    public int LastTotalAttempts { get; set; } = 0;
+    public int LastIncorrectAttempts { get; set; } = 0;
+
+    public TestModel Tests { get; set; } = new();
+}
+
+/// <summary>
+/// Item для мульті-тесту прикладів. Рейтинг ведеться по слову,
+/// якому належить приклад, — через посилання TestWord.
+/// </summary>
+public class ExampleTestModel : ExampleModel
+{
+    public WordTestModel? TestWord { get; set; }
 }
 
 public class TestModel
