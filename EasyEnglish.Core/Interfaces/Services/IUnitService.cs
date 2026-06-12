@@ -7,5 +7,7 @@ public interface IUnitService : IBaseWithGuidService<UnitModel>
 {
     Task<IReadOnlyList<UnitCardModel>> GetUnitCardsAsync(int courseId);
 
+    Task<IEnumerable<UnitModel>> GetByCourseAsync(int courseId);
+
     Task<IEnumerable<WordModel>> GetWordsAsync(int unitId);
 }

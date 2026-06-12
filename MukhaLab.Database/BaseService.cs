@@ -1,10 +1,8 @@
 ﻿using AutoMapper;
-using EasyEnglish.Core.Interfaces.Services;
 using Microsoft.Extensions.Logging;
 using MukhaLab.SelectQueryParameters.Models;
-using MukhaLab.Database;
 
-namespace EasyEnglish.Services;
+namespace MukhaLab.Database;
 
 public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
     where TEntity : AbstractEntity
@@ -24,14 +22,13 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public virtual async Task<IEnumerable<TModel>> GetAllAsync(QueryParameters? parameters = null, string[]? includes = null)
+    public virtual async Task<IEnumerable<TModel>> GetAllAsync(string[]? includes = null, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogDebug("Отримання всіх записів типу {EntityType}", typeof(TEntity).Name);
 
-            parameters ??= new QueryParameters();
-            var entities = await _repository.GetAsync(parameters, includes);
+            var entities = await _repository.GetAsync(includes, cancellationToken);
             return _mapper.Map<IEnumerable<TModel>>(entities);
         }
         catch (Exception ex)
@@ -41,13 +38,33 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
         }
     }
 
-    public virtual async Task<TModel?> GetByIdAsync(int id, string[]? includes = null)
+    /// <summary>
+    /// Вибірка за динамічними параметрами (фільтри, сортування, пагінація).
+    /// Зарезервовано для майбутніх динамічних фільтрів; основні запити — LINQ у репозиторіях.
+    /// </summary>
+    public virtual async Task<IEnumerable<TModel>> GetAllAsync(QueryParameters parameters, string[]? includes = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogDebug("Отримання записів типу {EntityType} за динамічними параметрами", typeof(TEntity).Name);
+
+            var entities = await _repository.GetAsync(parameters, includes, cancellationToken);
+            return _mapper.Map<IEnumerable<TModel>>(entities);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Помилка при отриманні записів типу {EntityType}", typeof(TEntity).Name);
+            throw;
+        }
+    }
+
+    public virtual async Task<TModel?> GetByIdAsync(int id, string[]? includes = null, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogDebug("Отримання запису з ID {Id} типу {EntityType}", id, typeof(TEntity).Name);
 
-            var entity = await _repository.FindAsync(id, includes);
+            var entity = await _repository.FindAsync(id, includes, cancellationToken);
             if (entity == null)
             {
                 _logger.LogWarning("Запис з ID {Id} не знайдено", id);
@@ -81,7 +98,7 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
     /// <summary>
     /// Отримує записи за кількома ідентифікаторами.
     /// </summary>
-    public virtual async Task<List<TModel>> GetByIdsAsync(IEnumerable<int> ids, string[]? includes = null)
+    public virtual async Task<List<TModel>> GetByIdsAsync(IEnumerable<int> ids, string[]? includes = null, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -94,7 +111,7 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
             _logger.LogDebug("Отримання {Count} записів типу {EntityType} за ідентифікаторами",
                 idList.Count, typeof(TEntity).Name);
 
-            var entities = await _repository.FindManyAsync(idList, includes);
+            var entities = await _repository.FindManyAsync(idList, includes, cancellationToken);
 
             if (entities == null || entities.Count == 0)
             {
@@ -116,12 +133,12 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
         }
     }
 
-    public virtual async Task<int> CountAsync()
+    public virtual async Task<int> CountAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogDebug("Підрахунок записів типу {EntityType}", typeof(TEntity).Name);
-            int count = await _repository.CountAsync();
+            int count = await _repository.CountAsync(cancellationToken);
             _logger.LogDebug("Загальна кількість записів: {Count}", count);
             return count;
         }
@@ -132,7 +149,7 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
         }
     }
 
-    public virtual async Task<TModel> CreateAsync(TModel request)
+    public virtual async Task<TModel> CreateAsync(TModel request, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -140,7 +157,7 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
 
             var entity = _mapper.Map<TEntity>(request);
 
-            await _repository.AddAsync(entity);
+            await _repository.AddAsync(entity, cancellationToken);
 
             var model = _mapper.Map<TModel>(entity);
             _logger.LogInformation("Створено новий запис з ID {Id}", entity.Id);
@@ -153,13 +170,13 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
         }
     }
 
-    public virtual async Task<TModel> UpdateAsync(int id, TModel request)
+    public virtual async Task<TModel> UpdateAsync(int id, TModel request, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogDebug("Оновлення запису з ID {Id} типу {EntityType}", id, typeof(TEntity).Name);
 
-            var existingEntity = await _repository.FindAsync(id);
+            var existingEntity = await _repository.FindAsync(id, cancellationToken: cancellationToken);
             if (existingEntity == null)
             {
                 throw new ArgumentException($"Запис з ID {id} не знайдено");
@@ -167,7 +184,7 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
 
             _mapper.Map(request, existingEntity);
 
-            await _repository.UpdateAsync(existingEntity);
+            await _repository.UpdateAsync(existingEntity, cancellationToken);
 
             var model = _mapper.Map<TModel>(existingEntity);
             _logger.LogInformation("Оновлено запис з ID {Id}", id);
@@ -180,13 +197,13 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
         }
     }
 
-    public virtual async Task<bool> DeleteAsync(int id)
+    public virtual async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogDebug("Видалення запису з ID {Id} типу {EntityType}", id, typeof(TEntity).Name);
 
-            var entity = await _repository.FindAsync(id);
+            var entity = await _repository.FindAsync(id, cancellationToken: cancellationToken);
             if (entity == null)
             {
                 throw new ArgumentException($"Запис з ID {id} не знайдено");
@@ -208,14 +225,14 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
     /// <summary>
     /// Creates multiple records asynchronously.
     /// </summary>
-    public virtual async Task<IEnumerable<TModel>> CreateRangeAsync(IEnumerable<TModel> requests)
+    public virtual async Task<IEnumerable<TModel>> CreateRangeAsync(IEnumerable<TModel> requests, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogDebug("Створення {Count} записів типу {EntityType}", requests.Count(), typeof(TEntity).Name);
 
             var entities = _mapper.Map<IEnumerable<TEntity>>(requests);
-            await _repository.AddRangeAsync(entities);
+            await _repository.AddRangeAsync(entities, cancellationToken);
 
             var models = _mapper.Map<IEnumerable<TModel>>(entities);
             _logger.LogInformation("Створено {Count} записів типу {EntityType}", models.Count(), typeof(TEntity).Name);
@@ -232,7 +249,7 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
     /// <summary>
     /// Updates multiple records asynchronously.
     /// </summary>
-    public virtual async Task<IEnumerable<TModel>> UpdateRangeAsync(IEnumerable<(int Id, TModel Model)> requests)
+    public virtual async Task<IEnumerable<TModel>> UpdateRangeAsync(IEnumerable<(int Id, TModel Model)> requests, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -242,7 +259,7 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
             var ids = requestsList.Select(r => r.Id).ToList();
 
             // ✅ Отримуємо всі entities за один раз
-            var existingEntities = await _repository.FindManyAsync(ids);
+            var existingEntities = await _repository.FindManyAsync(ids, cancellationToken: cancellationToken);
 
             if (existingEntities.Count != requestsList.Count)
             {
@@ -264,7 +281,7 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
             }
 
             // ✅ Оновлюємо всі entities
-            await _repository.UpdateRangeAsync(existingEntities);
+            await _repository.UpdateRangeAsync(existingEntities, cancellationToken);
 
             var models = _mapper.Map<IEnumerable<TModel>>(existingEntities);
             _logger.LogInformation("Оновлено {Count} записів типу {EntityType}", models.Count(), typeof(TEntity).Name);
@@ -281,16 +298,17 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
     /// <summary>
     /// Deletes multiple records by their IDs asynchronously.
     /// </summary>
-    public virtual async Task<bool> DeleteRangeAsync(IEnumerable<int> ids)
+    public virtual async Task<bool> DeleteRangeAsync(IEnumerable<int> ids, CancellationToken cancellationToken = default)
     {
         try
         {
-            _logger.LogDebug("Видалення {Count} записів типу {EntityType}", ids.Count(), typeof(TEntity).Name);
+            var idList = ids.ToList();
+            _logger.LogDebug("Видалення {Count} записів типу {EntityType}", idList.Count, typeof(TEntity).Name);
 
-            var keyValuesList = ids.Select(id => new object[] { id }).ToList();
-            bool result = await _repository.RemoveRangeAsync(keyValuesList);
+            // батч-видалення: один SELECT + один SaveChanges
+            bool result = await _repository.RemoveRangeAsync(idList, cancellationToken);
 
-            _logger.LogInformation("Видалено {Count} записів типу {EntityType}", ids.Count(), typeof(TEntity).Name);
+            _logger.LogInformation("Видалено {Count} записів типу {EntityType}", idList.Count, typeof(TEntity).Name);
 
             return result;
         }
@@ -301,13 +319,13 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
         }
     }
 
-    public virtual async Task<PaginationInfo> GetPaginationInfoAsync(QueryParameters parameters)
+    public virtual async Task<PaginationInfo> GetPaginationInfoAsync(QueryParameters parameters, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogDebug("Отримання інформації про пагінацію для типу {EntityType}", typeof(TEntity).Name);
 
-            var paginationInfo = await _repository.GetPaginationInfoAsync(parameters);
+            var paginationInfo = await _repository.GetPaginationInfoAsync(parameters, cancellationToken);
 
             _logger.LogDebug("Пагінація: загальна кількість {TotalCount}, сторінок {TotalPages}",
                 paginationInfo.TotalCount, paginationInfo.TotalPages);
@@ -322,9 +340,9 @@ public abstract class BaseService<TEntity, TModel> : IBaseService<TModel>
     }
 
     [Obsolete("Use GetAllAsync instead")]
-    public virtual IEnumerable<TModel> GetAll(QueryParameters? parameters = null)
+    public virtual IEnumerable<TModel> GetAll()
     {
-        return GetAllAsync(parameters).GetAwaiter().GetResult();
+        return GetAllAsync().GetAwaiter().GetResult();
     }
 
     [Obsolete("Use GetByIdAsync instead")]

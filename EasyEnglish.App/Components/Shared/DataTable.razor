@@ -1,6 +1,5 @@
 @typeparam T
 @using System.Dynamic
-@using MukhaLab.SelectQueryParameters.Models
 @using System.Collections.Generic
 @using MukhaLab.Database
 
@@ -122,7 +121,7 @@ else
 @code {
     [Parameter] public IEnumerable<T>? Items { get; set; }
     [Parameter] public PaginationInfo? PaginationInfo { get; set; }
-    [Parameter] public QueryParameters Parameters { get; set; } = new QueryParameters();
+    [Parameter] public int? InitialPage { get; set; }
     [Parameter] public bool IsLoading { get; set; }
     [Parameter] public string? ErrorMessage { get; set; }
     [Parameter] public string EmptyMessage { get; set; } = "Немає елементів.";
@@ -142,9 +141,9 @@ else
         public int? Width { get; set; }
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        CurrentPage = Parameters.PageNumber is not null && Parameters.PageNumber > 0 ? Parameters.PageNumber : 1;
+        CurrentPage = InitialPage is > 0 ? InitialPage : 1;
     }
 
     private async Task ChangePage(int page)

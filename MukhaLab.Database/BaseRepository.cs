@@ -1,6 +1,4 @@
-using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
-using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using MukhaLab.SelectQueryParameters.Extensions;
 using MukhaLab.SelectQueryParameters.Models;
@@ -18,19 +16,16 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
     where TContext : DbContext
 {
     protected readonly IDbContextFactory<TContext> contextFactory;
-    protected readonly IMapper mapper;
     protected readonly IUserContext? userContext;
     protected string[] userIdPropertyPaths = Array.Empty<string>();
     protected bool enableUserFiltering = false;
 
     public BaseRepository(
-        IMapper mapper,
         IDbContextFactory<TContext> contextFactory,
         IUserContext? userContext = null)
     {
         ArgumentNullException.ThrowIfNull(contextFactory);
 
-        this.mapper = mapper;
         this.contextFactory = contextFactory;
         this.userContext = userContext;
         this.enableUserFiltering = userContext != null;
@@ -44,14 +39,30 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         return query;
     }
 
-    private IQueryable<T> BuildSelectQuery(
-    TContext ctx,
-    QueryParameters parameters,
-    bool withoutPagination = false,
-    string[]? includes = null)
+    /// <summary>
+    /// Базовий select-запит з user-фільтром та includes.
+    /// Спадкоємці використовують його як стартову точку для власних LINQ-запитів.
+    /// </summary>
+    protected IQueryable<T> BuildSelectQuery(TContext ctx, string[]? includes = null)
     {
         IQueryable<T> query = ctx.Set<T>();
 
+        query = this.enableUserFiltering ? this.IncludeUserIdFilter(query) : query;
+        query = ApplyIncludes(query, includes);
+
+        return query;
+    }
+
+    /// <summary>
+    /// Select-запит з динамічними параметрами (фільтри, сортування, пагінація).
+    /// Зарезервовано для майбутніх динамічних фільтрів.
+    /// </summary>
+    private IQueryable<T> BuildSelectQuery(
+        TContext ctx,
+        QueryParameters parameters,
+        bool withoutPagination = false,
+        string[]? includes = null)
+    {
         var queryParameters = withoutPagination ? new QueryParameters
         {
             Filters = parameters.Filters,
@@ -60,30 +71,41 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
             RowCount = null
         } : parameters;
 
-        query = this.enableUserFiltering ? this.IncludeUserIdFilter(query) : query;
-        query = ApplyIncludes(query, includes);   // <-- было if (includeRelatedEntities)
-        query = query.ApplyQueryParameters(queryParameters);
-
-        return query;
+        return BuildSelectQuery(ctx, includes).ApplyQueryParameters(queryParameters);
     }
 
     /// <summary>
     /// Retrieves all entities as list asynchronously.
     /// </summary>
-    public virtual async Task<IEnumerable<T>> GetAsync(
-    QueryParameters parameters, string[]? includes = null)
+    public virtual async Task<IEnumerable<T>> GetAsync(string[]? includes = null, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(parameters);
-        await using var ctx = await contextFactory.CreateDbContextAsync();
-        var query = BuildSelectQuery(ctx, parameters, false, includes);
-        var entities = await query.AsNoTracking().ToListAsync();
+        await using var ctx = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var query = BuildSelectQuery(ctx, includes);
+        var entities = await query.AsNoTracking().ToListAsync(cancellationToken);
         return entities;
     }
 
-    public virtual async Task<int> CountAsync()
+    /// <summary>
+    /// Retrieves entities by dynamic query parameters.
+    /// </summary>
+    public virtual async Task<IEnumerable<T>> GetAsync(QueryParameters parameters, string[]? includes = null, CancellationToken cancellationToken = default)
     {
-        await using var ctx = await contextFactory.CreateDbContextAsync();
-        return await ctx.Set<T>().CountAsync();
+        ArgumentNullException.ThrowIfNull(parameters);
+        await using var ctx = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var query = BuildSelectQuery(ctx, parameters, false, includes);
+        var entities = await query.AsNoTracking().ToListAsync(cancellationToken);
+        return entities;
+    }
+
+    public virtual async Task<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        await using var ctx = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+        // той самий user-фільтр, що й у вибірках — кількість має збігатися з даними
+        IQueryable<T> query = ctx.Set<T>();
+        query = this.enableUserFiltering ? this.IncludeUserIdFilter(query) : query;
+
+        return await query.CountAsync(cancellationToken);
     }
 
     private int GetPageCount(int totalCount, int countPerPage)
@@ -96,16 +118,16 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
     /// <summary>
     /// Gets pagination information asynchronously.
     /// </summary>
-    public virtual async Task<PaginationInfo> GetPaginationInfoAsync(QueryParameters parameters)
+    public virtual async Task<PaginationInfo> GetPaginationInfoAsync(QueryParameters parameters, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(parameters);
 
-        await using var ctx = await contextFactory.CreateDbContextAsync();
+        await using var ctx = await contextFactory.CreateDbContextAsync(cancellationToken);
         int countPerPage = parameters.RowCount ?? 0;
 
         // явно без includes — для COUNT вони не потрібні
         var query = this.BuildSelectQuery(ctx, parameters, withoutPagination: true, includes: Array.Empty<string>());
-        var totalCount = await query.CountAsync();
+        var totalCount = await query.CountAsync(cancellationToken);
 
         return new PaginationInfo
         {
@@ -114,22 +136,23 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         };
     }
 
-    public virtual async Task<T?> FindAsync(int id, string[]? includes = null)
+    public virtual async Task<T?> FindAsync(int id, string[]? includes = null, CancellationToken cancellationToken = default)
     {
-        await using var ctx = await contextFactory.CreateDbContextAsync();
+        await using var ctx = await contextFactory.CreateDbContextAsync(cancellationToken);
 
         var includesToApply = includes ?? [];
 
         if (includesToApply.Length == 0)
         {
-            var entity = await ctx.Set<T>().FindAsync(id);
+            var entity = await ctx.Set<T>().FindAsync([id], cancellationToken);
             if (entity != null)
                 ctx.Entry(entity).State = EntityState.Detached;
             return entity;
         }
 
         IQueryable<T> query = ApplyIncludes(ctx.Set<T>(), includesToApply);
-        return await query.AsNoTracking().Where("Id == @0", id).FirstOrDefaultAsync();
+        return await query.AsNoTracking()
+            .FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == id, cancellationToken);
     }
 
     public virtual async Task<T?> FindAsync(params object[] keyValues)
@@ -149,16 +172,18 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         return result;
     }
 
-    public virtual async Task<List<T>> FindManyAsync(IEnumerable<int> ids, string[]? includes = null)
+    public virtual async Task<List<T>> FindManyAsync(IEnumerable<int> ids, string[]? includes = null, CancellationToken cancellationToken = default)
     {
         if (ids == null || !ids.Any())
             return new List<T>();
 
         var idList = ids.ToList();
-        await using var ctx = await contextFactory.CreateDbContextAsync();
+        await using var ctx = await contextFactory.CreateDbContextAsync(cancellationToken);
         var query = ApplyIncludes(ctx.Set<T>(), includes);
 
-        return await query.AsNoTracking().Where("Id in @0", idList).ToListAsync();
+        return await query.AsNoTracking()
+            .Where(e => idList.Contains(EF.Property<int>(e, "Id")))
+            .ToListAsync(cancellationToken);
     }
 
     public virtual async Task<List<T>> FindManyAsync(params int[] ids)
@@ -172,53 +197,54 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
     /// <summary>
     /// Adds new entity.
     /// </summary>
-    public virtual async Task<T> AddAsync(T entity)
+    public virtual async Task<T> AddAsync(T entity, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        await using var ctx = await contextFactory.CreateDbContextAsync();
+        await using var ctx = await contextFactory.CreateDbContextAsync(cancellationToken);
         ctx.Set<T>().Add(entity);
-        await ctx.SaveChangesAsync();
+        await ctx.SaveChangesAsync(cancellationToken);
         return entity;
     }
 
-    public virtual async Task<IEnumerable<T>> AddRangeAsync(IEnumerable<T> entities)
+    public virtual async Task<IEnumerable<T>> AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entities);
 
-        await using var ctx = await contextFactory.CreateDbContextAsync();
+        await using var ctx = await contextFactory.CreateDbContextAsync(cancellationToken);
         ctx.Set<T>().AddRange(entities);
-        await ctx.SaveChangesAsync();
+        await ctx.SaveChangesAsync(cancellationToken);
         return entities;
     }
 
     /// <summary>
     /// Updates existing entity.
+    /// Увага: Update() позначає всі поля зміненими — у базу пишеться повний стан entity.
     /// </summary>
-    public virtual async Task<T> UpdateAsync(T entity)
+    public virtual async Task<T> UpdateAsync(T entity, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        await using var ctx = await contextFactory.CreateDbContextAsync();
+        await using var ctx = await contextFactory.CreateDbContextAsync(cancellationToken);
         ctx.Set<T>().Update(entity);
-        int result = await ctx.SaveChangesAsync();
+        int result = await ctx.SaveChangesAsync(cancellationToken);
 
         if (result == 0)
         {
             throw new InvalidOperationException(
-                $"Entity of type {typeof(T).Name} was not updated. It may not exist or has not changed.");
+                $"Entity of type {typeof(T).Name} was not updated — no rows were affected (the record may not exist).");
         }
 
         return entity;
     }
 
-    public virtual async Task<IEnumerable<T>> UpdateRangeAsync(IEnumerable<T> entities)
+    public virtual async Task<IEnumerable<T>> UpdateRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entities);
 
-        await using var ctx = await contextFactory.CreateDbContextAsync();
+        await using var ctx = await contextFactory.CreateDbContextAsync(cancellationToken);
         ctx.Set<T>().UpdateRange(entities);
-        await ctx.SaveChangesAsync();
+        await ctx.SaveChangesAsync(cancellationToken);
         return entities;
     }
 
@@ -241,14 +267,40 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         return res > 0;
     }
 
-    public virtual async Task<bool> RemoveRangeAsync(IEnumerable<object[]> keyValuesList)
+    /// <summary>
+    /// Видаляє записи за int-ключами одним батчем: один SELECT і один SaveChanges.
+    /// </summary>
+    public virtual async Task<bool> RemoveRangeAsync(IEnumerable<int> ids, CancellationToken cancellationToken = default)
     {
-        await using var ctx = await contextFactory.CreateDbContextAsync();
+        var idList = ids?.Distinct().ToList() ?? [];
+        if (idList.Count == 0)
+            return false;
+
+        await using var ctx = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+        var entities = await ctx.Set<T>()
+            .Where(e => idList.Contains(EF.Property<int>(e, "Id")))
+            .ToListAsync(cancellationToken);
+
+        if (entities.Count != idList.Count)
+        {
+            throw new InvalidOperationException(
+                $"Entities of type {typeof(T).Name} were not all found: expected {idList.Count}, found {entities.Count}.");
+        }
+
+        ctx.Set<T>().RemoveRange(entities);
+        int res = await ctx.SaveChangesAsync(cancellationToken);
+        return res > 0;
+    }
+
+    public virtual async Task<bool> RemoveRangeAsync(IEnumerable<object[]> keyValuesList, CancellationToken cancellationToken = default)
+    {
+        await using var ctx = await contextFactory.CreateDbContextAsync(cancellationToken);
         var entities = new List<T>();
 
         foreach (var keyValues in keyValuesList)
         {
-            var entity = await ctx.Set<T>().FindAsync(keyValues);
+            var entity = await ctx.Set<T>().FindAsync(keyValues, cancellationToken);
             if (entity == null)
             {
                 throw new InvalidOperationException(
@@ -258,18 +310,18 @@ public abstract class BaseRepository<T, TContext> : IBaseRepository<T>
         }
 
         ctx.Set<T>().RemoveRange(entities);
-        int res = await ctx.SaveChangesAsync();
+        int res = await ctx.SaveChangesAsync(cancellationToken);
         return res > 0;
     }
 
-    public virtual async Task<bool> RemoveRangeAsync(IEnumerable<T> entities)
+    public virtual async Task<bool> RemoveRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     {
         if (entities == null || !entities.Any())
             return false;
 
-        await using var ctx = await contextFactory.CreateDbContextAsync();
+        await using var ctx = await contextFactory.CreateDbContextAsync(cancellationToken);
         ctx.Set<T>().RemoveRange(entities);
-        int res = await ctx.SaveChangesAsync();
+        int res = await ctx.SaveChangesAsync(cancellationToken);
         return res > 0;
     }
 

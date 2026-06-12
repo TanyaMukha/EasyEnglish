@@ -4,6 +4,7 @@ using EasyEnglish.Core.Interfaces.Repositories;
 using EasyEnglish.Core.Interfaces.Services;
 using EasyEnglish.Core.Models;
 using Microsoft.Extensions.Logging;
+using MukhaLab.Database;
 
 namespace EasyEnglish.Services.Services;
 

@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using EasyEnglish.Core.Entities;
+﻿using EasyEnglish.Core.Entities;
 using EasyEnglish.Core.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 using MukhaLab.Database;
@@ -11,11 +10,20 @@ namespace EasyEnglish.Data.Repositories;
 public class UnitRepository : BaseWithGuidRepository<UnitEntity, EasyEnglishDbContext>, IUnitRepository
 {
     public UnitRepository(
-        IMapper mapper,
         IDbContextFactory<EasyEnglishDbContext> contextFactory,
         IUserContext? userContext = null)
-        : base(mapper, contextFactory, userContext)
+        : base(contextFactory, userContext)
     {
+    }
+
+    public async Task<List<UnitEntity>> GetByCourseAsync(int courseId)
+    {
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+
+        return await ctx.Units
+            .AsNoTracking()
+            .Where(u => u.CourseId == courseId)
+            .ToListAsync();
     }
 
     public async Task<List<UnitCardModel>> GetUnitCardsAsync(int courseId)

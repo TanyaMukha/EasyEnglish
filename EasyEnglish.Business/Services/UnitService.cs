@@ -4,7 +4,6 @@ using EasyEnglish.Core.Interfaces.Services;
 using EasyEnglish.Core.Interfaces.Repositories;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
-using MukhaLab.SelectQueryParameters.Models;
 using MukhaLab.Database;
 using EasyEnglish.Data.Repositories;
 
@@ -32,22 +31,14 @@ public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitServ
         return await this.unitRepository.GetUnitCardsAsync(courseId);
     }
 
+    public async Task<IEnumerable<UnitModel>> GetByCourseAsync(int courseId)
+    {
+        var entities = await this.unitRepository.GetByCourseAsync(courseId);
+        return _mapper.Map<IEnumerable<UnitModel>>(entities);
+    }
+
     public async Task<IEnumerable<WordModel>> GetWordsAsync(int unitId)
     {
-        QueryParameters parameters = new QueryParameters
-        {
-            Filters = new List<FilterParameter>
-            {
-                new FilterParameter
-                {
-                    Field = "UnitId",
-                    Operation = FilterOperation.Equal,
-                    DataType = FilterDataType.Integer,
-                    Value = unitId
-                }
-            }
-        };
-
-        return await this.wordService.GetAllAsync(parameters);
+        return await this.wordService.GetByUnitAsync(unitId);
     }
 }

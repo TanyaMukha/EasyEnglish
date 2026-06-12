@@ -7,7 +7,7 @@
 public interface IBaseWithGuidRepository<T> : IBaseRepository<T>
     where T : class, IGuidRecord
 {
-    Task<T?> FindAsync(Guid guid);
+    Task<T?> FindAsync(Guid guid, CancellationToken cancellationToken = default);
 
-    Task<IEnumerable<Guid>> CheckExistingGuidsAsync(IEnumerable<Guid> guids);
+    Task<IEnumerable<Guid>> CheckExistingGuidsAsync(IEnumerable<Guid> guids, CancellationToken cancellationToken = default);
 }

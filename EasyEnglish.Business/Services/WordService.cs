@@ -3,10 +3,11 @@ using EasyEnglish.Core.Entities;
 using EasyEnglish.Core.Interfaces.Repositories;
 using EasyEnglish.Core.Interfaces.Services;
 using EasyEnglish.Core.Models;
+using EasyEnglish.Core.Options;
 using EasyEnglish.Data.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using MukhaLab.SelectQueryParameters.Models;
+using MukhaLab.Database;
 
 namespace EasyEnglish.Services.Services;
 public class WordService : BaseService<WordEntity, WordModel>, IWordService
@@ -21,32 +22,26 @@ public class WordService : BaseService<WordEntity, WordModel>, IWordService
 
     public async Task<IEnumerable<WordModel>> GetAnyNextWordsAsync(int count)
     {
-        QueryParameters parameters = new QueryParameters
-        {
-            PageNumber = 1,
-            RowCount = count,
-            Sort = new List<SortDescriptor>
-            {
-                new SortDescriptor { Field = "LastReviewDate", Direction = SortDirection.Asc }
-            }           
-        };
-
-        return await this.GetAllAsync(parameters);
+        var entities = await _wordRepository.GetNextWordsAsync(count);
+        return _mapper.Map<IEnumerable<WordModel>>(entities);
     }
 
     public async Task<IEnumerable<WordModel>> GetAnyHardWordsAsync(int count)
     {
-        QueryParameters parameters = new QueryParameters
-        {
-            PageNumber = 1,
-            RowCount = count,
-            Sort = new List<SortDescriptor>
-            {
-                new SortDescriptor { Field = "Rate", Direction = SortDirection.Desc }
-            }
-        };
+        var entities = await _wordRepository.GetHardWordsAsync(count);
+        return _mapper.Map<IEnumerable<WordModel>>(entities);
+    }
 
-        return await this.GetAllAsync(parameters);
+    public async Task<IEnumerable<WordModel>> GetByUnitAsync(int unitId)
+    {
+        var entities = await _wordRepository.GetByUnitAsync(unitId);
+        return _mapper.Map<IEnumerable<WordModel>>(entities);
+    }
+
+    public async Task<IEnumerable<WordModel>> GetForLearningAsync(int courseId, int? unitId, WordSelectionOptions options)
+    {
+        var entities = await _wordRepository.GetForLearningAsync(courseId, unitId, options);
+        return _mapper.Map<IEnumerable<WordModel>>(entities);
     }
 
     public async Task<WordModel> UpdateWordRateAsync(UpdateWordRateRequest word)

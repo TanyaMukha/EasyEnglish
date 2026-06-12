@@ -1,10 +1,8 @@
-﻿using EasyEnglish.Core.Interfaces.Services;
-
-namespace MukhaLab.Database;
+﻿namespace MukhaLab.Database;
 
 public interface IBaseWithGuidService<TModel> : IBaseService<TModel>
     where TModel : class, IGuidRecord
 {
-    Task<TModel?> GetByGuidAsync(Guid guid);
-    Task<IEnumerable<Guid>> GetExistingGuidsAsync(IEnumerable<Guid> guids);
+    Task<TModel?> GetByGuidAsync(Guid guid, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Guid>> GetExistingGuidsAsync(IEnumerable<Guid> guids, CancellationToken cancellationToken = default);
 }
