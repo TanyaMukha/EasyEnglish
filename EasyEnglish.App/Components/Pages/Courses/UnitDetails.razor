@@ -109,7 +109,7 @@
                                 <div class="items-grid">
                                     @foreach (var word in Unit.Words)
                                     {
-                                        <WordCard word="@word" />
+                                        <WordCard word="@word" OnDelete="RemoveWord" />
                                     }
                                 </div>
                             }
@@ -152,7 +152,7 @@
                                 <div class="items-grid">
                                     @foreach (var irregularForm in Unit.IrregularForms)
                                     {
-                                        <IrregularFormCard irregularForm="@irregularForm" />
+                                        <IrregularFormCard irregularForm="@irregularForm" OnDelete="RemoveIrregularForm" />
                                     }
                                 </div>
                             }
@@ -329,6 +329,34 @@
         {
             isLoading = false;
             StateHasChanged();
+        }
+    }
+
+    private async Task RemoveWord(int id)
+    {
+        try
+        {
+            await WordService.DeleteAsync(id);
+            await OnUnitChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error deleting word: {ex.Message}";
+            BrowserConsole.LogErrorAsync("Failed to delete word", ex);
+        }
+    }
+
+    private async Task RemoveIrregularForm(int id)
+    {
+        try
+        {
+            await IrregularFormService.DeleteAsync(id);
+            await OnUnitChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error deleting irregular form: {ex.Message}";
+            BrowserConsole.LogErrorAsync("Failed to delete irregular form", ex);
         }
     }
 

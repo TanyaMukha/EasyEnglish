@@ -165,7 +165,7 @@ public sealed class TranslationToWordManualInputDef : TestDefinition<WordTestMod
     public override bool   WordIsQuestion => false;
 
     public override WordCardViewModel  BuildViewModel(WordTestModel item)      => WordVm.From(item);
-    public override string?            GetCorrectAnswer(WordCardViewModel vm)  => vm.Word;
+    public override string?            GetCorrectAnswer(WordCardViewModel vm)  => TextBracketsRemoverService.RemoveBracketsText(vm.Word);
     public override bool               ShowNextButton(TestState s)             => s.IsAnswerSubmitted;
     public override NextItemAction     GetNextAction(TestState s)              => s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
     public override Type               ComponentType                            => typeof(ManualInputCard);

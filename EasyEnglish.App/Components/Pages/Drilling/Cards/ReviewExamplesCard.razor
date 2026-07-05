@@ -2,7 +2,7 @@
     <div class="example-container">
 
         <div class="sentence-text">
-            @((MarkupString)ExampleMarkdownService.RenderMarkdownWithHidden(_item.Sentence, showHidden: true))
+            @((MarkupString)ExampleMarkdownService.RenderMarkdown(_item.Sentence))
         </div>
 
         @if (!string.IsNullOrEmpty(_item.Translation))

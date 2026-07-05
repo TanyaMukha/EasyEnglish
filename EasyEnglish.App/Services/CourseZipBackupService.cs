@@ -72,6 +72,7 @@ public class CourseZipBackupService
                 CourseGuid        = course.RecordGuid,
                 CourseTitle       = course.Title,
                 CourseDescription = course.Description,
+                LanguageCode      = course.LanguageCode,
                 ExportedAt        = DateTime.UtcNow,
                 Options = new CourseExportOptions
                 {

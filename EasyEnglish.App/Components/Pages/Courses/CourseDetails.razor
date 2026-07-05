@@ -7,7 +7,26 @@
 @using EasyEnglish.App.Components.Shared.Breadcrumb
 
 <div class="page-content">
-    <Breadcrumb Items="breadcrumbs" />
+    <div class="header-section">
+        <Breadcrumb Items="breadcrumbs" />
+
+        <div class="title-section">
+            <h1 class="page-title">
+                <span class="course-flag" title="@course.LanguageCode">
+                    @LanguageFlagHelper.GetFlagEmoji(course.LanguageCode)
+                </span>
+                @course.Title
+            </h1>
+            <a href="/courses/@course.Id/edit" class="btn-edit" title="Редагувати">
+                <i class="bi bi-pencil"></i>
+            </a>
+        </div>
+
+        @if (!string.IsNullOrEmpty(course.Description))
+        {
+            <p class="page-description">@course.Description</p>
+        }
+    </div>
 
     <div class="units-grid">
         @foreach (var unit in AvailableUnits)
@@ -142,8 +161,15 @@
 <style>
     .header-section {
         display: flex;
+        flex-direction: column;
         gap: 1rem;
         margin-bottom: 2rem;
+    }
+
+    .course-flag {
+        font-size: 1.5rem;
+        line-height: 1;
+        display: inline-block;
     }
 
     .units-grid {

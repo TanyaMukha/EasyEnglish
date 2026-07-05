@@ -32,6 +32,13 @@
                                      Label="Опис"
                                      Rows="1" />
                 <ValidationMessage For="@(() => newCourse.Description)" class="validation-message" />
+
+                <InputSelectField @bind-Value="newCourse.LanguageCode" Label="Мова курсу">
+                    @foreach (var lang in CourseLanguages.All)
+                    {
+                        <option value="@lang.Code">@lang.Label</option>
+                    }
+                </InputSelectField>
             </div>
 
             <div class="form-actions">

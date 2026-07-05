@@ -15,6 +15,8 @@ public class UnitModel : AbstractModel, IReviewInfo, IAuditInfo, IGuidRecord
 
     public string? Content { get; set; }
 
+    public string? LanguageCode { get; set; }
+
     public DateTime? LastReviewDate { get; set; }
 
     public int ReviewCount { get; set; } = 0;

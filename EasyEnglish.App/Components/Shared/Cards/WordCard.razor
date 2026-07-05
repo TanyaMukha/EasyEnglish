@@ -26,13 +26,19 @@
                 <span class="word-transcription">[@word.Transcription]</span>
             }
         </div>
-        <div class="word-actions" @onclick:stopPropagation="true">
-            <a href="/courses/@word.CourseId/units/@word.UnitId/words/@word.Id/edit" 
-                class="action-btn" 
-                title="Редагувати">
-                <i class="bi bi-pencil"></i>
-            </a>
-        </div>
+        @if (ShowActions)
+        {
+            <div class="word-actions" @onclick:stopPropagation="true">
+                <a href="/courses/@word.CourseId/units/@word.UnitId/words/@word.Id/edit"
+                    class="action-btn"
+                    title="Редагувати">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <button class="action-btn action-btn-danger" @onclick="@(async () => await OnDelete.InvokeAsync(word.Id))" title="Видалити">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        }
     </div>
 
     <div class="word-card-body">
@@ -41,6 +47,14 @@
             <div class="word-info">
                 <i class="bi bi-translate info-icon"></i>
                 <span class="info-text">@word.Translation</span>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(word.Note))
+        {
+            <div class="word-info">
+                <i class="bi bi-sticky info-icon"></i>
+                <span class="info-text word-note">@word.Note</span>
             </div>
         }
 
@@ -73,6 +87,11 @@
 @code {
     [Parameter] public WordModel word { get; set; }
 
+    /// <summary>Показувати кнопки редагування/видалення. false — для read-only контекстів (напр. головна сторінка).</summary>
+    [Parameter] public bool ShowActions { get; set; } = true;
+
+    [Parameter] public EventCallback<int> OnDelete { get; set; }
+
     private async Task PlayAudio()
     {
         if (word.Pronunciation is { Length: > 0 })
@@ -82,7 +101,7 @@
     }
 
     private Task PlayWord()
-        => Player.PlayTextAsync(word.Word, SpeechLanguage.EnglishBritish);
+        => Player.PlayTextAsync(TextBracketsRemoverService.RemoveBracketsText(word.Word), SpeechLanguage.EnglishBritish);
 }
 
 <style>
@@ -202,6 +221,11 @@
         transform: scale(1.1);
     }
 
+    .action-btn-danger:hover {
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+
     .word-card-body {
         display: flex;
         flex-direction: column;
@@ -231,6 +255,11 @@
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
+    }
+
+    .word-note {
+        font-style: italic;
+        color: var(--text-muted);
     }
 
     .word-card-footer {

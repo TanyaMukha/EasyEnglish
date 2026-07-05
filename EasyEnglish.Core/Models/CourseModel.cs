@@ -14,6 +14,11 @@ public partial class CourseModel : AbstractModel, IGuidInfo, IAuditInfo, IGuidRe
 
     public string? Description { get; set; }
 
+    /// <summary>
+    /// Мова курсу у форматі BCP-47 (наприклад, "en-us").
+    /// </summary>
+    public string? LanguageCode { get; set; } = "en-us";
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime? UpdatedAt { get; set; }

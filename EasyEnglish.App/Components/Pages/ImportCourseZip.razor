@@ -183,6 +183,16 @@
                                     <span class="info-value">@manifest.CourseDescription</span>
                                 </div>
                             }
+                            @if (!string.IsNullOrWhiteSpace(manifest.LanguageCode))
+                            {
+                                <div class="info-row">
+                                    <span class="info-label">Мова</span>
+                                    <span class="info-value">
+                                        @LanguageFlagHelper.GetFlagEmoji(manifest.LanguageCode)
+                                        @manifest.LanguageCode
+                                    </span>
+                                </div>
+                            }
                             <div class="info-row">
                                 <span class="info-label">GUID курсу</span>
                                 <span class="info-value info-value--mono">@manifest.CourseGuid</span>
@@ -448,13 +458,14 @@
             {
                 targetCourse = new CourseModel
                 {
-                    RecordGuid  = importOptions.IsFullBackup && !isCopy
+                    RecordGuid   = importOptions.IsFullBackup && !isCopy
                         ? manifest.CourseGuid
                         : Guid.NewGuid(),
-                    Title       = isCopy
+                    Title        = isCopy
                         ? $"{manifest.CourseTitle} (копія)"
                         : manifest.CourseTitle,
-                    Description = manifest.CourseDescription,
+                    Description  = manifest.CourseDescription,
+                    LanguageCode = manifest.LanguageCode,
                 };
                 targetCourse = await CourseService.CreateAsync(targetCourse);
             }

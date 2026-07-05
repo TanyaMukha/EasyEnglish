@@ -48,11 +48,14 @@
             }
         </div>
         <div class="form-actions" @onclick:stopPropagation="true">
-            <a href="/courses/@irregularForm.Unit.CourseId/units/@irregularForm.UnitId/irregular-forms/@irregularForm.Id/edit" 
-               class="action-btn" 
+            <a href="/courses/@irregularForm.Unit.CourseId/units/@irregularForm.UnitId/irregular-forms/@irregularForm.Id/edit"
+               class="action-btn"
                title="Редагувати">
                 <i class="bi bi-pencil"></i>
             </a>
+            <button class="action-btn action-btn-danger" @onclick="@(async () => await OnDelete.InvokeAsync(irregularForm.Id))" title="Видалити">
+                <i class="bi bi-trash"></i>
+            </button>
         </div>
     </div>
 
@@ -94,6 +97,8 @@
 
 @code {
     [Parameter] public IrregularFormModel irregularForm { get; set; }
+
+    [Parameter] public EventCallback<int> OnDelete { get; set; }
 
     private async Task PlayAudio(byte[]? audio)
     {
@@ -210,6 +215,11 @@
             border-color: #A3BFFA;
             color: #A3BFFA;
             transform: scale(1.1);
+        }
+
+        .action-btn-danger:hover {
+            border-color: #dc3545;
+            color: #dc3545;
         }
 
         .card-body {

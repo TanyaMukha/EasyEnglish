@@ -12,6 +12,12 @@ public class WordModel : AbstractModel, IReviewInfo, IRateInfo, IAuditInfo
 
     public string? Translation { get; set; }
 
+    /// <summary>
+    /// Додаткова примітка до слова (найчастіше позначається у дужках).
+    /// Не показується в режимі навчання.
+    /// </summary>
+    public string? Note { get; set; }
+
     public byte[]? Pronunciation { get; set; }
 
     public DateTime? LastReviewDate { get; set; }

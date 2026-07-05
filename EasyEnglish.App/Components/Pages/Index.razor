@@ -142,7 +142,7 @@
             <div class="words-grid">
                 @foreach (var word in todayWords)
                 {
-                    <WordCard word="@word" />
+                    <WordCard word="@word" ShowActions="false" />
                 }
             </div>
         </div>
@@ -208,20 +208,20 @@
                 <p class="action-description">Перегляньте всі словники та списки слів</p>
             </a>
 
-            <a href="/learning-words" class="action-card">
+            <a href="/drilling/learning-words" class="action-card">
                 <div class="action-icon">
                     <i class="bi bi-lightbulb"></i>
                 </div>
-                <h3 class="action-title">Вивчення</h3>
-                <p class="action-description">Розпочніть інтерактивне навчання</p>
+                <h3 class="action-title">Заучування слів</h3>
+                <p class="action-description">Вивчення окремих слів та фраз</p>
             </a>
 
-            <a href="/irregular-forms" class="action-card">
+            <a href="/drilling/examples-learning" class="action-card">
                 <div class="action-icon">
                     <i class="bi bi-arrow-repeat"></i>
                 </div>
-                <h3 class="action-title">Irregular Forms</h3>
-                <p class="action-description">Практикуйте неправильні дієслова</p>
+                <h3 class="action-title">Слова в реченнях</h3>
+                <p class="action-description">Вивчення слів та фраз на прикладах</p>
             </a>
         </div>
     </div>
@@ -286,7 +286,7 @@
 
     private void StartLearning()
     {
-        NavigationManager.NavigateTo("/learning-words");
+        NavigationManager.NavigateTo("/drilling/learning-words");
     }
 
     private void NavigateToWord(int wordId)

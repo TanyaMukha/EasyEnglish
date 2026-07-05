@@ -84,7 +84,7 @@
     {
         if (IsEditMode)
         {
-            unit = await UnitService.GetByIdAsync(UnitId)
+            unit = await UnitService.GetByIdAsync(UnitId, ["Course"])
                 ?? new UnitModel { CourseId = CourseId };
             BrowserConsole.LogInfoAsync($"✅ Unit : {JsonSerializer.Serialize(unit)}");
         }

@@ -20,6 +20,9 @@ public class CoursePackageManifest
     public string  CourseTitle       { get; set; } = string.Empty;
     public string? CourseDescription { get; set; }
 
+    /// <summary>Мова курсу у форматі BCP-47 (наприклад, "en-us").</summary>
+    public string? LanguageCode { get; set; } = "en-us";
+
     public DateTime ExportedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>Application name / version that produced this archive.</summary>

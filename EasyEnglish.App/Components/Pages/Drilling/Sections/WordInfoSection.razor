@@ -75,7 +75,7 @@
     }
 
     private Task PlayWord()
-        => Player.PlayTextAsync(Word, SpeechLanguage.EnglishBritish);
+        => Player.PlayTextAsync(TextBracketsRemoverService.RemoveBracketsText(Word), SpeechLanguage.EnglishBritish);
 }
 
 <style>

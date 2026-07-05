@@ -26,6 +26,27 @@ public static class LanguageLevels
     }
 }
 
+/// <summary>
+/// Курований список мов курсу для форми створення/редагування курсу.
+/// Код — BCP-47 (використовується і для прапора, і збережеться в LanguageCode).
+/// </summary>
+public static class CourseLanguages
+{
+    public static readonly IReadOnlyList<(string Code, string Label)> All =
+    [
+        ("en-us", "Англійська (США)"),
+        ("en-gb", "Англійська (Великобританія)"),
+        ("uk-ua", "Українська"),
+        ("de-de", "Німецька"),
+        ("fr-fr", "Французька"),
+        ("es-es", "Іспанська"),
+        ("it-it", "Італійська"),
+        ("pl-pl", "Польська"),
+        ("pt-pt", "Португальська"),
+        ("tr-tr", "Турецька"),
+    ];
+}
+
 public class DailyProgress
 {
     public Dictionary<string, int> CompletedTests { get; set; } = new();

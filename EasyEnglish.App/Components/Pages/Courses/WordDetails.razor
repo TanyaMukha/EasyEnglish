@@ -2,6 +2,7 @@
 
 @using EasyEnglish.App.Components.Shared
 @using EasyEnglish.App.Components.Shared.Breadcrumb
+@inject SpeechPlayer Player
 
 <div class="page-content" @key="WordId">
     <div class="header-section">
@@ -14,6 +15,12 @@
                 @if (Word.Pronunciation is { Length: > 0 })
                 {
                     <span class="btn-audio" @onclick="PlayAudio" title="Play pronunciation">
+                        <i class="bi bi-volume-up-fill"></i>
+                    </span>
+                }
+                else
+                {
+                    <span class="btn-audio" @onclick="PlayWord" title="Play pronunciation">
                         <i class="bi bi-volume-up-fill"></i>
                     </span>
                 }
@@ -75,6 +82,21 @@
                     <h3 class="card-title">Translation</h3>
                     <SelectableText>
                         <p class="card-text">@Word.Translation</p>
+                    </SelectableText>
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Word.Note))
+        {
+            <div class="info-card">
+                <div class="card-icon">
+                    <i class="bi bi-sticky"></i>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Примітка</h3>
+                    <SelectableText>
+                        <p class="card-text">@Word.Note</p>
                     </SelectableText>
                 </div>
             </div>
@@ -211,6 +233,9 @@
             StateHasChanged();
         }
     }
+
+    private Task PlayWord()
+        => Player.PlayTextAsync(Word.Word, SpeechLanguage.EnglishBritish);
 }
 
 <style>

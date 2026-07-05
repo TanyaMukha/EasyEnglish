@@ -26,6 +26,14 @@ public class CourseEntity : AbstractEntity, IGuidInfo, IAuditInfo, IGuidRecord
     public string? Description { get; set; }
 
     /// <summary>
+    /// Мова курсу у форматі BCP-47 (наприклад, "en-us"). Використовується для
+    /// відображення прапора курсу.
+    /// </summary>
+    [MaxLength(20)]
+    [Column("language_code")]
+    public string? LanguageCode { get; set; } = "en-us";
+
+    /// <summary>
     /// Gets or sets the creation timestamp.
     /// </summary>
     [Required]

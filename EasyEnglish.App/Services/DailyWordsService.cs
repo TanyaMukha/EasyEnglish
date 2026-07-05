@@ -78,7 +78,7 @@ public class DailyWordsService
         var wordIdSet = await _storageService.GetAsync<WordIdsForToday>("words_for_today")
             ?? new WordIdsForToday();
 
-        var words = await _wordService.GetByIdsAsync(wordIdSet.WordIds);
+        var words = await _wordService.GetByIdsAsync(wordIdSet.WordIds, ["Examples"]);
 
         var unit = wordIdSet.UnitId.HasValue
             ? await _unitService.GetByIdAsync(wordIdSet.UnitId.Value)

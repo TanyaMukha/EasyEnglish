@@ -22,6 +22,15 @@ public class WordEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInfo
     [Column("translation")]
     public string? Translation { get; set; }
 
+    /// <summary>
+    /// Додаткова примітка до слова (найчастіше позначається у дужках,
+    /// наприклад форми неправильного дієслова "get-got-got").
+    /// Не показується в режимі навчання.
+    /// </summary>
+    [MaxLength(300)]
+    [Column("note")]
+    public string? Note { get; set; }
+
     [Column("pronunciation")]
     public byte[]? Pronunciation { get; set; }
 

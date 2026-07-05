@@ -23,7 +23,13 @@
                          GoToViewPage="@((id) => NavigationManager.NavigateTo($"/courses/{id}"))"
                 GoToEditPage="GoToEditPage"
                 RemoveItem="RemoveCourse"
-            />
+            >
+                <AdditionalMainContent>
+                    <span class="course-flag" title="@course.LanguageCode">
+                        @LanguageFlagHelper.GetFlagEmoji(course.LanguageCode)
+                    </span>
+                </AdditionalMainContent>
+            </PreviewCard>
         }
 
         <CourseShortForm OnCourseCreated="@(async () => await LoadData())" />
@@ -83,6 +89,12 @@
 }
 
 <style>
+    .course-flag {
+        font-size: 1.5rem;
+        line-height: 1;
+        display: inline-block;
+    }
+
     .courses-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
