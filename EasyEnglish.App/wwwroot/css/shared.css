@@ -70,6 +70,193 @@
     color: #9B7FCB;
 }
 
+/* ---------- Плитка-прев'ю картки (StudyCard/TestCard) ---------- */
+
+.card-tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.card-tile:hover {
+    border-color: #A3BFFA;
+    box-shadow: 0 4px 12px rgba(163, 191, 250, 0.15);
+    transform: translateY(-2px);
+}
+
+.card-tile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.card-tile-header-main {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    flex: 1;
+    min-width: 0;
+}
+
+.card-tile-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    word-break: break-word;
+}
+
+.card-tile-kind-badge {
+    padding: 0.25rem 0.625rem;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #E3F2FD;
+    color: #1976D2;
+    white-space: nowrap;
+}
+
+.card-tile-body {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    flex: 1;
+}
+
+.card-tile-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-light);
+}
+
+.card-tile-actions {
+    display: flex;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.card-tile:hover .card-tile-actions {
+    opacity: 1;
+}
+
+@media (hover: none), (pointer: coarse) {
+    .card-tile-actions {
+        opacity: 1;
+    }
+}
+
+.card-tile-action-btn {
+    background: var(--surface-alt);
+    border: 1px solid var(--border-muted);
+    border-radius: 8px;
+    padding: 0.5rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+}
+
+.card-tile-action-btn:hover {
+    background: var(--surface);
+    border-color: #A3BFFA;
+    color: #A3BFFA;
+    transform: scale(1.1);
+}
+
+.card-tile-action-btn.danger:hover {
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.card-tile-stats {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.card-tile-stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.card-tile-stat-item i {
+    font-size: 0.9rem;
+    color: #A3BFFA;
+}
+
+/* ---------- Циклічна навігація prev/next (сторінки деталей) ---------- */
+
+.navigation-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.navigation-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.navigation-position {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.btn-nav {
+    background: var(--surface);
+    border: 1px solid var(--border-muted);
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    min-width: 40px;
+}
+
+.btn-nav:not(:disabled):hover {
+    background: var(--surface-alt);
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-nav:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
 /* ---------- Каркас сторінки (колишній page.css) ---------- */
 
 .page-content {

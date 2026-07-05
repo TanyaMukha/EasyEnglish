@@ -1,0 +1,268 @@
+@page "/courses/{CourseId:int}/units/{UnitId:int}/test-cards/{TestCardId:int}"
+
+@using EasyEnglish.App.Components.Shared
+@using EasyEnglish.App.Components.Shared.Breadcrumb
+@using EasyEnglish.Core.Enums
+@using EasyEnglish.Core.Presets
+
+<div class="page-content" @key="TestCardId">
+    <div class="header-section">
+        <Breadcrumb Items="breadcrumbs" />
+
+        <div class="title-section">
+            <div class="title-wrapper">
+                <h1 class="word-title">@GetTitle()</h1>
+                <span class="card-tile-kind-badge">@GetKindLabel()</span>
+                <a href="/courses/@CourseId/units/@UnitId/test-cards/@TestCardId/edit" class="btn-edit" title="Edit">
+                    <i class="bi bi-pencil"></i>
+                </a>
+            </div>
+
+            <div class="navigation-section">
+                <div class="navigation-buttons">
+                    @if (PreviousId.HasValue)
+                    {
+                        <a href="/courses/@CourseId/units/@UnitId/test-cards/@PreviousId"
+                           class="btn-nav"
+                           title="Previous card">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <button class="btn-nav" disabled>
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                    }
+                    @if (NextId.HasValue)
+                    {
+                        <a href="/courses/@CourseId/units/@UnitId/test-cards/@NextId"
+                           class="btn-nav"
+                           title="Next card">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <button class="btn-nav" disabled>
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    }
+                </div>
+                @if (Total > 0)
+                {
+                    <span class="navigation-position">@Position / @Total</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="content-grid">
+        @if (Card.Kind != TestCardKind.Cloze)
+        {
+            <div class="info-card">
+                <div class="card-icon"><i class="bi bi-question-circle"></i></div>
+                <div class="card-content">
+                    <h3 class="card-title">Питання</h3>
+                    <SelectableText><p class="card-text">@Card.Text</p></SelectableText>
+                </div>
+            </div>
+        }
+
+        @if (Card.Kind is TestCardKind.SingleChoice or TestCardKind.MultipleChoice && Card.Choice is not null)
+        {
+            <div class="info-card">
+                <div class="card-icon"><i class="bi bi-list-check"></i></div>
+                <div class="card-content">
+                    <h3 class="card-title">Варіанти (✓ — правильні)</h3>
+                    @foreach (var option in Card.Choice.Options)
+                    {
+                        <p class="card-text @(Card.Choice.CorrectAnswers.Contains(option) ? "correct-option" : "")">
+                            @(Card.Choice.CorrectAnswers.Contains(option) ? "✓" : "•") @option
+                        </p>
+                    }
+                </div>
+            </div>
+        }
+        else if (Card.Kind == TestCardKind.ShortAnswer && Card.ShortAnswer is not null)
+        {
+            <div class="info-card">
+                <div class="card-icon"><i class="bi bi-input-cursor"></i></div>
+                <div class="card-content">
+                    <h3 class="card-title">Прийнятні відповіді</h3>
+                    <SelectableText><p class="card-text">@string.Join(", ", Card.ShortAnswer.AcceptableAnswers)</p></SelectableText>
+                </div>
+            </div>
+        }
+        else if (Card.Kind == TestCardKind.Cloze && Card.Cloze is not null)
+        {
+            <div class="info-card">
+                <div class="card-icon"><i class="bi bi-quote"></i></div>
+                <div class="card-content">
+                    <h3 class="card-title">Повне речення</h3>
+                    <SelectableText><p class="card-text">@GetAssembledClozeSentence()</p></SelectableText>
+                </div>
+            </div>
+
+            @for (var i = 0; i < Card.Cloze.CorrectAnswers.Length; i++)
+            {
+                var index = i;
+                <div class="info-card">
+                    <div class="card-icon"><i class="bi bi-input-cursor-text"></i></div>
+                    <div class="card-content">
+                        <h3 class="card-title">Пропуск @(index + 1)</h3>
+                        <p class="card-text">Відповідь: @Card.Cloze.CorrectAnswers[index]</p>
+                        <p class="card-text">@GetClozeBlankModeLabel(index)</p>
+                    </div>
+                </div>
+            }
+        }
+        else if (Card.Kind == TestCardKind.Matching && Card.Matching is not null)
+        {
+            <div class="info-card">
+                <div class="card-icon"><i class="bi bi-link-45deg"></i></div>
+                <div class="card-content">
+                    <h3 class="card-title">Пари відповідності</h3>
+                    @for (var i = 0; i < Card.Matching.Left.Length; i++)
+                    {
+                        var index = i;
+                        <p class="card-text">@Card.Matching.Left[index] → @GetMatchingRightValue(index)</p>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="stats-section">
+        <h2 class="section-title">
+            <i class="bi bi-bar-chart"></i> Learning Progress
+        </h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-star"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">Rating</div>
+                    <div class="stat-value">@Card.Rate.ToString("F1") / 5</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-arrow-repeat"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">Reviews</div>
+                    <div class="stat-value">@Card.ReviewCount</div>
+                </div>
+            </div>
+
+            @if (Card.LastReviewDate.HasValue)
+            {
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
+                    <div class="stat-content">
+                        <div class="stat-label">Last Review</div>
+                        <div class="stat-value">@Card.LastReviewDate.Value.ToString("dd MMM yyyy")</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+    [Parameter] public int UnitId { get; set; }
+    [Parameter] public int TestCardId { get; set; }
+
+    private TestCardModel Card { get; set; } = new();
+    private int? PreviousId { get; set; }
+    private int? NextId { get; set; }
+    private int Position { get; set; }
+    private int Total { get; set; }
+
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
+    private int _loadedCardId = -1;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_loadedCardId == TestCardId)
+            return;
+
+        _loadedCardId = TestCardId;
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        Card = await TestCardService.GetByIdAsync(TestCardId, TestCardIncludes.Full) ?? new TestCardModel();
+
+        var navigationIds = await TestCardService.GetNavigationIdsAsync(UnitId, TestCardId);
+        PreviousId = navigationIds.PreviousId;
+        NextId = navigationIds.NextId;
+        Position = navigationIds.Position;
+        Total = navigationIds.Total;
+
+        breadcrumbs = BreadcrumbBuilder.Create()
+            .WithLink("Courses", "/courses")
+            .WithLink(Card.Unit?.Course?.Title ?? "Course", $"/courses/{CourseId}")
+            .WithLink(Card.Unit?.Title ?? "Unit", $"/courses/{CourseId}/units/{UnitId}")
+            .WithActive(GetTitle())
+            .Build();
+    }
+
+    private string GetTitle() => string.IsNullOrEmpty(Card.Title) ? GetKindLabel() : Card.Title;
+
+    private string GetKindLabel() => Card.Kind switch
+    {
+        TestCardKind.SingleChoice => "Один варіант",
+        TestCardKind.MultipleChoice => "Кілька варіантів",
+        TestCardKind.ShortAnswer => "Коротка відповідь",
+        TestCardKind.Cloze => "Заповнити пропуск",
+        TestCardKind.Matching => "Відповідність",
+        _ => Card.Kind.ToString()
+    };
+
+    private string GetAssembledClozeSentence()
+    {
+        if (Card.Cloze is null)
+            return Card.Text;
+
+        try
+        {
+            return string.Format(Card.Text, (object[])Card.Cloze.CorrectAnswers);
+        }
+        catch (FormatException)
+        {
+            return Card.Text;
+        }
+    }
+
+    private string GetClozeBlankModeLabel(int index)
+    {
+        var options = Card.Cloze?.Options is { Length: > 0 } opts && index < opts.Length ? opts[index] : null;
+
+        return options is { Length: > 0 }
+            ? $"Випадаючий список: {string.Join(", ", options)}"
+            : "Поле вводу";
+    }
+
+    private string GetMatchingRightValue(int leftIndex)
+    {
+        if (Card.Matching is null)
+            return "?";
+
+        var rightIndex = leftIndex < Card.Matching.CorrectRightIndexes.Length
+            ? Card.Matching.CorrectRightIndexes[leftIndex]
+            : -1;
+
+        return rightIndex >= 0 && rightIndex < Card.Matching.Right.Length
+            ? Card.Matching.Right[rightIndex]
+            : "?";
+    }
+}
+
+<style>
+    .correct-option {
+        color: #155724;
+        font-weight: 600;
+    }
+</style>

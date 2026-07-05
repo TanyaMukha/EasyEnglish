@@ -11,4 +11,28 @@ public class TestCardRepository : BaseRepository<TestCardEntity, EasyEnglishDbCo
         : base(contextFactory, userContext)
     {
     }
+
+    public async Task<(int? PreviousId, int? NextId, int Position, int Total)> GetNavigationIdsAsync(int unitId, int currentCardId)
+    {
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+
+        var cardIds = await ctx.TestCards
+            .Where(c => c.UnitId == unitId)
+            .OrderBy(c => c.Id)
+            .Select(c => c.Id)
+            .ToListAsync();
+
+        var currentIndex = cardIds.IndexOf(currentCardId);
+        if (currentIndex == -1)
+            return (null, null, 0, cardIds.Count);
+
+        var previousId = cardIds.Count > 1
+            ? cardIds[(currentIndex - 1 + cardIds.Count) % cardIds.Count]
+            : (int?)null;
+        var nextId = cardIds.Count > 1
+            ? cardIds[(currentIndex + 1) % cardIds.Count]
+            : (int?)null;
+
+        return (previousId, nextId, currentIndex + 1, cardIds.Count);
+    }
 }

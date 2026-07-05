@@ -168,11 +168,93 @@
                             }
 
                             <div class="create-section">
-                                <IrregularFormShortForm 
-                                    CourseId="CourseId" 
-                                    UnitId="Unit.Id" 
+                                <IrregularFormShortForm
+                                    CourseId="CourseId"
+                                    UnitId="Unit.Id"
                                     OnFormsCreated="OnUnitChanged"
                                 />
+                            </div>
+                        </div>
+                    }
+                    else if (activeTab == "study-cards")
+                    {
+                        <div class="tab-panel">
+                            @if (isLoading)
+                            {
+                                <div class="loading-container">
+                                    <div class="spinner">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                    <p class="loading-text">Завантаження...</p>
+                                </div>
+                            }
+                            else if (Unit.StudyCards != null && Unit.StudyCards.Any())
+                            {
+                                <div class="items-grid">
+                                    @foreach (var studyCard in Unit.StudyCards)
+                                    {
+                                        <StudyCardPreview card="@studyCard" CourseId="CourseId" OnDelete="RemoveStudyCard" />
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="empty-container">
+                                    <div class="empty-icon">
+                                        <i class="bi bi-inbox"></i>
+                                    </div>
+                                    <p class="empty-message">Немає навчальних карток у цьому модулі.</p>
+                                </div>
+                            }
+
+                            <div class="create-section">
+                                <a href="/courses/@CourseId/units/@Unit.Id/study-cards/create" class="btn-submit">
+                                    <i class="bi bi-plus-circle"></i>
+                                    Додати навчальну картку
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    else if (activeTab == "test-cards")
+                    {
+                        <div class="tab-panel">
+                            @if (isLoading)
+                            {
+                                <div class="loading-container">
+                                    <div class="spinner">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                    <p class="loading-text">Завантаження...</p>
+                                </div>
+                            }
+                            else if (Unit.TestCards != null && Unit.TestCards.Any())
+                            {
+                                <div class="items-grid">
+                                    @foreach (var testCard in Unit.TestCards)
+                                    {
+                                        <TestCardPreview card="@testCard" CourseId="CourseId" OnDelete="RemoveTestCard" />
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="empty-container">
+                                    <div class="empty-icon">
+                                        <i class="bi bi-inbox"></i>
+                                    </div>
+                                    <p class="empty-message">Немає тестових карток у цьому модулі.</p>
+                                </div>
+                            }
+
+                            <div class="create-section">
+                                <a href="/courses/@CourseId/units/@Unit.Id/test-cards/create" class="btn-submit">
+                                    <i class="bi bi-plus-circle"></i>
+                                    Додати тестову картку
+                                </a>
                             </div>
                         </div>
                     }
@@ -250,16 +332,29 @@
                 Icon = "bi-card-text",
                 Count = Unit.Words?.Count ?? 0
             },
-            new TabInfo 
-            { 
-                Key = "irregular-forms", 
-                Label = "Irregular Forms", 
+            new TabInfo
+            {
+                Key = "irregular-forms",
+                Label = "Irregular Forms",
                 Icon = "bi-layers",
                 Count = Unit.IrregularForms?.Count ?? 0
+            },
+            new TabInfo
+            {
+                Key = "study-cards",
+                Label = "Study Cards",
+                Icon = "bi-journal-text",
+                Count = Unit.StudyCards?.Count ?? 0
+            },
+            new TabInfo
+            {
+                Key = "test-cards",
+                Label = "Tests",
+                Icon = "bi-patch-question",
+                Count = Unit.TestCards?.Count ?? 0
             }
             // Легко додати нові типи тут:
             // new TabInfo { Key = "phrases", Label = "Phrases", Icon = "bi-chat-quote", Count = Unit.Phrases?.Count ?? 0 },
-            // new TabInfo { Key = "grammar", Label = "Grammar", Icon = "bi-book", Count = Unit.GrammarRules?.Count ?? 0 },
         };
     }
 
@@ -357,6 +452,34 @@
         {
             errorMessage = $"Error deleting irregular form: {ex.Message}";
             BrowserConsole.LogErrorAsync("Failed to delete irregular form", ex);
+        }
+    }
+
+    private async Task RemoveStudyCard(int id)
+    {
+        try
+        {
+            await StudyCardService.DeleteAsync(id);
+            await OnUnitChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error deleting study card: {ex.Message}";
+            BrowserConsole.LogErrorAsync("Failed to delete study card", ex);
+        }
+    }
+
+    private async Task RemoveTestCard(int id)
+    {
+        try
+        {
+            await TestCardService.DeleteAsync(id);
+            await OnUnitChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error deleting test card: {ex.Message}";
+            BrowserConsole.LogErrorAsync("Failed to delete test card", ex);
         }
     }
 

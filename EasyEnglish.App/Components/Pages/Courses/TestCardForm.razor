@@ -1,0 +1,482 @@
+@page "/courses/{CourseId:int}/units/{UnitId:int}/test-cards/{TestCardId:int}/edit"
+@page "/courses/{CourseId:int}/units/{UnitId:int}/test-cards/create"
+
+@using System.Text.RegularExpressions
+@using EasyEnglish.App.Components.Shared
+@using EasyEnglish.App.Components.Shared.Breadcrumb
+@using EasyEnglish.Core.Enums
+@using EasyEnglish.Core.Presets
+
+<div class="page-content">
+    <div class="header-section">
+        <Breadcrumb Items="breadcrumbs" />
+
+        <h1 class="page-title">
+            <i class="bi @(IsEditMode ? "bi-pencil" : "bi-plus-circle")"></i>
+            @(IsEditMode ? "Edit" : "Create") Test Card
+        </h1>
+    </div>
+
+    <div class="form-container">
+        <EditForm Model="Card" OnValidSubmit="HandleValidSubmit" class="edit-form">
+            <DataAnnotationsValidator />
+
+            <div class="form-section">
+                <h2 class="section-title">
+                    <i class="bi bi-info-circle"></i>
+                    Тип тесту
+                </h2>
+
+                <InputSelectField TValue="TestCardKind" @bind-Value="Card.Kind" Label="Вид">
+                    <option value="@TestCardKind.SingleChoice">Один правильний варіант</option>
+                    <option value="@TestCardKind.MultipleChoice">Кілька правильних варіантів</option>
+                    <option value="@TestCardKind.ShortAnswer">Коротка відповідь</option>
+                    <option value="@TestCardKind.Cloze">Заповнити пропуск</option>
+                    <option value="@TestCardKind.Matching">Відповідність</option>
+                </InputSelectField>
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title">
+                    <i class="bi bi-question-circle"></i>
+                    Питання
+                </h2>
+
+                <InputTextField @bind-Value="Card.Title" Label="Заголовок (необов'язково)" />
+
+                @if (Card.Kind == TestCardKind.Cloze)
+                {
+                    <InputMultilineField Value="@Card.Text"
+                                          ValueChanged="@OnClozeTextChanged"
+                                          Label="Текст із пропусками (використовуйте {0}, {1}, ...)"
+                                          Rows="3" />
+                    <small class="text-muted">Наприклад: I {0} to school {1}.</small>
+                }
+                else
+                {
+                    <InputMultilineField @bind-Value="Card.Text" Label="Текст питання" Rows="2" />
+                }
+            </div>
+
+            @if (Card.Kind is TestCardKind.SingleChoice or TestCardKind.MultipleChoice)
+            {
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <div class="d-flex justify-content-between align-items-center w-100">
+                            <span><i class="bi bi-list-check"></i> Варіанти відповіді</span>
+                            <button type="button" class="btn-add-row" @onclick="@(() => _choiceOptions.Add(new OptionRow()))">
+                                <i class="bi bi-plus-circle"></i> Додати варіант
+                            </button>
+                        </div>
+                    </h2>
+
+                    @for (var i = 0; i < _choiceOptions.Count; i++)
+                    {
+                        var index = i;
+                        var option = _choiceOptions[index];
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                @if (Card.Kind == TestCardKind.SingleChoice)
+                                {
+                                    <input type="radio"
+                                           name="correctOption"
+                                           checked="@option.IsCorrect"
+                                           @onchange="@(() => SetSingleCorrect(index))"
+                                           title="Правильна відповідь" />
+                                }
+                                else
+                                {
+                                    <input type="checkbox"
+                                           checked="@option.IsCorrect"
+                                           @onchange="@(e => option.IsCorrect = e.Value is bool v && v)"
+                                           title="Правильна відповідь" />
+                                }
+                            </div>
+                            <div class="col">
+                                <InputTextField Value="@option.Text" ValueChanged="@(v => option.Text = v ?? "")" Label="@($"Варіант {index + 1}")" />
+                            </div>
+                            @if (_choiceOptions.Count > 2)
+                            {
+                                <div class="col-auto">
+                                    <button type="button" class="remove-btn" @onclick="() => _choiceOptions.RemoveAt(index)" title="Видалити">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            else if (Card.Kind == TestCardKind.ShortAnswer)
+            {
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <div class="d-flex justify-content-between align-items-center w-100">
+                            <span><i class="bi bi-input-cursor"></i> Прийнятні відповіді</span>
+                            <button type="button" class="btn-add-row" @onclick="@(() => _shortAnswers.Add(""))">
+                                <i class="bi bi-plus-circle"></i> Додати варіант написання
+                            </button>
+                        </div>
+                    </h2>
+
+                    @for (var i = 0; i < _shortAnswers.Count; i++)
+                    {
+                        var index = i;
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <InputTextField Value="@_shortAnswers[index]" ValueChanged="@(v => _shortAnswers[index] = v ?? "")" Label="@($"Варіант {index + 1}")" />
+                            </div>
+                            @if (_shortAnswers.Count > 1)
+                            {
+                                <div class="col-auto">
+                                    <button type="button" class="remove-btn" @onclick="() => _shortAnswers.RemoveAt(index)" title="Видалити">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            else if (Card.Kind == TestCardKind.Cloze)
+            {
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <i class="bi bi-input-cursor-text"></i>
+                        Пропуски
+                    </h2>
+
+                    @if (_clozeBlanks.Count == 0)
+                    {
+                        <p class="text-muted">Додайте {0}, {1}, ... у текст питання вище, щоб з'явились пропуски.</p>
+                    }
+
+                    @for (var i = 0; i < _clozeBlanks.Count; i++)
+                    {
+                        var index = i;
+                        var blank = _clozeBlanks[index];
+                        <div class="cloze-blank-row">
+                            <span class="cloze-blank-label">Пропуск @(index + 1)</span>
+                            <InputTextField Value="@blank.CorrectAnswer" ValueChanged="@(v => blank.CorrectAnswer = v ?? "")" Label="Правильна відповідь" />
+
+                            <label class="checkbox-inline">
+                                <input type="checkbox"
+                                       checked="@blank.UseOptions"
+                                       @onchange="@(e => blank.UseOptions = e.Value is bool v && v)" />
+                                Показувати як випадаючий список (інакше — поле вводу)
+                            </label>
+
+                            @if (blank.UseOptions)
+                            {
+                                <InputTextField Value="@string.Join(", ", blank.Options)"
+                                                ValueChanged="@(v => blank.Options = SplitCsv(v))"
+                                                Label="Варіанти через кому" />
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            else if (Card.Kind == TestCardKind.Matching)
+            {
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <div class="d-flex justify-content-between align-items-center w-100">
+                            <span><i class="bi bi-link-45deg"></i> Пари відповідності</span>
+                            <button type="button" class="btn-add-row" @onclick="@(() => _matchingRows.Add(new MatchingRow()))">
+                                <i class="bi bi-plus-circle"></i> Додати пару
+                            </button>
+                        </div>
+                    </h2>
+
+                    @for (var i = 0; i < _matchingRows.Count; i++)
+                    {
+                        var index = i;
+                        var row = _matchingRows[index];
+                        <div class="row align-items-center">
+                            <div class="col-md-5">
+                                <InputTextField Value="@row.Left" ValueChanged="@(v => row.Left = v ?? "")" Label="Ліва колонка" />
+                            </div>
+                            <div class="col-md-5">
+                                <InputTextField Value="@row.Right" ValueChanged="@(v => row.Right = v ?? "")" Label="Права колонка" />
+                            </div>
+                            @if (_matchingRows.Count > 2)
+                            {
+                                <div class="col-auto">
+                                    <button type="button" class="remove-btn" @onclick="() => _matchingRows.RemoveAt(index)" title="Видалити">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="form-actions">
+                <a href="@($"/courses/{CourseId}/units/{UnitId}")" class="btn-cancel">
+                    <i class="bi bi-x-lg"></i>
+                    Скасувати
+                </a>
+                <button type="submit" class="btn-submit">
+                    <i class="bi @(IsEditMode ? "bi-check-lg" : "bi-plus-lg")"></i>
+                    @(IsEditMode ? "Оновити" : "Створити")
+                </button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+    [Parameter] public int UnitId { get; set; }
+    [Parameter] public int TestCardId { get; set; }
+
+    public TestCardModel Card { get; set; } = new();
+
+    private bool IsEditMode => TestCardId > 0;
+
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
+
+    private List<OptionRow> _choiceOptions = new();
+    private List<string> _shortAnswers = new();
+    private List<ClozeBlankRow> _clozeBlanks = new();
+    private List<MatchingRow> _matchingRows = new();
+
+    private class OptionRow
+    {
+        public string Text { get; set; } = "";
+        public bool IsCorrect { get; set; }
+    }
+
+    private class ClozeBlankRow
+    {
+        public string CorrectAnswer { get; set; } = "";
+        public bool UseOptions { get; set; }
+        public List<string> Options { get; set; } = new();
+    }
+
+    private class MatchingRow
+    {
+        public string Left { get; set; } = "";
+        public string Right { get; set; } = "";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsEditMode)
+        {
+            Card = await TestCardService.GetByIdAsync(TestCardId, TestCardIncludes.Full) ?? new TestCardModel();
+        }
+        else
+        {
+            Card = new TestCardModel { UnitId = UnitId, Kind = TestCardKind.SingleChoice };
+        }
+
+        InitializeKindState();
+
+        breadcrumbs = BreadcrumbBuilder.Create()
+            .WithLink("Courses", "/courses")
+            .WithLink(Card.Unit?.Course?.Title ?? "Course", $"/courses/{CourseId}")
+            .WithLink(Card.Unit?.Title ?? "Unit", $"/courses/{CourseId}/units/{UnitId}")
+            .WithActive(IsEditMode ? "Edit" : "Create")
+            .Build();
+    }
+
+    private void InitializeKindState()
+    {
+        _choiceOptions = Card.Choice?.Options.Length > 0
+            ? Card.Choice.Options.Select(o => new OptionRow { Text = o, IsCorrect = Card.Choice.CorrectAnswers.Contains(o) }).ToList()
+            : new List<OptionRow> { new(), new() };
+
+        _shortAnswers = Card.ShortAnswer?.AcceptableAnswers.Length > 0
+            ? Card.ShortAnswer.AcceptableAnswers.ToList()
+            : new List<string> { "" };
+
+        _clozeBlanks = Card.Cloze?.CorrectAnswers.Length > 0
+            ? Card.Cloze.CorrectAnswers.Select((answer, i) =>
+                {
+                    var options = Card.Cloze.Options is { Length: > 0 } opts && i < opts.Length ? opts[i] : Array.Empty<string>();
+                    return new ClozeBlankRow { CorrectAnswer = answer, UseOptions = options.Length > 0, Options = options.ToList() };
+                }).ToList()
+            : new List<ClozeBlankRow>();
+        RecalculateClozeBlanks();
+
+        _matchingRows = Card.Matching?.Left.Length > 0
+            ? Card.Matching.Left.Select((left, i) =>
+                {
+                    var rightIndex = i < Card.Matching.CorrectRightIndexes.Length ? Card.Matching.CorrectRightIndexes[i] : -1;
+                    var right = rightIndex >= 0 && rightIndex < Card.Matching.Right.Length ? Card.Matching.Right[rightIndex] : "";
+                    return new MatchingRow { Left = left, Right = right };
+                }).ToList()
+            : new List<MatchingRow> { new(), new() };
+    }
+
+    private void OnClozeTextChanged(string? value)
+    {
+        Card.Text = value ?? "";
+        RecalculateClozeBlanks();
+    }
+
+    private void RecalculateClozeBlanks()
+    {
+        var neededCount = Regex.Matches(Card.Text ?? "", @"\{(\d+)\}")
+            .Select(m => int.Parse(m.Groups[1].Value) + 1)
+            .DefaultIfEmpty(0)
+            .Max();
+
+        while (_clozeBlanks.Count < neededCount)
+            _clozeBlanks.Add(new ClozeBlankRow());
+
+        if (_clozeBlanks.Count > neededCount)
+            _clozeBlanks.RemoveRange(neededCount, _clozeBlanks.Count - neededCount);
+    }
+
+    private void SetSingleCorrect(int index)
+    {
+        for (var i = 0; i < _choiceOptions.Count; i++)
+            _choiceOptions[i].IsCorrect = i == index;
+    }
+
+    private static List<string> SplitCsv(string? value) =>
+        (value ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
+
+    private void PackPayload()
+    {
+        Card.Choice = null;
+        Card.ShortAnswer = null;
+        Card.Cloze = null;
+        Card.Matching = null;
+
+        switch (Card.Kind)
+        {
+            case TestCardKind.SingleChoice:
+            case TestCardKind.MultipleChoice:
+                Card.Choice = new ChoicePayload
+                {
+                    Options = _choiceOptions.Where(o => !string.IsNullOrWhiteSpace(o.Text)).Select(o => o.Text).ToArray(),
+                    CorrectAnswers = _choiceOptions.Where(o => o.IsCorrect && !string.IsNullOrWhiteSpace(o.Text)).Select(o => o.Text).ToArray()
+                };
+                break;
+
+            case TestCardKind.ShortAnswer:
+                Card.ShortAnswer = new ShortAnswerPayload
+                {
+                    AcceptableAnswers = _shortAnswers.Where(a => !string.IsNullOrWhiteSpace(a)).ToArray()
+                };
+                break;
+
+            case TestCardKind.Cloze:
+                Card.Cloze = new ClozePayload
+                {
+                    CorrectAnswers = _clozeBlanks.Select(b => b.CorrectAnswer).ToArray(),
+                    Options = _clozeBlanks.Any(b => b.UseOptions && b.Options.Count > 0)
+                        ? _clozeBlanks.Select(b => b.UseOptions ? b.Options.ToArray() : Array.Empty<string>()).ToArray()
+                        : null
+                };
+                break;
+
+            case TestCardKind.Matching:
+                var validRows = _matchingRows.Where(r => !string.IsNullOrWhiteSpace(r.Left) && !string.IsNullOrWhiteSpace(r.Right)).ToList();
+                Card.Matching = new MatchingPayload
+                {
+                    Left = validRows.Select(r => r.Left).ToArray(),
+                    Right = validRows.Select(r => r.Right).ToArray(),
+                    CorrectRightIndexes = Enumerable.Range(0, validRows.Count).ToArray()
+                };
+                break;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            Card.UnitId = UnitId;
+            PackPayload();
+
+            Card = IsEditMode
+                ? await TestCardService.UpdateAsync(Card.Id, Card)
+                : await TestCardService.CreateAsync(Card);
+
+            NavigationManager.NavigateTo($"/courses/{CourseId}/units/{UnitId}/test-cards/{Card.Id}");
+        }
+        catch (Exception ex)
+        {
+            BrowserConsole.LogErrorAsync("Failed to save test card", ex);
+        }
+    }
+}
+
+<style>
+    .remove-btn {
+        background: transparent;
+        border: 1px solid var(--border-muted);
+        border-radius: 8px;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 0.5rem;
+        transition: all 0.2s;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .remove-btn:hover {
+        background: var(--danger-bg);
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+
+    .btn-add-row {
+        background: var(--surface-alt);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-muted);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+
+    .btn-add-row:hover {
+        background: var(--surface);
+        border-color: #A3BFFA;
+        color: #A3BFFA;
+    }
+
+    .cloze-blank-row {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .cloze-blank-label {
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .checkbox-inline {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+    }
+</style>

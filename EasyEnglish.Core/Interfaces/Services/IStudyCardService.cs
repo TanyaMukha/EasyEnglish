@@ -5,4 +5,5 @@ namespace EasyEnglish.Core.Interfaces.Services;
 
 public interface IStudyCardService : IBaseService<StudyCardModel>
 {
+    Task<(int? PreviousId, int? NextId, int Position, int Total)> GetNavigationIdsAsync(int unitId, int currentCardId);
 }

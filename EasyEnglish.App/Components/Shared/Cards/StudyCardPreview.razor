@@ -1,0 +1,79 @@
+@namespace EasyEnglish.App.Components.Shared
+@using System.Globalization
+@using EasyEnglish.Core.Enums
+
+<div class="card-tile" @onclick="@(() => NavigationManager.NavigateTo($"/courses/{CourseId}/units/{card.UnitId}/study-cards/{card.Id}"))">
+    <div class="card-tile-header">
+        <div class="card-tile-header-main">
+            <h3 class="card-tile-title">@GetTitle()</h3>
+            <span class="card-tile-kind-badge">@GetKindLabel()</span>
+        </div>
+        @if (ShowActions)
+        {
+            <div class="card-tile-actions" @onclick:stopPropagation="true">
+                <a href="/courses/@CourseId/units/@card.UnitId/study-cards/@card.Id/edit"
+                   class="card-tile-action-btn"
+                   title="Редагувати">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <button class="card-tile-action-btn danger" @onclick="@(async () => await OnDelete.InvokeAsync(card.Id))" title="Видалити">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        }
+    </div>
+
+    <div class="card-tile-body">
+        @if (card.Kind == StudyCardKind.BlurredText)
+        {
+            @((MarkupString)ExampleMarkdownService.RenderMarkdownWithHidden(card.Body ?? "", showHidden: false))
+        }
+        else
+        {
+            @card.Body
+        }
+    </div>
+
+    <div class="card-tile-footer">
+        <div class="card-tile-stats">
+            @if (card.Rate > 0)
+            {
+                <span class="card-tile-stat-item">
+                    <i class="bi bi-star-fill"></i>
+                    @card.Rate.ToString("F1", CultureInfo.InvariantCulture)
+                </span>
+            }
+            @if (card.ReviewCount > 0)
+            {
+                <span class="card-tile-stat-item">
+                    <i class="bi bi-arrow-repeat"></i>
+                    @card.ReviewCount
+                </span>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public StudyCardModel card { get; set; } = null!;
+
+    /// <summary>Показувати кнопки редагування/видалення.</summary>
+    [Parameter] public bool ShowActions { get; set; } = true;
+
+    [Parameter] public EventCallback<int> OnDelete { get; set; }
+
+    [Parameter] public int CourseId { get; set; }
+
+    private string GetTitle() =>
+        string.IsNullOrEmpty(card.Title)
+            ? (card.Kind == StudyCardKind.BlurredText ? "Розмитий текст" : "Без назви")
+            : card.Title;
+
+    private string GetKindLabel() => card.Kind switch
+    {
+        StudyCardKind.Term => "Термін",
+        StudyCardKind.Text => "Текст",
+        StudyCardKind.BlurredText => "Розмиті слова",
+        _ => card.Kind.ToString()
+    };
+}
