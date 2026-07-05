@@ -38,6 +38,8 @@ public class MappingProfile : Profile
         CreateMap<UnitModel, UnitModel>()
             .ForMember(dest => dest.Words, opt => opt.MapFrom(src => src.Words))
             .ForMember(dest => dest.IrregularForms, opt => opt.MapFrom(src => src.IrregularForms))
+            .ForMember(dest => dest.StudyCards, opt => opt.MapFrom(src => src.StudyCards))
+            .ForMember(dest => dest.TestCards, opt => opt.MapFrom(src => src.TestCards))
             .ForMember(dest => dest.Course, opt => opt.Ignore())
             .AfterMap<UnitMappingAction>();
 
@@ -91,6 +93,11 @@ public class MappingProfile : Profile
         CreateMap<StudyCardModel, StudyCardEntity>()
             .ForMember(dest => dest.Unit, opt => opt.Ignore());
 
+        // Model → Model (потрібен для копіювання Unit при бекапі/експорті/імпорті —
+        // UnitModel→UnitModel мапить свою колекцію StudyCards саме через цей self-map)
+        CreateMap<StudyCardModel, StudyCardModel>()
+            .ForMember(dest => dest.Unit, opt => opt.Ignore());
+
         // ========== TEST CARD ==========
         // Options/CorrectAnswers — гнучкі JSON-поля, структура залежить від Kind,
         // тож пакування/розпакування виконує кастомний ITypeConverter, а не ForMember.
@@ -99,5 +106,17 @@ public class MappingProfile : Profile
 
         CreateMap<TestCardModel, TestCardEntity>()
             .ConvertUsing<TestCardModelToEntityConverter>();
+
+        // Model → Model (той самий випадок, що й для StudyCard вище)
+        CreateMap<TestCardModel, TestCardModel>()
+            .ForMember(dest => dest.Unit, opt => opt.Ignore());
+
+        CreateMap<ChoicePayload, ChoicePayload>();
+        CreateMap<ShortAnswerPayload, ShortAnswerPayload>();
+        CreateMap<ClozePayload, ClozePayload>();
+        CreateMap<MatchingPayload, MatchingPayload>();
+
+        CreateMap<UpdateWordRateRequest, StudyCardEntity>();
+        CreateMap<UpdateWordRateRequest, TestCardEntity>();
     }
 } 

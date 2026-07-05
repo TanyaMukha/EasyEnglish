@@ -1,0 +1,121 @@
+<QuestionSection Text="@Item.Text" />
+
+<div class="multi-options-grid">
+    @foreach (var option in Item.Choice?.Options ?? Array.Empty<string>())
+    {
+        <label class="multi-option-item @GetOptionClass(option)">
+            <input type="checkbox"
+                   checked="@_selected.Contains(option)"
+                   disabled="@Context.State.IsAnswerSubmitted"
+                   @onchange="@(e => ToggleOption(option, e.Value is bool v && v))" />
+            <span>@option</span>
+        </label>
+    }
+</div>
+
+@if (!Context.State.IsAnswerSubmitted)
+{
+    <button class="btn-submit" @onclick="Submit" disabled="@(_selected.Count == 0)">
+        <i class="bi bi-check-lg"></i> Перевірити
+    </button>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public TestCardContext Context { get; set; } = null!;
+
+    private TestCardTestModel Item => Context.GetRawItem<TestCardTestModel>();
+
+    private readonly HashSet<string> _selected = new();
+    private int _loadedItemId = -1;
+
+    protected override void OnParametersSet()
+    {
+        if (_loadedItemId == Item.Id)
+            return;
+
+        _loadedItemId = Item.Id;
+        _selected.Clear();
+    }
+
+    private void ToggleOption(string option, bool isChecked)
+    {
+        if (isChecked)
+            _selected.Add(option);
+        else
+            _selected.Remove(option);
+    }
+
+    private string GetOptionClass(string option)
+    {
+        if (!Context.State.IsAnswerSubmitted)
+            return _selected.Contains(option) ? "selected" : "";
+
+        var isCorrectOption = Item.Choice?.CorrectAnswers.Contains(option) == true;
+        if (isCorrectOption)
+            return "correct";
+
+        return _selected.Contains(option) ? "incorrect" : "";
+    }
+
+    private async Task Submit()
+    {
+        var correctSet = (Item.Choice?.CorrectAnswers ?? Array.Empty<string>()).ToHashSet();
+        var isCorrect = _selected.SetEquals(correctSet);
+        await Context.Callbacks.OnCheckAnswer.InvokeAsync(isCorrect);
+    }
+}
+
+<style>
+    .multi-options-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        margin-top: 2rem;
+        width: 100%;
+    }
+
+    @@media (min-width: 576px) {
+        .multi-options-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .multi-option-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 1.5rem;
+        background: var(--surface);
+        border: 2px solid var(--border-muted);
+        border-radius: 8px;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: var(--text-primary);
+    }
+
+    .multi-option-item:hover {
+        border-color: #A3BFFA;
+        background: var(--surface-alt);
+    }
+
+    .multi-option-item.selected {
+        border-color: #A3BFFA;
+        background: var(--surface-alt);
+    }
+
+    .multi-option-item.correct {
+        border-color: #28a745;
+        background: #d4edda;
+        color: #155724;
+        font-weight: 600;
+    }
+
+    .multi-option-item.incorrect {
+        border-color: #dc3545;
+        background: #f8d7da;
+        color: #721c24;
+        font-weight: 600;
+    }
+</style>

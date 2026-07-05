@@ -364,7 +364,7 @@
 
         try
         {
-            zipBytes = await FileService.PickAndReadFileBytesAsync("application/zip", ".zip");
+            zipBytes = await FileService.PickAndReadFileBytesAsync(); //"application/zip", ".zip"
 
             if (zipBytes is null || zipBytes.Length == 0)
                 return;

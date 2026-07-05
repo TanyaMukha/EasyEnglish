@@ -190,4 +190,43 @@ public static class ExampleMarkdownService
 
         return userClean == correctClean;
     }
+
+    /// <summary>
+    /// Розбиває текст на впорядковану послідовність сегментів — звичайний текст і приховані
+    /// фрагменти — підтримуючи довільну кількість входжень маркера (на відміну від
+    /// <see cref="ParseHiddenText"/>, яка бачить лише перше). Використовується картками,
+    /// що дозволяють розкривати кілька розмитих слів в одному тексті.
+    /// </summary>
+    public static List<(bool IsHidden, string Text)> ParseSegments(
+        string sentence,
+        HiddenTextMarker marker = HiddenTextMarker.Bold)
+    {
+        var segments = new List<(bool IsHidden, string Text)>();
+
+        if (string.IsNullOrEmpty(sentence))
+            return segments;
+
+        if (marker == HiddenTextMarker.None || !MarkerPatterns.ContainsKey(marker))
+        {
+            segments.Add((false, sentence));
+            return segments;
+        }
+
+        var pattern = MarkerPatterns[marker];
+        var lastIndex = 0;
+
+        foreach (Match match in Regex.Matches(sentence, pattern))
+        {
+            if (match.Index > lastIndex)
+                segments.Add((false, sentence[lastIndex..match.Index]));
+
+            segments.Add((true, match.Groups[1].Value));
+            lastIndex = match.Index + match.Length;
+        }
+
+        if (lastIndex < sentence.Length)
+            segments.Add((false, sentence[lastIndex..]));
+
+        return segments;
+    }
 }

@@ -39,5 +39,15 @@ public class MappingUIProfile : Profile
 
         CreateMap<ExampleModel, ExampleTestModel>()
             .ForMember(dest => dest.TestWord, opt => opt.Ignore());
+
+        CreateMap<StudyCardModel, StudyCardTestModel>()
+            .ForMember(dest => dest.Unit, opt => opt.Ignore());
+
+        CreateMap<StudyCardTestModel, UpdateWordRateRequest>();
+
+        CreateMap<TestCardModel, TestCardTestModel>()
+            .ForMember(dest => dest.Unit, opt => opt.Ignore());
+
+        CreateMap<TestCardTestModel, UpdateWordRateRequest>();
     }
 }

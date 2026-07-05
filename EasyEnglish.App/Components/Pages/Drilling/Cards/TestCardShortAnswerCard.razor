@@ -1,0 +1,14 @@
+<QuestionSection Text="@Item.Text" />
+
+<AnswerInputSection
+    isAnswerSubmitted="@Context.State.IsAnswerSubmitted"
+    CorrectAnswer="@(Item.ShortAnswer?.AcceptableAnswers.FirstOrDefault() ?? "")"
+    AcceptableAnswers="@Item.ShortAnswer?.AcceptableAnswers"
+    OnAnswerSubmitted="@Context.Callbacks.OnCheckAnswer" />
+
+@code {
+    [Parameter, EditorRequired]
+    public TestCardContext Context { get; set; } = null!;
+
+    private TestCardTestModel Item => Context.GetRawItem<TestCardTestModel>();
+}

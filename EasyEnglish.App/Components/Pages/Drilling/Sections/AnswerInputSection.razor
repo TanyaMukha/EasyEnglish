@@ -29,6 +29,13 @@
 @code {
     [Parameter] public bool                isAnswerSubmitted { get; set; }
     [Parameter] public string              CorrectAnswer     { get; set; } = "";
+
+    /// <summary>
+    /// Необов'язковий список прийнятних варіантів відповіді. Якщо заданий і не порожній,
+    /// перевірка йде по належності до цього списку замість порівняння з CorrectAnswer.
+    /// </summary>
+    [Parameter] public IReadOnlyList<string>? AcceptableAnswers { get; set; }
+
     [Parameter] public EventCallback<bool> OnAnswerSubmitted { get; set; }
 
     private string? userInput;
@@ -37,10 +44,11 @@
 
     private async Task CheckAnswer()
     {
-        var isCorrect = string.Equals(
-            CorrectAnswer,
-            userInput?.Trim(),
-            StringComparison.OrdinalIgnoreCase);
+        var trimmedInput = userInput?.Trim();
+
+        var isCorrect = AcceptableAnswers is { Count: > 0 }
+            ? AcceptableAnswers.Any(a => string.Equals(a.Trim(), trimmedInput, StringComparison.OrdinalIgnoreCase))
+            : string.Equals(CorrectAnswer, trimmedInput, StringComparison.OrdinalIgnoreCase);
 
         feedbackMessage = isCorrect
             ? "Правильно! Чудова робота!"

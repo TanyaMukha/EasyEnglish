@@ -1,0 +1,51 @@
+@page "/courses/{CourseId:int}/units/{UnitId:int}/test-cards/practice"
+
+<div class="page-content">
+    <PageHeader Title="Практика тестових карток" />
+
+    <MultiTestHost TItem="TestCardTestModel"
+        Definitions="@_definitions"
+        Items="@_items"
+        IsLoading="@_isLoading"
+        ErrorMessage="@_errorMessage"
+        OnFinish="@FinishTest" />
+</div>
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+    [Parameter] public int UnitId { get; set; }
+
+    private List<TestCardTestModel> _items = [];
+    private List<TestDefinition<TestCardTestModel>> _definitions = [.. TestRegistry.TestCardTests];
+    private bool _isLoading;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _isLoading = true;
+            var unit = await UnitService.GetByIdAsync(UnitId, UnitIncludes.Full);
+            _items = mapper.Map<List<TestCardTestModel>>(unit?.TestCards ?? new List<TestCardModel>());
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Помилка завантаження: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task FinishTest()
+    {
+        var toUpdate = WordRatingCalculator.UpdateWordRate(_items);
+        await TestCardService.UpdateRateRangeAsync(mapper.Map<List<UpdateWordRateRequest>>(toUpdate));
+        NavigationManager.NavigateTo($"/courses/{CourseId}/units/{UnitId}");
+    }
+}
+
+<style>
+    .page-content { max-width: 800px; margin: 0 auto; padding: 2rem 1rem; }
+</style>

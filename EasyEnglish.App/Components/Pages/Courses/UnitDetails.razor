@@ -209,7 +209,14 @@
                                 </div>
                             }
 
-                            <div class="create-section">
+                            <div class="create-section" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                                @if (Unit.StudyCards != null && Unit.StudyCards.Any())
+                                {
+                                    <a href="/courses/@CourseId/units/@Unit.Id/study-cards/practice" class="btn-cancel">
+                                        <i class="bi bi-play-fill"></i>
+                                        Практикувати
+                                    </a>
+                                }
                                 <a href="/courses/@CourseId/units/@Unit.Id/study-cards/create" class="btn-submit">
                                     <i class="bi bi-plus-circle"></i>
                                     Додати навчальну картку
@@ -250,7 +257,14 @@
                                 </div>
                             }
 
-                            <div class="create-section">
+                            <div class="create-section" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                                @if (Unit.TestCards != null && Unit.TestCards.Any())
+                                {
+                                    <a href="/courses/@CourseId/units/@Unit.Id/test-cards/practice" class="btn-cancel">
+                                        <i class="bi bi-play-fill"></i>
+                                        Практикувати
+                                    </a>
+                                }
                                 <a href="/courses/@CourseId/units/@Unit.Id/test-cards/create" class="btn-submit">
                                     <i class="bi bi-plus-circle"></i>
                                     Додати тестову картку

@@ -1,0 +1,208 @@
+<QuestionSection Text="@Item.Text" />
+
+<div class="matching-grid">
+    <div class="matching-column">
+        @for (var i = 0; i < LeftItems.Count; i++)
+        {
+            var index = i;
+            <button class="matching-item @GetLeftClass(index)"
+                    disabled="@(Context.State.IsAnswerSubmitted || _pairs.ContainsKey(index))"
+                    @onclick="() => SelectLeft(index)">
+                @LeftItems[index]
+            </button>
+        }
+    </div>
+    <div class="matching-column">
+        @for (var i = 0; i < RightDisplayOrder.Count; i++)
+        {
+            var rightIndex = RightDisplayOrder[i];
+            <button class="matching-item @GetRightClass(rightIndex)"
+                    disabled="@(Context.State.IsAnswerSubmitted || _usedRight.Contains(rightIndex))"
+                    @onclick="() => SelectRight(rightIndex)">
+                @RightItems[rightIndex]
+            </button>
+        }
+    </div>
+</div>
+
+@if (!Context.State.IsAnswerSubmitted)
+{
+    <div class="submit-container">
+        <button class="matching-submit-btn" @onclick="Submit" disabled="@(_pairs.Count < LeftItems.Count)">
+            <i class="bi bi-check-lg"></i> Перевірити
+        </button>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public TestCardContext Context { get; set; } = null!;
+
+    private TestCardTestModel Item => Context.GetRawItem<TestCardTestModel>();
+
+    private List<string> LeftItems => Item.Matching?.Left.ToList() ?? new();
+    private List<string> RightItems => Item.Matching?.Right.ToList() ?? new();
+
+    private List<int> RightDisplayOrder { get; set; } = new();
+    private readonly Dictionary<int, int> _pairs = new(); // leftIndex -> rightIndex
+    private readonly HashSet<int> _usedRight = new();
+    private int? _selectedLeft;
+    private int _loadedItemId = -1;
+
+    protected override void OnParametersSet()
+    {
+        if (_loadedItemId == Item.Id)
+            return;
+
+        _loadedItemId = Item.Id;
+        _pairs.Clear();
+        _usedRight.Clear();
+        _selectedLeft = null;
+        RightDisplayOrder = Enumerable.Range(0, RightItems.Count).OrderBy(_ => Random.Shared.Next()).ToList();
+    }
+
+    private void SelectLeft(int index)
+    {
+        if (_pairs.ContainsKey(index))
+            return;
+
+        _selectedLeft = index;
+    }
+
+    private void SelectRight(int rightIndex)
+    {
+        if (_selectedLeft is null || _usedRight.Contains(rightIndex))
+            return;
+
+        _pairs[_selectedLeft.Value] = rightIndex;
+        _usedRight.Add(rightIndex);
+        _selectedLeft = null;
+    }
+
+    private bool IsPairCorrect(int leftIndex) =>
+        _pairs.TryGetValue(leftIndex, out var rightIndex) &&
+        leftIndex < (Item.Matching?.CorrectRightIndexes.Length ?? 0) &&
+        Item.Matching!.CorrectRightIndexes[leftIndex] == rightIndex;
+
+    private string GetLeftClass(int index)
+    {
+        if (Context.State.IsAnswerSubmitted)
+            return _pairs.ContainsKey(index) ? (IsPairCorrect(index) ? "correct" : "incorrect") : "";
+
+        if (_selectedLeft == index) return "selected";
+        if (_pairs.ContainsKey(index)) return "paired";
+        return "";
+    }
+
+    private string GetRightClass(int rightIndex)
+    {
+        if (Context.State.IsAnswerSubmitted)
+        {
+            var pair = _pairs.FirstOrDefault(p => p.Value == rightIndex, new KeyValuePair<int, int>(-1, -1));
+            if (pair.Key < 0) return "";
+            return IsPairCorrect(pair.Key) ? "correct" : "incorrect";
+        }
+
+        return _usedRight.Contains(rightIndex) ? "paired" : "";
+    }
+
+    private async Task Submit()
+    {
+        var allCorrect = LeftItems.Count > 0 && Enumerable.Range(0, LeftItems.Count).All(IsPairCorrect);
+        await Context.Callbacks.OnCheckAnswer.InvokeAsync(allCorrect);
+    }
+}
+
+<style>
+    .matching-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+        margin-bottom: 1.5rem;
+        width: 100%;
+    }
+
+    .matching-column {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .matching-item {
+        padding: 0.875rem 1.25rem;
+        background: var(--surface);
+        border: 2px solid var(--border-muted);
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: left;
+        color: var(--text-primary);
+    }
+
+    .matching-item:not(:disabled):hover {
+        border-color: #A3BFFA;
+        background: var(--surface-alt);
+    }
+
+    .matching-item:disabled {
+        cursor: not-allowed;
+    }
+
+    .matching-item.selected {
+        border-color: #A3BFFA;
+        background: var(--surface-alt);
+        box-shadow: 0 0 0 2px rgba(163, 191, 250, 0.4);
+    }
+
+    .matching-item.paired {
+        opacity: 0.5;
+    }
+
+    .matching-item.correct {
+        border-color: #28a745;
+        background: #d4edda;
+        color: #155724;
+        font-weight: 600;
+        opacity: 1;
+    }
+
+    .matching-item.incorrect {
+        border-color: #dc3545;
+        background: #f8d7da;
+        color: #721c24;
+        font-weight: 600;
+        opacity: 1;
+    }
+
+    .submit-container {
+        display: flex;
+    }
+
+    .matching-submit-btn {
+        width: 100%;
+        padding: 1rem;
+        background: #A3BFFA;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .matching-submit-btn:hover:not(:disabled) {
+        background: #7B9FE8;
+    }
+
+    .matching-submit-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+</style>

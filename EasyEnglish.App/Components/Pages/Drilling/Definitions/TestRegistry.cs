@@ -37,7 +37,23 @@ public static class TestRegistry
         new InputIrregularFormsDef(),
     ];
 
+    public static IReadOnlyList<TestDefinition<StudyCardTestModel>> StudyCardTests { get; } =
+    [
+        new ReviewStudyCardsDef(),
+    ];
+
+    public static IReadOnlyList<TestDefinition<TestCardTestModel>> TestCardTests { get; } =
+    [
+        new SingleChoiceCardDef(),
+        new MultipleChoiceCardDef(),
+        new ShortAnswerCardDef(),
+        new ClozeCardDef(),
+        new MatchingCardDef(),
+    ];
+
     public static TestDefinition<WordTestModel>?          GetWordTest(string key)          => WordTests.FirstOrDefault(t => t.Key == key);
     public static TestDefinition<ExampleTestModel>?       GetExampleTest(string key)       => ExampleTests.FirstOrDefault(t => t.Key == key);
     public static TestDefinition<IrregularFormTestModel>? GetIrregularFormTest(string key) => IrregularFormTests.FirstOrDefault(t => t.Key == key);
+    public static TestDefinition<StudyCardTestModel>?     GetStudyCardTest(string key)     => StudyCardTests.FirstOrDefault(t => t.Key == key);
+    public static TestDefinition<TestCardTestModel>?      GetTestCardTest(string key)      => TestCardTests.FirstOrDefault(t => t.Key == key);
 }

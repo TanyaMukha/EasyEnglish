@@ -34,4 +34,37 @@ public class TestCardService : BaseService<TestCardEntity, TestCardModel>, ITest
             throw;
         }
     }
+
+    public async Task<IEnumerable<TestCardModel>> UpdateRateRangeAsync(IEnumerable<UpdateWordRateRequest> cards)
+    {
+        try
+        {
+            var cardsList = cards.ToList();
+            _logger.LogDebug("Оновлення рейтингу для {Count} тестових карток", cardsList.Count);
+
+            var ids = cardsList.Select(c => c.Id).ToList();
+            var entities = await _repository.FindManyAsync(ids);
+            var entitiesDict = entities.ToDictionary(e => e.Id);
+
+            foreach (var card in cardsList)
+            {
+                if (entitiesDict.TryGetValue(card.Id, out var entity))
+                {
+                    _mapper.Map(card, entity);
+                }
+            }
+
+            await _repository.UpdateRangeAsync(entities);
+
+            var updatedModels = _mapper.Map<IEnumerable<TestCardModel>>(entities);
+
+            _logger.LogInformation("Оновлено рейтинг для {Count} тестових карток", cardsList.Count);
+            return updatedModels;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Помилка при оновленні рейтингу тестових карток");
+            throw;
+        }
+    }
 }

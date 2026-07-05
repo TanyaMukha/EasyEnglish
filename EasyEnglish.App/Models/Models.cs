@@ -135,6 +135,22 @@ public class IrregularFormTestModel : IrregularFormModel, ITestSessionItem
     public TestModel Tests { get; set; } = new();
 }
 
+public class StudyCardTestModel : StudyCardModel, ITestSessionItem
+{
+    public int LastTotalAttempts { get; set; } = 0;
+    public int LastIncorrectAttempts { get; set; } = 0;
+
+    public TestModel Tests { get; set; } = new();
+}
+
+public class TestCardTestModel : TestCardModel, ITestSessionItem
+{
+    public int LastTotalAttempts { get; set; } = 0;
+    public int LastIncorrectAttempts { get; set; } = 0;
+
+    public TestModel Tests { get; set; } = new();
+}
+
 /// <summary>
 /// Item для мульті-тесту прикладів. Рейтинг ведеться по слову,
 /// якому належить приклад, — через посилання TestWord.

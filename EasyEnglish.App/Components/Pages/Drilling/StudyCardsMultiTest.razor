@@ -1,0 +1,53 @@
+@page "/courses/{CourseId:int}/units/{UnitId:int}/study-cards/practice"
+
+@using EasyEnglish.Core.Presets
+
+<div class="page-content">
+    <PageHeader Title="Практика навчальних карток" />
+
+    <MultiTestHost TItem="StudyCardTestModel"
+        Definitions="@_definitions"
+        Items="@_items"
+        IsLoading="@_isLoading"
+        ErrorMessage="@_errorMessage"
+        OnFinish="@FinishTest" />
+</div>
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+    [Parameter] public int UnitId { get; set; }
+
+    private List<StudyCardTestModel> _items = [];
+    private List<TestDefinition<StudyCardTestModel>> _definitions = [.. TestRegistry.StudyCardTests];
+    private bool _isLoading;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _isLoading = true;
+            var unit = await UnitService.GetByIdAsync(UnitId, UnitIncludes.Full);
+            _items = mapper.Map<List<StudyCardTestModel>>(unit?.StudyCards ?? new List<StudyCardModel>());
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Помилка завантаження: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task FinishTest()
+    {
+        var toUpdate = WordRatingCalculator.UpdateWordRate(_items);
+        await StudyCardService.UpdateRateRangeAsync(mapper.Map<List<UpdateWordRateRequest>>(toUpdate));
+        NavigationManager.NavigateTo($"/courses/{CourseId}/units/{UnitId}");
+    }
+}
+
+<style>
+    .page-content { max-width: 800px; margin: 0 auto; padding: 2rem 1rem; }
+</style>

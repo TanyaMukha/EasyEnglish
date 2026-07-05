@@ -1,0 +1,181 @@
+@using System.Text.RegularExpressions
+
+<div class="cloze-sentence">
+    @foreach (var segment in _segments)
+    {
+        if (segment.IsBlank)
+        {
+            var index = segment.BlankIndex;
+            <span class="cloze-blank">
+                @if (HasOptions(index))
+                {
+                    <select class="cloze-select"
+                            disabled="@Context.State.IsAnswerSubmitted"
+                            @onchange="@(e => SetAnswer(index, e.Value?.ToString() ?? ""))">
+                        <option value="">...</option>
+                        @foreach (var opt in Item.Cloze!.Options![index])
+                        {
+                            <option value="@opt" selected="@(_answers.GetValueOrDefault(index) == opt)">@opt</option>
+                        }
+                    </select>
+                }
+                else
+                {
+                    <input type="text"
+                           class="cloze-input"
+                           disabled="@Context.State.IsAnswerSubmitted"
+                           value="@_answers.GetValueOrDefault(index, "")"
+                           @oninput="@(e => SetAnswer(index, e.Value?.ToString() ?? ""))" />
+                }
+
+                @if (Context.State.IsAnswerSubmitted)
+                {
+                    <span class="cloze-feedback @(IsBlankCorrect(index) ? "correct" : "incorrect")">
+                        @(IsBlankCorrect(index) ? "✓" : $"✗ ({GetCorrectAnswer(index)})")
+                    </span>
+                }
+            </span>
+        }
+        else
+        {
+            @segment.Text
+        }
+    }
+</div>
+
+@if (!Context.State.IsAnswerSubmitted)
+{
+    <div class="submit-container">
+        <button class="cloze-submit-btn" @onclick="Submit">
+            <i class="bi bi-check-lg"></i> Перевірити
+        </button>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public TestCardContext Context { get; set; } = null!;
+
+    private TestCardTestModel Item => Context.GetRawItem<TestCardTestModel>();
+
+    private record Segment(bool IsBlank, string Text, int BlankIndex);
+
+    private List<Segment> _segments = new();
+    private readonly Dictionary<int, string> _answers = new();
+    private int _loadedItemId = -1;
+
+    protected override void OnParametersSet()
+    {
+        if (_loadedItemId == Item.Id)
+            return;
+
+        _loadedItemId = Item.Id;
+        _answers.Clear();
+        _segments = ParseTemplate(Item.Text);
+    }
+
+    private static List<Segment> ParseTemplate(string text)
+    {
+        var result = new List<Segment>();
+        var lastIndex = 0;
+
+        foreach (Match m in Regex.Matches(text ?? "", @"\{(\d+)\}"))
+        {
+            if (m.Index > lastIndex)
+                result.Add(new Segment(false, text![lastIndex..m.Index], -1));
+
+            result.Add(new Segment(true, "", int.Parse(m.Groups[1].Value)));
+            lastIndex = m.Index + m.Length;
+        }
+
+        if (text is not null && lastIndex < text.Length)
+            result.Add(new Segment(false, text[lastIndex..], -1));
+
+        return result;
+    }
+
+    private bool HasOptions(int index) =>
+        Item.Cloze?.Options is { } opts && index < opts.Length && opts[index].Length > 0;
+
+    private void SetAnswer(int index, string value) => _answers[index] = value;
+
+    private string GetCorrectAnswer(int index) =>
+        Item.Cloze?.CorrectAnswers.ElementAtOrDefault(index) ?? "";
+
+    private bool IsBlankCorrect(int index) =>
+        _answers.TryGetValue(index, out var answer) &&
+        string.Equals(answer.Trim(), GetCorrectAnswer(index).Trim(), StringComparison.OrdinalIgnoreCase);
+
+    private async Task Submit()
+    {
+        var blankCount = Item.Cloze?.CorrectAnswers.Length ?? 0;
+        var allCorrect = blankCount > 0 && Enumerable.Range(0, blankCount).All(IsBlankCorrect);
+        await Context.Callbacks.OnCheckAnswer.InvokeAsync(allCorrect);
+    }
+}
+
+<style>
+    .cloze-sentence {
+        font-size: 1.25rem;
+        line-height: 2.2;
+        color: var(--text-primary);
+        margin-bottom: 1.5rem;
+    }
+
+    .cloze-blank {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin: 0 0.25rem;
+    }
+
+    .cloze-select,
+    .cloze-input {
+        font-size: 1.1rem;
+        padding: 0.25rem 0.6rem;
+        border: 2px solid var(--border-muted);
+        border-radius: 6px;
+        background: var(--surface);
+        color: var(--text-primary);
+        min-width: 100px;
+    }
+
+    .cloze-select:focus,
+    .cloze-input:focus {
+        outline: none;
+        border-color: #A3BFFA;
+    }
+
+    .cloze-feedback {
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .cloze-feedback.correct { color: #155724; }
+    .cloze-feedback.incorrect { color: #721c24; }
+
+    .submit-container {
+        display: flex;
+    }
+
+    .cloze-submit-btn {
+        width: 100%;
+        padding: 1rem;
+        background: #A3BFFA;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .cloze-submit-btn:hover {
+        background: #7B9FE8;
+    }
+</style>
