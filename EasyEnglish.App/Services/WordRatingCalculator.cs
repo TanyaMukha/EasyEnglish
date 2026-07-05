@@ -31,13 +31,13 @@ public static class WordRatingCalculator
     private const float MAX_RATE = 5.0f;
     private const float INITIAL_RATE = 3.0f;
 
-    // ЗБАЛАНСОВАНІ коефіцієнти для плавної зміни складності
-    private const float PERFECT_ANSWER_DECREASE = 0.3f;   // 95-100% (було 0.8f)
-    private const float GOOD_ANSWER_DECREASE = 0.2f;      // 75-94% (було 0.5f)
-    private const float AVERAGE_ANSWER_DECREASE = 0.1f;   // 65-74% (було 0.25f)
-    private const float POOR_ANSWER_INCREASE = 0.15f;     // 50-64% (було 0.35f)
-    private const float BAD_ANSWER_INCREASE = 0.25f;      // 25-49% (було 0.6f)
-    private const float FAILED_ANSWER_INCREASE = 0.4f;    // 0-24% (було 1.0f)
+    // ЗБАЛАНСОВАНІ коефіцієнти для плавної зміни складності (x1.5 для швидшої реакції рейтингу)
+    private const float PERFECT_ANSWER_DECREASE = 0.45f;  // 95-100% (було 0.3f, до того 0.8f)
+    private const float GOOD_ANSWER_DECREASE = 0.3f;      // 75-94% (було 0.2f, до того 0.5f)
+    private const float AVERAGE_ANSWER_DECREASE = 0.15f;  // 65-74% (було 0.1f, до того 0.25f)
+    private const float POOR_ANSWER_INCREASE = 0.225f;    // 50-64% (було 0.15f, до того 0.35f)
+    private const float BAD_ANSWER_INCREASE = 0.375f;     // 25-49% (було 0.25f, до того 0.6f)
+    private const float FAILED_ANSWER_INCREASE = 0.6f;    // 0-24% (було 0.4f, до того 1.0f)
 
     private const float EASY_WORD_MULTIPLIER = 0.7f;
     private const float HARD_WORD_MULTIPLIER = 1.5f;

@@ -12,7 +12,7 @@
                 }
                 @if (irregularForm.FirstFormPronunciation is { Length: > 0 })
                 {
-                    <span class="audio-icon" @onclick:stopPropagation="true" @onclick="() => PlayAudio(irregularForm.FirstFormPronunciation)" title="Play">
+                    <span class="audio-play-icon stored" @onclick:stopPropagation="true" @onclick="() => PlayAudio(irregularForm.FirstFormPronunciation)" title="Play">
                         <i class="bi bi-volume-up-fill"></i>
                     </span>
                 }
@@ -25,7 +25,7 @@
                 }
                 @if (irregularForm.SecondFormPronunciation is { Length: > 0 })
                 {
-                    <span class="audio-icon" @onclick:stopPropagation="true" @onclick="() => PlayAudio(irregularForm.SecondFormPronunciation)" title="Play">
+                    <span class="audio-play-icon stored" @onclick:stopPropagation="true" @onclick="() => PlayAudio(irregularForm.SecondFormPronunciation)" title="Play">
                         <i class="bi bi-volume-up-fill"></i>
                     </span>
                 }
@@ -40,7 +40,7 @@
                     }
                     @if (irregularForm.ThirdFormPronunciation is { Length: > 0 })
                     {
-                        <span class="audio-icon" @onclick:stopPropagation="true" @onclick="() => PlayAudio(irregularForm.ThirdFormPronunciation)" title="Play">
+                        <span class="audio-play-icon stored" @onclick:stopPropagation="true" @onclick="() => PlayAudio(irregularForm.ThirdFormPronunciation)" title="Play">
                             <i class="bi bi-volume-up-fill"></i>
                         </span>
                     }
@@ -150,17 +150,8 @@
             gap: 0.375rem;
         }
 
-        .audio-icon {
-            color: #ccc;
+        .form-item .audio-play-icon {
             font-size: 1rem;
-            cursor: pointer;
-            transition: color 0.2s;
-            display: flex;
-            align-items: center;
-        }
-
-        .audio-icon:hover {
-            color: #A3BFFA;
         }
 
         .form-item {

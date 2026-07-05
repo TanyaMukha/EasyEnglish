@@ -16,7 +16,7 @@
                 }
                 @if (_item.FirstFormPronunciation is { Length: > 0 })
                 {
-                    <span class="audio-icon" @onclick:stopPropagation="true" @onclick="async () => await PlayAudio(_item.FirstFormPronunciation)" title="Play pronunciation">
+                    <span class="audio-play-icon stored" @onclick:stopPropagation="true" @onclick="async () => await PlayAudio(_item.FirstFormPronunciation)" title="Play pronunciation">
                         <i class="bi bi-volume-up-fill"></i>
                     </span>
                 }
@@ -37,7 +37,7 @@
                 }
                 @if (_item.SecondFormPronunciation is { Length: > 0 })
                 {
-                    <span class="audio-icon" @onclick:stopPropagation="true" @onclick="async () => await PlayAudio(_item.SecondFormPronunciation)" title="Play pronunciation">
+                    <span class="audio-play-icon stored" @onclick:stopPropagation="true" @onclick="async () => await PlayAudio(_item.SecondFormPronunciation)" title="Play pronunciation">
                         <i class="bi bi-volume-up-fill"></i>
                     </span>
                 }
@@ -60,7 +60,7 @@
                     }
                     @if (_item.ThirdFormPronunciation is { Length: > 0 })
                     {
-                        <span class="audio-icon" @onclick:stopPropagation="true" @onclick="async () => await PlayAudio(_item.ThirdFormPronunciation)" title="Play pronunciation">
+                        <span class="audio-play-icon stored" @onclick:stopPropagation="true" @onclick="async () => await PlayAudio(_item.ThirdFormPronunciation)" title="Play pronunciation">
                             <i class="bi bi-volume-up-fill"></i>
                         </span>
                     }

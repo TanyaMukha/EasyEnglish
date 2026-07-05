@@ -151,18 +151,18 @@
 
         _isFirstFormCorrect = string.Equals(
             _userFirstForm.Trim(),
-            _item.FirstForm.Trim(),
+            TextBracketsRemoverService.RemoveBracketsText(_item.FirstForm).Trim(),
             StringComparison.OrdinalIgnoreCase);
 
         _isSecondFormCorrect = string.Equals(
             _userSecondForm.Trim(),
-            _item.SecondForm.Trim(),
+            TextBracketsRemoverService.RemoveBracketsText(_item.SecondForm).Trim(),
             StringComparison.OrdinalIgnoreCase);
 
         _isThirdFormCorrect = string.IsNullOrEmpty(_item.ThirdForm) ||
             string.Equals(
                 _userThirdForm.Trim(),
-                _item.ThirdForm.Trim(),
+                TextBracketsRemoverService.RemoveBracketsText(_item.ThirdForm).Trim(),
                 StringComparison.OrdinalIgnoreCase);
 
         var allCorrect = _isFirstFormCorrect && _isSecondFormCorrect && _isThirdFormCorrect;
@@ -182,7 +182,7 @@
             _isSecondFormCorrect = false;
             _isThirdFormCorrect  = false;
             if (ShowFirstForm)
-                _userFirstForm = _item.FirstForm;
+                _userFirstForm = TextBracketsRemoverService.RemoveBracketsText(_item.FirstForm);
         }
     }
 

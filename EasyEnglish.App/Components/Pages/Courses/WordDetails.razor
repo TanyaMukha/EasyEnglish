@@ -14,13 +14,13 @@
 
                 @if (Word.Pronunciation is { Length: > 0 })
                 {
-                    <span class="btn-audio" @onclick="PlayAudio" title="Play pronunciation">
+                    <span class="audio-play-icon stored" @onclick="PlayAudio" title="Play pronunciation">
                         <i class="bi bi-volume-up-fill"></i>
                     </span>
                 }
                 else
                 {
-                    <span class="btn-audio" @onclick="PlayWord" title="Play pronunciation">
+                    <span class="audio-play-icon generated" @onclick="PlayWord" title="Play pronunciation">
                         <i class="bi bi-volume-up-fill"></i>
                     </span>
                 }
@@ -258,18 +258,9 @@
 
 <style>
 
-.btn-audio {
-        color: var(--text-muted);
+.title-wrapper .audio-play-icon {
         font-size: 1.5rem;
-        cursor: pointer;
-        transition: color 0.2s;
-        display: flex;
-        align-items: center;
     }
-
-        .btn-audio:hover {
-            color: var(--accent);
-        }
 
     .navigation-section {
         display: flex;

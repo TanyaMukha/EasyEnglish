@@ -349,10 +349,19 @@
         };
     }
 
-    private void PlayAudio(int formNumber)
+    private async Task PlayAudio(int formNumber)
     {
-        // Implement audio playback - you might need JS interop
-        Console.WriteLine($"Playing audio for form {formNumber}");
+        var pronunciation = formNumber switch
+        {
+            1 => IrregularForm.FirstFormPronunciation,
+            2 => IrregularForm.SecondFormPronunciation,
+            _ => IrregularForm.ThirdFormPronunciation
+        };
+
+        if (pronunciation is { Length: > 0 })
+        {
+            await AudioService.PlayAsync(pronunciation);
+        }
     }
 }
 

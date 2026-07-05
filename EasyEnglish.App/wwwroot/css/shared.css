@@ -40,6 +40,36 @@
 .pastel-lemon { background-color: #FFFACD !important; }
 .pastel-rose { background-color: #FFC9DE !important; }
 
+/* ---------- Кнопки відтворення вимови ---------- */
+/* .stored — записаний у БД аудіофайл; .generated — синтез мовлення (TTS) */
+
+.audio-play-icon {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    transition: color 0.2s, transform 0.15s;
+}
+
+.audio-play-icon:hover {
+    transform: scale(1.08);
+}
+
+.audio-play-icon.stored {
+    color: #A3BFFA;
+}
+
+.audio-play-icon.stored:hover {
+    color: #7B9FE8;
+}
+
+.audio-play-icon.generated {
+    color: #B39DDB;
+}
+
+.audio-play-icon.generated:hover {
+    color: #9B7FCB;
+}
+
 /* ---------- Каркас сторінки (колишній page.css) ---------- */
 
 .page-content {

@@ -10,13 +10,13 @@
                 <h3 class="word-text">@word.Word</h3>
                 @if (word.Pronunciation is { Length: > 0 })
                 {
-                    <span class="audio-icon" @onclick:stopPropagation="true" @onclick="PlayAudio" title="Play pronunciation">
+                    <span class="audio-play-icon stored" @onclick:stopPropagation="true" @onclick="PlayAudio" title="Play pronunciation">
                         <i class="bi bi-volume-up-fill"></i>
                     </span>
                 }
                 else
                 {
-                    <span class="play-icon" @onclick:stopPropagation="true" @onclick="PlayWord" title="Play pronunciation">
+                    <span class="audio-play-icon generated" @onclick:stopPropagation="true" @onclick="PlayWord" title="Play pronunciation">
                         <i class="bi bi-volume-up-fill"></i>
                     </span>
                 }
@@ -141,30 +141,8 @@
         gap: 0.5rem;
     }
 
-    .audio-icon {
-        color: #ccc;
+    .word-title-row .audio-play-icon {
         font-size: 1.25rem;
-        cursor: pointer;
-        transition: color 0.2s;
-        display: flex;
-        align-items: center;
-    }
-
-    .audio-icon:hover {
-        color: #A3BFFA;
-    }
-
-    .play-icon {
-        color: #ccc;
-        font-size: 1.25rem;
-        cursor: pointer;
-        transition: color 0.8s;
-        display: flex;
-        align-items: center;
-    }
-
-    .play-icon:hover {
-        color: #FFBFFA;
     }
 
     .word-text {
