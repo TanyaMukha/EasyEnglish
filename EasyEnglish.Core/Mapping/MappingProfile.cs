@@ -23,11 +23,15 @@ public class MappingProfile : Profile
         CreateMap<UnitEntity, UnitModel>()
             .ForMember(dest => dest.Words, opt => opt.MapFrom(src => src.Words))
             .ForMember(dest => dest.IrregularForms, opt => opt.MapFrom(src => src.IrregularForms))
+            .ForMember(dest => dest.StudyCards, opt => opt.MapFrom(src => src.StudyCards))
+            .ForMember(dest => dest.TestCards, opt => opt.MapFrom(src => src.TestCards))
             .ForMember(dest => dest.Course, opt => opt.MapFrom(src => src.Course));
-        
+
         CreateMap<UnitModel, UnitEntity>()
             .ForMember(dest => dest.Words, opt => opt.MapFrom(src => src.Words))
             .ForMember(dest => dest.IrregularForms, opt => opt.MapFrom(src => src.IrregularForms))
+            .ForMember(dest => dest.StudyCards, opt => opt.MapFrom(src => src.StudyCards))
+            .ForMember(dest => dest.TestCards, opt => opt.MapFrom(src => src.TestCards))
             .ForMember(dest => dest.Course, opt => opt.Ignore());
 
         // Model → Model з опціями
@@ -79,5 +83,21 @@ public class MappingProfile : Profile
             .AfterMap<IrregularFormMappingAction>();
 
         CreateMap<UpdateWordRateRequest, IrregularFormEntity>();
+
+        // ========== STUDY CARD ==========
+        CreateMap<StudyCardEntity, StudyCardModel>()
+            .ForMember(dest => dest.Unit, opt => opt.MapFrom(src => src.Unit));
+
+        CreateMap<StudyCardModel, StudyCardEntity>()
+            .ForMember(dest => dest.Unit, opt => opt.Ignore());
+
+        // ========== TEST CARD ==========
+        // Options/CorrectAnswers — гнучкі JSON-поля, структура залежить від Kind,
+        // тож пакування/розпакування виконує кастомний ITypeConverter, а не ForMember.
+        CreateMap<TestCardEntity, TestCardModel>()
+            .ConvertUsing<TestCardEntityToModelConverter>();
+
+        CreateMap<TestCardModel, TestCardEntity>()
+            .ConvertUsing<TestCardModelToEntityConverter>();
     }
 } 

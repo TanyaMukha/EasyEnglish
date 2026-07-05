@@ -13,6 +13,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IExampleRepository, ExampleRepository>();
         services.AddScoped<IUnitRepository, UnitRepository>();
         services.AddScoped<IIrregularFormRepository, IrregularFormRepository>();
+        services.AddScoped<IStudyCardRepository, StudyCardRepository>();
+        services.AddScoped<ITestCardRepository, TestCardRepository>();
 
         return services;
     }

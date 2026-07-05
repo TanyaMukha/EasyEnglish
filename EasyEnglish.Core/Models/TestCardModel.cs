@@ -6,19 +6,22 @@ using System.Text.Json.Serialization;
 
 namespace EasyEnglish.Core.Models;
 
-public class StudyCardModel : AbstractModel, IReviewInfo, IRateInfo, IAuditInfo
+public class TestCardModel : AbstractModel, IReviewInfo, IRateInfo, IAuditInfo
 {
-    public StudyCardKind Kind { get; set; }
+    public TestCardKind Kind { get; set; }
 
-    public string Title { get; set; } = string.Empty;
+    public string? Title { get; set; }
 
-    public string? Body { get; set; }
+    public string Text { get; set; } = string.Empty;
 
-    public string? Dialogue { get; set; }
+    // Заповнюється мапером за Kind — не-null рівно одна з чотирьох властивостей.
+    public ChoicePayload? Choice { get; set; }
 
-    public string? CodeBlock { get; set; }
+    public ShortAnswerPayload? ShortAnswer { get; set; }
 
-    public BlurRevealMode? RevealMode { get; set; }
+    public ClozePayload? Cloze { get; set; }
+
+    public MatchingPayload? Matching { get; set; }
 
     public DateTime? LastReviewDate { get; set; }
 

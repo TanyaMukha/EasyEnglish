@@ -31,6 +31,10 @@ public class UnitModel : AbstractModel, IReviewInfo, IAuditInfo, IGuidRecord
 
     public IList<IrregularFormModel>? IrregularForms { get; set; }
 
+    public IList<StudyCardModel>? StudyCards { get; set; }
+
+    public IList<TestCardModel>? TestCards { get; set; }
+
     [JsonIgnore]
     public CourseModel? Course { get; set; }
 

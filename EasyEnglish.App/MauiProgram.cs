@@ -193,6 +193,8 @@ public static class MauiProgram
         services.AddTransient<WordMappingAction>();
         services.AddTransient<ExampleMappingAction>();
         services.AddTransient<IrregularFormMappingAction>();
+        services.AddTransient<TestCardEntityToModelConverter>();
+        services.AddTransient<TestCardModelToEntityConverter>();
 
         services.AddSingleton<IStorageService, LocalStorageService>();
         services.AddSingleton<ProgressService>();

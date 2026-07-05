@@ -1,42 +1,34 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using MukhaLab.Database;
 using EasyEnglish.Core.Interfaces.Fields;
+using EasyEnglish.Core.Enums;
 
 namespace EasyEnglish.Core.Entities;
 
 [Table("test_cards")]
 public class TestCardEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInfo
 {
-    [MaxLength(50)]
-    [Column("test_type")]
-    public string? TestType { get; set; }
+    [Column("kind")]
+    public TestCardKind Kind { get; set; }
 
-    [NotNull]
     [MaxLength(200)]
     [Column("title")]
-    public string Title { get; set; } = string.Empty;
+    public string? Title { get; set; }
 
-    [MaxLength(500)]
-    [Column("description")]
-    public string? Description { get; set; }
-
+    [NotNull]
     [MaxLength(2000)]
     [Column("text")]
-    public string? Text { get; set; }
-
-    [MaxLength(500)]
-    [Column("mask")]
-    public string? Mask { get; set; }
+    public string Text { get; set; } = string.Empty;      // питання, або cloze-шаблон з {0},{1}...
 
     [MaxLength(1000)]
     [Column("options")]
-    public string? Options { get; set; }
+    public string? Options { get; set; }                   // JSON, структура залежить від Kind
 
     [MaxLength(500)]
     [Column("correct_answers")]
-    public string? CorrectAnswers { get; set; }
+    public string? CorrectAnswers { get; set; }             // JSON, структура залежить від Kind
 
     [Column("last_review_date")]
     public DateTime? LastReviewDate { get; set; }
@@ -45,7 +37,7 @@ public class TestCardEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInfo
     public int ReviewCount { get; set; } = 0;
 
     [Column("rate")]
-    public float Rate { get; set; } = 0;
+    public float Rate { get; set; } = 3;
 
     /// <summary>
     /// Gets or sets the creation timestamp.

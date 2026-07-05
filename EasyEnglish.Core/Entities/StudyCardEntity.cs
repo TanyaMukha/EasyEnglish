@@ -1,26 +1,37 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using MukhaLab.Database;
 using EasyEnglish.Core.Interfaces.Fields;
+using EasyEnglish.Core.Enums;
 
 namespace EasyEnglish.Core.Entities;
 
 [Table("study_cards")]
 public class StudyCardEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInfo
 {
+    [Column("kind")]
+    public StudyCardKind Kind { get; set; }
+
     [NotNull]
     [MaxLength(200)]
     [Column("title")]
-    public string Title { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;   // = Term (Kind.Term) / заголовок (Kind.Text) / необов'язково (Kind.BlurredText)
 
-    [MaxLength(500)]
-    [Column("description")]
-    public string? Description { get; set; }
+    [MaxLength(2000)]
+    [Column("body")]
+    public string? Body { get; set; }                    // = Definition (Kind.Term) / основний текст / текст з **розмитим**
 
     [MaxLength(2000)]
     [Column("dialogue")]
     public string? Dialogue { get; set; }
+
+    [MaxLength(2000)]
+    [Column("code_block")]
+    public string? CodeBlock { get; set; }
+
+    [Column("reveal_mode")]
+    public BlurRevealMode? RevealMode { get; set; }       // тільки для Kind.BlurredText
 
     [Column("last_review_date")]
     public DateTime? LastReviewDate { get; set; }
@@ -29,7 +40,7 @@ public class StudyCardEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInf
     public int ReviewCount { get; set; } = 0;
 
     [Column("rate")]
-    public float Rate { get; set; } = 0;
+    public float Rate { get; set; } = 3;
 
     /// <summary>
     /// Gets or sets the creation timestamp.

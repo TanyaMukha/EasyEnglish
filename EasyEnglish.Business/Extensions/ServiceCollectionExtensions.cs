@@ -12,6 +12,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IWordService, WordService>();
         services.AddScoped<IUnitService, UnitService>();
         services.AddScoped<IStudyCardService, StudyCardService>();
+        services.AddScoped<ITestCardService, TestCardService>();
         services.AddScoped<IExampleService, ExampleService>();
         services.AddScoped<IIrregularFormService, IrregularFormService>();
 

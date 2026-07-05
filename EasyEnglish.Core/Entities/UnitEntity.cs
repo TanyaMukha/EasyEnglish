@@ -51,5 +51,9 @@ public class UnitEntity : AbstractEntity, IReviewInfo, IAuditInfo, IGuidRecord
 
     public List<IrregularFormEntity> IrregularForms { get; set; } = new();
 
+    public List<StudyCardEntity> StudyCards { get; set; } = new();
+
+    public List<TestCardEntity> TestCards { get; set; } = new();
+
     public CourseEntity? Course { get; set; }
 }
