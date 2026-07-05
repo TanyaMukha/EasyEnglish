@@ -12,7 +12,7 @@ public interface IWordService : IBaseService<WordModel>
     Task<IEnumerable<WordModel>> GetForLearningAsync(int courseId, int? unitId, WordSelectionOptions options);
     Task<WordModel> UpdateWordRateAsync(UpdateWordRateRequest word);
     Task<IEnumerable<WordModel>> UpdateWordRateRangeAsync(IEnumerable<UpdateWordRateRequest> words);
-    Task<(int? PreviousId, int? NextId)> GetNavigationIdsAsync(int unitId, int currentWordId);
+    Task<(int? PreviousId, int? NextId, int Position, int Total)> GetNavigationIdsAsync(int unitId, int currentWordId);
 }
 
 public class UpdateWordRateRequest

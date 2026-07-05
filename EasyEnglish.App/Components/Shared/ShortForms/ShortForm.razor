@@ -17,6 +17,10 @@
                     @Title
                     </h3>
                     <div class="header-actions">
+                    @if (HeaderExtra is not null)
+                    {
+                        @HeaderExtra
+                    }
                     @if (!string.IsNullOrEmpty(FullFormUrl))
                     {
                                 <button type="button" 
@@ -43,6 +47,7 @@
     [Parameter] public string Title { get; set; } = "Створити новий елемент";
     [Parameter] public string? FullFormUrl { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? HeaderExtra { get; set; }
     [Parameter] public EventCallback OnFormClosed { get; set; }
 
     private bool isExpanded = false;

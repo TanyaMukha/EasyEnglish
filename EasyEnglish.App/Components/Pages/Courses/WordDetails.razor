@@ -32,34 +32,40 @@
                 </a>
             </div>
 
-            <div class="navigation-buttons">
-                @if (PreviousWordId.HasValue)
+            <div class="navigation-section">
+                <div class="navigation-buttons">
+                    @if (PreviousWordId.HasValue)
+                    {
+                        <a href="/courses/@CourseId/units/@UnitId/words/@PreviousWordId"
+                           class="btn-nav"
+                           title="Previous word">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <button class="btn-nav" disabled>
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                    }
+                    @if (NextWordId.HasValue)
+                    {
+                        <a href="/courses/@CourseId/units/@UnitId/words/@NextWordId"
+                           class="btn-nav"
+                           title="Next word">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <button class="btn-nav" disabled>
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    }
+                </div>
+                @if (Total > 0)
                 {
-                    <a href="/courses/@CourseId/units/@UnitId/words/@PreviousWordId"
-                       class="btn-nav"
-                       title="Previous word">
-                        <i class="bi bi-chevron-left"></i>
-                    </a>
-                }
-                else
-                {
-                    <button class="btn-nav" disabled>
-                        <i class="bi bi-chevron-left"></i>
-                    </button>
-                }
-                @if (NextWordId.HasValue)
-                {
-                    <a href="/courses/@CourseId/units/@UnitId/words/@NextWordId"
-                       class="btn-nav"
-                       title="Next word">
-                        <i class="bi bi-chevron-right"></i>
-                    </a>
-                }
-                else
-                {
-                    <button class="btn-nav" disabled>
-                        <i class="bi bi-chevron-right"></i>
-                    </button>
+                    <span class="navigation-position">@Position / @Total</span>
                 }
             </div>
         </div>
@@ -183,6 +189,8 @@
     public WordModel Word { get; set; } = new();
     public int? PreviousWordId { get; set; }
     public int? NextWordId { get; set; }
+    public int Position { get; set; }
+    public int Total { get; set; }
 
     private bool IsPlaying = false;
 
@@ -207,6 +215,8 @@
         var navigationIds = await WordService.GetNavigationIdsAsync(UnitId, WordId);
         PreviousWordId = navigationIds.PreviousId;
         NextWordId = navigationIds.NextId;
+        Position = navigationIds.Position;
+        Total = navigationIds.Total;
 
         breadcrumbs = BreadcrumbBuilder.Create()
             .WithLink("Courses", "/courses")
@@ -218,19 +228,27 @@
 
     private async Task PlayAudio()
     {
-        if (IsPlaying)
+        try
         {
-            AudioService.Stop();
-            IsPlaying = false;
-            return;
-        }
+            if (IsPlaying)
+            {
+                AudioService.Stop();
+                IsPlaying = false;
+                return;
+            }
 
-        if (Word.Pronunciation is { Length: > 0 })
+            if (Word.Pronunciation is { Length: > 0 })
+            {
+                IsPlaying = true;
+                await AudioService.PlayAsync(Word.Pronunciation);
+                IsPlaying = false;
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
         {
-            IsPlaying = true;
-            await AudioService.PlayAsync(Word.Pronunciation);
             IsPlaying = false;
-            StateHasChanged();
+            BrowserConsole.LogErrorAsync("Failed to play pronunciation audio", ex);
         }
     }
 
@@ -253,9 +271,22 @@
             color: var(--accent);
         }
 
+    .navigation-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
     .navigation-buttons {
         display: flex;
         gap: 0.5rem;
+    }
+
+    .navigation-position {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-weight: 600;
     }
 
     .btn-nav {

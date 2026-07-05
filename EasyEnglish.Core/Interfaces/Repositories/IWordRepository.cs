@@ -6,7 +6,7 @@ namespace EasyEnglish.Core.Interfaces.Repositories;
 
 public interface IWordRepository : IBaseRepository<WordEntity>
 {
-    Task<(int? PreviousId, int? NextId)> GetNavigationIdsAsync(int unitId, int currentWordId);
+    Task<(int? PreviousId, int? NextId, int Position, int Total)> GetNavigationIdsAsync(int unitId, int currentWordId);
 
     /// <summary>Слова, що найдовше не повторювались.</summary>
     Task<List<WordEntity>> GetNextWordsAsync(int count);

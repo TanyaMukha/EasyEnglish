@@ -108,7 +108,7 @@ public class WordService : BaseService<WordEntity, WordModel>, IWordService
         }
     }
 
-    public async Task<(int? PreviousId, int? NextId)> GetNavigationIdsAsync(int unitId, int currentWordId)
+    public async Task<(int? PreviousId, int? NextId, int Position, int Total)> GetNavigationIdsAsync(int unitId, int currentWordId)
     {
         try
         {
@@ -116,8 +116,8 @@ public class WordService : BaseService<WordEntity, WordModel>, IWordService
 
             var navigationIds = await this._wordRepository.GetNavigationIdsAsync(unitId, currentWordId);
 
-            _logger.LogDebug("Попереднє слово: {PreviousId}, Наступне слово: {NextId}",
-                navigationIds.PreviousId, navigationIds.NextId);
+            _logger.LogDebug("Попереднє слово: {PreviousId}, Наступне слово: {NextId}, Позиція: {Position}/{Total}",
+                navigationIds.PreviousId, navigationIds.NextId, navigationIds.Position, navigationIds.Total);
 
             return navigationIds;
         }

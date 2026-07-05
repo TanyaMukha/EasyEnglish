@@ -28,6 +28,8 @@ public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
+        RegisterGlobalExceptionHandlers();
+
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
@@ -63,6 +65,25 @@ public static class MauiProgram
         _ = Task.Run(async () => await InitializeDatabaseAsync(app.Services));
 
         return app;
+    }
+
+    /// <summary>
+    /// Крос-платформна страхувальна сітка: пише необроблені винятки у файл лога,
+    /// щоб раптовий крах застосунку (напр. з нативного коду на Windows) можна було
+    /// діагностувати замість тихого завершення процесу без жодного сліду.
+    /// </summary>
+    private static void RegisterGlobalExceptionHandlers()
+    {
+        AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+        {
+            EasyEnglish.App.Diagnostics.CrashLogger.Log("AppDomain.UnhandledException", e.ExceptionObject as Exception);
+        };
+
+        TaskScheduler.UnobservedTaskException += (sender, e) =>
+        {
+            EasyEnglish.App.Diagnostics.CrashLogger.Log("TaskScheduler.UnobservedTaskException", e.Exception);
+            e.SetObserved();
+        };
     }
 
     /// <summary>

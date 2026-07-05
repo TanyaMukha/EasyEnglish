@@ -1,10 +1,57 @@
-﻿@namespace EasyEnglish.App.Components.Shared
+@namespace EasyEnglish.App.Components.Shared
+
+@using EasyEnglish.Core.Interfaces.Storage
+@inject IStorageService StorageService
 
 <ShortForm @ref="shortForm"
            Title="Швидке додавання слів"
            FullFormUrl="@($"/courses/{CourseId}/units/{UnitId}/words/create")"
            OnFormClosed="ResetForm">
 
+    <HeaderExtra>
+        <div class="field-settings-wrapper">
+            <button type="button" class="action-btn" @onclick="ToggleFieldSettings" title="Налаштування полів">
+                <i class="bi bi-gear"></i>
+            </button>
+
+            @if (showFieldSettings)
+            {
+                <div class="field-settings-dropdown">
+                    <div class="field-settings-title">Показувати поля</div>
+
+                    <label class="field-settings-item">
+                        <input type="checkbox"
+                               checked="@FieldSettings.ShowTranscription"
+                               @onchange="@(e => UpdateFieldSetting(v => FieldSettings.ShowTranscription = v, e))" />
+                        <span>Транскрипція</span>
+                    </label>
+
+                    <label class="field-settings-item">
+                        <input type="checkbox"
+                               checked="@FieldSettings.ShowTranslation"
+                               @onchange="@(e => UpdateFieldSetting(v => FieldSettings.ShowTranslation = v, e))" />
+                        <span>Переклад</span>
+                    </label>
+
+                    <label class="field-settings-item">
+                        <input type="checkbox"
+                               checked="@FieldSettings.ShowExample"
+                               @onchange="@(e => UpdateFieldSetting(v => FieldSettings.ShowExample = v, e))" />
+                        <span>Приклад</span>
+                    </label>
+
+                    <label class="field-settings-item">
+                        <input type="checkbox"
+                               checked="@FieldSettings.ShowExampleTranslation"
+                               @onchange="@(e => UpdateFieldSetting(v => FieldSettings.ShowExampleTranslation = v, e))" />
+                        <span>Переклад прикладу</span>
+                    </label>
+                </div>
+            }
+        </div>
+    </HeaderExtra>
+
+    <ChildContent>
     <EditForm Model="Words" OnValidSubmit="HandleValidSubmit" class="create-form">
         <DataAnnotationsValidator />
 
@@ -23,22 +70,46 @@
                                 <ValidationMessage For="@(() => word.Word)" class="validation-message" />
                             </div>
 
-                            <div class="input-group">
-                                <InputTranscriptionField @bind-Value="word.Transcription" Label="Транскрипція" />
-                                <ValidationMessage For="@(() => word.Transcription)" class="validation-message" />
-                            </div>
+                            @if (FieldSettings.ShowTranscription)
+                            {
+                                <div class="input-group">
+                                    <InputTranscriptionField @bind-Value="word.Transcription" Label="Транскрипція" />
+                                    <ValidationMessage For="@(() => word.Transcription)" class="validation-message" />
+                                </div>
+                            }
 
-                            <div class="input-group">
-                                <InputTextField @bind-Value="word.Translation" Label="Переклад" />
-                                <ValidationMessage For="@(() => word.Translation)" class="validation-message" />
-                            </div>
+                            @if (FieldSettings.ShowTranslation)
+                            {
+                                <div class="input-group">
+                                    <InputTextField @bind-Value="word.Translation" Label="Переклад" />
+                                    <ValidationMessage For="@(() => word.Translation)" class="validation-message" />
+                                </div>
+                            }
+
+                            @if (FieldSettings.ShowExample)
+                            {
+                                <div class="input-group">
+                                    <InputMultilineField Value="@GetExampleSentence(word)"
+                                                          ValueChanged="@(v => SetExampleSentence(word, v))"
+                                                          Label="Приклад" />
+                                </div>
+                            }
+
+                            @if (FieldSettings.ShowExampleTranslation)
+                            {
+                                <div class="input-group">
+                                    <InputMultilineField Value="@GetExampleTranslation(word)"
+                                                          ValueChanged="@(v => SetExampleTranslation(word, v))"
+                                                          Label="Переклад прикладу" />
+                                </div>
+                            }
                         </div>
 
                     @if (Words.Count > 1)
                     {
-                                <button type="button" 
-                                        class="remove-btn" 
-                                        @onclick="() => RemoveWord(currentIndex)" 
+                                <button type="button"
+                                        class="remove-btn"
+                                        @onclick="() => RemoveWord(currentIndex)"
                                         title="Видалити">
                                     <i class="bi bi-x-lg"></i>
                                 </button>
@@ -52,33 +123,78 @@
                 Скасувати
             </button>
             <button type="button" class="btn-secondary" @onclick="AddWord">
-                <i class="bi bi-plus-circle"></i> 
+                <i class="bi bi-plus-circle"></i>
                 Додати рядок
             </button>
             <button type="submit" class="btn-create">
-                <i class="bi bi-check-lg"></i> 
+                <i class="bi bi-check-lg"></i>
                 Зберегти
             </button>
         </div>
     </EditForm>
+    </ChildContent>
 </ShortForm>
 
 @code {
+    private const string FieldSettingsStorageKey = "word_short_form_field_settings";
+
     [Parameter] public int CourseId { get; set; }
     [Parameter] public int UnitId { get; set; } = 0;
     [Parameter] public Func<Task>? OnWordsCreated { get; set; }
 
     private ShortForm? shortForm;
     private List<WordModel> Words { get; set; } = new();
+    private WordShortFormFieldSettings FieldSettings { get; set; } = new();
+    private bool showFieldSettings = false;
 
     protected override async Task OnInitializedAsync()
     {
+        FieldSettings = await StorageService.GetAsync<WordShortFormFieldSettings>(FieldSettingsStorageKey)
+            ?? new WordShortFormFieldSettings();
+
         AddWord();
+    }
+
+    private void ToggleFieldSettings()
+    {
+        showFieldSettings = !showFieldSettings;
+    }
+
+    private async Task UpdateFieldSetting(Action<bool> setter, ChangeEventArgs e)
+    {
+        setter(e.Value is bool value && value);
+        await StorageService.SetAsync(FieldSettingsStorageKey, FieldSettings);
+    }
+
+    private string? GetExampleSentence(WordModel word) => word.Examples?.FirstOrDefault()?.Sentence;
+
+    private void SetExampleSentence(WordModel word, string? value)
+    {
+        EnsureExample(word);
+        word.Examples![0].Sentence = value ?? string.Empty;
+    }
+
+    private string? GetExampleTranslation(WordModel word) => word.Examples?.FirstOrDefault()?.Translation;
+
+    private void SetExampleTranslation(WordModel word, string? value)
+    {
+        EnsureExample(word);
+        word.Examples![0].Translation = value;
+    }
+
+    private void EnsureExample(WordModel word)
+    {
+        word.Examples ??= new List<ExampleModel>();
+        if (word.Examples.Count == 0)
+        {
+            word.Examples.Add(new ExampleModel());
+        }
     }
 
     private void ResetForm()
     {
         Words.Clear();
+        showFieldSettings = false;
         AddWord();
     }
 
@@ -86,13 +202,6 @@
     {
         shortForm?.Close();
         ResetForm();
-    }
-
-    private bool HasAnyInput()
-    {
-        return Words.Any(w => !string.IsNullOrWhiteSpace(w.Word) ||
-                             !string.IsNullOrWhiteSpace(w.Transcription) ||
-                             !string.IsNullOrWhiteSpace(w.Translation));
     }
 
     private void AddWord()
@@ -125,6 +234,7 @@
 
             foreach (var word in validWords)
             {
+                word.Examples = word.Examples?.Where(ex => !string.IsNullOrWhiteSpace(ex.Sentence)).ToList();
                 await WordService.CreateAsync(word);
             }
 
@@ -155,10 +265,6 @@
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
-        flex: 1;
-        overflow-y: auto;
-        max-height: 400px;
-        padding-right: 0.5rem;
     }
 
     .word-row {
@@ -187,7 +293,7 @@
 
     .word-inputs {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 1rem;
         flex: 1;
     }
@@ -287,23 +393,45 @@
         transform: translateY(0);
     }
 
-/* Scrollbar styling */
-    .words-list::-webkit-scrollbar {
-        width: 6px;
+    .field-settings-wrapper {
+        position: relative;
     }
 
-    .words-list::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 3px;
+    .field-settings-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 0.5rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        min-width: 220px;
+        padding: 0.75rem;
+        z-index: 100;
     }
 
-    .words-list::-webkit-scrollbar-thumb {
-        background: #A3BFFA;
-        border-radius: 3px;
+    .field-settings-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
     }
 
-    .words-list::-webkit-scrollbar-thumb:hover {
-        background: #8FA9E8;
+    .field-settings-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0;
+        cursor: pointer;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+    }
+
+    .field-settings-item input[type="checkbox"] {
+        cursor: pointer;
     }
 
     @@media (max-width: 1024px) {

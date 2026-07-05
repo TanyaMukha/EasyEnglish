@@ -16,7 +16,7 @@ public class WordRepository : BaseRepository<WordEntity, EasyEnglishDbContext>, 
     {
     }
 
-    public async Task<(int? PreviousId, int? NextId)> GetNavigationIdsAsync(int unitId, int currentWordId)
+    public async Task<(int? PreviousId, int? NextId, int Position, int Total)> GetNavigationIdsAsync(int unitId, int currentWordId)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();
 
@@ -28,12 +28,17 @@ public class WordRepository : BaseRepository<WordEntity, EasyEnglishDbContext>, 
 
         var currentIndex = wordIds.IndexOf(currentWordId);
         if (currentIndex == -1)
-            return (null, null);
+            return (null, null, 0, wordIds.Count);
 
-        var previousId = currentIndex > 0 ? wordIds[currentIndex - 1] : (int?)null;
-        var nextId = currentIndex < wordIds.Count - 1 ? wordIds[currentIndex + 1] : (int?)null;
+        // Циклічна навігація: з останнього слова - на перше, з першого - на останнє.
+        var previousId = wordIds.Count > 1
+            ? wordIds[(currentIndex - 1 + wordIds.Count) % wordIds.Count]
+            : (int?)null;
+        var nextId = wordIds.Count > 1
+            ? wordIds[(currentIndex + 1) % wordIds.Count]
+            : (int?)null;
 
-        return (previousId, nextId);
+        return (previousId, nextId, currentIndex + 1, wordIds.Count);
     }
 
     public async Task<List<WordEntity>> GetNextWordsAsync(int count)

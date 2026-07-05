@@ -8,10 +8,52 @@
     <div class="header-section">
         <Breadcrumb Items="breadcrumbs" />
 
-        <h1 class="page-title">
-            <i class="bi @(IsEditMode ? "bi-pencil" : "bi-plus-circle")"></i>
-            @(IsEditMode ? "Edit" : "Create") Word
-        </h1>
+        <div class="title-section">
+            <h1 class="page-title">
+                <i class="bi @(IsEditMode ? "bi-pencil" : "bi-plus-circle")"></i>
+                @(IsEditMode ? "Edit" : "Create") Word
+            </h1>
+
+            @if (IsEditMode)
+            {
+                <div class="navigation-section">
+                    <div class="navigation-buttons">
+                        @if (PreviousWordId.HasValue)
+                        {
+                            <a href="/courses/@CourseId/units/@UnitId/words/@PreviousWordId/edit"
+                               class="btn-nav"
+                               title="Previous word">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <button class="btn-nav" disabled>
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                        }
+                        @if (NextWordId.HasValue)
+                        {
+                            <a href="/courses/@CourseId/units/@UnitId/words/@NextWordId/edit"
+                               class="btn-nav"
+                               title="Next word">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <button class="btn-nav" disabled>
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        }
+                    </div>
+                    @if (Total > 0)
+                    {
+                        <span class="navigation-position">@Position / @Total</span>
+                    }
+                </div>
+            }
+        </div>
     </div>
 
     <div class="form-container">
@@ -130,6 +172,11 @@
 
     public List<UnitModel> Units { get; set; } = new();
 
+    public int? PreviousWordId { get; set; }
+    public int? NextWordId { get; set; }
+    public int Position { get; set; }
+    public int Total { get; set; }
+
     private bool IsEditMode => WordId > 0;
 
     private bool HasExistingAudio => Word.Pronunciation?.Length > 0;
@@ -138,18 +185,37 @@
 
     private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
 
-    protected override async Task OnInitializedAsync()
+    private int _loadedWordId = -1;
+
+    protected override async Task OnParametersSetAsync()
     {
+        // Перезавантажуємо дані тільки якщо WordId змінився (перехід між формами редагування)
+        if (_loadedWordId == WordId)
+            return;
+
+        _loadedWordId = WordId;
+        AudioUploadMessage = null;
+
         if (IsEditMode)
         {
             // Loading existeding course item for editing
             Word = await WordService.GetByIdAsync(WordId, WordIncludes.Full)
                 ?? new WordModel();
             BrowserConsole.LogInfoAsync($"✅ Word : {JsonSerializer.Serialize(Word)}");
+
+            var navigationIds = await WordService.GetNavigationIdsAsync(UnitId, WordId);
+            PreviousWordId = navigationIds.PreviousId;
+            NextWordId = navigationIds.NextId;
+            Position = navigationIds.Position;
+            Total = navigationIds.Total;
         }
         else
         {
             Word = new WordModel();
+            PreviousWordId = null;
+            NextWordId = null;
+            Position = 0;
+            Total = 0;
         }
         Units = (await UnitService.GetAllAsync()).ToList();
 
@@ -248,15 +314,31 @@
 
     private async Task PlayAudio()
     {
-        if (Word.Pronunciation is { Length: > 0 })
+        try
         {
-            await AudioService.PlayAsync(Word.Pronunciation);
+            if (Word.Pronunciation is { Length: > 0 })
+            {
+                await AudioService.PlayAsync(Word.Pronunciation);
+            }
+        }
+        catch (Exception ex)
+        {
+            AudioUploadMessage = $"Error playing audio: {ex.Message}";
+            BrowserConsole.LogErrorAsync("Failed to play pronunciation audio", ex);
         }
     }
 
     private void RemoveAudio()
     {
-        AudioService.Stop();
+        try
+        {
+            AudioService.Stop();
+        }
+        catch (Exception ex)
+        {
+            BrowserConsole.LogErrorAsync("Failed to stop audio playback", ex);
+        }
+
         Word.Pronunciation = null;
         AudioUploadMessage = "Audio file removed";
     }
@@ -270,6 +352,52 @@
 
 
 <style>
+
+.navigation-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .navigation-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .navigation-position {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-weight: 600;
+    }
+
+    .btn-nav {
+        background: var(--surface);
+        border: 1px solid var(--border-muted);
+        border-radius: 8px;
+        padding: 0.5rem 0.75rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        min-width: 40px;
+    }
+
+    .btn-nav:not(:disabled):hover {
+        background: var(--surface-alt);
+        border-color: var(--accent);
+        color: var(--accent);
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-nav:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
 
 .remove-btn {
         background: transparent;

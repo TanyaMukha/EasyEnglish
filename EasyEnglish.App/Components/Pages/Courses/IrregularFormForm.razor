@@ -363,41 +363,59 @@
 
     private async Task PlayAudio(int formNumber)
     {
-        // Implement audio playback - you might need JS interop
-        // SetAudioMessage(formNumber, "Audio playback functionality not implemented yet");
-        switch (formNumber)
+        try
         {
-            case 1:
-                await AudioService.PlayAsync(IrregularForm.FirstFormPronunciation);
-                break;
-            case 2:
-                await AudioService.PlayAsync(IrregularForm.SecondFormPronunciation);
-                break;
-            case 3:
-                await AudioService.PlayAsync(IrregularForm.ThirdFormPronunciation);
-                break;
+            switch (formNumber)
+            {
+                case 1:
+                    await AudioService.PlayAsync(IrregularForm.FirstFormPronunciation);
+                    break;
+                case 2:
+                    await AudioService.PlayAsync(IrregularForm.SecondFormPronunciation);
+                    break;
+                case 3:
+                    await AudioService.PlayAsync(IrregularForm.ThirdFormPronunciation);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            SetAudioMessage(formNumber, $"Error playing audio: {ex.Message}");
+            BrowserConsole.LogErrorAsync("Failed to play pronunciation audio", ex);
         }
     }
 
     private void RemoveFirstFormAudio()
     {
-        AudioService.Stop();
+        StopAudioSafely();
         IrregularForm.FirstFormPronunciation = null;
         FirstFormAudioMessage = "Audio file removed";
     }
 
     private void RemoveSecondFormAudio()
     {
-        AudioService.Stop();
+        StopAudioSafely();
         IrregularForm.SecondFormPronunciation = null;
         SecondFormAudioMessage = "Audio file removed";
     }
 
     private void RemoveThirdFormAudio()
     {
-        AudioService.Stop();
+        StopAudioSafely();
         IrregularForm.ThirdFormPronunciation = null;
         ThirdFormAudioMessage = "Audio file removed";
+    }
+
+    private void StopAudioSafely()
+    {
+        try
+        {
+            AudioService.Stop();
+        }
+        catch (Exception ex)
+        {
+            BrowserConsole.LogErrorAsync("Failed to stop audio playback", ex);
+        }
     }
 }
 

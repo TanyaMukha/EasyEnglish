@@ -245,3 +245,15 @@ public class OptionDefinition
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;
 }
+
+/// <summary>
+/// Налаштування видимості полів для швидкої форми додавання слів.
+/// Поле "Слово" завжди відображається і сюди не входить.
+/// </summary>
+public class WordShortFormFieldSettings
+{
+    public bool ShowTranscription { get; set; } = true;
+    public bool ShowTranslation { get; set; } = true;
+    public bool ShowExample { get; set; }
+    public bool ShowExampleTranslation { get; set; }
+}
