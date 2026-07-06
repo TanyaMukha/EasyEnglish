@@ -1,0 +1,61 @@
+@* TestCardQuestionSection.razor - Питання тестової картки: markdown-текст + опційна підказка *@
+@using EasyEnglish.App.Services
+
+<div class="testcard-question-section">
+    @if (!string.IsNullOrWhiteSpace(Text))
+    {
+        <h3 class="testcard-question-text">@((MarkupString)ExampleMarkdownService.RenderMarkdown(Text))</h3>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Hint))
+    {
+        <div class="testcard-hint-block">
+            <div class="testcard-hint-text">
+                <i class="bi bi-lightbulb-fill"></i> @Hint
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Text { get; set; } = "";
+    [Parameter] public string? Hint { get; set; }
+}
+
+<style>
+    .testcard-question-section {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .testcard-question-text {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .testcard-hint-block {
+        margin-top: 0.75rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .testcard-hint-text {
+        background: var(--surface-alt);
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    @@media (max-width: 768px) {
+        .testcard-question-text {
+            font-size: 1.25rem;
+        }
+    }
+</style>

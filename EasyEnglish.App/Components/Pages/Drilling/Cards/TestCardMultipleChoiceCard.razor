@@ -1,7 +1,7 @@
-<QuestionSection Text="@Item.Text" />
+<TestCardQuestionSection Text="@Item.Text" Hint="@Item.Hint" />
 
 <div class="multi-options-grid">
-    @foreach (var option in Item.Choice?.Options ?? Array.Empty<string>())
+    @foreach (var option in _shuffledOptions)
     {
         <label class="multi-option-item @GetOptionClass(option)">
             <input type="checkbox"
@@ -27,6 +27,7 @@
     private TestCardTestModel Item => Context.GetRawItem<TestCardTestModel>();
 
     private readonly HashSet<string> _selected = new();
+    private List<string> _shuffledOptions = new();
     private int _loadedItemId = -1;
 
     protected override void OnParametersSet()
@@ -36,6 +37,9 @@
 
         _loadedItemId = Item.Id;
         _selected.Clear();
+        _shuffledOptions = (Item.Choice?.Options ?? Array.Empty<string>())
+            .OrderBy(_ => Random.Shared.Next())
+            .ToList();
     }
 
     private void ToggleOption(string option, bool isChecked)

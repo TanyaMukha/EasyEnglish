@@ -205,6 +205,7 @@
             .WithLink("Courses", "/courses")
             .WithLink(Card.Unit?.Course?.Title ?? "Course", $"/courses/{CourseId}")
             .WithLink(Card.Unit?.Title ?? "Unit", $"/courses/{CourseId}/units/{UnitId}")
+            .WithLink("Навчальні картки", $"/courses/{CourseId}/units/{UnitId}?tab=study-cards")
             .WithActive(GetTitle())
             .Build();
     }

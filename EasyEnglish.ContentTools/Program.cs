@@ -132,12 +132,12 @@ internal static class EnglishForItB2Unit1
         // ── TestCard: Cloze — один з випадаючим списком, другий повністю на ввід ──
         unit.TestCards.Add(TestCardBuilder.Cloze(
             "The Scrum Master {0} that everyone updates Jira {1}.",
-            ["insists", "by the end of the day"],
+            [["insists"], ["by the end of the day", "by end of day"]],
             [["insists", "expects", "ensures"], []]));
 
         unit.TestCards.Add(TestCardBuilder.Cloze(
             "Please {0} this feature {1} smaller user stories.",
-            ["break down", "into"]));
+            [["break down"], ["into"]]));
 
         // ── TestCard: Matching ──
         unit.TestCards.Add(TestCardBuilder.Matching(
@@ -243,14 +243,14 @@ internal static class EnglishForItB2Unit1TranslationTraps
         unit.TestCards.Add(TestCardBuilder.Cloze(
             "Our servers get {0} during marketing campaigns, while a sprint becomes {1} " +
             "when the team takes on too many tasks during planning.",
-            ["overloaded", "overcommitted"],
+            [["overloaded"], ["overcommitted"]],
             [["overloaded", "overcommitted"], ["overloaded", "overcommitted"]]));
 
         // 9. make sure vs ensure — той самий підступ: однакові варіанти на обидва пропуски,
         //    правильний вибір залежить від регістру речення (розмовне vs офіційний контракт).
         unit.TestCards.Add(TestCardBuilder.Cloze(
             "Run the tests to {0} everything works. In the official contract, the vendor must {1} 99.9% uptime.",
-            ["make sure", "ensure"],
+            [["make sure"], ["ensure"]],
             [["make sure", "ensure"], ["make sure", "ensure"]]));
 
         // 10. Matching на всі три "сумнівні" слова одночасно — найважчий варіант пастки,

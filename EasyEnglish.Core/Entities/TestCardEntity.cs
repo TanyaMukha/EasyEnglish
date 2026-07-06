@@ -22,11 +22,15 @@ public class TestCardEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInfo
     [Column("text")]
     public string Text { get; set; } = string.Empty;      // питання, або cloze-шаблон з {0},{1}...
 
+    [MaxLength(500)]
+    [Column("hint")]
+    public string? Hint { get; set; }
+
     [MaxLength(1000)]
     [Column("options")]
     public string? Options { get; set; }                   // JSON, структура залежить від Kind
 
-    [MaxLength(500)]
+    [MaxLength(1000)]
     [Column("correct_answers")]
     public string? CorrectAnswers { get; set; }             // JSON, структура залежить від Kind
 

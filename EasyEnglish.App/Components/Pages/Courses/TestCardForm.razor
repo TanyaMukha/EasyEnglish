@@ -7,14 +7,56 @@
 @using EasyEnglish.Core.Enums
 @using EasyEnglish.Core.Presets
 
-<div class="page-content">
+<div class="page-content" @key="TestCardId">
     <div class="header-section">
         <Breadcrumb Items="breadcrumbs" />
 
-        <h1 class="page-title">
-            <i class="bi @(IsEditMode ? "bi-pencil" : "bi-plus-circle")"></i>
-            @(IsEditMode ? "Edit" : "Create") Test Card
-        </h1>
+        <div class="title-section">
+            <h1 class="page-title">
+                <i class="bi @(IsEditMode ? "bi-pencil" : "bi-plus-circle")"></i>
+                @(IsEditMode ? "Edit" : "Create") Test Card
+            </h1>
+
+            @if (IsEditMode)
+            {
+                <div class="navigation-section">
+                    <div class="navigation-buttons">
+                        @if (PreviousId.HasValue)
+                        {
+                            <a href="/courses/@CourseId/units/@UnitId/test-cards/@PreviousId/edit"
+                               class="btn-nav"
+                               title="Previous card">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <button class="btn-nav" disabled>
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                        }
+                        @if (NextId.HasValue)
+                        {
+                            <a href="/courses/@CourseId/units/@UnitId/test-cards/@NextId/edit"
+                               class="btn-nav"
+                               title="Next card">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <button class="btn-nav" disabled>
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        }
+                    </div>
+                    @if (Total > 0)
+                    {
+                        <span class="navigation-position">@Position / @Total</span>
+                    }
+                </div>
+            }
+        </div>
     </div>
 
     <div class="form-container">
@@ -46,16 +88,18 @@
 
                 @if (Card.Kind == TestCardKind.Cloze)
                 {
-                    <InputMultilineField Value="@Card.Text"
-                                          ValueChanged="@OnClozeTextChanged"
-                                          Label="Текст із пропусками (використовуйте {0}, {1}, ...)"
-                                          Rows="3" />
+                    <MarkdownEditor Value="@Card.Text"
+                                    ValueChanged="@OnClozeTextChanged"
+                                    Label="Текст із пропусками (використовуйте {0}, {1}, ...)"
+                                    Rows="4" />
                     <small class="text-muted">Наприклад: I {0} to school {1}.</small>
                 }
                 else
                 {
-                    <InputMultilineField @bind-Value="Card.Text" Label="Текст питання" Rows="2" />
+                    <MarkdownEditor Value="@Card.Text" ValueChanged="@(v => Card.Text = v ?? "")" Label="Текст питання" Rows="4" />
                 }
+
+                <InputTextField @bind-Value="Card.Hint" Label="Підказка (необов'язково)" />
             </div>
 
             @if (Card.Kind is TestCardKind.SingleChoice or TestCardKind.MultipleChoice)
@@ -157,7 +201,29 @@
                         var blank = _clozeBlanks[index];
                         <div class="cloze-blank-row">
                             <span class="cloze-blank-label">Пропуск @(index + 1)</span>
-                            <InputTextField Value="@blank.CorrectAnswer" ValueChanged="@(v => blank.CorrectAnswer = v ?? "")" Label="Правильна відповідь" />
+
+                            @for (var j = 0; j < blank.CorrectAnswers.Count; j++)
+                            {
+                                var answerIndex = j;
+                                <div class="row align-items-center">
+                                    <div class="col">
+                                        <InputTextField Value="@blank.CorrectAnswers[answerIndex]"
+                                                        ValueChanged="@(v => blank.CorrectAnswers[answerIndex] = v ?? "")"
+                                                        Label="@($"Правильна відповідь {answerIndex + 1}")" />
+                                    </div>
+                                    @if (blank.CorrectAnswers.Count > 1)
+                                    {
+                                        <div class="col-auto">
+                                            <button type="button" class="remove-btn" @onclick="() => blank.CorrectAnswers.RemoveAt(answerIndex)" title="Видалити">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            <button type="button" class="btn-add-row" @onclick="@(() => blank.CorrectAnswers.Add(""))">
+                                <i class="bi bi-plus-circle"></i> Додати ще один правильний варіант
+                            </button>
 
                             <label class="checkbox-inline">
                                 <input type="checkbox"
@@ -213,7 +279,7 @@
             }
 
             <div class="form-actions">
-                <a href="@($"/courses/{CourseId}/units/{UnitId}")" class="btn-cancel">
+                <a href="@GetCancelUrl()" class="btn-cancel">
                     <i class="bi bi-x-lg"></i>
                     Скасувати
                 </a>
@@ -235,7 +301,13 @@
 
     private bool IsEditMode => TestCardId > 0;
 
+    private int? PreviousId { get; set; }
+    private int? NextId { get; set; }
+    private int Position { get; set; }
+    private int Total { get; set; }
+
     private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
+    private int _loadedCardId = -1;
 
     private List<OptionRow> _choiceOptions = new();
     private List<string> _shortAnswers = new();
@@ -250,7 +322,7 @@
 
     private class ClozeBlankRow
     {
-        public string CorrectAnswer { get; set; } = "";
+        public List<string> CorrectAnswers { get; set; } = new() { "" };
         public bool UseOptions { get; set; }
         public List<string> Options { get; set; } = new();
     }
@@ -261,15 +333,30 @@
         public string Right { get; set; } = "";
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
+        if (_loadedCardId == TestCardId)
+            return;
+
+        _loadedCardId = TestCardId;
+
         if (IsEditMode)
         {
             Card = await TestCardService.GetByIdAsync(TestCardId, TestCardIncludes.Full) ?? new TestCardModel();
+
+            var navigationIds = await TestCardService.GetNavigationIdsAsync(UnitId, TestCardId);
+            PreviousId = navigationIds.PreviousId;
+            NextId = navigationIds.NextId;
+            Position = navigationIds.Position;
+            Total = navigationIds.Total;
         }
         else
         {
             Card = new TestCardModel { UnitId = UnitId, Kind = TestCardKind.SingleChoice };
+            PreviousId = null;
+            NextId = null;
+            Position = 0;
+            Total = 0;
         }
 
         InitializeKindState();
@@ -278,9 +365,14 @@
             .WithLink("Courses", "/courses")
             .WithLink(Card.Unit?.Course?.Title ?? "Course", $"/courses/{CourseId}")
             .WithLink(Card.Unit?.Title ?? "Unit", $"/courses/{CourseId}/units/{UnitId}")
+            .WithLink("Тестові картки", $"/courses/{CourseId}/units/{UnitId}?tab=test-cards")
             .WithActive(IsEditMode ? "Edit" : "Create")
             .Build();
     }
+
+    private string GetCancelUrl() => IsEditMode
+        ? $"/courses/{CourseId}/units/{UnitId}/test-cards/{TestCardId}"
+        : $"/courses/{CourseId}/units/{UnitId}?tab=test-cards";
 
     private void InitializeKindState()
     {
@@ -293,10 +385,15 @@
             : new List<string> { "" };
 
         _clozeBlanks = Card.Cloze?.CorrectAnswers.Length > 0
-            ? Card.Cloze.CorrectAnswers.Select((answer, i) =>
+            ? Card.Cloze.CorrectAnswers.Select((answers, i) =>
                 {
                     var options = Card.Cloze.Options is { Length: > 0 } opts && i < opts.Length ? opts[i] : Array.Empty<string>();
-                    return new ClozeBlankRow { CorrectAnswer = answer, UseOptions = options.Length > 0, Options = options.ToList() };
+                    return new ClozeBlankRow
+                    {
+                        CorrectAnswers = answers.Length > 0 ? answers.ToList() : new List<string> { "" },
+                        UseOptions = options.Length > 0,
+                        Options = options.ToList()
+                    };
                 }).ToList()
             : new List<ClozeBlankRow>();
         RecalculateClozeBlanks();
@@ -370,7 +467,9 @@
             case TestCardKind.Cloze:
                 Card.Cloze = new ClozePayload
                 {
-                    CorrectAnswers = _clozeBlanks.Select(b => b.CorrectAnswer).ToArray(),
+                    CorrectAnswers = _clozeBlanks
+                        .Select(b => b.CorrectAnswers.Where(a => !string.IsNullOrWhiteSpace(a)).ToArray())
+                        .ToArray(),
                     Options = _clozeBlanks.Any(b => b.UseOptions && b.Options.Count > 0)
                         ? _clozeBlanks.Select(b => b.UseOptions ? b.Options.ToArray() : Array.Empty<string>()).ToArray()
                         : null

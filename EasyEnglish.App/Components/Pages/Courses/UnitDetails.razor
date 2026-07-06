@@ -179,6 +179,15 @@
                     else if (activeTab == "study-cards")
                     {
                         <div class="tab-panel">
+                            @if (!isLoading && Unit.StudyCards != null && Unit.StudyCards.Any())
+                            {
+                                <div class="tab-toolbar-top">
+                                    <a href="/courses/@CourseId/units/@Unit.Id/study-cards/practice" class="btn-cancel">
+                                        <i class="bi bi-play-fill"></i>
+                                        Практикувати
+                                    </a>
+                                </div>
+                            }
                             @if (isLoading)
                             {
                                 <div class="loading-container">
@@ -227,6 +236,15 @@
                     else if (activeTab == "test-cards")
                     {
                         <div class="tab-panel">
+                            @if (!isLoading && Unit.TestCards != null && Unit.TestCards.Any())
+                            {
+                                <div class="tab-toolbar-top">
+                                    <a href="/courses/@CourseId/units/@Unit.Id/test-cards/practice" class="btn-cancel">
+                                        <i class="bi bi-play-fill"></i>
+                                        Практикувати
+                                    </a>
+                                </div>
+                            }
                             @if (isLoading)
                             {
                                 <div class="loading-container">
@@ -301,6 +319,7 @@
 @code {
     [Parameter] public int CourseId { get; set; }
     [Parameter] public int UnitId { get; set; }
+    [Parameter, SupplyParameterFromQuery(Name = "tab")] public string? TabQuery { get; set; }
 
     private UnitModel Unit { get; set; } = new();
     private List<OptionDefinition> AvailableUnits { get; set; } = new();
@@ -333,6 +352,11 @@
             .Build();
 
         InitializeTabs();
+
+        if (!string.IsNullOrEmpty(TabQuery) && availableTabs.Any(t => t.Key == TabQuery))
+        {
+            activeTab = TabQuery;
+        }
     }
 
     private List<TabInfo> GetAllPossibleTabs()
@@ -894,6 +918,12 @@
 
 .create-section {
         margin-top: 2rem;
+    }
+
+    .tab-toolbar-top {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 1.5rem;
     }
 
     /* Responsive */

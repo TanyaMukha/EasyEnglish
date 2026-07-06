@@ -14,6 +14,8 @@ public class TestCardModel : AbstractModel, IReviewInfo, IRateInfo, IAuditInfo
 
     public string Text { get; set; } = string.Empty;
 
+    public string? Hint { get; set; }
+
     // Заповнюється мапером за Kind — не-null рівно одна з чотирьох властивостей.
     public ChoicePayload? Choice { get; set; }
 

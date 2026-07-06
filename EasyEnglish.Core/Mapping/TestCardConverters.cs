@@ -30,6 +30,7 @@ public class TestCardEntityToModelConverter : ITypeConverter<TestCardEntity, Tes
         destination.Kind = source.Kind;
         destination.Title = source.Title;
         destination.Text = source.Text;
+        destination.Hint = source.Hint;
         destination.LastReviewDate = source.LastReviewDate;
         destination.ReviewCount = source.ReviewCount;
         destination.Rate = source.Rate;
@@ -64,7 +65,9 @@ public class TestCardEntityToModelConverter : ITypeConverter<TestCardEntity, Tes
             case TestCardKind.Cloze:
                 destination.Cloze = new ClozePayload
                 {
-                    CorrectAnswers = ParseStringArray(source.CorrectAnswers),
+                    CorrectAnswers = string.IsNullOrEmpty(source.CorrectAnswers)
+                        ? []
+                        : JsonSerializer.Deserialize<string[][]>(source.CorrectAnswers) ?? [],
                     Options = string.IsNullOrEmpty(source.Options)
                         ? null
                         : JsonSerializer.Deserialize<string[][]>(source.Options)
@@ -108,6 +111,7 @@ public class TestCardModelToEntityConverter : ITypeConverter<TestCardModel, Test
         destination.Kind = source.Kind;
         destination.Title = source.Title;
         destination.Text = source.Text;
+        destination.Hint = source.Hint;
         destination.LastReviewDate = source.LastReviewDate;
         destination.ReviewCount = source.ReviewCount;
         destination.Rate = source.Rate;

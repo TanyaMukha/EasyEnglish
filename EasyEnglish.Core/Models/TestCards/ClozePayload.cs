@@ -7,8 +7,12 @@ namespace EasyEnglish.Core.Models;
 /// </summary>
 public class ClozePayload
 {
-    /// <summary>По одній відповіді на кожен "{i}" у Text, індекс = i.</summary>
-    public string[] CorrectAnswers { get; set; } = [];
+    /// <summary>
+    /// По одному масиву прийнятних відповідей на кожен "{i}" у Text, індекс = i.
+    /// Кілька елементів на позиції i — будь-який з них зараховується як правильний
+    /// (актуально і для поля вводу, і для випадаючого списку).
+    /// </summary>
+    public string[][] CorrectAnswers { get; set; } = [];
 
     /// <summary>
     /// null або відсутність елемента на позиції i — поле вводу для цього "{i}".

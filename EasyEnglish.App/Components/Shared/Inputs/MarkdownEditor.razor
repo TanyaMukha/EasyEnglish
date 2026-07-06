@@ -30,8 +30,8 @@
                 <div class="editor-pane">
                     <textarea @ref="textareaRef"
                               class="editor-textarea"
-                              @bind="Value"
-                              @bind:event="oninput"
+                              value="@Value"
+                              @oninput="OnInput"
                               @onselectionchange="UpdateSelection"
                               placeholder="@Placeholder"
                               rows="@Rows"></textarea>
@@ -79,6 +79,12 @@
     private bool showPreview = false;
     private int selectionStart = 0;
     private int selectionEnd = 0;
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        Value = e.Value?.ToString() ?? "";
+        await ValueChanged.InvokeAsync(Value);
+    }
 
     private async Task InsertFormat(string before, string after)
     {

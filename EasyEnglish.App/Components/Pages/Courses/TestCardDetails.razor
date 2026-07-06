@@ -69,6 +69,17 @@
             </div>
         }
 
+        @if (!string.IsNullOrWhiteSpace(Card.Hint))
+        {
+            <div class="info-card">
+                <div class="card-icon"><i class="bi bi-lightbulb"></i></div>
+                <div class="card-content">
+                    <h3 class="card-title">Підказка</h3>
+                    <SelectableText><p class="card-text">@Card.Hint</p></SelectableText>
+                </div>
+            </div>
+        }
+
         @if (Card.Kind is TestCardKind.SingleChoice or TestCardKind.MultipleChoice && Card.Choice is not null)
         {
             <div class="info-card">
@@ -111,7 +122,7 @@
                     <div class="card-icon"><i class="bi bi-input-cursor-text"></i></div>
                     <div class="card-content">
                         <h3 class="card-title">Пропуск @(index + 1)</h3>
-                        <p class="card-text">Відповідь: @Card.Cloze.CorrectAnswers[index]</p>
+                        <p class="card-text">Відповідь: @string.Join(" / ", Card.Cloze.CorrectAnswers[index])</p>
                         <p class="card-text">@GetClozeBlankModeLabel(index)</p>
                     </div>
                 </div>
@@ -205,6 +216,7 @@
             .WithLink("Courses", "/courses")
             .WithLink(Card.Unit?.Course?.Title ?? "Course", $"/courses/{CourseId}")
             .WithLink(Card.Unit?.Title ?? "Unit", $"/courses/{CourseId}/units/{UnitId}")
+            .WithLink("Тестові картки", $"/courses/{CourseId}/units/{UnitId}?tab=test-cards")
             .WithActive(GetTitle())
             .Build();
     }
@@ -228,7 +240,10 @@
 
         try
         {
-            return string.Format(Card.Text, (object[])Card.Cloze.CorrectAnswers);
+            var firstAnswers = Card.Cloze.CorrectAnswers
+                .Select(answers => (object)(answers.FirstOrDefault() ?? ""))
+                .ToArray();
+            return string.Format(Card.Text, firstAnswers);
         }
         catch (FormatException)
         {

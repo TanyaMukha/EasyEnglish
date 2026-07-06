@@ -1,5 +1,7 @@
 @using System.Text.RegularExpressions
 
+<TestCardQuestionSection Text="" Hint="@Item.Hint" />
+
 <div class="cloze-sentence">
     @foreach (var segment in _segments)
     {
@@ -13,7 +15,7 @@
                             disabled="@Context.State.IsAnswerSubmitted"
                             @onchange="@(e => SetAnswer(index, e.Value?.ToString() ?? ""))">
                         <option value="">...</option>
-                        @foreach (var opt in Item.Cloze!.Options![index])
+                        @foreach (var opt in _shuffledOptions.GetValueOrDefault(index, new()))
                         {
                             <option value="@opt" selected="@(_answers.GetValueOrDefault(index) == opt)">@opt</option>
                         }
@@ -31,7 +33,7 @@
                 @if (Context.State.IsAnswerSubmitted)
                 {
                     <span class="cloze-feedback @(IsBlankCorrect(index) ? "correct" : "incorrect")">
-                        @(IsBlankCorrect(index) ? "✓" : $"✗ ({GetCorrectAnswer(index)})")
+                        @(IsBlankCorrect(index) ? "✓" : $"✗ ({string.Join(" / ", GetCorrectAnswers(index))})")
                     </span>
                 }
             </span>
@@ -62,6 +64,7 @@
 
     private List<Segment> _segments = new();
     private readonly Dictionary<int, string> _answers = new();
+    private readonly Dictionary<int, List<string>> _shuffledOptions = new();
     private int _loadedItemId = -1;
 
     protected override void OnParametersSet()
@@ -72,6 +75,13 @@
         _loadedItemId = Item.Id;
         _answers.Clear();
         _segments = ParseTemplate(Item.Text);
+
+        _shuffledOptions.Clear();
+        if (Item.Cloze?.Options is { } opts)
+        {
+            for (var i = 0; i < opts.Length; i++)
+                _shuffledOptions[i] = opts[i].OrderBy(_ => Random.Shared.Next()).ToList();
+        }
     }
 
     private static List<Segment> ParseTemplate(string text)
@@ -99,12 +109,12 @@
 
     private void SetAnswer(int index, string value) => _answers[index] = value;
 
-    private string GetCorrectAnswer(int index) =>
-        Item.Cloze?.CorrectAnswers.ElementAtOrDefault(index) ?? "";
+    private string[] GetCorrectAnswers(int index) =>
+        Item.Cloze?.CorrectAnswers.ElementAtOrDefault(index) ?? [];
 
     private bool IsBlankCorrect(int index) =>
         _answers.TryGetValue(index, out var answer) &&
-        string.Equals(answer.Trim(), GetCorrectAnswer(index).Trim(), StringComparison.OrdinalIgnoreCase);
+        GetCorrectAnswers(index).Any(correct => string.Equals(answer.Trim(), correct.Trim(), StringComparison.OrdinalIgnoreCase));
 
     private async Task Submit()
     {
@@ -131,13 +141,26 @@
 
     .cloze-select,
     .cloze-input {
+        box-sizing: border-box;
+        height: 2.5rem;
         font-size: 1.1rem;
+        line-height: 1.4;
         padding: 0.25rem 0.6rem;
         border: 2px solid var(--border-muted);
         border-radius: 6px;
-        background: var(--surface);
+        background-color: var(--surface);
         color: var(--text-primary);
         min-width: 100px;
+    }
+
+    .cloze-select {
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.6rem center;
+        padding-right: 1.8rem;
+        cursor: pointer;
     }
 
     .cloze-select:focus,

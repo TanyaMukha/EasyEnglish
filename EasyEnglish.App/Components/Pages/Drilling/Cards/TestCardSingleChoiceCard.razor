@@ -1,7 +1,7 @@
-<QuestionSection Text="@Item.Text" />
+<TestCardQuestionSection Text="@Item.Text" Hint="@Item.Hint" />
 
 <AnswerOptionSection
-    AnswerOptions="@(Item.Choice?.Options.ToList() ?? new())"
+    AnswerOptions="@_shuffledOptions"
     IsAnswerSubmitted="@Context.State.IsAnswerSubmitted"
     CorrectAnswer="@(Item.Choice?.CorrectAnswers.FirstOrDefault() ?? "")"
     OnAnswerSelected="@Context.Callbacks.OnCheckAnswer" />
@@ -11,4 +11,18 @@
     public TestCardContext Context { get; set; } = null!;
 
     private TestCardTestModel Item => Context.GetRawItem<TestCardTestModel>();
+
+    private List<string> _shuffledOptions = new();
+    private int _loadedItemId = -1;
+
+    protected override void OnParametersSet()
+    {
+        if (_loadedItemId == Item.Id)
+            return;
+
+        _loadedItemId = Item.Id;
+        _shuffledOptions = (Item.Choice?.Options ?? Array.Empty<string>())
+            .OrderBy(_ => Random.Shared.Next())
+            .ToList();
+    }
 }

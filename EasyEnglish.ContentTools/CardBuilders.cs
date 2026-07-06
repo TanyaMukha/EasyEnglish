@@ -10,44 +10,50 @@ namespace EasyEnglish.ContentTools;
 /// </summary>
 public static class TestCardBuilder
 {
-    public static TestCardModel ShortAnswer(string text, params string[] acceptableAnswers) => new()
+    public static TestCardModel ShortAnswer(string text, string[] acceptableAnswers, string? hint = null) => new()
     {
         Kind = TestCardKind.ShortAnswer,
         Text = text,
+        Hint = hint,
         ShortAnswer = new ShortAnswerPayload { AcceptableAnswers = acceptableAnswers }
     };
 
-    public static TestCardModel SingleChoice(string text, string[] options, string correctAnswer) => new()
+    public static TestCardModel SingleChoice(string text, string[] options, string correctAnswer, string? hint = null) => new()
     {
         Kind = TestCardKind.SingleChoice,
         Text = text,
+        Hint = hint,
         Choice = new ChoicePayload { Options = options, CorrectAnswers = [correctAnswer] }
     };
 
-    public static TestCardModel MultipleChoice(string text, string[] options, string[] correctAnswers) => new()
+    public static TestCardModel MultipleChoice(string text, string[] options, string[] correctAnswers, string? hint = null) => new()
     {
         Kind = TestCardKind.MultipleChoice,
         Text = text,
+        Hint = hint,
         Choice = new ChoicePayload { Options = options, CorrectAnswers = correctAnswers }
     };
 
     /// <summary>
-    /// template містить {0},{1}... — по одній відповіді на кожен. options — опційний
-    /// масив варіантів на кожен пропуск (null або порожній підмасив = поле вводу для цього {i}).
+    /// template містить {0},{1}... — по масиву прийнятних відповідей на кожен (кілька
+    /// синонімів на позицію i дозволені). options — опційний масив варіантів на кожен
+    /// пропуск (null або порожній підмасив = поле вводу для цього {i}).
     /// </summary>
-    public static TestCardModel Cloze(string template, string[] correctAnswers, string[][]? options = null, string? title = null) => new()
+    public static TestCardModel Cloze(string template, string[][] correctAnswers, string[][]? options = null, string? title = null, string? hint = null) => new()
     {
         Title = title,
         Kind = TestCardKind.Cloze,
         Text = template,
+        Hint = hint,
         Cloze = new ClozePayload { CorrectAnswers = correctAnswers, Options = options }
     };
 
     /// <summary>Left[i] завжди пасує до Right[i] — порядок рядків і є відповідністю.</summary>
-    public static TestCardModel Matching(string text, string[] left, string[] right) => new()
+    public static TestCardModel Matching(string text, string[] left, string[] right, string? hint = null) => new()
     {
         Kind = TestCardKind.Matching,
         Text = text,
+        Hint = hint,
         Matching = new MatchingPayload
         {
             Left = left,

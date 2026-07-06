@@ -6,14 +6,56 @@
 @using EasyEnglish.Core.Enums
 @using EasyEnglish.Core.Presets
 
-<div class="page-content">
+<div class="page-content" @key="StudyCardId">
     <div class="header-section">
         <Breadcrumb Items="breadcrumbs" />
 
-        <h1 class="page-title">
-            <i class="bi @(IsEditMode ? "bi-pencil" : "bi-plus-circle")"></i>
-            @(IsEditMode ? "Edit" : "Create") Study Card
-        </h1>
+        <div class="title-section">
+            <h1 class="page-title">
+                <i class="bi @(IsEditMode ? "bi-pencil" : "bi-plus-circle")"></i>
+                @(IsEditMode ? "Edit" : "Create") Study Card
+            </h1>
+
+            @if (IsEditMode)
+            {
+                <div class="navigation-section">
+                    <div class="navigation-buttons">
+                        @if (PreviousId.HasValue)
+                        {
+                            <a href="/courses/@CourseId/units/@UnitId/study-cards/@PreviousId/edit"
+                               class="btn-nav"
+                               title="Previous card">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <button class="btn-nav" disabled>
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                        }
+                        @if (NextId.HasValue)
+                        {
+                            <a href="/courses/@CourseId/units/@UnitId/study-cards/@NextId/edit"
+                               class="btn-nav"
+                               title="Next card">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <button class="btn-nav" disabled>
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        }
+                    </div>
+                    @if (Total > 0)
+                    {
+                        <span class="navigation-position">@Position / @Total</span>
+                    }
+                </div>
+            }
+        </div>
     </div>
 
     <div class="form-container">
@@ -78,7 +120,7 @@
             }
 
             <div class="form-actions">
-                <a href="@($"/courses/{CourseId}/units/{UnitId}")" class="btn-cancel">
+                <a href="@GetCancelUrl()" class="btn-cancel">
                     <i class="bi bi-x-lg"></i>
                     Скасувати
                 </a>
@@ -100,7 +142,13 @@
 
     private bool IsEditMode => StudyCardId > 0;
 
+    private int? PreviousId { get; set; }
+    private int? NextId { get; set; }
+    private int Position { get; set; }
+    private int Total { get; set; }
+
     private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
+    private int _loadedCardId = -1;
 
     private BlurRevealMode RevealModeValue
     {
@@ -108,24 +156,44 @@
         set => Card.RevealMode = value;
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
+        if (_loadedCardId == StudyCardId)
+            return;
+
+        _loadedCardId = StudyCardId;
+
         if (IsEditMode)
         {
             Card = await StudyCardService.GetByIdAsync(StudyCardId, StudyCardIncludes.Full) ?? new StudyCardModel();
+
+            var navigationIds = await StudyCardService.GetNavigationIdsAsync(UnitId, StudyCardId);
+            PreviousId = navigationIds.PreviousId;
+            NextId = navigationIds.NextId;
+            Position = navigationIds.Position;
+            Total = navigationIds.Total;
         }
         else
         {
             Card = new StudyCardModel { UnitId = UnitId, Kind = StudyCardKind.Term };
+            PreviousId = null;
+            NextId = null;
+            Position = 0;
+            Total = 0;
         }
 
         breadcrumbs = BreadcrumbBuilder.Create()
             .WithLink("Courses", "/courses")
             .WithLink(Card.Unit?.Course?.Title ?? "Course", $"/courses/{CourseId}")
             .WithLink(Card.Unit?.Title ?? "Unit", $"/courses/{CourseId}/units/{UnitId}")
+            .WithLink("Навчальні картки", $"/courses/{CourseId}/units/{UnitId}?tab=study-cards")
             .WithActive(IsEditMode ? "Edit" : "Create")
             .Build();
     }
+
+    private string GetCancelUrl() => IsEditMode
+        ? $"/courses/{CourseId}/units/{UnitId}/study-cards/{StudyCardId}"
+        : $"/courses/{CourseId}/units/{UnitId}?tab=study-cards";
 
     private async Task HandleValidSubmit()
     {
