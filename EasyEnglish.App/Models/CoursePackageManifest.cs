@@ -79,4 +79,13 @@ public class UnitManifestEntry
     /// The stem equals <see cref="CourseZipBackupService.SanitizeFileName"/>(word).
     /// </summary>
     public List<string> AudioFiles { get; set; } = [];
+
+    /// <summary>
+    /// Relative paths of test card image files that belong to this unit, informational only
+    /// (import re-derives the path from the card's position, it doesn't read this list back).
+    /// </summary>
+    public List<string> ImageFiles { get; set; } = [];
+
+    /// <summary>Relative path of this unit's Content (HTML material) file, if it had any.</summary>
+    public string? ContentFile { get; set; }
 }

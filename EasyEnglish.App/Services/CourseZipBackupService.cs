@@ -1,4 +1,5 @@
 using AutoMapper;
+using EasyEnglish.App.Services;
 using EasyEnglish.Core.Mapping;
 using EasyEnglish.Core.Models;
 using System.IO.Compression;
@@ -119,6 +120,35 @@ public class CourseZipBackupService
                     foreach (var w in dto.Words)
                         w.Pronunciation = null;
 
+                // Test cards have no stable content-derived key (unlike words), so images are
+                // keyed by position within the unit's TestCards list instead.
+                if (unit.TestCards is not null)
+                {
+                    for (var i = 0; i < unit.TestCards.Count; i++)
+                    {
+                        var image = unit.TestCards[i].Image;
+                        if (image is not { Length: > 0 })
+                            continue;
+
+                        var imagePath = $"images/{unit.RecordGuid}_card{i}.{ImageDataUriHelper.DetectExtension(image)}";
+                        unitEntry.ImageFiles.Add(imagePath);
+                        await WriteEntryAsync(archive, imagePath, image);
+
+                        if (dto.TestCards is not null && i < dto.TestCards.Count)
+                            dto.TestCards[i].Image = null;
+                    }
+                }
+
+                // Unit material (Content) goes into its own file, keyed by the unit's stable GUID
+                // (its Title isn't guaranteed unique).
+                if (!string.IsNullOrEmpty(unit.Content))
+                {
+                    var contentPath = $"content/{unit.RecordGuid}.html";
+                    unitEntry.ContentFile = contentPath;
+                    await WriteEntryAsync(archive, contentPath, Encoding.UTF8.GetBytes(unit.Content));
+                    dto.Content = null;
+                }
+
                 var unitJson = JsonSerializer.Serialize(dto, JsonOpts);
                 await WriteEntryAsync(archive, unitEntry.FileName, Encoding.UTF8.GetBytes(unitJson));
 
@@ -175,6 +205,21 @@ public class CourseZipBackupService
             audioCache[ae.FullName] = buf.ToArray();
         }
 
+        // Pre-cache all test card images, keyed by path without extension (the extension isn't
+        // known ahead of time — it's whatever ImageDataUriHelper detected at export time).
+        var imageCache = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+        foreach (var ie in archive.Entries.Where(e =>
+            e.FullName.StartsWith("images/", StringComparison.OrdinalIgnoreCase)))
+        {
+            var dotIndex = ie.FullName.LastIndexOf('.');
+            var key = dotIndex >= 0 ? ie.FullName[..dotIndex] : ie.FullName;
+
+            await using var s = ie.Open();
+            using var buf      = new MemoryStream();
+            await s.CopyToAsync(buf);
+            imageCache[key] = buf.ToArray();
+        }
+
         var units = new List<(UnitManifestEntry Entry, UnitModel Unit)>();
 
         foreach (var unitEntry in manifest.Units)
@@ -198,6 +243,28 @@ public class CourseZipBackupService
                     if (audioCache.TryGetValue(path, out var bytes))
                         word.Pronunciation = bytes;
                 }
+            }
+
+            // Re-attach test card images. unitEntry.UnitGuid (not the deserialized unit.RecordGuid)
+            // is authoritative — it's always the original GUID, even if the DTO's got regenerated.
+            if (unit.TestCards is not null)
+            {
+                for (var i = 0; i < unit.TestCards.Count; i++)
+                {
+                    var key = $"images/{unitEntry.UnitGuid}_card{i}";
+                    if (imageCache.TryGetValue(key, out var imageBytes))
+                        unit.TestCards[i].Image = imageBytes;
+                }
+            }
+
+            // Re-attach unit content. Absent entry (old archive, or a unit with no material)
+            // leaves whatever the JSON deserialization produced untouched.
+            var contentEntry = archive.GetEntry($"content/{unitEntry.UnitGuid}.html");
+            if (contentEntry is not null)
+            {
+                await using var cs = contentEntry.Open();
+                using var csr      = new StreamReader(cs, Encoding.UTF8);
+                unit.Content = await csr.ReadToEndAsync();
             }
 
             // GUID comes from the manifest (authoritative source).
@@ -247,4 +314,5 @@ public class CourseImportResult
 
     public int TotalWords      => Units.Sum(u => u.Unit.Words?.Count ?? 0);
     public int TotalAudioFiles => Units.Sum(u => u.Entry.AudioFiles.Count);
+    public int TotalImageFiles => Units.Sum(u => u.Entry.ImageFiles.Count);
 }

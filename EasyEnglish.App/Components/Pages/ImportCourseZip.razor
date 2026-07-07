@@ -227,6 +227,13 @@
                                                     @entry.AudioFiles.Count аудіо
                                                 </span>
                                             }
+                                            @if (entry.ImageFiles.Count > 0)
+                                            {
+                                                <span class="badge-image">
+                                                    <i class="bi bi-image"></i>
+                                                    @entry.ImageFiles.Count зображень
+                                                </span>
+                                            }
                                         </span>
                                     </div>
                                     @if (importMode == ImportMode.Update && existingUnitGuids.Contains(entry.UnitGuid))
@@ -511,9 +518,9 @@
             importSuccess = importMode == ImportMode.Update
                 ? $"Курс «{targetCourse.Title}» оновлено: +{added} нових, ↻{updated} оновлених модулів."
                 : importMode == ImportMode.MergeInto
-                    ? $"Додано {added} модулів до курсу «{targetCourse.Title}»: {importResult.TotalWords} слів, {importResult.TotalAudioFiles} аудіофайлів."
+                    ? $"Додано {added} модулів до курсу «{targetCourse.Title}»: {importResult.TotalWords} слів, {importResult.TotalAudioFiles} аудіофайлів, {importResult.TotalImageFiles} зображень."
                     : $"Курс «{targetCourse.Title}» імпортовано: {added} модулів, "
-                      + $"{importResult.TotalWords} слів, {importResult.TotalAudioFiles} аудіофайлів.";
+                      + $"{importResult.TotalWords} слів, {importResult.TotalAudioFiles} аудіофайлів, {importResult.TotalImageFiles} зображень.";
         }
         catch (Exception ex)
         {
@@ -645,7 +652,8 @@
     .unit-item__title { font-weight: 600; color: var(--text-primary); font-size: 0.95rem; }
     .unit-item__meta  { font-size: 0.8rem; color: #888; display: flex; align-items: center; gap: 0.5rem; }
 
-    .badge-audio {
+    .badge-audio,
+    .badge-image {
         display: inline-flex;
         align-items: center;
         gap: 0.25rem;
