@@ -199,9 +199,10 @@ public static class MauiProgram
         services.AddSingleton<IStorageService, LocalStorageService>();
         services.AddSingleton<ProgressService>();
         services.AddSingleton<StreakService>();
-        services.AddSingleton<DailyWordsService>();
         services.AddSingleton<SettingsService>();
         services.AddSingleton<IFileService, FileService>();
+        services.AddSingleton<PracticeQueueService>();
+        services.AddSingleton<StorageMaintenanceService>();
 
         //services.AddScoped<WordLearningService>();
 

@@ -10,11 +10,20 @@ namespace EasyEnglish.Services.Services;
 
 public class ExampleService : BaseService<ExampleEntity, ExampleModel>, IExampleService
 {
+    private readonly IExampleRepository _exampleRepository;
+
     public ExampleService(
         IExampleRepository repository,
         IMapper mapper,
         ILogger<ExampleService> logger)
         : base(repository, mapper, logger)
     {
+        _exampleRepository = repository;
+    }
+
+    public async Task<IEnumerable<ExampleModel>> GetByUnitAsync(int unitId)
+    {
+        var entities = await _exampleRepository.GetByUnitAsync(unitId);
+        return _mapper.Map<IEnumerable<ExampleModel>>(entities);
     }
 }

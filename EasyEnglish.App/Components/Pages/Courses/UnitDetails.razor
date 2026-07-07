@@ -93,6 +93,19 @@
                     @if (activeTab == "words")
                     {
                         <div class="tab-panel">
+                            @if (!isLoading && Unit.Words != null && Unit.Words.Any())
+                            {
+                                <div class="tab-toolbar-top">
+                                    <a href="/courses/@CourseId/units/@Unit.Id/examples/practice" class="btn-cancel">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                        Практикувати приклади
+                                    </a>
+                                    <a href="/courses/@CourseId/units/@Unit.Id/words/practice" class="btn-cancel">
+                                        <i class="bi bi-play-fill"></i>
+                                        Практикувати слова
+                                    </a>
+                                </div>
+                            }
                             @if (isLoading)
                             {
                                 <div class="loading-container">
@@ -136,6 +149,15 @@
                     else if (activeTab == "irregular-forms")
                     {
                         <div class="tab-panel">
+                            @if (!isLoading && Unit.IrregularForms != null && Unit.IrregularForms.Any())
+                            {
+                                <div class="tab-toolbar-top">
+                                    <a href="/courses/@CourseId/units/@Unit.Id/irregular-forms/practice" class="btn-cancel">
+                                        <i class="bi bi-play-fill"></i>
+                                        Практикувати
+                                    </a>
+                                </div>
+                            }
                             @if (isLoading)
                             {
                                 <div class="loading-container">
@@ -923,6 +945,8 @@
     .tab-toolbar-top {
         display: flex;
         justify-content: flex-end;
+        gap: 0.75rem;
+        flex-wrap: wrap;
         margin-bottom: 1.5rem;
     }
 

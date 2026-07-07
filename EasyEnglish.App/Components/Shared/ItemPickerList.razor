@@ -1,0 +1,112 @@
+@namespace EasyEnglish.App.Components.Shared
+@using EasyEnglish.App.Models
+
+<div class="item-picker">
+    <div class="item-picker-header">
+        <InputCheckboxField Label="@SelectAllLabel" Value="@IsAllSelected" ValueChanged="@ToggleAll" />
+        <span class="item-picker-count">@SelectedIds.Count / @Items.Count</span>
+    </div>
+
+    @if (Items.Count == 0)
+    {
+        <p class="item-picker-empty">@EmptyText</p>
+    }
+    else
+    {
+        <div class="item-picker-list">
+            @foreach (var item in Items)
+            {
+                <label class="item-picker-row">
+                    <input type="checkbox"
+                           checked="@SelectedIds.Contains(item.Id)"
+                           @onchange="@(e => ToggleItem(item.Id, (bool)(e.Value ?? false)))" />
+                    <span>@item.Title</span>
+                </label>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public List<OptionDefinition> Items { get; set; } = new();
+    [Parameter] public HashSet<int> SelectedIds { get; set; } = new();
+    [Parameter] public EventCallback<HashSet<int>> SelectedIdsChanged { get; set; }
+    [Parameter] public string SelectAllLabel { get; set; } = "Вибрати всі";
+    [Parameter] public string EmptyText { get; set; } = "Немає елементів для відображення.";
+
+    private bool IsAllSelected => Items.Count > 0 && Items.All(i => SelectedIds.Contains(i.Id));
+
+    private async Task ToggleAll(bool value)
+    {
+        SelectedIds = value ? Items.Select(i => i.Id).ToHashSet() : new HashSet<int>();
+        await SelectedIdsChanged.InvokeAsync(SelectedIds);
+    }
+
+    private async Task ToggleItem(int id, bool isChecked)
+    {
+        if (isChecked)
+            SelectedIds.Add(id);
+        else
+            SelectedIds.Remove(id);
+
+        await SelectedIdsChanged.InvokeAsync(SelectedIds);
+    }
+}
+
+<style>
+    .item-picker {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+    }
+
+    .item-picker-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        border-bottom: 1px solid var(--border-light);
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .item-picker-count {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .item-picker-list {
+        max-height: 320px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .item-picker-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0.25rem;
+        cursor: pointer;
+        border-bottom: 1px solid var(--border-light);
+        font-size: 0.95rem;
+        color: var(--text-primary);
+    }
+
+    .item-picker-row:last-child {
+        border-bottom: none;
+    }
+
+    .item-picker-row:hover {
+        background: var(--surface-alt);
+    }
+
+    .item-picker-empty {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin: 0.5rem 0;
+    }
+</style>

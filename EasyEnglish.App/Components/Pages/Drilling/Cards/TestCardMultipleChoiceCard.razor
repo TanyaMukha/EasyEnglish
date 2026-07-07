@@ -1,4 +1,4 @@
-<TestCardQuestionSection Text="@Item.Text" Hint="@Item.Hint" />
+<TestCardQuestionSection Text="@Item.Question" Hint="@Item.Hint" Image="@Item.Image" FormattedText="@Item.FormattedText" />
 
 <div class="multi-options-grid">
     @foreach (var option in _shuffledOptions)
@@ -19,6 +19,8 @@
         <i class="bi bi-check-lg"></i> Перевірити
     </button>
 }
+
+<TestCardExplanationSection Explanation="@Item.Explanation" IsAnswerSubmitted="@Context.State.IsAnswerSubmitted" IsCorrect="@Context.State.IsCorrect" />
 
 @code {
     [Parameter, EditorRequired]

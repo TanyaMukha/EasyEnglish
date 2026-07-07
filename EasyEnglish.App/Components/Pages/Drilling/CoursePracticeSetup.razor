@@ -1,0 +1,330 @@
+@page "/courses/{CourseId:int}/practice"
+@inject PracticeQueueService PracticeQueueService
+
+<div class="page-content">
+    <PageHeader Title="Практика курсу" />
+
+    @if (isLoading)
+    {
+        <div class="loading-container">
+            <div class="spinner-border" role="status"></div>
+        </div>
+    }
+    else if (types.All(t => t.ExerciseOptions.Count == 0))
+    {
+        <div class="empty-container">
+            <p class="empty-message">У цьому курсі поки немає контенту для практики.</p>
+        </div>
+    }
+    else
+    {
+        <div class="select-all-row">
+            <InputCheckboxField Label="Вибрати всі типи контенту" Value="@IsAllTypesSelected" ValueChanged="@ToggleAllTypes" />
+        </div>
+
+        <div class="type-list">
+            @foreach (var type in types)
+            {
+                <div class="type-block @(type.Enabled ? "enabled" : "")">
+                    <label class="type-header">
+                        <input type="checkbox" checked="@type.Enabled" @onchange="@(e => ToggleType(type, (bool)(e.Value ?? false)))" />
+                        <i class="bi @type.Icon"></i>
+                        <span class="type-title">@type.Title</span>
+                    </label>
+
+                    @if (type.Enabled)
+                    {
+                        <div class="type-body">
+                            <ExerciseTypeGrid Options="@type.ExerciseOptions" @bind-SelectedKeys="type.SelectedTests" />
+
+                            <details class="quick-filter-details" open>
+                                <summary>Налаштування вибірки (кількість / складність)</summary>
+                                <LearningFilterPanel Options="type.FilterOptions" MaxCount="200" ShowApplyButton="false" />
+                            </details>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        @if (CanStart)
+        {
+            <div class="multi-test-section">
+                <div class="multi-test-card">
+                    <div class="multi-test-info">
+                        <h3 class="multi-test-title">
+                            <i class="bi bi-collection"></i>
+                            Готово до старту
+                        </h3>
+                        <p class="multi-test-description">
+                            Обрано типів контенту: <strong>@types.Count(t => t.Enabled && t.SelectedTests.Count > 0)</strong>
+                        </p>
+                    </div>
+                    <button class="btn-multi-test" @onclick="StartPractice" disabled="@isStarting">
+                        <i class="bi bi-play-fill"></i>
+                        @(isStarting ? "Формування..." : "Почати")
+                    </button>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+
+    private bool isLoading = true;
+    private bool isStarting;
+    private List<TypeConfig> types = new();
+
+    private bool IsAllTypesSelected => types.Count > 0 && types.All(t => t.Enabled);
+    private bool CanStart => types.Any(t => t.Enabled && t.SelectedTests.Count > 0);
+
+    private class TypeConfig
+    {
+        public string Key { get; set; } = "";
+        public string Title { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public bool Enabled { get; set; }
+        public List<ExerciseOption> ExerciseOptions { get; set; } = new();
+        public HashSet<string> SelectedTests { get; set; } = new();
+        public LearningSelectionOptions FilterOptions { get; set; } = new();
+        public Func<Task<string?>> ResolveSegmentUrlAsync { get; set; } = () => Task.FromResult<string?>(null);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            var wordsType = new TypeConfig { Key = "words", Title = "Слова", Icon = "bi-card-text", ExerciseOptions = ExerciseCatalog.Words };
+            wordsType.ResolveSegmentUrlAsync = () => ResolveWordBasedSegmentAsync(wordsType, "words");
+
+            var examplesType = new TypeConfig { Key = "examples", Title = "Приклади", Icon = "bi-arrow-repeat", ExerciseOptions = ExerciseCatalog.Examples };
+            examplesType.ResolveSegmentUrlAsync = () => ResolveWordBasedSegmentAsync(examplesType, "examples");
+
+            var irregularFormsType = new TypeConfig { Key = "irregular-forms", Title = "Неправильні форми", Icon = "bi-layers", ExerciseOptions = ExerciseCatalog.IrregularForms };
+            irregularFormsType.ResolveSegmentUrlAsync = () => ResolveIrregularFormsSegmentAsync(irregularFormsType);
+
+            var studyCardsType = new TypeConfig { Key = "study-cards", Title = "Навчальні картки", Icon = "bi-journal-text", ExerciseOptions = BuildFromDefinitions(TestRegistry.StudyCardTests, "blue") };
+            studyCardsType.ResolveSegmentUrlAsync = () => ResolveStudyCardsSegmentAsync(studyCardsType);
+
+            var testCardsType = new TypeConfig { Key = "test-cards", Title = "Тестові картки", Icon = "bi-patch-question", ExerciseOptions = BuildFromDefinitions(TestRegistry.TestCardTests, "orange") };
+            testCardsType.ResolveSegmentUrlAsync = () => ResolveTestCardsSegmentAsync(testCardsType);
+
+            types = new List<TypeConfig> { wordsType, examplesType, irregularFormsType, studyCardsType, testCardsType }
+                .Where(t => t.ExerciseOptions.Count > 0)
+                .ToList();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private static List<ExerciseOption> BuildFromDefinitions<T>(IReadOnlyList<TestDefinition<T>> defs, string color)
+        => defs.Select(d => new ExerciseOption { Key = d.Key, Title = d.Title, Icon = d.IconClass, Color = color }).ToList();
+
+    private void ToggleAllTypes(bool value)
+    {
+        foreach (var type in types)
+            type.Enabled = value;
+    }
+
+    private void ToggleType(TypeConfig type, bool value) => type.Enabled = value;
+
+    private async Task<string?> ResolveWordBasedSegmentAsync(TypeConfig type, string pathSegment)
+    {
+        var words = await WordService.GetForLearningAsync(CourseId, null, type.FilterOptions);
+        var ids = string.Join(",", words.Select(w => w.Id));
+        if (string.IsNullOrEmpty(ids))
+            return null;
+
+        return $"/courses/{CourseId}/{pathSegment}/practice/session?wordIds={ids}&tests={string.Join(",", type.SelectedTests)}";
+    }
+
+    private async Task<string?> ResolveIrregularFormsSegmentAsync(TypeConfig type)
+    {
+        var forms = await IrregularFormService.GetForLearningAsync(CourseId, null, type.FilterOptions);
+        var ids = string.Join(",", forms.Select(f => f.Id));
+        if (string.IsNullOrEmpty(ids))
+            return null;
+
+        return $"/courses/{CourseId}/irregular-forms/practice/session?formIds={ids}&tests={string.Join(",", type.SelectedTests)}";
+    }
+
+    private async Task<string?> ResolveStudyCardsSegmentAsync(TypeConfig type)
+    {
+        var cards = await StudyCardService.GetForLearningAsync(CourseId, null, type.FilterOptions);
+        var ids = string.Join(",", cards.Select(c => c.Id));
+        if (string.IsNullOrEmpty(ids))
+            return null;
+
+        return $"/courses/{CourseId}/study-cards/practice?itemIds={ids}&tests={string.Join(",", type.SelectedTests)}";
+    }
+
+    private async Task<string?> ResolveTestCardsSegmentAsync(TypeConfig type)
+    {
+        var cards = await TestCardService.GetForLearningAsync(CourseId, null, type.FilterOptions);
+        var ids = string.Join(",", cards.Select(c => c.Id));
+        if (string.IsNullOrEmpty(ids))
+            return null;
+
+        return $"/courses/{CourseId}/test-cards/practice?itemIds={ids}&tests={string.Join(",", type.SelectedTests)}";
+    }
+
+    private async Task StartPractice()
+    {
+        isStarting = true;
+        StateHasChanged();
+
+        var segments = new List<string>();
+        foreach (var type in types.Where(t => t.Enabled && t.SelectedTests.Count > 0))
+        {
+            var url = await type.ResolveSegmentUrlAsync();
+            if (url != null)
+                segments.Add(url);
+        }
+
+        if (segments.Count == 0)
+        {
+            isStarting = false;
+            StateHasChanged();
+            return;
+        }
+
+        var firstRoute = PracticeQueueService.Start(segments, $"/courses/{CourseId}");
+        NavigationManager.NavigateTo(firstRoute);
+    }
+}
+
+<style>
+    .page-content { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem; }
+
+    .select-all-row { margin-bottom: 1rem; }
+
+    .loading-container, .empty-container {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+
+    .type-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .type-block {
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        transition: all 0.2s;
+    }
+
+    .type-block.enabled {
+        border-color: #A3BFFA;
+    }
+
+    .type-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .type-header input[type="checkbox"] {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+
+    .type-header i {
+        color: #A3BFFA;
+        font-size: 1.25rem;
+    }
+
+    .type-body {
+        margin-top: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .quick-filter-details {
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 0.75rem 1.25rem;
+    }
+
+    .quick-filter-details summary {
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--text-secondary);
+        padding: 0.5rem 0;
+    }
+
+    .quick-filter-details[open] summary {
+        margin-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .multi-test-section { margin-top: 2rem; }
+
+    .multi-test-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .multi-test-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0 0 0.25rem 0;
+        color: var(--text-primary);
+    }
+
+    .multi-test-description {
+        margin: 0;
+        color: var(--text-secondary);
+    }
+
+    .btn-multi-test {
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.875rem 1.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .btn-multi-test:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(163, 191, 250, 0.35);
+    }
+
+    .btn-multi-test:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+</style>

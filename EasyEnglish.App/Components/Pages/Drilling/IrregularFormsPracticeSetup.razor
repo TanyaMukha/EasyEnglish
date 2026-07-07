@@ -1,0 +1,205 @@
+@page "/courses/{CourseId:int}/units/{UnitId:int}/irregular-forms/practice"
+
+<div class="page-content">
+    <PageHeader Title="Вивчення неправильних форм" />
+
+    @if (isLoading)
+    {
+        <div class="loading-container">
+            <div class="spinner-border" role="status"></div>
+        </div>
+    }
+    else if (formOptions.Count == 0)
+    {
+        <div class="empty-container">
+            <p class="empty-message">У цьому модулі немає неправильних форм для вивчення.</p>
+        </div>
+    }
+    else
+    {
+        <div class="setup-grid">
+            <div class="setup-column">
+                <h2 class="section-title"><i class="bi bi-list-check"></i> Які форми вивчати</h2>
+
+                <ItemPickerList Items="@formOptions"
+                                @bind-SelectedIds="selectedFormIds"
+                                SelectAllLabel="Вибрати всі форми"
+                                EmptyText="У цьому модулі немає неправильних форм." />
+
+                <details class="quick-filter-details">
+                    <summary>Швидкий фільтр (кількість / складність)</summary>
+                    <LearningFilterPanel Options="filterOptions"
+                                         MaxCount="@(Math.Max(formOptions.Count, 20))"
+                                         OnApply="ApplyQuickFilter" />
+                </details>
+            </div>
+
+            <div class="setup-column">
+                <h2 class="section-title"><i class="bi bi-joystick"></i> Типи вправ</h2>
+                <ExerciseTypeGrid Options="@exerciseOptions" @bind-SelectedKeys="selectedTestKeys" />
+            </div>
+        </div>
+
+        @if (selectedFormIds.Count > 0 && selectedTestKeys.Count > 0)
+        {
+            <div class="multi-test-section">
+                <div class="multi-test-card">
+                    <div class="multi-test-info">
+                        <h3 class="multi-test-title">
+                            <i class="bi bi-collection"></i>
+                            Готово до старту
+                        </h3>
+                        <p class="multi-test-description">
+                            Форм: <strong>@selectedFormIds.Count</strong>, вправ: <strong>@selectedTestKeys.Count</strong>
+                        </p>
+                    </div>
+                    <button class="btn-multi-test" @onclick="StartPractice">
+                        <i class="bi bi-play-fill"></i>
+                        Почати
+                    </button>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+    [Parameter] public int UnitId { get; set; }
+
+    private List<OptionDefinition> formOptions = new();
+    private HashSet<int> selectedFormIds = new();
+    private HashSet<string> selectedTestKeys = new();
+    private LearningSelectionOptions filterOptions = new();
+    private bool isLoading = true;
+
+    private readonly List<ExerciseOption> exerciseOptions = ExerciseCatalog.IrregularForms;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+            var allForms = await IrregularFormService.GetForLearningAsync(CourseId, UnitId, new LearningSelectionOptions { WordCount = 0 });
+            formOptions = allForms.Select(f => new OptionDefinition { Id = f.Id, Title = BuildLabel(f) }).ToList();
+            selectedFormIds = formOptions.Select(o => o.Id).ToHashSet();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private static string BuildLabel(IrregularFormModel f)
+        => string.IsNullOrWhiteSpace(f.ThirdForm)
+            ? $"{f.FirstForm} — {f.SecondForm}"
+            : $"{f.FirstForm} — {f.SecondForm} — {f.ThirdForm}";
+
+    private async Task ApplyQuickFilter()
+    {
+        var result = await IrregularFormService.GetForLearningAsync(CourseId, UnitId, filterOptions);
+        selectedFormIds = result.Select(f => f.Id).ToHashSet();
+    }
+
+    private void StartPractice()
+    {
+        var formIds = string.Join(",", selectedFormIds);
+        var tests = string.Join(",", selectedTestKeys);
+        NavigationManager.NavigateTo($"/courses/{CourseId}/units/{UnitId}/irregular-forms/practice/session?formIds={formIds}&tests={tests}");
+    }
+}
+
+<style>
+    .page-content { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
+
+    .setup-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+        gap: 2rem;
+        align-items: start;
+        margin-top: 1.5rem;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 1rem 0;
+    }
+
+    .quick-filter-details {
+        margin-top: 1rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 0.75rem 1.25rem;
+    }
+
+    .quick-filter-details summary {
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--text-secondary);
+        padding: 0.5rem 0;
+    }
+
+    .quick-filter-details[open] summary {
+        margin-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .loading-container, .empty-container {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+
+    .multi-test-section { margin-top: 2rem; }
+
+    .multi-test-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .multi-test-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0 0 0.25rem 0;
+        color: var(--text-primary);
+    }
+
+    .multi-test-description {
+        margin: 0;
+        color: var(--text-secondary);
+    }
+
+    .btn-multi-test {
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.875rem 1.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .btn-multi-test:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(163, 191, 250, 0.35);
+    }
+</style>

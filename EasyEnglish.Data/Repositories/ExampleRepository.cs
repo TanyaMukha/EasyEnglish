@@ -11,4 +11,14 @@ public class ExampleRepository : BaseRepository<ExampleEntity, EasyEnglishDbCont
         : base(contextFactory, userContext)
     {
     }
+
+    public async Task<List<ExampleEntity>> GetByUnitAsync(int unitId)
+    {
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+
+        return await ctx.Examples
+            .AsNoTracking()
+            .Where(e => e.Word!.UnitId == unitId)
+            .ToListAsync();
+    }
 }

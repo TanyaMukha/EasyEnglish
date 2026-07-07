@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 using MukhaLab.Database;
 using EasyEnglish.Core.Interfaces.Fields;
 using EasyEnglish.Core.Enums;
@@ -17,14 +16,31 @@ public class TestCardEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInfo
     [Column("title")]
     public string? Title { get; set; }
 
-    [NotNull]
+    /// <summary>Optional short task/question text.</summary>
     [MaxLength(2000)]
     [Column("text")]
-    public string Text { get; set; } = string.Empty;      // питання, або cloze-шаблон з {0},{1}...
+    public string? Question { get; set; }
 
     [MaxLength(500)]
     [Column("hint")]
     public string? Hint { get; set; }
+
+    /// <summary>Optional illustrative image, stored as raw bytes (no separate MIME column).</summary>
+    [Column("image")]
+    public byte[]? Image { get; set; }
+
+    /// <summary>
+    /// Optional formatted content: a reading passage, code snippet, etc. — or, for <see cref="TestCardKind.Cloze"/>,
+    /// the cloze template with {0}, {1}, ... placeholders. A card may have <see cref="Question"/>, this, both, or neither.
+    /// </summary>
+    [MaxLength(4000)]
+    [Column("formatted_text")]
+    public string? FormattedText { get; set; }
+
+    /// <summary>Optional explanation shown to the learner only after an incorrect answer.</summary>
+    [MaxLength(1000)]
+    [Column("explanation")]
+    public string? Explanation { get; set; }
 
     [MaxLength(1000)]
     [Column("options")]

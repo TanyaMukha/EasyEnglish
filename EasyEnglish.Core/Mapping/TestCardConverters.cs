@@ -29,8 +29,11 @@ public class TestCardEntityToModelConverter : ITypeConverter<TestCardEntity, Tes
         destination.Id = source.Id;
         destination.Kind = source.Kind;
         destination.Title = source.Title;
-        destination.Text = source.Text;
+        destination.Question = source.Question;
         destination.Hint = source.Hint;
+        destination.Image = source.Image;
+        destination.FormattedText = source.FormattedText;
+        destination.Explanation = source.Explanation;
         destination.LastReviewDate = source.LastReviewDate;
         destination.ReviewCount = source.ReviewCount;
         destination.Rate = source.Rate;
@@ -110,8 +113,11 @@ public class TestCardModelToEntityConverter : ITypeConverter<TestCardModel, Test
         destination.Id = source.Id;
         destination.Kind = source.Kind;
         destination.Title = source.Title;
-        destination.Text = source.Text;
+        destination.Question = source.Question;
         destination.Hint = source.Hint;
+        destination.Image = source.Image;
+        destination.FormattedText = source.FormattedText;
+        destination.Explanation = source.Explanation;
         destination.LastReviewDate = source.LastReviewDate;
         destination.ReviewCount = source.ReviewCount;
         destination.Rate = source.Rate;

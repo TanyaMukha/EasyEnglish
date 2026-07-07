@@ -1,6 +1,6 @@
 @using System.Text.RegularExpressions
 
-<TestCardQuestionSection Text="" Hint="@Item.Hint" />
+<TestCardQuestionSection Text="@Item.Question" Hint="@Item.Hint" Image="@Item.Image" />
 
 <div class="cloze-sentence">
     @foreach (var segment in _segments)
@@ -54,6 +54,8 @@
     </div>
 }
 
+<TestCardExplanationSection Explanation="@Item.Explanation" IsAnswerSubmitted="@Context.State.IsAnswerSubmitted" IsCorrect="@Context.State.IsCorrect" />
+
 @code {
     [Parameter, EditorRequired]
     public TestCardContext Context { get; set; } = null!;
@@ -74,7 +76,7 @@
 
         _loadedItemId = Item.Id;
         _answers.Clear();
-        _segments = ParseTemplate(Item.Text);
+        _segments = ParseTemplate(Item.FormattedText);
 
         _shuffledOptions.Clear();
         if (Item.Cloze?.Options is { } opts)
@@ -84,7 +86,7 @@
         }
     }
 
-    private static List<Segment> ParseTemplate(string text)
+    private static List<Segment> ParseTemplate(string? text)
     {
         var result = new List<Segment>();
         var lastIndex = 0;

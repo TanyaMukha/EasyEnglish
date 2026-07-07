@@ -1,0 +1,306 @@
+@namespace EasyEnglish.App.Components.Shared
+@using EasyEnglish.Core.Enums
+@using EasyEnglish.Core.Options
+
+<div class="learning-filter-panel">
+    <div class="form-field">
+        <label class="field-label">
+            <i class="bi bi-123"></i>
+            Кількість елементів
+            <span class="field-value">@Options.WordCount</span>
+        </label>
+        <div class="slider-container">
+            <input type="range"
+                   class="field-slider"
+                   min="0"
+                   max="@MaxCount"
+                   step="5"
+                   @bind="Options.WordCount"
+                   @bind:event="oninput" />
+            <div class="slider-labels">
+                <span>0</span>
+                <span>@(MaxCount / 4)</span>
+                <span>@(MaxCount / 2)</span>
+                <span>@(MaxCount * 3 / 4)</span>
+                <span>@MaxCount</span>
+            </div>
+        </div>
+        <span class="field-hint">0 означає "без обмеження за кількістю"</span>
+    </div>
+
+    <div class="form-field">
+        <label class="field-label">
+            <i class="bi bi-sort-down"></i>
+            Пріоритет вибору
+        </label>
+        <div class="radio-group">
+            <label class="radio-option @(Options.Priority == LearningPriority.Random ? "active" : "")">
+                <input type="radio" name="@_groupName" value="@LearningPriority.Random"
+                       checked="@(Options.Priority == LearningPriority.Random)"
+                       @onchange="@(() => SetPriority(LearningPriority.Random))" />
+                <div class="radio-content">
+                    <i class="bi bi-shuffle"></i>
+                    <div class="radio-text">
+                        <span class="radio-title">Випадкові</span>
+                        <span class="radio-desc">Будь-які елементи з набору</span>
+                    </div>
+                </div>
+            </label>
+
+            <label class="radio-option @(Options.Priority == LearningPriority.Difficult ? "active" : "")">
+                <input type="radio" name="@_groupName" value="@LearningPriority.Difficult"
+                       checked="@(Options.Priority == LearningPriority.Difficult)"
+                       @onchange="@(() => SetPriority(LearningPriority.Difficult))" />
+                <div class="radio-content">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <div class="radio-text">
+                        <span class="radio-title">Складні</span>
+                        <span class="radio-desc">З найбільшою кількістю помилок</span>
+                    </div>
+                </div>
+            </label>
+
+            <label class="radio-option @(Options.Priority == LearningPriority.New ? "active" : "")">
+                <input type="radio" name="@_groupName" value="@LearningPriority.New"
+                       checked="@(Options.Priority == LearningPriority.New)"
+                       @onchange="@(() => SetPriority(LearningPriority.New))" />
+                <div class="radio-content">
+                    <i class="bi bi-star"></i>
+                    <div class="radio-text">
+                        <span class="radio-title">Нові</span>
+                        <span class="radio-desc">Ще не вивчені</span>
+                    </div>
+                </div>
+            </label>
+
+            <label class="radio-option @(Options.Priority == LearningPriority.Review ? "active" : "")">
+                <input type="radio" name="@_groupName" value="@LearningPriority.Review"
+                       checked="@(Options.Priority == LearningPriority.Review)"
+                       @onchange="@(() => SetPriority(LearningPriority.Review))" />
+                <div class="radio-content">
+                    <i class="bi bi-arrow-repeat"></i>
+                    <div class="radio-text">
+                        <span class="radio-title">Повторення</span>
+                        <span class="radio-desc">Потребують закріплення</span>
+                    </div>
+                </div>
+            </label>
+
+            <label class="radio-option @(Options.Priority == LearningPriority.Old ? "active" : "")">
+                <input type="radio" name="@_groupName" value="@LearningPriority.Old"
+                       checked="@(Options.Priority == LearningPriority.Old)"
+                       @onchange="@(() => SetPriority(LearningPriority.Old))" />
+                <div class="radio-content">
+                    <i class="bi bi-clock"></i>
+                    <div class="radio-text">
+                        <span class="radio-title">Найстаріші</span>
+                        <span class="radio-desc">Давно не повторювались</span>
+                    </div>
+                </div>
+            </label>
+        </div>
+    </div>
+
+    <div class="form-field">
+        <label class="field-label">
+            <i class="bi bi-gear"></i>
+            Додаткові опції
+        </label>
+        <div class="checkbox-group">
+            <InputCheckboxField Label="Включити вивчені елементи" @bind-Value="Options.IncludeLearnedWords" />
+            <InputCheckboxField Label="Перемішати" @bind-Value="Options.ShuffleWords" />
+        </div>
+    </div>
+
+    @if (ShowApplyButton)
+    {
+        <button type="button" class="btn-apply-filter" @onclick="ApplyClicked">
+            <i class="bi bi-magic"></i>
+            Застосувати фільтр
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public LearningSelectionOptions Options { get; set; } = new();
+    [Parameter] public int MaxCount { get; set; } = 100;
+
+    /// <summary>Whether to show the "Apply filter" button. false — when the selection is resolved later (e.g. course-level practice).</summary>
+    [Parameter] public bool ShowApplyButton { get; set; } = true;
+
+    /// <summary>Raised when "Apply filter" is clicked — the parent page re-runs the selection.</summary>
+    [Parameter] public EventCallback OnApply { get; set; }
+
+    private readonly string _groupName = $"priority-{Guid.NewGuid():N}";
+
+    private void SetPriority(LearningPriority priority) => Options.Priority = priority;
+
+    private Task ApplyClicked() => OnApply.InvokeAsync();
+}
+
+<style>
+    .learning-filter-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .form-field {
+        margin: 0;
+    }
+
+    .field-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+    }
+
+    .field-label i {
+        color: #A3BFFA;
+        font-size: 1.1rem;
+    }
+
+    .field-value {
+        margin-left: auto;
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .slider-container {
+        margin-top: 0.5rem;
+    }
+
+    .field-slider {
+        width: 100%;
+        height: 8px;
+        border-radius: 4px;
+        background: #e9ecef;
+        outline: none;
+        -webkit-appearance: none;
+        appearance: none;
+    }
+
+    .field-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #A3BFFA, #7B9FE8);
+        cursor: pointer;
+    }
+
+    .field-slider::-moz-range-thumb {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #A3BFFA, #7B9FE8);
+        cursor: pointer;
+        border: none;
+    }
+
+    .slider-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: #868e96;
+        font-weight: 500;
+    }
+
+    .field-hint {
+        display: block;
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: #868e96;
+        font-style: italic;
+    }
+
+    .radio-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .radio-option {
+        display: block;
+        cursor: pointer;
+    }
+
+    .radio-option input[type="radio"] {
+        display: none;
+    }
+
+    .radio-content {
+        background: var(--surface-alt);
+        border: 2px solid #e0e3e7;
+        border-radius: 12px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.2s ease;
+    }
+
+    .radio-option:hover .radio-content {
+        border-color: #cbd0d8;
+    }
+
+    .radio-option.active .radio-content {
+        background: var(--surface);
+        border-color: #A3BFFA;
+        box-shadow: 0 2px 12px rgba(163, 191, 250, 0.2);
+    }
+
+    .radio-content i {
+        font-size: 1.35rem;
+        color: #A3BFFA;
+    }
+
+    .radio-title {
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .radio-desc {
+        display: block;
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+
+    .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .btn-apply-filter {
+        align-self: flex-start;
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .btn-apply-filter:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.3);
+    }
+</style>

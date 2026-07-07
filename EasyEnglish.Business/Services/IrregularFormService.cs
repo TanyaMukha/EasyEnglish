@@ -3,6 +3,7 @@ using EasyEnglish.Core.Entities;
 using EasyEnglish.Core.Interfaces.Repositories;
 using EasyEnglish.Core.Interfaces.Services;
 using EasyEnglish.Core.Models;
+using EasyEnglish.Core.Options;
 using Microsoft.Extensions.Logging;
 using MukhaLab.Database;
 
@@ -10,12 +11,26 @@ namespace EasyEnglish.Services.Services;
 
 public class IrregularFormService : BaseService<IrregularFormEntity ,IrregularFormModel>, IIrregularFormService
 {
+    private readonly IIrregularFormRepository _irregularFormRepository;
+
     public IrregularFormService(
         IIrregularFormRepository repository,
         IMapper mapper,
         ILogger<IrregularFormService> logger)
         : base(repository, mapper, logger)
     {
+        _irregularFormRepository = repository;
+    }
+
+    public async Task<IEnumerable<IrregularFormModel>> GetForLearningAsync(int courseId, int? unitId, LearningSelectionOptions options)
+    {
+        var entities = await _irregularFormRepository.GetForLearningAsync(courseId, unitId, options);
+
+        IEnumerable<IrregularFormEntity> result = entities;
+        if (options.ShuffleWords)
+            result = result.OrderBy(_ => Random.Shared.Next());
+
+        return _mapper.Map<IEnumerable<IrregularFormModel>>(result);
     }
 
     public async Task<IEnumerable<IrregularFormModel>> UpdateRateRangeAsync(IEnumerable<UpdateWordRateRequest> forms)

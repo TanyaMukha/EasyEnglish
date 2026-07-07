@@ -3,6 +3,7 @@ using EasyEnglish.Core.Entities;
 using EasyEnglish.Core.Interfaces.Repositories;
 using EasyEnglish.Core.Interfaces.Services;
 using EasyEnglish.Core.Models;
+using EasyEnglish.Core.Options;
 using Microsoft.Extensions.Logging;
 using MukhaLab.Database;
 
@@ -19,6 +20,17 @@ public class StudyCardService : BaseService<StudyCardEntity, StudyCardModel>, IS
         : base(repository, mapper, logger)
     {
         _studyCardRepository = repository;
+    }
+
+    public async Task<IEnumerable<StudyCardModel>> GetForLearningAsync(int courseId, int? unitId, LearningSelectionOptions options)
+    {
+        var entities = await _studyCardRepository.GetForLearningAsync(courseId, unitId, options);
+
+        IEnumerable<StudyCardEntity> result = entities;
+        if (options.ShuffleWords)
+            result = result.OrderBy(_ => Random.Shared.Next());
+
+        return _mapper.Map<IEnumerable<StudyCardModel>>(result);
     }
 
     public async Task<(int? PreviousId, int? NextId, int Position, int Total)> GetNavigationIdsAsync(int unitId, int currentCardId)

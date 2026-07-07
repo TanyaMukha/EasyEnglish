@@ -1,5 +1,7 @@
 using EasyEnglish.Core.Entities;
 using EasyEnglish.Core.Interfaces.Repositories;
+using EasyEnglish.Core.Options;
+using EasyEnglish.Data.Extensions;
 using Microsoft.EntityFrameworkCore;
 using MukhaLab.Database;
 
@@ -10,6 +12,21 @@ public class StudyCardRepository : BaseRepository<StudyCardEntity, EasyEnglishDb
     public StudyCardRepository(IDbContextFactory<EasyEnglishDbContext> contextFactory, IUserContext userContext)
         : base(contextFactory, userContext)
     {
+    }
+
+    public async Task<List<StudyCardEntity>> GetForLearningAsync(int courseId, int? unitId, LearningSelectionOptions options)
+    {
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+
+        IQueryable<StudyCardEntity> query = ctx.StudyCards
+            .Where(c => c.Unit!.CourseId == courseId);
+
+        if (unitId is not null)
+            query = query.Where(c => c.UnitId == unitId);
+
+        query = query.ApplyLearningSelection(options);
+
+        return await query.AsNoTracking().ToListAsync();
     }
 
     public async Task<(int? PreviousId, int? NextId, int Position, int Total)> GetNavigationIdsAsync(int unitId, int currentCardId)

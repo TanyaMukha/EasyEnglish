@@ -1,4 +1,4 @@
-<TestCardQuestionSection Text="@Item.Text" Hint="@Item.Hint" />
+<TestCardQuestionSection Text="@Item.Question" Hint="@Item.Hint" Image="@Item.Image" FormattedText="@Item.FormattedText" />
 
 <div class="matching-grid">
     <div class="matching-column">
@@ -33,6 +33,8 @@
         </button>
     </div>
 }
+
+<TestCardExplanationSection Explanation="@Item.Explanation" IsAnswerSubmitted="@Context.State.IsAnswerSubmitted" IsCorrect="@Context.State.IsCorrect" />
 
 @code {
     [Parameter, EditorRequired]

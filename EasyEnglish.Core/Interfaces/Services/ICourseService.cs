@@ -8,5 +8,5 @@ public interface ICourseService : IBaseWithGuidService<CourseModel>
 {
     Task<IEnumerable<UnitModel>> GetUnitsAsync(int courseId);
 
-    Task<IEnumerable<WordModel>> GetWordsAsync(int courseId, int? unitId = null, WordSelectionOptions? options = null);
+    Task<IEnumerable<WordModel>> GetWordsAsync(int courseId, int? unitId = null, LearningSelectionOptions? options = null);
 }

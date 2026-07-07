@@ -13,16 +13,19 @@ public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitServ
 {
     private readonly IUnitRepository unitRepository;
     private readonly IWordService wordService;
+    private readonly IExampleService exampleService;
 
     public UnitService(
         IUnitRepository repository,
         IMapper mapper,
         ILogger<UnitService> logger,
-        IWordService wordService)
+        IWordService wordService,
+        IExampleService exampleService)
         : base(repository, mapper, logger)
     {
         this.unitRepository = repository;
         this.wordService = wordService ?? throw new ArgumentNullException(nameof(wordService));
+        this.exampleService = exampleService ?? throw new ArgumentNullException(nameof(exampleService));
     }
 
     public async Task<IReadOnlyList<UnitCardModel>> GetUnitCardsAsync(int courseId)
@@ -37,8 +40,13 @@ public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitServ
         return _mapper.Map<IEnumerable<UnitModel>>(entities);
     }
 
-    public async Task<IEnumerable<WordModel>> GetWordsAsync(int unitId)
+    public async Task<IEnumerable<WordModel>> GetWordsAsync(int unitId, string[]? includes = null)
     {
-        return await this.wordService.GetByUnitAsync(unitId);
+        return await this.wordService.GetByUnitAsync(unitId, includes);
+    }
+
+    public async Task<IEnumerable<ExampleModel>> GetExamplesAsync(int unitId)
+    {
+        return await this.exampleService.GetByUnitAsync(unitId);
     }
 }

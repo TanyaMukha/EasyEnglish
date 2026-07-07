@@ -1,9 +1,10 @@
-@page "/drilling/irregular-forms-multi-test"
-@inject IIrregularFormService IrregularFormService
+@page "/courses/{CourseId:int}/units/{UnitId:int}/irregular-forms/practice/session"
+@page "/courses/{CourseId:int}/irregular-forms/practice/session"
 @inject ILogger<IrregularFormsMultiTest> Logger
+@inject PracticeQueueService PracticeQueueService
 
 <div class="page-content">
-    <PageHeader Title="Мульті-тест форм" />
+    <PageHeader Title="Вивчення неправильних форм" />
 
     <MultiTestHost TItem="IrregularFormTestModel"
         Definitions="@_definitions"
@@ -14,6 +15,9 @@
 </div>
 
 @code {
+    [Parameter] public int CourseId { get; set; }
+    [Parameter] public int? UnitId { get; set; }
+
     private List<IrregularFormTestModel>               _items       = [];
     private List<TestDefinition<IrregularFormTestModel>> _definitions = [];
     private bool    _isLoading;
@@ -21,7 +25,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _definitions = ParseTestKeys()
+        _definitions = ParseKeys("tests")
             .Select(key => TestRegistry.GetIrregularFormTest(key))
             .OfType<TestDefinition<IrregularFormTestModel>>()
             .ToList();
@@ -35,7 +39,8 @@
         {
             _isLoading = true;
             StateHasChanged();
-            var forms = (await IrregularFormService.GetAllAsync()).ToList();
+            var formIds = ParseIds("formIds");
+            var forms = await IrregularFormService.GetByIdsAsync(formIds);
             _items = mapper.Map<List<IrregularFormTestModel>>(forms);
         }
         catch (Exception ex)
@@ -54,16 +59,28 @@
     {
         var toUpdate = WordRatingCalculator.UpdateWordRate(_items);
         await IrregularFormService.UpdateRateRangeAsync(mapper.Map<List<UpdateWordRateRequest>>(toUpdate));
-        NavigationManager.NavigateTo("/drilling/irregular-forms");
+
+        var next = PracticeQueueService.Advance();
+        NavigationManager.NavigateTo(next ?? (UnitId.HasValue ? $"/courses/{CourseId}/units/{UnitId}" : $"/courses/{CourseId}"));
     }
 
-    private HashSet<string> ParseTestKeys()
+    private HashSet<string> ParseKeys(string paramName)
     {
         var uri   = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-        return (query["tests"] ?? "")
+        return (query[paramName] ?? "")
             .Split(',', StringSplitOptions.RemoveEmptyEntries)
             .ToHashSet();
+    }
+
+    private List<int> ParseIds(string paramName)
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        return (query[paramName] ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(int.Parse)
+            .ToList();
     }
 }
 

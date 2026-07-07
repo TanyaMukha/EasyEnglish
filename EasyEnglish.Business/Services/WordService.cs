@@ -32,13 +32,13 @@ public class WordService : BaseService<WordEntity, WordModel>, IWordService
         return _mapper.Map<IEnumerable<WordModel>>(entities);
     }
 
-    public async Task<IEnumerable<WordModel>> GetByUnitAsync(int unitId)
+    public async Task<IEnumerable<WordModel>> GetByUnitAsync(int unitId, string[]? includes = null)
     {
-        var entities = await _wordRepository.GetByUnitAsync(unitId);
+        var entities = await _wordRepository.GetByUnitAsync(unitId, includes);
         return _mapper.Map<IEnumerable<WordModel>>(entities);
     }
 
-    public async Task<IEnumerable<WordModel>> GetForLearningAsync(int courseId, int? unitId, WordSelectionOptions options)
+    public async Task<IEnumerable<WordModel>> GetForLearningAsync(int courseId, int? unitId, LearningSelectionOptions options)
     {
         var entities = await _wordRepository.GetForLearningAsync(courseId, unitId, options);
         return _mapper.Map<IEnumerable<WordModel>>(entities);

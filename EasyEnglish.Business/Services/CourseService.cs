@@ -31,9 +31,9 @@ public class CourseService : BaseWithGuidService<CourseEntity, CourseModel>, ICo
         return await this.unitService.GetByCourseAsync(courseId);
     }
 
-    public async Task<IEnumerable<WordModel>> GetWordsAsync(int courseId, int? unitId = null, WordSelectionOptions? options = null)
+    public async Task<IEnumerable<WordModel>> GetWordsAsync(int courseId, int? unitId = null, LearningSelectionOptions? options = null)
     {
-        options ??= new WordSelectionOptions();
+        options ??= new LearningSelectionOptions();
 
         IEnumerable<WordModel> words = await this.wordService.GetForLearningAsync(courseId, unitId, options);
 

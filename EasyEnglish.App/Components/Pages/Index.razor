@@ -11,7 +11,6 @@
 @inject NavigationManager NavigationManager
 @inject ProgressService ProgressService
 @inject StreakService StreakService
-@inject DailyWordsService DailyWordsService
 @inject SettingsService SettingsService
 
 <div class="home-page">
@@ -61,92 +60,9 @@
                     </div>
                 </div>
 
-                <!-- Words Card -->
-                <div class="stat-card words-card">
-                    <div class="stat-icon">
-                        <i class="bi bi-card-text"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">@todayWords.Count</div>
-                        <div class="stat-label">Слів на сьогодні</div>
-                        @if (progressStats.TotalProgress == 100)
-                        {
-                            <div class="stat-badge success">
-                                <i class="bi bi-check-circle"></i>
-                                Завершено!
-                            </div>
-                        }
-                    </div>
-                </div>
             </div>
         </div>
     </div>
-
-    <!-- Current Learning Set -->
-    <div class="section">
-        <div class="section-header">
-            <h2 class="section-title">
-                <i class="bi bi-book"></i>
-                Поточний набір
-            </h2>
-            <button class="btn-change" @onclick="NavigateToSelectUnit">
-                <i class="bi bi-shuffle"></i>
-                Змінити
-            </button>
-        </div>
-
-        @if (currentUnit != null)
-        {
-            <div class="learning-set-card">
-                <div class="set-info">
-                    <h3 class="set-title">@currentUnit.Title</h3>
-                    <div class="set-meta">
-                        <span class="meta-item">
-                            <i class="bi bi-card-text"></i>
-                            @todayWords.Count слів
-                        </span>
-                    </div>
-                </div>
-                <button class="btn-start" @onclick="StartLearning">
-                    <i class="bi bi-play-fill"></i>
-                    Почати навчання
-                </button>
-            </div>
-        }
-        else
-        {
-            <div class="empty-state">
-                <div class="empty-icon">
-                    <i class="bi bi-inbox"></i>
-                </div>
-                <p class="empty-message">Набір не обрано</p>
-                <button class="btn-primary" @onclick="NavigateToSelectUnit">
-                    Обрати набір слів
-                </button>
-            </div>
-        }
-    </div>
-
-    <!-- Today's Words -->
-    @if (todayWords.Any())
-    {
-        <div class="section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="bi bi-calendar-check"></i>
-                    Слова на сьогодні
-                </h2>
-                <span class="word-count-badge">@todayWords.Count / @(todayWords.Count)</span>
-            </div>
-
-            <div class="words-grid">
-                @foreach (var word in todayWords)
-                {
-                    <WordCard word="@word" ShowActions="false" />
-                }
-            </div>
-        </div>
-    }
 
     <!-- Statistics -->
     @if (correctAnswers > 0 || incorrectAnswers > 0)
@@ -205,31 +121,13 @@
                     <i class="bi bi-journals"></i>
                 </div>
                 <h3 class="action-title">Бібліотека</h3>
-                <p class="action-description">Перегляньте всі словники та списки слів</p>
-            </a>
-
-            <a href="/drilling/learning-words" class="action-card">
-                <div class="action-icon">
-                    <i class="bi bi-lightbulb"></i>
-                </div>
-                <h3 class="action-title">Заучування слів</h3>
-                <p class="action-description">Вивчення окремих слів та фраз</p>
-            </a>
-
-            <a href="/drilling/examples-learning" class="action-card">
-                <div class="action-icon">
-                    <i class="bi bi-arrow-repeat"></i>
-                </div>
-                <h3 class="action-title">Слова в реченнях</h3>
-                <p class="action-description">Вивчення слів та фраз на прикладах</p>
+                <p class="action-description">Перегляньте всі курси, оберіть модуль і почніть практику</p>
             </a>
         </div>
     </div>
 </div>
 
 @code {
-    private List<WordModel> todayWords = new();
-    private UnitModel? currentUnit;
     private ProgressStats progressStats = new ProgressStats { DailyProgress = new DailyProgress(), TotalProgress = 0 };
     private StreakInfo streakInfo = new StreakInfo { CurrentStreak = 0, HighestStreak = 0 };
     private bool isLoading = false;
@@ -254,14 +152,11 @@
             errorMessage = null;
 
             var settings = await SettingsService.GetSettingsAsync();
-            var wordsTask = DailyWordsService.GetWordsForToday();
             var progressTask = ProgressService.GetProgressStats(settings ?? new DailyGoals { Goals = new Dictionary<string, DailyGoal>() });
             var streakTask = StreakService.CheckAndUpdateStreak();
 
-            await Task.WhenAll(wordsTask, progressTask, streakTask);
+            await Task.WhenAll(progressTask, streakTask);
 
-            todayWords = wordsTask.Result.Words;
-            currentUnit = wordsTask.Result.Unit;
             progressStats = progressTask.Result;
             streakInfo = streakTask.Result;
 
@@ -276,24 +171,6 @@
         {
             isLoading = false;
             StateHasChanged();
-        }
-    }
-
-    private void NavigateToSelectUnit()
-    {
-        NavigationManager.NavigateTo("/select-unit");
-    }
-
-    private void StartLearning()
-    {
-        NavigationManager.NavigateTo("/drilling/learning-words");
-    }
-
-    private void NavigateToWord(int wordId)
-    {
-        if (currentUnit != null)
-        {
-            NavigationManager.NavigateTo($"/courses/{currentUnit.CourseId}/units/{currentUnit.Id}/words/{wordId}");
         }
     }
 }
@@ -471,102 +348,6 @@
         gap: 0.5rem;
     }
 
-.btn-change {
-        background: var(--surface-alt);
-        border: 1px solid var(--border-muted);
-        border-radius: 10px;
-        padding: 0.625rem 1.25rem;
-        color: var(--text-secondary);
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .btn-change:hover {
-        background: var(--surface);
-        border-color: #A3BFFA;
-        color: #A3BFFA;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.2);
-    }
-
-    /* Learning Set Card */
-    .learning-set-card {
-        background: linear-gradient(135deg, #A3BFFA 0%, #B5EAD7 100%);
-        border-radius: 16px;
-        padding: 2rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 2rem;
-        color: white;
-    }
-
-    .set-info {
-        flex: 1;
-    }
-
-    .set-title {
-        font-size: 1.75rem;
-        font-weight: 700;
-        margin: 0 0 1rem 0;
-    }
-
-    .set-meta {
-        display: flex;
-        gap: 1rem;
-        align-items: center;
-        flex-wrap: wrap;
-    }
-
-    .meta-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 1rem;
-        opacity: 0.95;
-    }
-
-    .btn-start {
-        background: var(--surface);
-        color: #7B9FE8;
-        border: none;
-        border-radius: 12px;
-        padding: 1rem 2rem;
-        font-size: 1.1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .btn-start:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Words Grid */
-    .words-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 1.25rem;
-    }
-
-    .word-count-badge {
-        background: #E3F2FD;
-        color: #1976D2;
-        padding: 0.5rem 1rem;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-
     /* Statistics Cards */
     .stats-cards-grid {
         display: grid;
@@ -671,55 +452,6 @@
         margin: 0;
     }
 
-    /* Empty State */
-    .empty-state {
-        background: var(--surface-alt);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 3rem 2rem;
-        text-align: center;
-    }
-
-    .empty-icon {
-        width: 80px;
-        height: 80px;
-        background: var(--surface);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1rem;
-        border: 2px solid var(--border);
-    }
-
-    .empty-icon i {
-        font-size: 2.5rem;
-        color: var(--text-muted);
-    }
-
-    .empty-message {
-        font-size: 1.1rem;
-        color: var(--text-secondary);
-        margin: 0 0 1.5rem 0;
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        padding: 0.875rem 2rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.3);
-    }
-
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(163, 191, 250, 0.4);
-    }
-
     /* Responsive */
     @@media (max-width: 768px) {
         .home-page {
@@ -745,24 +477,6 @@
 
         .stat-value {
             font-size: 1.75rem;
-        }
-
-        .learning-set-card {
-            flex-direction: column;
-            text-align: center;
-        }
-
-        .set-title {
-            font-size: 1.5rem;
-        }
-
-        .btn-start {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .words-grid {
-            grid-template-columns: 1fr;
         }
 
         .quick-actions-grid {

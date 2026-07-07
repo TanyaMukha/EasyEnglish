@@ -57,14 +57,36 @@
         </div>
     </div>
 
-    <div class="content-grid">
-        @if (Card.Kind != TestCardKind.Cloze)
+    <div class="test-card-content">
+        @if (ImageDataUri is not null)
+        {
+            <div class="info-card">
+                <div class="card-icon"><i class="bi bi-image"></i></div>
+                <div class="card-content">
+                    <h3 class="card-title">Зображення</h3>
+                    <img src="@ImageDataUri" alt="" class="test-card-detail-image" />
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Card.FormattedText))
+        {
+            <div class="info-card">
+                <div class="card-icon"><i class="bi bi-file-text"></i></div>
+                <div class="card-content">
+                    <h3 class="card-title">Текст з форматуванням</h3>
+                    <div class="card-text formatted-text">@((MarkupString)ExampleMarkdownService.RenderMarkdown(Card.FormattedText))</div>
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Card.Question))
         {
             <div class="info-card">
                 <div class="card-icon"><i class="bi bi-question-circle"></i></div>
                 <div class="card-content">
-                    <h3 class="card-title">Питання</h3>
-                    <SelectableText><p class="card-text">@Card.Text</p></SelectableText>
+                    <h3 class="card-title">Завдання</h3>
+                    <SelectableText><p class="card-text">@Card.Question</p></SelectableText>
                 </div>
             </div>
         }
@@ -76,6 +98,17 @@
                 <div class="card-content">
                     <h3 class="card-title">Підказка</h3>
                     <SelectableText><p class="card-text">@Card.Hint</p></SelectableText>
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Card.Explanation))
+        {
+            <div class="info-card">
+                <div class="card-icon"><i class="bi bi-info-circle"></i></div>
+                <div class="card-content">
+                    <h3 class="card-title">Пояснення (при неправильній відповіді)</h3>
+                    <SelectableText><p class="card-text">@Card.Explanation</p></SelectableText>
                 </div>
             </div>
         }
@@ -233,21 +266,23 @@
         _ => Card.Kind.ToString()
     };
 
+    private string? ImageDataUri => ImageDataUriHelper.BuildDataUri(Card.Image);
+
     private string GetAssembledClozeSentence()
     {
         if (Card.Cloze is null)
-            return Card.Text;
+            return Card.FormattedText ?? "";
 
         try
         {
             var firstAnswers = Card.Cloze.CorrectAnswers
                 .Select(answers => (object)(answers.FirstOrDefault() ?? ""))
                 .ToArray();
-            return string.Format(Card.Text, firstAnswers);
+            return string.Format(Card.FormattedText ?? "", firstAnswers);
         }
         catch (FormatException)
         {
-            return Card.Text;
+            return Card.FormattedText ?? "";
         }
     }
 
@@ -276,6 +311,24 @@
 }
 
 <style>
+    .test-card-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .test-card-detail-image {
+        max-width: 100%;
+        max-height: 320px;
+        border-radius: 8px;
+        object-fit: contain;
+    }
+
+    .formatted-text {
+        white-space: pre-wrap;
+        line-height: 1.6;
+    }
+
     .correct-option {
         color: #155724;
         font-weight: 600;

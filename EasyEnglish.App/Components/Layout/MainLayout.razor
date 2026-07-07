@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
 @inject NavigationManager NavigationManagerNavigation
 @inject IJSRuntime JSRuntime
+@inject StorageMaintenanceService StorageMaintenanceService
 @implements IDisposable
 
 <div class="app-layout">
@@ -93,52 +94,6 @@
                     @*         } *@
                     @*     </a> *@
                     @* </li> *@
-                </ul>
-            </div>
-
-            <div class="nav-section">
-                @if (!isSidebarCollapsed || isMobile)
-                {
-                    <p class="nav-section-title">Навчання</p>
-                }
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a href="/drilling/learning-words"
-                           class="nav-link @GetNavClass("/drilling/learning-words")"
-                           @onclick="OnNavClick" 
-                           title="@(isSidebarCollapsed && !isMobile ? "Learning Words" : "")">
-                            <i class="nav-icon bi bi-lightbulb"></i>
-                            @if (!isSidebarCollapsed || isMobile)
-                            {
-                                <span class="nav-label">Learning Words</span>
-                            }
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="/drilling/irregular-forms"
-                           class="nav-link @GetNavClass("/drilling/irregular-forms")"
-                           @onclick="OnNavClick" 
-                           title="@(isSidebarCollapsed && !isMobile ? "Irregular Forms" : "")">
-                            <i class="nav-icon bi bi-arrow-repeat"></i>
-                            @if (!isSidebarCollapsed || isMobile)
-                            {
-                                <span class="nav-label">Irregular Forms</span>
-                            }
-                        </a>
-                    </li>
-                    <!-- 🆕 Examples Learning -->
-                    <li class="nav-item">
-                        <a href="/drilling/examples-learning"
-                           class="nav-link @GetNavClass("/drilling/examples-learning")"
-                           @onclick="OnNavClick" 
-                           title="@(isSidebarCollapsed && !isMobile ? "Examples Learning" : "")">
-                            <i class="nav-icon bi bi-card-text"></i>
-                            @if (!isSidebarCollapsed || isMobile)
-                            {
-                                <span class="nav-label">Examples Learning</span>
-                            }
-                        </a>
-                    </li>
                 </ul>
             </div>
 
@@ -267,6 +222,11 @@
     private int windowWidth = 0;
     private int windowHeight = 0;
     private DotNetObjectReference<MainLayout>? dotNetRef;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await StorageMaintenanceService.RemoveObsoleteKeysAsync();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

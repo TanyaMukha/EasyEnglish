@@ -1,10 +1,20 @@
-@* TestCardQuestionSection.razor - Питання тестової картки: markdown-текст + опційна підказка *@
+@* TestCardQuestionSection.razor - test card header: optional image, question, formatted content, hint *@
 @using EasyEnglish.App.Services
 
 <div class="testcard-question-section">
+    @if (ImageDataUri is not null)
+    {
+        <img src="@ImageDataUri" alt="" class="testcard-question-image" />
+    }
+
     @if (!string.IsNullOrWhiteSpace(Text))
     {
         <h3 class="testcard-question-text">@((MarkupString)ExampleMarkdownService.RenderMarkdown(Text))</h3>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(FormattedText))
+    {
+        <div class="testcard-formatted-text">@((MarkupString)ExampleMarkdownService.RenderMarkdown(FormattedText))</div>
     }
 
     @if (!string.IsNullOrWhiteSpace(Hint))
@@ -18,8 +28,12 @@
 </div>
 
 @code {
-    [Parameter] public string Text { get; set; } = "";
+    [Parameter] public string? Text { get; set; }
     [Parameter] public string? Hint { get; set; }
+    [Parameter] public byte[]? Image { get; set; }
+    [Parameter] public string? FormattedText { get; set; }
+
+    private string? ImageDataUri => ImageDataUriHelper.BuildDataUri(Image);
 }
 
 <style>
@@ -34,6 +48,27 @@
         font-weight: 600;
         color: var(--text-primary);
         margin: 0;
+    }
+
+    .testcard-question-image {
+        max-width: 100%;
+        max-height: 320px;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        object-fit: contain;
+    }
+
+    .testcard-formatted-text {
+        text-align: left;
+        white-space: pre-wrap;
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+        line-height: 1.6;
+        color: var(--text-primary);
     }
 
     .testcard-hint-block {

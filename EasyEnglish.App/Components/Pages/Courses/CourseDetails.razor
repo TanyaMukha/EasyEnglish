@@ -17,9 +17,15 @@
                 </span>
                 @course.Title
             </h1>
-            <a href="/courses/@course.Id/edit" class="btn-edit" title="Редагувати">
-                <i class="bi bi-pencil"></i>
-            </a>
+            <div class="title-actions">
+                <a href="/courses/@course.Id/practice" class="btn-cancel" title="Практикувати курс">
+                    <i class="bi bi-play-fill"></i>
+                    Практикувати курс
+                </a>
+                <a href="/courses/@course.Id/edit" class="btn-edit" title="Редагувати">
+                    <i class="bi bi-pencil"></i>
+                </a>
+            </div>
         </div>
 
         @if (!string.IsNullOrEmpty(course.Description))
@@ -131,7 +137,7 @@
 
     private void GoToLearningPage(int id)
     {
-        NavigateToPage($"/learning/word-list/{id}");
+        NavigateToPage($"/courses/{course.Id}/units/{id}/words/practice");
     }
 
     private async Task RemoveUnit(int id)
@@ -170,6 +176,13 @@
         font-size: 1.5rem;
         line-height: 1;
         display: inline-block;
+    }
+
+    .title-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-shrink: 0;
     }
 
     .units-grid {

@@ -244,18 +244,6 @@ public class TestResult
     public int CorrectAnswers { get; set; } = 0;
 }
 
-public class WordsForTodayResult
-{
-    public List<WordModel> Words { get; set; } = new();
-    public UnitModel? Unit { get; set; }
-}
-
-public class WordIdsForToday
-{
-    public List<int> WordIds { get; set; } = new();
-    public int? UnitId { get; set; }
-}
-
 public class OptionDefinition
 {
     public int Id { get; set; }

@@ -272,10 +272,24 @@ namespace EasyEnglish.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("Explanation")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("explanation");
+
+                    b.Property<string>("FormattedText")
+                        .HasMaxLength(4000)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("formatted_text");
+
                     b.Property<string>("Hint")
                         .HasMaxLength(500)
                         .HasColumnType("TEXT")
                         .HasColumnName("hint");
+
+                    b.Property<byte[]>("Image")
+                        .HasColumnType("BLOB")
+                        .HasColumnName("image");
 
                     b.Property<int>("Kind")
                         .HasColumnType("INTEGER")
@@ -290,6 +304,11 @@ namespace EasyEnglish.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("options");
 
+                    b.Property<string>("Question")
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("text");
+
                     b.Property<float>("Rate")
                         .HasColumnType("REAL")
                         .HasColumnName("rate");
@@ -297,12 +316,6 @@ namespace EasyEnglish.Data.Migrations
                     b.Property<int>("ReviewCount")
                         .HasColumnType("INTEGER")
                         .HasColumnName("review_count");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("TEXT")
-                        .HasColumnName("text");
 
                     b.Property<string>("Title")
                         .HasMaxLength(200)

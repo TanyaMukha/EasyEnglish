@@ -9,5 +9,8 @@ public interface IUnitService : IBaseWithGuidService<UnitModel>
 
     Task<IEnumerable<UnitModel>> GetByCourseAsync(int courseId);
 
-    Task<IEnumerable<WordModel>> GetWordsAsync(int unitId);
+    Task<IEnumerable<WordModel>> GetWordsAsync(int unitId, string[]? includes = null);
+
+    /// <summary>All examples belonging to a unit's words, as a flat list.</summary>
+    Task<IEnumerable<ExampleModel>> GetExamplesAsync(int unitId);
 }

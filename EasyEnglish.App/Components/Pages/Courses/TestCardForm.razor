@@ -81,25 +81,49 @@
             <div class="form-section">
                 <h2 class="section-title">
                     <i class="bi bi-question-circle"></i>
-                    Питання
+                    Завдання
                 </h2>
 
                 <InputTextField @bind-Value="Card.Title" Label="Заголовок (необов'язково)" />
 
+                <InputTextField @bind-Value="Card.Question" Label="Завдання (необов'язково)" />
+
+                <InputTextField @bind-Value="Card.Hint" Label="Підказка (необов'язково)" />
+
+                <label for="test-card-image" class="form-label">Зображення (необов'язково)</label>
+                <div class="input-group">
+                    <InputFileField OnChange="HandleImageFile" Accept="image/*" Label="Виберіть зображення" />
+                    @if (HasExistingImage)
+                    {
+                        <img src="@ImageDataUriHelper.BuildDataUri(Card.Image)" alt="" class="test-card-image-preview" />
+                        <button type="button" class="btn btn-outline-danger" @onclick="RemoveImage">
+                            <i class="bi bi-trash"></i>
+                            Видалити
+                        </button>
+                    }
+                </div>
+                @if (ImageUploadMessage != null)
+                {
+                    <div class="alert alert-info mt-2">@ImageUploadMessage</div>
+                }
+
                 @if (Card.Kind == TestCardKind.Cloze)
                 {
-                    <MarkdownEditor Value="@Card.Text"
+                    <MarkdownEditor Value="@Card.FormattedText"
                                     ValueChanged="@OnClozeTextChanged"
                                     Label="Текст із пропусками (використовуйте {0}, {1}, ...)"
-                                    Rows="4" />
+                                    Rows="6" />
                     <small class="text-muted">Наприклад: I {0} to school {1}.</small>
                 }
                 else
                 {
-                    <MarkdownEditor Value="@Card.Text" ValueChanged="@(v => Card.Text = v ?? "")" Label="Текст питання" Rows="4" />
+                    <MarkdownEditor Value="@Card.FormattedText"
+                                    ValueChanged="@(v => Card.FormattedText = v)"
+                                    Label="Текст з форматуванням (уривок, код тощо, необов'язково)"
+                                    Rows="6" />
                 }
 
-                <InputTextField @bind-Value="Card.Hint" Label="Підказка (необов'язково)" />
+                <InputMultilineField @bind-Value="Card.Explanation" Label="Пояснення (показується після неправильної відповіді, необов'язково)" Rows="3" />
             </div>
 
             @if (Card.Kind is TestCardKind.SingleChoice or TestCardKind.MultipleChoice)
@@ -136,8 +160,8 @@
                                            title="Правильна відповідь" />
                                 }
                             </div>
-                            <div class="col">
-                                <InputTextField Value="@option.Text" ValueChanged="@(v => option.Text = v ?? "")" Label="@($"Варіант {index + 1}")" />
+                            <div class="col input-option-field">
+                                <InputMultilineField Value="@option.Text" ValueChanged="@(v => option.Text = v ?? "")" Label="@($"Варіант {index + 1}")" />
                             </div>
                             @if (_choiceOptions.Count > 2)
                             {
@@ -309,6 +333,9 @@
     private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
     private int _loadedCardId = -1;
 
+    private bool HasExistingImage => Card.Image?.Length > 0;
+    private string? ImageUploadMessage;
+
     private List<OptionRow> _choiceOptions = new();
     private List<string> _shortAnswers = new();
     private List<ClozeBlankRow> _clozeBlanks = new();
@@ -410,13 +437,13 @@
 
     private void OnClozeTextChanged(string? value)
     {
-        Card.Text = value ?? "";
+        Card.FormattedText = value ?? "";
         RecalculateClozeBlanks();
     }
 
     private void RecalculateClozeBlanks()
     {
-        var neededCount = Regex.Matches(Card.Text ?? "", @"\{(\d+)\}")
+        var neededCount = Regex.Matches(Card.FormattedText ?? "", @"\{(\d+)\}")
             .Select(m => int.Parse(m.Groups[1].Value) + 1)
             .DefaultIfEmpty(0)
             .Max();
@@ -488,6 +515,40 @@
         }
     }
 
+    private async Task HandleImageFile(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file is null)
+            return;
+
+        try
+        {
+            const int maxSize = 5 * 1024 * 1024;
+            if (file.Size > maxSize)
+            {
+                ImageUploadMessage = "Розмір файлу має бути менше 5МБ";
+                return;
+            }
+
+            using var stream = file.OpenReadStream(maxSize);
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            Card.Image = memoryStream.ToArray();
+
+            ImageUploadMessage = null;
+        }
+        catch (Exception ex)
+        {
+            ImageUploadMessage = $"Помилка завантаження файлу: {ex.Message}";
+        }
+    }
+
+    private void RemoveImage()
+    {
+        Card.Image = null;
+        ImageUploadMessage = null;
+    }
+
     private async Task HandleValidSubmit()
     {
         try
@@ -509,6 +570,14 @@
 }
 
 <style>
+    .test-card-image-preview {
+        max-width: 200px;
+        max-height: 150px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        object-fit: contain;
+    }
+
     .remove-btn {
         background: transparent;
         border: 1px solid var(--border-muted);
@@ -577,5 +646,9 @@
         font-size: 0.9rem;
         color: var(--text-secondary);
         cursor: pointer;
+    }
+
+    .input-option-field {
+        flex-grow: 1;
     }
 </style>

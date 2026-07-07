@@ -1,7 +1,9 @@
-@page "/drilling/words-multi-test"
+@page "/courses/{CourseId:int}/units/{UnitId:int}/words/practice/session"
+@page "/courses/{CourseId:int}/words/practice/session"
+@inject PracticeQueueService PracticeQueueService
 
 <div class="page-content">
-    <PageHeader Title="Мульті-тест" />
+    <PageHeader Title="Вивчення слів" />
 
     <MultiTestHost TItem="WordTestModel"
         Definitions="@_definitions"
@@ -13,6 +15,9 @@
 </div>
 
 @code {
+    [Parameter] public int CourseId { get; set; }
+    [Parameter] public int? UnitId { get; set; }
+
     private List<WordTestModel> _items = [];
     private List<TestDefinition<WordTestModel>> _definitions = [];
     private bool _isLoading;
@@ -20,7 +25,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var keys = ParseTestKeys();
+        var keys = ParseKeys("tests");
         _definitions = TestRegistry.WordTests
             .Where(d => keys.Contains(d.Key))
             .ToList();
@@ -33,8 +38,9 @@
         try
         {
             _isLoading = true;
-            var result = await DailyWordsService.GetWordsForToday();
-            _items = mapper.Map<List<WordTestModel>>(result.Words);
+            var wordIds = ParseIds("wordIds");
+            var words = await WordService.GetByIdsAsync(wordIds, ["Examples"]);
+            _items = mapper.Map<List<WordTestModel>>(words);
         }
         catch (Exception ex)
         {
@@ -50,15 +56,26 @@
     {
         var toUpdate = WordRatingCalculator.UpdateWordRate(_items);
         await WordService.UpdateWordRateRangeAsync(mapper.Map<List<UpdateWordRateRequest>>(toUpdate));
-        DailyWordsService.ClearCache();
-        NavigationManager.NavigateTo("/drilling/learning-words");
+
+        var next = PracticeQueueService.Advance();
+        NavigationManager.NavigateTo(next ?? (UnitId.HasValue ? $"/courses/{CourseId}/units/{UnitId}" : $"/courses/{CourseId}"));
     }
 
-    private HashSet<string> ParseTestKeys()
+    private HashSet<string> ParseKeys(string paramName)
     {
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-        return (query["tests"] ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).ToHashSet();
+        return (query[paramName] ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).ToHashSet();
+    }
+
+    private List<int> ParseIds(string paramName)
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        return (query[paramName] ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(int.Parse)
+            .ToList();
     }
 }
 

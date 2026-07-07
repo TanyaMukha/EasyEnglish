@@ -1,10 +1,12 @@
-<TestCardQuestionSection Text="@Item.Text" Hint="@Item.Hint" />
+<TestCardQuestionSection Text="@Item.Question" Hint="@Item.Hint" Image="@Item.Image" FormattedText="@Item.FormattedText" />
 
 <AnswerOptionSection
     AnswerOptions="@_shuffledOptions"
     IsAnswerSubmitted="@Context.State.IsAnswerSubmitted"
     CorrectAnswer="@(Item.Choice?.CorrectAnswers.FirstOrDefault() ?? "")"
     OnAnswerSelected="@Context.Callbacks.OnCheckAnswer" />
+
+<TestCardExplanationSection Explanation="@Item.Explanation" IsAnswerSubmitted="@Context.State.IsAnswerSubmitted" IsCorrect="@Context.State.IsCorrect" />
 
 @code {
     [Parameter, EditorRequired]

@@ -1,4 +1,6 @@
 @page "/courses/{CourseId:int}/units/{UnitId:int}/test-cards/practice"
+@page "/courses/{CourseId:int}/test-cards/practice"
+@inject PracticeQueueService PracticeQueueService
 
 <div class="page-content">
     <PageHeader Title="Практика тестових карток" />
@@ -13,7 +15,7 @@
 
 @code {
     [Parameter] public int CourseId { get; set; }
-    [Parameter] public int UnitId { get; set; }
+    [Parameter] public int? UnitId { get; set; }
 
     private List<TestCardTestModel> _items = [];
     private List<TestDefinition<TestCardTestModel>> _definitions = [.. TestRegistry.TestCardTests];
@@ -25,8 +27,22 @@
         try
         {
             _isLoading = true;
-            var unit = await UnitService.GetByIdAsync(UnitId, UnitIncludes.Full);
-            _items = mapper.Map<List<TestCardTestModel>>(unit?.TestCards ?? new List<TestCardModel>());
+
+            var keys = ParseKeys("tests");
+            if (keys.Count > 0)
+                _definitions = TestRegistry.TestCardTests.Where(d => keys.Contains(d.Key)).ToList();
+
+            var itemIds = ParseIds("itemIds");
+            if (itemIds.Count > 0)
+            {
+                var cards = await TestCardService.GetByIdsAsync(itemIds);
+                _items = mapper.Map<List<TestCardTestModel>>(cards);
+            }
+            else if (UnitId.HasValue)
+            {
+                var unit = await UnitService.GetByIdAsync(UnitId.Value, UnitIncludes.Full);
+                _items = mapper.Map<List<TestCardTestModel>>(unit?.TestCards ?? new List<TestCardModel>());
+            }
         }
         catch (Exception ex)
         {
@@ -42,7 +58,26 @@
     {
         var toUpdate = WordRatingCalculator.UpdateWordRate(_items);
         await TestCardService.UpdateRateRangeAsync(mapper.Map<List<UpdateWordRateRequest>>(toUpdate));
-        NavigationManager.NavigateTo($"/courses/{CourseId}/units/{UnitId}");
+
+        var next = PracticeQueueService.Advance();
+        NavigationManager.NavigateTo(next ?? (UnitId.HasValue ? $"/courses/{CourseId}/units/{UnitId}" : $"/courses/{CourseId}"));
+    }
+
+    private HashSet<string> ParseKeys(string paramName)
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        return (query[paramName] ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).ToHashSet();
+    }
+
+    private List<int> ParseIds(string paramName)
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        return (query[paramName] ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(int.Parse)
+            .ToList();
     }
 }
 

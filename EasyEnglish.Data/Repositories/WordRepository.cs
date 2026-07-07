@@ -1,7 +1,7 @@
 ﻿using EasyEnglish.Core.Entities;
-using EasyEnglish.Core.Enums;
 using EasyEnglish.Core.Interfaces.Repositories;
 using EasyEnglish.Core.Options;
+using EasyEnglish.Data.Extensions;
 using Microsoft.EntityFrameworkCore;
 using MukhaLab.Database;
 
@@ -63,17 +63,20 @@ public class WordRepository : BaseRepository<WordEntity, EasyEnglishDbContext>, 
             .ToListAsync();
     }
 
-    public async Task<List<WordEntity>> GetByUnitAsync(int unitId)
+    public async Task<List<WordEntity>> GetByUnitAsync(int unitId, string[]? includes = null)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();
 
-        return await ctx.Words
-            .AsNoTracking()
-            .Where(w => w.UnitId == unitId)
-            .ToListAsync();
+        IQueryable<WordEntity> query = ctx.Words.Where(w => w.UnitId == unitId);
+
+        if (includes is not null)
+            foreach (var include in includes)
+                query = query.Include(include);
+
+        return await query.AsNoTracking().ToListAsync();
     }
 
-    public async Task<List<WordEntity>> GetForLearningAsync(int courseId, int? unitId, WordSelectionOptions options)
+    public async Task<List<WordEntity>> GetForLearningAsync(int courseId, int? unitId, LearningSelectionOptions options)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();
 
@@ -83,35 +86,7 @@ public class WordRepository : BaseRepository<WordEntity, EasyEnglishDbContext>, 
         if (unitId is not null)
             query = query.Where(w => w.UnitId == unitId);
 
-        if (options.IncludeLearnedWords)
-            query = query.Where(w => w.Rate >= 1.6f);
-
-        query = options.Priority switch
-        {
-            WordPriority.New => query
-                .Where(w => w.LastReviewDate == null)
-                .OrderByDescending(w => w.CreatedAt),
-
-            WordPriority.Random => query
-                .OrderBy(w => w.CreatedAt)
-                .ThenBy(w => w.LastReviewDate),
-
-            WordPriority.Difficult => query
-                .OrderByDescending(w => w.Rate),
-
-            WordPriority.Review => query
-                .Where(w => w.LastReviewDate != null)
-                .OrderBy(w => w.LastReviewDate),
-
-            WordPriority.Old => query
-                .Where(w => w.LastReviewDate == null)
-                .OrderBy(w => w.CreatedAt),
-
-            _ => query
-        };
-
-        if (options.WordCount > 0)
-            query = query.Take(options.WordCount);
+        query = query.ApplyLearningSelection(options);
 
         return await query.AsNoTracking().ToListAsync();
     }
