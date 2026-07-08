@@ -10,6 +10,7 @@
 @inject ILogger<Index> Logger
 @inject NavigationManager NavigationManager
 @inject IMapper mapper
+@inject RecentActivityService RecentActivityService
 @using EasyEnglish.App.Components.Shared.Breadcrumb
 
 <div class="page-content">
@@ -472,7 +473,10 @@
             AvailableUnits = (await CourseService.GetUnitsAsync(Unit.CourseId))
                 .Select(wl => new OptionDefinition { Id = wl.Id, Title = wl.Title })
                 .ToList();
-            
+
+            if (Unit.Id > 0)
+                await RecentActivityService.RecordUnitVisitAsync(CourseId, Unit.Id, Unit.Title, Unit.Course?.Title ?? "");
+
             InitializeTabs();
         }
         catch (Exception ex)

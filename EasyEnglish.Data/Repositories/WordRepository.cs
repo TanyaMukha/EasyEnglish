@@ -90,4 +90,11 @@ public class WordRepository : BaseRepository<WordEntity, EasyEnglishDbContext>, 
 
         return await query.AsNoTracking().ToListAsync();
     }
+
+    public async Task<int> CountReviewedSinceAsync(DateTime since)
+    {
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+
+        return await ctx.Words.CountAsync(w => w.LastReviewDate >= since);
+    }
 }

@@ -24,7 +24,7 @@
     </div>
 
     <div class="card-tile-body">
-        @card.Question
+        @GetPreviewText()
     </div>
 
     <div class="card-tile-footer">
@@ -59,6 +59,11 @@
 
     private string GetTitle() =>
         string.IsNullOrEmpty(card.Title) ? GetKindLabel() : card.Title;
+
+    /// <summary>Question when it's set; otherwise falls back to FormattedText (e.g. a Cloze
+    /// card's fill-in-the-blank template often has no separate task text).</summary>
+    private string GetPreviewText() =>
+        string.IsNullOrWhiteSpace(card.Question) ? card.FormattedText ?? "" : card.Question;
 
     private string GetKindLabel() => card.Kind switch
     {

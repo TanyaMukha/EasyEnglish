@@ -197,12 +197,12 @@ public static class MauiProgram
         services.AddTransient<TestCardModelToEntityConverter>();
 
         services.AddSingleton<IStorageService, LocalStorageService>();
-        services.AddSingleton<ProgressService>();
         services.AddSingleton<StreakService>();
-        services.AddSingleton<SettingsService>();
         services.AddSingleton<IFileService, FileService>();
         services.AddSingleton<PracticeQueueService>();
         services.AddSingleton<StorageMaintenanceService>();
+        services.AddSingleton<RecentActivityService>();
+        services.AddScoped<HomeStatsService>();
 
         //services.AddScoped<WordLearningService>();
 

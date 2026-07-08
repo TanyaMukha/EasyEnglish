@@ -44,6 +44,8 @@ public class WordService : BaseService<WordEntity, WordModel>, IWordService
         return _mapper.Map<IEnumerable<WordModel>>(entities);
     }
 
+    public Task<int> CountReviewedSinceAsync(DateTime since) => _wordRepository.CountReviewedSinceAsync(since);
+
     public async Task<WordModel> UpdateWordRateAsync(UpdateWordRateRequest word)
     {
         WordModel? model = await this.GetByIdAsync(word.Id);

@@ -47,34 +47,11 @@ public static class CourseLanguages
     ];
 }
 
-public class DailyProgress
-{
-    public Dictionary<string, int> CompletedTests { get; set; } = new();
-    public Dictionary<string, int> IncorrectTests { get; set; } = new();
-}
-
-public class ProgressStats
-{
-    public DailyProgress DailyProgress { get; set; } = new();
-    public int TotalProgress { get; set; }
-}
-
 public class StreakInfo
 {
     public int CurrentStreak { get; set; }
     public int HighestStreak { get; set; }
     public DateTime? LastVisitDate { get; set; }
-}
-
-public class DailyGoals
-{
-    public Dictionary<string, DailyGoal> Goals { get; set; } = new();
-}
-
-public class DailyGoal
-{
-    public bool Enabled { get; set; }
-    public int Count { get; set; }
 }
 
 /// <summary>

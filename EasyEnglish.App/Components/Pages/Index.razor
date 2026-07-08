@@ -1,17 +1,8 @@
 @page "/"
-@using System.Dynamic
-@using MukhaLab.Database
 @using EasyEnglish.App.Services
-@using EasyEnglish.App.Models
-@using System.Collections.Generic
-@using System.Linq
-@using System.Globalization
-@using Microsoft.AspNetCore.Components.Web
-@using EasyEnglish.App.Components.Shared
-@inject NavigationManager NavigationManager
-@inject ProgressService ProgressService
 @inject StreakService StreakService
-@inject SettingsService SettingsService
+@inject HomeStatsService HomeStatsService
+@inject RecentActivityService RecentActivityService
 
 <div class="home-page">
     <!-- Hero Section -->
@@ -52,59 +43,88 @@
                         <i class="bi bi-graph-up-arrow"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-value">@progressStats.TotalProgress%</div>
-                        <div class="stat-label">Прогрес сьогодні</div>
+                        <div class="stat-value">@todayStats.Reviewed / @todayStats.Goal</div>
+                        <div class="stat-label">Переглянуто сьогодні</div>
                         <div class="progress-bar-container">
-                            <div class="progress-bar-fill" style="width: @progressStats.TotalProgress%"></div>
+                            <div class="progress-bar-fill" style="width: @ProgressPercent%"></div>
                         </div>
+                        @if (todayStats.Reviewed >= todayStats.Goal)
+                        {
+                            <div class="stat-badge success">
+                                <i class="bi bi-check-circle"></i>
+                                Ціль досягнута!
+                            </div>
+                        }
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 
-    <!-- Statistics -->
-    @if (correctAnswers > 0 || incorrectAnswers > 0)
-    {
-        <div class="section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="bi bi-bar-chart"></i>
-                    Статистика відповідей
-                </h2>
-            </div>
-
-            <div class="stats-cards-grid">
-                <div class="stats-card">
-                    <div class="stats-card-header">
-                        <i class="bi bi-check-circle"></i>
-                        Правильні відповіді
-                    </div>
-                    <div class="stats-card-value success">@correctAnswers</div>
-                </div>
-
-                <div class="stats-card">
-                    <div class="stats-card-header">
-                        <i class="bi bi-x-circle"></i>
-                        Неправильні відповіді
-                    </div>
-                    <div class="stats-card-value error">@incorrectAnswers</div>
-                </div>
-
-                <div class="stats-card">
-                    <div class="stats-card-header">
-                        <i class="bi bi-percent"></i>
-                        Успішність
-                    </div>
-                    <div class="stats-card-value">@successPercentage%</div>
-                    <div class="success-bar">
-                        <div class="success-bar-fill" style="width: @successPercentage%"></div>
-                    </div>
-                </div>
-            </div>
+    <!-- Continue Learning -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-play-circle"></i>
+                Продовжити навчання
+            </h2>
         </div>
-    }
+
+        @if (lastVisited is not null)
+        {
+            <div class="continue-card">
+                <div class="continue-info">
+                    <span class="continue-course">@lastVisited.CourseTitle</span>
+                    <h3 class="continue-title">@lastVisited.UnitTitle</h3>
+                </div>
+                <a href="/courses/@lastVisited.CourseId/units/@lastVisited.UnitId" class="btn-start">
+                    <i class="bi bi-arrow-right-circle"></i>
+                    Продовжити
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="bi bi-signpost-split"></i>
+                </div>
+                <p class="empty-message">Ви ще не відкривали жоден модуль</p>
+                <a href="/courses" class="btn-primary">Перейти до бібліотеки</a>
+            </div>
+        }
+    </div>
+
+    <!-- Library Overview -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-journals"></i>
+                Бібліотека
+            </h2>
+        </div>
+
+        <a href="/courses" class="library-grid-link">
+            <div class="library-grid">
+                <div class="library-tile">
+                    <div class="library-tile-value">@libraryOverview.Courses</div>
+                    <div class="library-tile-label">Курсів</div>
+                </div>
+                <div class="library-tile">
+                    <div class="library-tile-value">@libraryOverview.Units</div>
+                    <div class="library-tile-label">Модулів</div>
+                </div>
+                <div class="library-tile">
+                    <div class="library-tile-value">@libraryOverview.Words</div>
+                    <div class="library-tile-label">Слів</div>
+                </div>
+                <div class="library-tile">
+                    <div class="library-tile-value">@libraryOverview.Cards</div>
+                    <div class="library-tile-label">Карток</div>
+                </div>
+            </div>
+        </a>
+    </div>
 
     <!-- Quick Actions -->
     <div class="section">
@@ -128,15 +148,13 @@
 </div>
 
 @code {
-    private ProgressStats progressStats = new ProgressStats { DailyProgress = new DailyProgress(), TotalProgress = 0 };
-    private StreakInfo streakInfo = new StreakInfo { CurrentStreak = 0, HighestStreak = 0 };
-    private bool isLoading = false;
-    private string? errorMessage;
+    private TodayReviewStats todayStats = new();
+    private LibraryOverview libraryOverview = new();
+    private StreakInfo streakInfo = new();
+    private LastVisitedUnit? lastVisited;
 
-    private int correctAnswers => progressStats.DailyProgress.CompletedTests.Values.Sum();
-    private int incorrectAnswers => progressStats.DailyProgress.IncorrectTests.Values.Sum();
-    private double successPercentage => (correctAnswers + incorrectAnswers) > 0
-        ? Math.Round((correctAnswers / (double)(correctAnswers + incorrectAnswers)) * 100, 2)
+    private int ProgressPercent => todayStats.Goal > 0
+        ? Math.Min(100, (int)(todayStats.Reviewed / (double)todayStats.Goal * 100))
         : 0;
 
     protected override async Task OnInitializedAsync()
@@ -148,29 +166,23 @@
     {
         try
         {
-            isLoading = true;
-            errorMessage = null;
-
-            var settings = await SettingsService.GetSettingsAsync();
-            var progressTask = ProgressService.GetProgressStats(settings ?? new DailyGoals { Goals = new Dictionary<string, DailyGoal>() });
             var streakTask = StreakService.CheckAndUpdateStreak();
+            var todayTask = HomeStatsService.GetTodayReviewedCountAsync();
+            var libraryTask = HomeStatsService.GetLibraryOverviewAsync();
+            var lastVisitedTask = RecentActivityService.GetLastVisitedAsync();
 
-            await Task.WhenAll(progressTask, streakTask);
+            await Task.WhenAll(streakTask, todayTask, libraryTask, lastVisitedTask);
 
-            progressStats = progressTask.Result;
             streakInfo = streakTask.Result;
+            todayStats = todayTask.Result;
+            libraryOverview = libraryTask.Result;
+            lastVisited = lastVisitedTask.Result;
 
             StateHasChanged();
         }
         catch (Exception ex)
         {
-            errorMessage = $"Error loading home data: {ex.Message}";
-            Console.WriteLine(errorMessage);
-        }
-        finally
-        {
-            isLoading = false;
-            StateHasChanged();
+            Console.WriteLine($"Error loading home data: {ex.Message}");
         }
     }
 }
@@ -270,11 +282,6 @@
         color: white;
     }
 
-    .words-card .stat-icon {
-        background: linear-gradient(135deg, #B5EAD7, #8DD3BB);
-        color: white;
-    }
-
     .stat-content {
         flex: 1;
     }
@@ -348,56 +355,89 @@
         gap: 0.5rem;
     }
 
-    /* Statistics Cards */
-    .stats-cards-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.5rem;
+    /* Continue Learning */
+    .continue-card {
+        background: linear-gradient(135deg, #A3BFFA 0%, #B5EAD7 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+        color: white;
+        flex-wrap: wrap;
     }
 
-    .stats-card {
+    .continue-course {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+
+    .continue-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0.25rem 0 0 0;
+    }
+
+    .btn-start {
         background: var(--surface);
-        border: 1px solid var(--border);
+        color: #7B9FE8;
+        border: none;
         border-radius: 12px;
-        padding: 1.5rem;
-    }
-
-    .stats-card-header {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-        margin-bottom: 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        text-decoration: none;
+        white-space: nowrap;
     }
 
-    .stats-card-value {
-        font-size: 2.5rem;
+    .btn-start:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Library Overview */
+    .library-grid-link {
+        display: block;
+        text-decoration: none;
+        border-radius: 16px;
+        transition: all 0.2s;
+    }
+
+    .library-grid-link:hover {
+        transform: translateY(-2px);
+    }
+
+    .library-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+    }
+
+    .library-tile {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.25rem;
+        text-align: center;
+    }
+
+    .library-tile-value {
+        font-size: 1.75rem;
         font-weight: 700;
         color: var(--text-primary);
     }
 
-    .stats-card-value.success {
-        color: #4CAF50;
-    }
-
-    .stats-card-value.error {
-        color: #F44336;
-    }
-
-    .success-bar {
-        height: 8px;
-        background: var(--border-light);
-        border-radius: 4px;
-        overflow: hidden;
-        margin-top: 1rem;
-    }
-
-    .success-bar-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #4CAF50, #66BB6A);
-        border-radius: 4px;
-        transition: width 0.3s;
+    .library-tile-label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-top: 0.25rem;
     }
 
     /* Quick Actions */
@@ -452,6 +492,57 @@
         margin: 0;
     }
 
+    /* Empty State */
+    .empty-state {
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 3rem 2rem;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        background: var(--surface);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        border: 2px solid var(--border);
+    }
+
+    .empty-icon i {
+        font-size: 2.5rem;
+        color: var(--text-muted);
+    }
+
+    .empty-message {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        margin: 0 0 1.5rem 0;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.875rem 2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.3);
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(163, 191, 250, 0.4);
+    }
+
     /* Responsive */
     @@media (max-width: 768px) {
         .home-page {
@@ -477,6 +568,16 @@
 
         .stat-value {
             font-size: 1.75rem;
+        }
+
+        .continue-card {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .btn-start {
+            width: 100%;
+            justify-content: center;
         }
 
         .quick-actions-grid {

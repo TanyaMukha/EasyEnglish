@@ -13,6 +13,9 @@ public interface IWordService : IBaseService<WordModel>
     Task<WordModel> UpdateWordRateAsync(UpdateWordRateRequest word);
     Task<IEnumerable<WordModel>> UpdateWordRateRangeAsync(IEnumerable<UpdateWordRateRequest> words);
     Task<(int? PreviousId, int? NextId, int Position, int Total)> GetNavigationIdsAsync(int unitId, int currentWordId);
+
+    /// <summary>Number of words reviewed since the given point in time (by LastReviewDate).</summary>
+    Task<int> CountReviewedSinceAsync(DateTime since);
 }
 
 public class UpdateWordRateRequest

@@ -13,7 +13,7 @@ public static class TestCardBuilder
     public static TestCardModel ShortAnswer(string text, string[] acceptableAnswers, string? hint = null) => new()
     {
         Kind = TestCardKind.ShortAnswer,
-        Text = text,
+        Question = text,
         Hint = hint,
         ShortAnswer = new ShortAnswerPayload { AcceptableAnswers = acceptableAnswers }
     };
@@ -21,7 +21,7 @@ public static class TestCardBuilder
     public static TestCardModel SingleChoice(string text, string[] options, string correctAnswer, string? hint = null) => new()
     {
         Kind = TestCardKind.SingleChoice,
-        Text = text,
+        Question = text,
         Hint = hint,
         Choice = new ChoicePayload { Options = options, CorrectAnswers = [correctAnswer] }
     };
@@ -29,7 +29,7 @@ public static class TestCardBuilder
     public static TestCardModel MultipleChoice(string text, string[] options, string[] correctAnswers, string? hint = null) => new()
     {
         Kind = TestCardKind.MultipleChoice,
-        Text = text,
+        Question = text,
         Hint = hint,
         Choice = new ChoicePayload { Options = options, CorrectAnswers = correctAnswers }
     };
@@ -43,7 +43,7 @@ public static class TestCardBuilder
     {
         Title = title,
         Kind = TestCardKind.Cloze,
-        Text = template,
+        FormattedText = template,
         Hint = hint,
         Cloze = new ClozePayload { CorrectAnswers = correctAnswers, Options = options }
     };
@@ -52,7 +52,7 @@ public static class TestCardBuilder
     public static TestCardModel Matching(string text, string[] left, string[] right, string? hint = null) => new()
     {
         Kind = TestCardKind.Matching,
-        Text = text,
+        Question = text,
         Hint = hint,
         Matching = new MatchingPayload
         {

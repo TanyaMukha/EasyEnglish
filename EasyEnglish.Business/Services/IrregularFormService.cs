@@ -33,6 +33,8 @@ public class IrregularFormService : BaseService<IrregularFormEntity ,IrregularFo
         return _mapper.Map<IEnumerable<IrregularFormModel>>(result);
     }
 
+    public Task<int> CountReviewedSinceAsync(DateTime since) => _irregularFormRepository.CountReviewedSinceAsync(since);
+
     public async Task<IEnumerable<IrregularFormModel>> UpdateRateRangeAsync(IEnumerable<UpdateWordRateRequest> forms)
     {
         try

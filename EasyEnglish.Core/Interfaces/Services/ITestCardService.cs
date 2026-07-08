@@ -12,4 +12,7 @@ public interface ITestCardService : IBaseService<TestCardModel>
 
     /// <summary>Selects test cards from a course/unit for learning, according to the given options.</summary>
     Task<IEnumerable<TestCardModel>> GetForLearningAsync(int courseId, int? unitId, LearningSelectionOptions options);
+
+    /// <summary>Number of test cards reviewed since the given point in time (by LastReviewDate).</summary>
+    Task<int> CountReviewedSinceAsync(DateTime since);
 }

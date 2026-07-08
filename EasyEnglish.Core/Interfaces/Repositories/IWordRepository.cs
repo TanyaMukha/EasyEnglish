@@ -19,4 +19,7 @@ public interface IWordRepository : IBaseRepository<WordEntity>
 
     /// <summary>Selects words from a course/unit for learning, according to the given options.</summary>
     Task<List<WordEntity>> GetForLearningAsync(int courseId, int? unitId, LearningSelectionOptions options);
+
+    /// <summary>Number of words reviewed since the given point in time (by LastReviewDate).</summary>
+    Task<int> CountReviewedSinceAsync(DateTime since);
 }

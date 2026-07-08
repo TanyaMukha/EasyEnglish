@@ -33,6 +33,8 @@ public class TestCardService : BaseService<TestCardEntity, TestCardModel>, ITest
         return _mapper.Map<IEnumerable<TestCardModel>>(result);
     }
 
+    public Task<int> CountReviewedSinceAsync(DateTime since) => _testCardRepository.CountReviewedSinceAsync(since);
+
     public async Task<(int? PreviousId, int? NextId, int Position, int Total)> GetNavigationIdsAsync(int unitId, int currentCardId)
     {
         try

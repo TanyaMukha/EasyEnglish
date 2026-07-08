@@ -52,4 +52,11 @@ public class TestCardRepository : BaseRepository<TestCardEntity, EasyEnglishDbCo
 
         return (previousId, nextId, currentIndex + 1, cardIds.Count);
     }
+
+    public async Task<int> CountReviewedSinceAsync(DateTime since)
+    {
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+
+        return await ctx.TestCards.CountAsync(c => c.LastReviewDate >= since);
+    }
 }

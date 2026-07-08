@@ -28,4 +28,11 @@ public class IrregularFormRepository : BaseRepository<IrregularFormEntity, EasyE
 
         return await query.AsNoTracking().ToListAsync();
     }
+
+    public async Task<int> CountReviewedSinceAsync(DateTime since)
+    {
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+
+        return await ctx.IrregularForms.CountAsync(f => f.LastReviewDate >= since);
+    }
 }

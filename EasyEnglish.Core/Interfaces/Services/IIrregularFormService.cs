@@ -10,4 +10,7 @@ public interface IIrregularFormService : IBaseService<IrregularFormModel>
 
     /// <summary>Selects irregular forms from a course/unit for learning, according to the given options.</summary>
     Task<IEnumerable<IrregularFormModel>> GetForLearningAsync(int courseId, int? unitId, LearningSelectionOptions options);
+
+    /// <summary>Number of irregular forms reviewed since the given point in time (by LastReviewDate).</summary>
+    Task<int> CountReviewedSinceAsync(DateTime since);
 }

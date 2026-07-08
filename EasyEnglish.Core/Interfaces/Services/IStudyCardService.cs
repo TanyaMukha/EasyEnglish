@@ -12,4 +12,7 @@ public interface IStudyCardService : IBaseService<StudyCardModel>
 
     /// <summary>Selects study cards from a course/unit for learning, according to the given options.</summary>
     Task<IEnumerable<StudyCardModel>> GetForLearningAsync(int courseId, int? unitId, LearningSelectionOptions options);
+
+    /// <summary>Number of study cards reviewed since the given point in time (by LastReviewDate).</summary>
+    Task<int> CountReviewedSinceAsync(DateTime since);
 }
