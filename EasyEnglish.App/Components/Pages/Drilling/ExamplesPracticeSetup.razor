@@ -81,7 +81,7 @@
         try
         {
             isLoading = true;
-            var allWords = (await WordService.GetByUnitAsync(UnitId)).ToList();
+            var allWords = (await WordService.GetByUnitAsync(UnitId, ["Examples"])).ToList();
             wordsWithExamples = allWords.Where(w => w.Examples is { Count: > 0 }).ToList();
             wordOptions = wordsWithExamples.Select(w => new OptionDefinition { Id = w.Id, Title = BuildLabel(w) }).ToList();
             selectedWordIds = wordOptions.Select(o => o.Id).ToHashSet();

@@ -1,7 +1,7 @@
-@page "/courses/{CourseId:int}/units/{UnitId:int}/irregular-forms/practice"
+@page "/courses/{CourseId:int}/units/{UnitId:int}/study-cards/practice/setup"
 
 <div class="page-content">
-    <PageHeader Title="Вивчення неправильних форм" />
+    <PageHeader Title="Вивчення навчальних карток" />
 
     @if (isLoading)
     {
@@ -9,27 +9,27 @@
             <div class="spinner-border" role="status"></div>
         </div>
     }
-    else if (formOptions.Count == 0)
+    else if (cardOptions.Count == 0)
     {
         <div class="empty-container">
-            <p class="empty-message">У цьому модулі немає неправильних форм для вивчення.</p>
+            <p class="empty-message">У цьому модулі немає навчальних карток для вивчення.</p>
         </div>
     }
     else
     {
         <div class="setup-grid">
             <div class="setup-column">
-                <h2 class="section-title"><i class="bi bi-list-check"></i> Які форми вивчати</h2>
+                <h2 class="section-title"><i class="bi bi-list-check"></i> Які картки вивчати</h2>
 
-                <ItemPickerList Items="@formOptions"
-                                @bind-SelectedIds="selectedFormIds"
-                                SelectAllLabel="Вибрати всі форми"
-                                EmptyText="У цьому модулі немає неправильних форм." />
+                <ItemPickerList Items="@cardOptions"
+                                @bind-SelectedIds="selectedCardIds"
+                                SelectAllLabel="Вибрати всі картки"
+                                EmptyText="У цьому модулі немає навчальних карток." />
 
                 <details class="quick-filter-details">
                     <summary>Швидкий фільтр (кількість / складність)</summary>
                     <LearningFilterPanel Options="filterOptions"
-                                         MaxCount="@(Math.Max(formOptions.Count, 20))"
+                                         MaxCount="@(Math.Max(cardOptions.Count, 20))"
                                          OnApply="ApplyQuickFilter" />
                 </details>
             </div>
@@ -40,7 +40,7 @@
             </div>
         </div>
 
-        @if (selectedFormIds.Count > 0 && selectedTestKeys.Count > 0)
+        @if (selectedCardIds.Count > 0 && selectedTestKeys.Count > 0)
         {
             <div class="multi-test-section">
                 <div class="multi-test-card">
@@ -50,7 +50,7 @@
                             Готово до старту
                         </h3>
                         <p class="multi-test-description">
-                            Форм: <strong>@selectedFormIds.Count</strong>, вправ: <strong>@selectedTestKeys.Count</strong>
+                            Карток: <strong>@selectedCardIds.Count</strong>, вправ: <strong>@selectedTestKeys.Count</strong>
                         </p>
                     </div>
                     <button class="btn-multi-test" @onclick="StartPractice">
@@ -67,13 +67,15 @@
     [Parameter] public int CourseId { get; set; }
     [Parameter] public int UnitId { get; set; }
 
-    private List<OptionDefinition> formOptions = new();
-    private HashSet<int> selectedFormIds = new();
+    private List<OptionDefinition> cardOptions = new();
+    private HashSet<int> selectedCardIds = new();
     private HashSet<string> selectedTestKeys = new();
     private LearningSelectionOptions filterOptions = new();
     private bool isLoading = true;
 
-    private readonly List<ExerciseOption> exerciseOptions = ExerciseCatalog.IrregularForms;
+    private readonly List<ExerciseOption> exerciseOptions = TestRegistry.StudyCardTests
+        .Select(d => new ExerciseOption { Key = d.Key, Title = d.Title, Icon = d.IconClass, Color = "blue" })
+        .ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -81,9 +83,9 @@
         {
             isLoading = true;
             var unit = await UnitService.GetByIdAsync(UnitId, UnitIncludes.Full);
-            var allForms = unit?.IrregularForms ?? new List<IrregularFormModel>();
-            formOptions = allForms.Select(f => new OptionDefinition { Id = f.Id, Title = BuildLabel(f) }).ToList();
-            selectedFormIds = formOptions.Select(o => o.Id).ToHashSet();
+            var allCards = unit?.StudyCards ?? new List<StudyCardModel>();
+            cardOptions = allCards.Select(c => new OptionDefinition { Id = c.Id, Title = BuildLabel(c) }).ToList();
+            selectedCardIds = cardOptions.Select(o => o.Id).ToHashSet();
         }
         finally
         {
@@ -91,22 +93,20 @@
         }
     }
 
-    private static string BuildLabel(IrregularFormModel f)
-        => string.IsNullOrWhiteSpace(f.ThirdForm)
-            ? $"{f.FirstForm} — {f.SecondForm}"
-            : $"{f.FirstForm} — {f.SecondForm} — {f.ThirdForm}";
+    private static string BuildLabel(StudyCardModel c)
+        => string.IsNullOrWhiteSpace(c.Title) ? $"Картка #{c.Id}" : c.Title;
 
     private async Task ApplyQuickFilter()
     {
-        var result = await IrregularFormService.GetForLearningAsync(CourseId, UnitId, filterOptions);
-        selectedFormIds = result.Select(f => f.Id).ToHashSet();
+        var result = await StudyCardService.GetForLearningAsync(CourseId, UnitId, filterOptions);
+        selectedCardIds = result.Select(c => c.Id).ToHashSet();
     }
 
     private void StartPractice()
     {
-        var formIds = string.Join(",", selectedFormIds);
+        var itemIds = string.Join(",", selectedCardIds);
         var tests = string.Join(",", selectedTestKeys);
-        NavigationManager.NavigateTo($"/courses/{CourseId}/units/{UnitId}/irregular-forms/practice/session?formIds={formIds}&tests={tests}");
+        NavigationManager.NavigateTo($"/courses/{CourseId}/units/{UnitId}/study-cards/practice?itemIds={itemIds}&tests={tests}");
     }
 }
 
