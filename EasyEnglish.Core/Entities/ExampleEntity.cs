@@ -6,8 +6,11 @@ using MukhaLab.Database;
 namespace EasyEnglish.Core.Entities;
 
 [Table("examples")]
-public class ExampleEntity : AbstractEntity
+public class ExampleEntity : AbstractEntity, IGuidRecord
 {
+    [Column("guid")]
+    public Guid RecordGuid { get; set; } = Guid.NewGuid();
+
     [NotNull]
     [MaxLength(1000)]
     [Column("sentence")]

@@ -1,0 +1,104 @@
+@page "/subjects"
+@using EasyEnglish.App.Components.Shared
+@using EasyEnglish.App.Components.Shared.Breadcrumb
+
+<div class="page-content">
+    <Breadcrumb Items="breadcrumbs" />
+    <PageHeader Title="Предмети" />
+
+    <div class="subjects-grid">
+        @foreach (var subject in subjects)
+        {
+            <PreviewCard
+                Id="@subject.Id"
+                Title="@subject.Title"
+                Description="@subject.Description"
+                ItemsCount="@courseCounts.GetValueOrDefault(subject.Id)"
+                IsEditable="true"
+                BadgeText="курсів"
+                GoToViewPage="@((id) => NavigationManager.NavigateTo($"/subjects/{id}/edit"))"
+                GoToEditPage="@((id) => NavigationManager.NavigateTo($"/subjects/{id}/edit"))"
+                RemoveItem="RemoveSubject"
+            />
+        }
+
+        <a href="/subjects/create" class="create-card">
+            <i class="bi bi-plus-lg"></i>
+            <span>Створити предмет</span>
+        </a>
+    </div>
+</div>
+
+@code {
+    private List<SubjectModel> subjects = [];
+    private Dictionary<int, int> courseCounts = [];
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = BreadcrumbBuilder.Create().WithHome().WithActive("Предмети").Build();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        subjects = (await SubjectService.GetAllAsync()).ToList();
+
+        courseCounts = [];
+        foreach (var subject in subjects)
+            courseCounts[subject.Id] = await SubjectService.GetCourseCountAsync(subject.Id);
+    }
+
+    private async Task RemoveSubject(int id)
+    {
+        try
+        {
+            await SubjectService.DeleteAsync(id);
+            await LoadData();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting subject: {ex.Message}");
+        }
+    }
+}
+
+<style>
+    .page-content { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+
+    .subjects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .create-card {
+        background: transparent;
+        border: 2px dashed var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+        min-height: 100%;
+    }
+
+    .create-card:hover {
+        border-color: #A3BFFA;
+        color: #A3BFFA;
+    }
+
+    .create-card i { font-size: 1.25rem; }
+
+    @@media (max-width: 768px) {
+        .subjects-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+    }
+</style>

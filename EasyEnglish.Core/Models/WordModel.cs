@@ -4,8 +4,10 @@ using System.Text.Json.Serialization;
 
 namespace EasyEnglish.Core.Models;
 
-public class WordModel : AbstractModel, IReviewInfo, IRateInfo, IAuditInfo
+public class WordModel : AbstractModel, IReviewInfo, IRateInfo, IAuditInfo, IGuidRecord
 {
+    public Guid RecordGuid { get; set; } = Guid.NewGuid();
+
     public string Word { get; set; } = string.Empty;
 
     public string? Transcription { get; set; }

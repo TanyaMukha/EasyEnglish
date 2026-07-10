@@ -13,6 +13,16 @@ public class IrregularFormMappingOptions
     public bool ExcludeLearningProgress { get; init; }
 }
 
+public class StudyCardMappingOptions
+{
+    public bool ResetId { get; init; }
+}
+
+public class TestCardMappingOptions
+{
+    public bool ResetId { get; init; }
+}
+
 public class UnitMappingOptions
 {
     public const string Key = nameof(UnitMappingOptions);
@@ -22,4 +32,6 @@ public class UnitMappingOptions
 
     public WordMappingOptions Word { get; init; } = new();
     public IrregularFormMappingOptions IrregularForm { get; init; } = new();
+    public StudyCardMappingOptions StudyCard { get; init; } = new();
+    public TestCardMappingOptions TestCard { get; init; } = new();
 }

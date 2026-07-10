@@ -3,12 +3,14 @@
 @using EasyEnglish.Core.Presets
 @using System.Collections.Generic
 @using EasyEnglish.App.Components.Shared
+@using EasyEnglish.App.Components.Shared.Breadcrumb
 @using Microsoft.Extensions.Logging
 @using MukhaLab.Database
 @inject ILogger<Index> Logger
 
 <div class="page-content">
-    <PageHeader Title="Courses" />
+    <Breadcrumb Items="breadcrumbs" />
+    <PageHeader Title="Курси" />
 
     <div class="courses-grid">
         @foreach (var course in AvailableCourses)
@@ -19,15 +21,13 @@
                 Description="@course.Description"
                 ItemsCount="@course.Units.Count"
                 IsEditable="true"
-                BadgeText="Словник"
+                BadgeText="@course.Subject?.Title"
                          GoToViewPage="@((id) => NavigationManager.NavigateTo($"/courses/{id}"))"
                 GoToEditPage="GoToEditPage"
                 RemoveItem="RemoveCourse"
             >
                 <AdditionalMainContent>
-                    <span class="course-flag" title="@course.LanguageCode">
-                        @LanguageFlagHelper.GetFlagEmoji(course.LanguageCode)
-                    </span>
+                    <img class="course-flag" src="@LanguageFlagHelper.GetFlagIconPath(course.LanguageCode)" title="@course.LanguageCode" alt="@course.LanguageCode" />
                 </AdditionalMainContent>
             </PreviewCard>
         }
@@ -39,6 +39,7 @@
 @code {
     private IEnumerable<CourseModel>? AvailableCourses = [];
     private string? errorMessage;
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = BreadcrumbBuilder.Create().WithHome().WithActive("Курси").Build();
 
     protected override async Task OnInitializedAsync()
     {
@@ -90,9 +91,13 @@
 
 <style>
     .course-flag {
-        font-size: 1.5rem;
-        line-height: 1;
+        width: 28px;
+        height: 21px;
+        object-fit: cover;
+        border-radius: 3px;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
         display: inline-block;
+        vertical-align: middle;
     }
 
     .courses-grid {

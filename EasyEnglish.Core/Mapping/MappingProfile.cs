@@ -12,12 +12,18 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
+        // ========== SUBJECT ==========
+        CreateMap<SubjectEntity, SubjectModel>();
+        CreateMap<SubjectModel, SubjectEntity>();
+
         // ========== COURSE ==========
         CreateMap<CourseEntity, CourseModel>()
-            .ForMember(dest => dest.Units, opt => opt.MapFrom(src => src.Units));
-        
+            .ForMember(dest => dest.Units, opt => opt.MapFrom(src => src.Units))
+            .ForMember(dest => dest.Subject, opt => opt.MapFrom(src => src.Subject));
+
         CreateMap<CourseModel, CourseEntity>()
-            .ForMember(dest => dest.Units, opt => opt.Ignore());
+            .ForMember(dest => dest.Units, opt => opt.Ignore())
+            .ForMember(dest => dest.Subject, opt => opt.Ignore());
 
         // ========== UNIT ==========
         CreateMap<UnitEntity, UnitModel>()
@@ -96,7 +102,8 @@ public class MappingProfile : Profile
         // Model → Model (потрібен для копіювання Unit при бекапі/експорті/імпорті —
         // UnitModel→UnitModel мапить свою колекцію StudyCards саме через цей self-map)
         CreateMap<StudyCardModel, StudyCardModel>()
-            .ForMember(dest => dest.Unit, opt => opt.Ignore());
+            .ForMember(dest => dest.Unit, opt => opt.Ignore())
+            .AfterMap<StudyCardMappingAction>();
 
         // ========== TEST CARD ==========
         // Options/CorrectAnswers — гнучкі JSON-поля, структура залежить від Kind,
@@ -109,7 +116,8 @@ public class MappingProfile : Profile
 
         // Model → Model (той самий випадок, що й для StudyCard вище)
         CreateMap<TestCardModel, TestCardModel>()
-            .ForMember(dest => dest.Unit, opt => opt.Ignore());
+            .ForMember(dest => dest.Unit, opt => opt.Ignore())
+            .AfterMap<TestCardMappingAction>();
 
         CreateMap<ChoicePayload, ChoicePayload>();
         CreateMap<ShortAnswerPayload, ShortAnswerPayload>();

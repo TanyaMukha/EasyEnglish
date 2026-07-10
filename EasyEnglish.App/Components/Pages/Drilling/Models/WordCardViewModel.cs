@@ -10,7 +10,8 @@ public record WordCardViewModel(
     string? Transcription,
     string? Translation,
     IReadOnlyList<ExampleViewModel>? Examples = null,
-    byte[]? Pronunciation = null
+    byte[]? Pronunciation = null,
+    string? Note = null
 );
 
 public record ExampleViewModel(string Sentence, string? Translation);

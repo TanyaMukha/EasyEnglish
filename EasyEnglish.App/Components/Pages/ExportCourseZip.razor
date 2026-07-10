@@ -1,5 +1,6 @@
 @page "/export-course-zip"
 @using EasyEnglish.App.Components.Shared
+@using EasyEnglish.App.Components.Shared.Breadcrumb
 @using EasyEnglish.App.Interfaces
 @using EasyEnglish.Core.Models
 @using EasyEnglish.Services
@@ -14,6 +15,8 @@
 <div class="page-wrapper">
     <div class="scroll-area">
         <div class="edit-page">
+
+            <Breadcrumb Items="breadcrumbs" />
 
             <div class="header-section">
                 <h1 class="page-title">
@@ -160,6 +163,8 @@
 </div>
 
 @code {
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = BreadcrumbBuilder.Create().WithHome().WithActive("Експорт курсу").Build();
+
     private List<CourseModel> availableCourses = [];
     private List<UnitModel>   availableUnits   = [];
     private HashSet<int>      selectedUnitIds  = [];

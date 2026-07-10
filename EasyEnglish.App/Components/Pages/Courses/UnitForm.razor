@@ -96,7 +96,8 @@
         Courses = (await CourseService.GetAllAsync()).ToList();
 
         breadcrumbs = BreadcrumbBuilder.Create()
-            .WithLink("Courses", "/courses")
+            .WithHome()
+            .WithLink("Курси", "/courses")
             .WithLink(unit.Course.Title, $"/courses/{CourseId}")
             .WithLink(unit.Title, $"/courses/{CourseId}/units/{unit.Id}")
             .Build();

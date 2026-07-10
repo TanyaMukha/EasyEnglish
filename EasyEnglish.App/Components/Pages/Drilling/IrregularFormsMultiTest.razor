@@ -4,6 +4,7 @@
 @inject PracticeQueueService PracticeQueueService
 
 <div class="page-content">
+    <Breadcrumb Items="breadcrumbs" />
     <PageHeader Title="Вивчення неправильних форм" />
 
     <MultiTestHost TItem="IrregularFormTestModel"
@@ -22,6 +23,7 @@
     private List<TestDefinition<IrregularFormTestModel>> _definitions = [];
     private bool    _isLoading;
     private string? _errorMessage;
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -30,7 +32,25 @@
             .OfType<TestDefinition<IrregularFormTestModel>>()
             .ToList();
 
+        await BuildBreadcrumbsAsync();
         await LoadData();
+    }
+
+    private async Task BuildBreadcrumbsAsync()
+    {
+        var course = await CourseService.GetByIdAsync(CourseId);
+        var builder = BreadcrumbBuilder.Create()
+            .WithHome()
+            .WithLink("Курси", "/courses")
+            .WithLink(course?.Title ?? "Курс", $"/courses/{CourseId}");
+
+        if (UnitId.HasValue)
+        {
+            var unit = await UnitService.GetByIdAsync(UnitId.Value);
+            builder = builder.WithLink(unit?.Title ?? "Модуль", $"/courses/{CourseId}/units/{UnitId}");
+        }
+
+        breadcrumbs = builder.WithActive("Вивчення неправильних форм").Build();
     }
 
     private async Task LoadData()

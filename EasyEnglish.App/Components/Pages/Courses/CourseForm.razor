@@ -39,6 +39,13 @@
                         <option value="@lang.Code">@lang.Label</option>
                     }
                 </InputSelectField>
+
+                <InputSelectField @bind-Value="newCourse.SubjectId" Label="Предмет" EmptyOption="Без предмету">
+                    @foreach (var subject in availableSubjects)
+                    {
+                        <option value="@subject.Id">@subject.Title</option>
+                    }
+                </InputSelectField>
             </div>
 
             <div class="form-actions">
@@ -63,9 +70,12 @@
     private bool IsEditMode => Id > 0;
 
     private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
+    private List<SubjectModel> availableSubjects = [];
 
     protected override async Task OnInitializedAsync()
     {
+        availableSubjects = (await SubjectService.GetAllAsync()).ToList();
+
         if (IsEditMode)
         {
             // Loading existing course for editing
@@ -78,7 +88,8 @@
         }
 
         breadcrumbs = BreadcrumbBuilder.Create()
-            .WithLink("Courses", "/courses")
+            .WithHome()
+            .WithLink("Курси", "/courses")
             .WithLink(newCourse.Title, $"/courses/{Id}")
             .Build();
     }

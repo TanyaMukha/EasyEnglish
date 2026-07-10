@@ -1,5 +1,6 @@
 @page "/import-course-zip"
 @using EasyEnglish.App.Components.Shared
+@using EasyEnglish.App.Components.Shared.Breadcrumb
 @using EasyEnglish.App.Interfaces
 @using EasyEnglish.Core.Mapping
 @using EasyEnglish.Core.Models
@@ -16,6 +17,8 @@
 <div class="page-wrapper">
     <div class="scroll-area">
         <div class="edit-page">
+
+            <Breadcrumb Items="breadcrumbs" />
 
             <!-- ═══════════ HEADER ═══════════ -->
             <div class="header-section">
@@ -188,7 +191,7 @@
                                 <div class="info-row">
                                     <span class="info-label">Мова</span>
                                     <span class="info-value">
-                                        @LanguageFlagHelper.GetFlagEmoji(manifest.LanguageCode)
+                                        <img class="manifest-flag" src="@LanguageFlagHelper.GetFlagIconPath(manifest.LanguageCode)" alt="@manifest.LanguageCode" />
                                         @manifest.LanguageCode
                                     </span>
                                 </div>
@@ -277,6 +280,12 @@
                                     Label="Відновити як резервну копію (зберегти ID)"
                                     Icon="bi-list-ul" />
                             }
+                            @if (importMode == ImportMode.Update)
+                            {
+                                <InputCheckboxField @bind-Value="deleteMissingItems"
+                                    Label="Видаляти елементи, яких немає в архіві"
+                                    Icon="bi-trash3" />
+                            }
                         </div>
                     </div>
 
@@ -329,6 +338,8 @@
 </div>
 
 @code {
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = BreadcrumbBuilder.Create().WithHome().WithActive("Імпорт курсу").Build();
+
     private string?                selectedFileName;
     private byte[]?                zipBytes;
 
@@ -341,6 +352,7 @@
     private ImportMode        importMode    = ImportMode.CreateNew;
     private int               mergeTargetCourseId = 0;
     private List<CourseModel> availableCourses = [];
+    private bool              deleteMissingItems = false;
 
     private bool    isProcessing   = false;
     private string? importError;
@@ -503,7 +515,7 @@
                     if (dbUnit != null)
                     {
                         unit.Id = dbUnit.Id;
-                        await UnitService.UpdateAsync(unit.Id, unit);
+                        await UnitService.ReconcileAndUpdateAsync(unit, deleteMissingItems);
                         updated++;
                         continue;
                     }
@@ -634,6 +646,7 @@
     .info-label { flex: 0 0 120px; color: var(--text-secondary); font-weight: 500; }
     .info-value { color: var(--text-primary); }
     .info-value--mono { font-family: monospace; font-size: 0.78rem; color: #555; word-break: break-all; }
+    .manifest-flag { width: 22px; height: 16px; object-fit: cover; border-radius: 3px; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1); vertical-align: middle; margin-right: 0.25rem; }
 
     .units-list { display: flex; flex-direction: column; gap: 0.4rem; }
 

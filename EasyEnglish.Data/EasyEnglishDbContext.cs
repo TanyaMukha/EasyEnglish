@@ -13,6 +13,8 @@ public class EasyEnglishDbContext : DbContext
 
     public DbSet<CourseEntity> Courses => this.Set<CourseEntity>();
 
+    public DbSet<SubjectEntity> Subjects => this.Set<SubjectEntity>();
+
     public DbSet<WordEntity> Words => this.Set<WordEntity>();
 
     public DbSet<ExampleEntity> Examples => this.Set<ExampleEntity>();

@@ -1,7 +1,10 @@
 @page "/vocab-player"
+@using EasyEnglish.App.Components.Shared.Breadcrumb
 
 @inject SpeechPlayer Player
 @implements IAsyncDisposable
+
+<Breadcrumb Items="breadcrumbs" />
 
 <div class="vocab-player">
     <button @onclick="PlayExamples" disabled="@Player.IsPlaying">▶ Play</button>
@@ -9,6 +12,8 @@
 </div>
 
 @code {
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = BreadcrumbBuilder.Create().WithHome().WithActive("Програвач словника").Build();
+
     // ── приклад: слово "schedule" + переклад
     private readonly List<SpeechSegment> _examples =
         [

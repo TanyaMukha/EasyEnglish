@@ -8,8 +8,10 @@ using System.Text.Json.Serialization;
 
 namespace EasyEnglish.Core.Models;
 
-public class IrregularFormModel : AbstractModel, IReviewInfo, IRateInfo, IAuditInfo
+public class IrregularFormModel : AbstractModel, IReviewInfo, IRateInfo, IAuditInfo, IGuidRecord
 {
+    public Guid RecordGuid { get; set; } = Guid.NewGuid();
+
     public string FirstForm { get; set; } = string.Empty;
 
     public string? PartOfSpeech { get; set; }

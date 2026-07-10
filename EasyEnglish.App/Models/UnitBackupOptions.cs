@@ -40,6 +40,14 @@ public static class UnitBackupOptionsExtensions
                 ResetId                 = resetIds,
                 ExcludeLearningProgress = !options.IncludeLearningProgress,
             },
+            StudyCard = new()
+            {
+                ResetId = resetIds,
+            },
+            TestCard = new()
+            {
+                ResetId = resetIds,
+            },
         };
     }
 }

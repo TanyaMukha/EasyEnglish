@@ -17,7 +17,8 @@ file static class WordVm
         Transcription: w.Transcription,
         Translation:   w.Translation,
         Examples:      w.Examples?.Select(e => new ExampleViewModel(e.Sentence, e.Translation)).ToList(),
-        Pronunciation: w.Pronunciation
+        Pronunciation: w.Pronunciation,
+        Note:          w.Note
     );
 
     internal static IReadOnlyList<string> Distractors(

@@ -46,5 +46,10 @@ public class CourseEntity : AbstractEntity, IGuidInfo, IAuditInfo, IGuidRecord
     [Column("updated_at")]
     public DateTime? UpdatedAt { get; set; }
 
+    [Column("subject_id")]
+    public int? SubjectId { get; set; }
+
+    public SubjectEntity? Subject { get; set; }
+
     public List<UnitEntity> Units { get; set; } = new();
 }

@@ -7,8 +7,11 @@ using System.Diagnostics.CodeAnalysis;
 namespace EasyEnglish.Core.Entities;
 
 [Table("irregular_forms")]
-public class IrregularFormEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInfo
+public class IrregularFormEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInfo, IGuidRecord
 {
+    [Column("guid")]
+    public Guid RecordGuid { get; set; } = Guid.NewGuid();
+
     [NotNull]
     [MaxLength(100)]
     [Column("first_form")]

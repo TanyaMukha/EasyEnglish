@@ -219,7 +219,8 @@
         Total = navigationIds.Total;
 
         breadcrumbs = BreadcrumbBuilder.Create()
-            .WithLink("Courses", "/courses")
+            .WithHome()
+            .WithLink("Курси", "/courses")
             .WithLink(Word.Unit.Course.Title, $"/courses/{CourseId}")
             .WithLink(Word.Unit.Title, $"/courses/{CourseId}/units/{UnitId}")
             .WithActive(Word.Word)

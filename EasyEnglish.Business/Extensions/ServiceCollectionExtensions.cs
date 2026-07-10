@@ -9,6 +9,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddEasyEnglishDataServices(this IServiceCollection services)
     {
         services.AddScoped<ICourseService, CourseService>();
+        services.AddScoped<ISubjectService, SubjectService>();
         services.AddScoped<IWordService, WordService>();
         services.AddScoped<IUnitService, UnitService>();
         services.AddScoped<IStudyCardService, StudyCardService>();

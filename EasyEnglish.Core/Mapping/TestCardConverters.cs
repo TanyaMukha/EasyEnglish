@@ -27,6 +27,7 @@ public class TestCardEntityToModelConverter : ITypeConverter<TestCardEntity, Tes
         destination ??= new TestCardModel();
 
         destination.Id = source.Id;
+        destination.RecordGuid = source.RecordGuid;
         destination.Kind = source.Kind;
         destination.Title = source.Title;
         destination.Question = source.Question;
@@ -111,6 +112,7 @@ public class TestCardModelToEntityConverter : ITypeConverter<TestCardModel, Test
         destination ??= new TestCardEntity();
 
         destination.Id = source.Id;
+        destination.RecordGuid = source.RecordGuid;
         destination.Kind = source.Kind;
         destination.Title = source.Title;
         destination.Question = source.Question;

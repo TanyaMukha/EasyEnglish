@@ -1,6 +1,7 @@
 @page "/courses/{CourseId:int}/units/{UnitId:int}/words/practice"
 
 <div class="page-content">
+    <Breadcrumb Items="breadcrumbs" />
     <PageHeader Title="Вивчення слів" />
 
     @if (isLoading)
@@ -73,6 +74,7 @@
     private HashSet<string> selectedTestKeys = new();
     private LearningSelectionOptions filterOptions = new();
     private bool isLoading = true;
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
 
     private readonly List<ExerciseOption> exerciseOptions = ExerciseCatalog.Words;
 
@@ -81,6 +83,16 @@
         try
         {
             isLoading = true;
+
+            var unit = await UnitService.GetByIdAsync(UnitId, UnitIncludes.Full);
+            breadcrumbs = BreadcrumbBuilder.Create()
+                .WithHome()
+                .WithLink("Курси", "/courses")
+                .WithLink(unit?.Course?.Title ?? "Курс", $"/courses/{CourseId}")
+                .WithLink(unit?.Title ?? "Модуль", $"/courses/{CourseId}/units/{UnitId}")
+                .WithActive("Вивчення слів")
+                .Build();
+
             allWords = (await WordService.GetByUnitAsync(UnitId)).ToList();
             wordOptions = allWords.Select(w => new OptionDefinition { Id = w.Id, Title = BuildLabel(w) }).ToList();
             selectedWordIds = wordOptions.Select(o => o.Id).ToHashSet();

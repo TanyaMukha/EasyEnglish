@@ -202,8 +202,9 @@
         Units = (await UnitService.GetAllAsync()).ToList();
 
         breadcrumbs = BreadcrumbBuilder.Create()
-            .WithLink("Courses", "/courses")
-            .WithLink(IrregularForm.Unit?.Course?.Title ?? "Course", $"/courses/{CourseId}")
+            .WithHome()
+            .WithLink("Курси", "/courses")
+            .WithLink(IrregularForm.Unit?.Course?.Title ?? "Курс", $"/courses/{CourseId}")
             .WithLink(IrregularForm.Unit?.Title ?? "Unit", $"/courses/{CourseId}/units/{UnitId}")
             .WithActive(IrregularForm.FirstForm ?? "New Irregular Form")
             .Build();

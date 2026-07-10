@@ -369,8 +369,9 @@
         await LoadData();
 
         breadcrumbs = BreadcrumbBuilder.Create()
-            .WithLink("Courses", "/courses")
-            .WithLink(Unit.Course?.Title ?? "Course", $"/courses/{CourseId}")
+            .WithHome()
+            .WithLink("Курси", "/courses")
+            .WithLink(Unit.Course?.Title ?? "Курс", $"/courses/{CourseId}")
             .WithActive(Unit.Title)
             .Build();
 

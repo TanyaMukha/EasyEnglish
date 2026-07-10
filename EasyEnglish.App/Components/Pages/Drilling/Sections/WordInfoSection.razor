@@ -27,6 +27,11 @@
         <p class="translation">@Translation</p>
     }
 
+    @if (!string.IsNullOrEmpty(Note))
+    {
+        <p class="word-note">@Note</p>
+    }
+
     @if (randomExample is not null)
     {
         <div class="example-section">
@@ -46,18 +51,19 @@
     [Parameter] public string Word { get; set; } = "";
     [Parameter] public string? Transcription { get; set; }
     [Parameter] public string? Translation { get; set; }
-    [Parameter] public IList<ExampleModel>? Examples { get; set; }
+    [Parameter] public string? Note { get; set; }
+    [Parameter] public IReadOnlyList<ExampleViewModel>? Examples { get; set; }
     [Parameter] public bool ShowNoExamples { get; set; } = true;
     [Parameter] public byte[]? Pronunciation { get; set; }
 
-    private ExampleModel? randomExample;
+    private ExampleViewModel? randomExample;
 
     protected override void OnParametersSet()
     {
         randomExample = GetRandomExample();
     }
 
-    private ExampleModel? GetRandomExample()
+    private ExampleViewModel? GetRandomExample()
     {
         if (Examples == null || !Examples.Any())
             return null;
@@ -119,6 +125,14 @@
         margin: 0 0 2rem 0;
         text-align: center;
         font-weight: 500;
+    }
+
+    .word-note {
+        font-size: 1rem;
+        font-style: italic;
+        color: var(--text-muted);
+        margin: -1.25rem 0 2rem 0;
+        text-align: center;
     }
 
     .example-section {

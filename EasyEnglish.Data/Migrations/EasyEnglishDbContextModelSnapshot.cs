@@ -42,6 +42,10 @@ namespace EasyEnglish.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("guid");
 
+                    b.Property<int?>("SubjectId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("subject_id");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -54,6 +58,8 @@ namespace EasyEnglish.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("SubjectId");
+
                     b.ToTable("courses");
                 });
 
@@ -63,6 +69,10 @@ namespace EasyEnglish.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasColumnName("id");
+
+                    b.Property<Guid>("RecordGuid")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("guid");
 
                     b.Property<string>("Sentence")
                         .IsRequired()
@@ -130,6 +140,10 @@ namespace EasyEnglish.Data.Migrations
                     b.Property<float>("Rate")
                         .HasColumnType("REAL")
                         .HasColumnName("rate");
+
+                    b.Property<Guid>("RecordGuid")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("guid");
 
                     b.Property<int>("ReviewCount")
                         .HasColumnType("INTEGER")
@@ -227,6 +241,10 @@ namespace EasyEnglish.Data.Migrations
                         .HasColumnType("REAL")
                         .HasColumnName("rate");
 
+                    b.Property<Guid>("RecordGuid")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("guid");
+
                     b.Property<int?>("RevealMode")
                         .HasColumnType("INTEGER")
                         .HasColumnName("reveal_mode");
@@ -254,6 +272,37 @@ namespace EasyEnglish.Data.Migrations
                     b.HasIndex("UnitId");
 
                     b.ToTable("study_cards");
+                });
+
+            modelBuilder.Entity("EasyEnglish.Core.Entities.SubjectEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("title");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("subjects");
                 });
 
             modelBuilder.Entity("EasyEnglish.Core.Entities.TestCardEntity", b =>
@@ -312,6 +361,10 @@ namespace EasyEnglish.Data.Migrations
                     b.Property<float>("Rate")
                         .HasColumnType("REAL")
                         .HasColumnName("rate");
+
+                    b.Property<Guid>("RecordGuid")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("guid");
 
                     b.Property<int>("ReviewCount")
                         .HasColumnType("INTEGER")
@@ -418,6 +471,10 @@ namespace EasyEnglish.Data.Migrations
                         .HasColumnType("REAL")
                         .HasColumnName("rate");
 
+                    b.Property<Guid>("RecordGuid")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("guid");
+
                     b.Property<int>("ReviewCount")
                         .HasColumnType("INTEGER")
                         .HasColumnName("review_count");
@@ -451,6 +508,15 @@ namespace EasyEnglish.Data.Migrations
                     b.HasIndex("UnitId");
 
                     b.ToTable("words");
+                });
+
+            modelBuilder.Entity("EasyEnglish.Core.Entities.CourseEntity", b =>
+                {
+                    b.HasOne("EasyEnglish.Core.Entities.SubjectEntity", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId");
+
+                    b.Navigation("Subject");
                 });
 
             modelBuilder.Entity("EasyEnglish.Core.Entities.ExampleEntity", b =>

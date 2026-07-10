@@ -8,7 +8,7 @@ public class BreadcrumbBuilder
 
     public BreadcrumbBuilder WithHome(string url = "/", string icon = "house")
     {
-        return WithLink("Home", url, icon);
+        return WithLink("Головна", url, icon);
     }
 
     public BreadcrumbBuilder WithLink(string title, string url, string? icon = null)

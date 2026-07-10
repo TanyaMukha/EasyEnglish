@@ -9,6 +9,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddEasyEnglishRepositories(this IServiceCollection services)
     {
         services.AddScoped<ICourseRepository, CourseRepository>();
+        services.AddScoped<ISubjectRepository, SubjectRepository>();
         services.AddScoped<IWordRepository, WordRepository>();
         services.AddScoped<IExampleRepository, ExampleRepository>();
         services.AddScoped<IUnitRepository, UnitRepository>();

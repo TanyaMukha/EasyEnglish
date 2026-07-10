@@ -220,7 +220,8 @@
         Units = (await UnitService.GetAllAsync()).ToList();
 
         breadcrumbs = BreadcrumbBuilder.Create()
-            .WithLink("Courses", "/courses")
+            .WithHome()
+            .WithLink("Курси", "/courses")
             .WithLink(Word.Unit.Course.Title, $"/courses/{CourseId}")
             .WithLink(Word.Unit.Title, $"/courses/{CourseId}/units/{UnitId}")
             .WithLink(Word.Word, $"/courses/{CourseId}/units/{UnitId}/words/{Word.Id}")

@@ -6,8 +6,10 @@ using System.Text.Json.Serialization;
 
 namespace EasyEnglish.Core.Models;
 
-public class StudyCardModel : AbstractModel, IReviewInfo, IRateInfo, IAuditInfo
+public class StudyCardModel : AbstractModel, IReviewInfo, IRateInfo, IAuditInfo, IGuidRecord
 {
+    public Guid RecordGuid { get; set; } = Guid.NewGuid();
+
     public StudyCardKind Kind { get; set; }
 
     public string Title { get; set; } = string.Empty;

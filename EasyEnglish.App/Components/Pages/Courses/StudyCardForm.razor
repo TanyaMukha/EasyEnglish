@@ -183,8 +183,9 @@
         }
 
         breadcrumbs = BreadcrumbBuilder.Create()
-            .WithLink("Courses", "/courses")
-            .WithLink(Card.Unit?.Course?.Title ?? "Course", $"/courses/{CourseId}")
+            .WithHome()
+            .WithLink("Курси", "/courses")
+            .WithLink(Card.Unit?.Course?.Title ?? "Курс", $"/courses/{CourseId}")
             .WithLink(Card.Unit?.Title ?? "Unit", $"/courses/{CourseId}/units/{UnitId}")
             .WithLink("Навчальні картки", $"/courses/{CourseId}/units/{UnitId}?tab=study-cards")
             .WithActive(IsEditMode ? "Edit" : "Create")

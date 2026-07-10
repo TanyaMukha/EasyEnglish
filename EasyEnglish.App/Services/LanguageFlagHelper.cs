@@ -1,35 +1,33 @@
 namespace EasyEnglish.App.Services;
 
 /// <summary>
-/// Перетворює код мови у форматі BCP-47 (наприклад, "en-us") на emoji-прапор
-/// відповідного регіону. Прапор рендериться кольоровим системним емодзі-шрифтом —
-/// окремі SVG-іконки прапорів не потрібні.
+/// Перетворює код мови у форматі BCP-47 (наприклад, "en-us") на шлях до SVG-іконки прапора
+/// відповідного регіону. Іконки — з набору flag-icons (MIT, github.com/lipis/flag-icons),
+/// самохостяться в wwwroot/flags/. Emoji-прапори (комбінації Regional Indicator Symbols)
+/// на Windows часто не рендеряться як прапор, а показуються двома літерами — тому іконки.
 /// </summary>
 public static class LanguageFlagHelper
 {
-    private const string DefaultFlag = "🏳️";
+    private const string DefaultFlagPath = "flags/xx.svg";
 
     /// <summary>
-    /// Повертає emoji-прапор для регіону, вказаного в коді мови.
-    /// Наприклад, "en-us" → 🇺🇸, "uk-ua" → 🇺🇦.
+    /// Повертає шлях (відносно wwwroot) до SVG-іконки прапора для регіону, вказаного в коді мови.
+    /// Наприклад, "en-us" → "flags/us.svg", "uk-ua" → "flags/ua.svg".
     /// Якщо код відсутній або не містить розпізнаваного регіону — повертає нейтральний прапор.
     /// </summary>
-    public static string GetFlagEmoji(string? languageCode)
+    public static string GetFlagIconPath(string? languageCode)
     {
         if (string.IsNullOrWhiteSpace(languageCode))
-            return DefaultFlag;
+            return DefaultFlagPath;
 
         var region = languageCode.Split('-', '_').LastOrDefault();
         if (string.IsNullOrEmpty(region) || region.Length != 2)
-            return DefaultFlag;
+            return DefaultFlagPath;
 
-        region = region.ToUpperInvariant();
-        if (region[0] is < 'A' or > 'Z' || region[1] is < 'A' or > 'Z')
-            return DefaultFlag;
+        region = region.ToLowerInvariant();
+        if (region[0] is < 'a' or > 'z' || region[1] is < 'a' or > 'z')
+            return DefaultFlagPath;
 
-        // Regional Indicator Symbols: 'A' (U+1F1E6) .. 'Z' (U+1F1FF)
-        var first  = char.ConvertFromUtf32(0x1F1E6 + (region[0] - 'A'));
-        var second = char.ConvertFromUtf32(0x1F1E6 + (region[1] - 'A'));
-        return first + second;
+        return $"flags/{region}.svg";
     }
 }

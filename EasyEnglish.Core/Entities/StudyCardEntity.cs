@@ -8,8 +8,11 @@ using EasyEnglish.Core.Enums;
 namespace EasyEnglish.Core.Entities;
 
 [Table("study_cards")]
-public class StudyCardEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInfo
+public class StudyCardEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInfo, IGuidRecord
 {
+    [Column("guid")]
+    public Guid RecordGuid { get; set; } = Guid.NewGuid();
+
     [Column("kind")]
     public StudyCardKind Kind { get; set; }
 

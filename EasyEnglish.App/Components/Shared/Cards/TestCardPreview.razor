@@ -8,19 +8,6 @@
             <h3 class="card-tile-title">@GetTitle()</h3>
             <span class="card-tile-kind-badge">@GetKindLabel()</span>
         </div>
-        @if (ShowActions)
-        {
-            <div class="card-tile-actions" @onclick:stopPropagation="true">
-                <a href="/courses/@CourseId/units/@card.UnitId/test-cards/@card.Id/edit"
-                   class="card-tile-action-btn"
-                   title="Редагувати">
-                    <i class="bi bi-pencil"></i>
-                </a>
-                <button class="card-tile-action-btn danger" @onclick="@(async () => await OnDelete.InvokeAsync(card.Id))" title="Видалити">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </div>
-        }
     </div>
 
     <div class="card-tile-body">
@@ -29,21 +16,20 @@
 
     <div class="card-tile-footer">
         <div class="card-tile-stats">
-            @if (card.Rate > 0)
-            {
-                <span class="card-tile-stat-item">
-                    <i class="bi bi-star-fill"></i>
-                    @card.Rate.ToString("F1", CultureInfo.InvariantCulture)
-                </span>
-            }
-            @if (card.ReviewCount > 0)
-            {
-                <span class="card-tile-stat-item">
-                    <i class="bi bi-arrow-repeat"></i>
-                    @card.ReviewCount
-                </span>
-            }
+            <span class="card-tile-stat-item">
+                <i class="bi bi-star-fill"></i>
+                @card.Rate.ToString("F1", CultureInfo.InvariantCulture)
+            </span>
+            <span class="card-tile-stat-item">
+                <i class="bi bi-arrow-repeat"></i>
+                @card.ReviewCount
+            </span>
         </div>
+        @if (ShowActions)
+        {
+            <CardActionsMenu EditHref="@($"/courses/{CourseId}/units/{card.UnitId}/test-cards/{card.Id}/edit")"
+                             OnDelete="@(() => OnDelete.InvokeAsync(card.Id))" />
+        }
     </div>
 </div>
 

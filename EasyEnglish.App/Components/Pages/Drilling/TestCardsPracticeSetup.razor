@@ -1,6 +1,7 @@
 @page "/courses/{CourseId:int}/units/{UnitId:int}/test-cards/practice/setup"
 
 <div class="page-content">
+    <Breadcrumb Items="breadcrumbs" />
     <PageHeader Title="Вивчення тестових карток" />
 
     @if (isLoading)
@@ -72,6 +73,7 @@
     private HashSet<string> selectedTestKeys = new();
     private LearningSelectionOptions filterOptions = new();
     private bool isLoading = true;
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
 
     private readonly List<ExerciseOption> exerciseOptions = TestRegistry.TestCardTests
         .Select(d => new ExerciseOption { Key = d.Key, Title = d.Title, Icon = d.IconClass, Color = "orange" })
@@ -83,6 +85,13 @@
         {
             isLoading = true;
             var unit = await UnitService.GetByIdAsync(UnitId, UnitIncludes.Full);
+            breadcrumbs = BreadcrumbBuilder.Create()
+                .WithHome()
+                .WithLink("Курси", "/courses")
+                .WithLink(unit?.Course?.Title ?? "Курс", $"/courses/{CourseId}")
+                .WithLink(unit?.Title ?? "Модуль", $"/courses/{CourseId}/units/{UnitId}")
+                .WithActive("Вивчення тестових карток")
+                .Build();
             var allCards = unit?.TestCards ?? new List<TestCardModel>();
             cardOptions = allCards.Select(c => new OptionDefinition { Id = c.Id, Title = BuildLabel(c) }).ToList();
             selectedCardIds = cardOptions.Select(o => o.Id).ToHashSet();

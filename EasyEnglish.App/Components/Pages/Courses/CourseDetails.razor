@@ -12,9 +12,7 @@
 
         <div class="title-section">
             <h1 class="page-title">
-                <span class="course-flag" title="@course.LanguageCode">
-                    @LanguageFlagHelper.GetFlagEmoji(course.LanguageCode)
-                </span>
+                <img class="course-flag" src="@LanguageFlagHelper.GetFlagIconPath(course.LanguageCode)" title="@course.LanguageCode" alt="@course.LanguageCode" />
                 @course.Title
             </h1>
             <div class="title-actions">
@@ -74,7 +72,8 @@
         ResetNewUnit();
 
         breadcrumbs = BreadcrumbBuilder.Create()
-            .WithLink("Courses", "/courses")
+            .WithHome()
+            .WithLink("Курси", "/courses")
             .WithActive(course.Title)
             .Build();
     }
@@ -173,9 +172,13 @@
     }
 
     .course-flag {
-        font-size: 1.5rem;
-        line-height: 1;
+        width: 40px;
+        height: 30px;
+        object-fit: cover;
+        border-radius: 4px;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
         display: inline-block;
+        vertical-align: middle;
     }
 
     .title-actions {

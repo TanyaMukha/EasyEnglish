@@ -23,7 +23,11 @@ public partial class CourseModel : AbstractModel, IGuidInfo, IAuditInfo, IGuidRe
 
     public DateTime? UpdatedAt { get; set; }
 
+    public int? SubjectId { get; set; }
+
     // ===== NAVIGATION PROPERTIES =====
+    public SubjectModel? Subject { get; set; }
+
     public ICollection<UnitModel>? Units { get; set; }
 
     //// ===== COMPUTED PROPERTIES =====

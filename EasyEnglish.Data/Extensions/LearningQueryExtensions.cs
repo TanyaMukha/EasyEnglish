@@ -16,21 +16,29 @@ namespace EasyEnglish.Data.Extensions;
 /// </remarks>
 public static class LearningQueryExtensions
 {
-    public static IQueryable<T> ApplyLearningSelection<T>(this IQueryable<T> query, LearningSelectionOptions options)
+    /// <summary>
+    /// Applies filtering/ordering/count-limiting per <paramref name="options"/> and materializes the result.
+    /// Random priority can't be expressed as SQL ordering followed by Take — that would just return a
+    /// fixed-order slice — so it's the one case that needs the full filtered set pulled into memory first.
+    /// </summary>
+    public static async Task<List<T>> ApplyLearningSelectionAsync<T>(this IQueryable<T> query, LearningSelectionOptions options)
         where T : class, IRateInfo, IReviewInfo
     {
-        if (options.IncludeLearnedWords)
+        if (!options.IncludeLearnedWords)
             query = query.Where(w => EF.Property<float>(w, nameof(IRateInfo.Rate)) >= 1.6f);
+
+        if (options.Priority == LearningPriority.Random)
+        {
+            var all = await query.ToListAsync();
+            var shuffled = all.OrderBy(_ => Random.Shared.Next()).ToList();
+            return options.WordCount > 0 ? shuffled.Take(options.WordCount).ToList() : shuffled;
+        }
 
         query = options.Priority switch
         {
             LearningPriority.New => query
                 .Where(w => EF.Property<DateTime?>(w, nameof(IReviewInfo.LastReviewDate)) == null)
                 .OrderByDescending(w => EF.Property<DateTime>(w, "CreatedAt")),
-
-            LearningPriority.Random => query
-                .OrderBy(w => EF.Property<DateTime>(w, "CreatedAt"))
-                .ThenBy(w => EF.Property<DateTime?>(w, nameof(IReviewInfo.LastReviewDate))),
 
             LearningPriority.Difficult => query
                 .OrderByDescending(w => EF.Property<float>(w, nameof(IRateInfo.Rate))),
@@ -49,6 +57,6 @@ public static class LearningQueryExtensions
         if (options.WordCount > 0)
             query = query.Take(options.WordCount);
 
-        return query;
+        return await query.ToListAsync();
     }
 }

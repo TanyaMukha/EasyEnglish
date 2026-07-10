@@ -88,3 +88,37 @@ public class IrregularFormMappingAction : IMappingAction<IrregularFormModel, Irr
         }
     }
 }
+
+public class StudyCardMappingAction : IMappingAction<StudyCardModel, StudyCardModel>
+{
+    public void Process(StudyCardModel source, StudyCardModel destination, ResolutionContext context)
+    {
+        var opts = context.GetUnitOptions()?.StudyCard;
+        if (opts is null) return;
+
+        if (opts.ResetId)
+        {
+            destination.Id = 0;
+            destination.UnitId = 0;
+            destination.CreatedAt = DateTime.UtcNow;
+            destination.UpdatedAt = null;
+        }
+    }
+}
+
+public class TestCardMappingAction : IMappingAction<TestCardModel, TestCardModel>
+{
+    public void Process(TestCardModel source, TestCardModel destination, ResolutionContext context)
+    {
+        var opts = context.GetUnitOptions()?.TestCard;
+        if (opts is null) return;
+
+        if (opts.ResetId)
+        {
+            destination.Id = 0;
+            destination.UnitId = 0;
+            destination.CreatedAt = DateTime.UtcNow;
+            destination.UpdatedAt = null;
+        }
+    }
+}

@@ -86,9 +86,7 @@ public class WordRepository : BaseRepository<WordEntity, EasyEnglishDbContext>, 
         if (unitId is not null)
             query = query.Where(w => w.UnitId == unitId);
 
-        query = query.ApplyLearningSelection(options);
-
-        return await query.AsNoTracking().ToListAsync();
+        return await query.AsNoTracking().ApplyLearningSelectionAsync(options);
     }
 
     public async Task<int> CountReviewedSinceAsync(DateTime since)

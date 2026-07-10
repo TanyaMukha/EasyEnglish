@@ -2,6 +2,7 @@
 @inject PracticeQueueService PracticeQueueService
 
 <div class="page-content">
+    <Breadcrumb Items="breadcrumbs" />
     <PageHeader Title="Практика курсу" />
 
     @if (isLoading)
@@ -76,6 +77,7 @@
     private bool isLoading = true;
     private bool isStarting;
     private List<TypeConfig> types = new();
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
 
     private bool IsAllTypesSelected => types.Count > 0 && types.All(t => t.Enabled);
     private bool CanStart => types.Any(t => t.Enabled && t.SelectedTests.Count > 0);
@@ -97,6 +99,14 @@
         try
         {
             isLoading = true;
+
+            var course = await CourseService.GetByIdAsync(CourseId);
+            breadcrumbs = BreadcrumbBuilder.Create()
+                .WithHome()
+                .WithLink("Курси", "/courses")
+                .WithLink(course?.Title ?? "Курс", $"/courses/{CourseId}")
+                .WithActive("Практика курсу")
+                .Build();
 
             var wordsType = new TypeConfig { Key = "words", Title = "Слова", Icon = "bi-card-text", ExerciseOptions = ExerciseCatalog.Words };
             wordsType.ResolveSegmentUrlAsync = () => ResolveWordBasedSegmentAsync(wordsType, "words");

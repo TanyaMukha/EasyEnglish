@@ -24,9 +24,7 @@ public class StudyCardRepository : BaseRepository<StudyCardEntity, EasyEnglishDb
         if (unitId is not null)
             query = query.Where(c => c.UnitId == unitId);
 
-        query = query.ApplyLearningSelection(options);
-
-        return await query.AsNoTracking().ToListAsync();
+        return await query.AsNoTracking().ApplyLearningSelectionAsync(options);
     }
 
     public async Task<(int? PreviousId, int? NextId, int Position, int Total)> GetNavigationIdsAsync(int unitId, int currentCardId)

@@ -5,6 +5,7 @@
 @inject PracticeQueueService PracticeQueueService
 
 <div class="page-content">
+    <Breadcrumb Items="breadcrumbs" />
     <PageHeader Title="Практика навчальних карток" />
 
     <MultiTestHost TItem="StudyCardTestModel"
@@ -23,12 +24,15 @@
     private List<TestDefinition<StudyCardTestModel>> _definitions = [.. TestRegistry.StudyCardTests];
     private bool _isLoading;
     private string? _errorMessage;
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             _isLoading = true;
+
+            await BuildBreadcrumbsAsync();
 
             var keys = ParseKeys("tests");
             if (keys.Count > 0)
@@ -54,6 +58,23 @@
         {
             _isLoading = false;
         }
+    }
+
+    private async Task BuildBreadcrumbsAsync()
+    {
+        var course = await CourseService.GetByIdAsync(CourseId);
+        var builder = BreadcrumbBuilder.Create()
+            .WithHome()
+            .WithLink("Курси", "/courses")
+            .WithLink(course?.Title ?? "Курс", $"/courses/{CourseId}");
+
+        if (UnitId.HasValue)
+        {
+            var unit = await UnitService.GetByIdAsync(UnitId.Value);
+            builder = builder.WithLink(unit?.Title ?? "Модуль", $"/courses/{CourseId}/units/{UnitId}");
+        }
+
+        breadcrumbs = builder.WithActive("Практика навчальних карток").Build();
     }
 
     private async Task FinishTest()

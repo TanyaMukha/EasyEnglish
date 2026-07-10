@@ -59,9 +59,9 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/courses" 
-                           class="nav-link @GetNavClass("/courses")" 
-                           @onclick="OnNavClick" 
+                        <a href="/courses"
+                           class="nav-link @GetNavClass("/courses")"
+                           @onclick="OnNavClick"
                            title="@(isSidebarCollapsed && !isMobile ? "Courses" : "")">
                             <i class="nav-icon bi bi-journals"></i>
                             @if (!isSidebarCollapsed || isMobile)
@@ -70,18 +70,18 @@
                             }
                         </a>
                     </li>
-                    @* <li class="nav-item"> *@
-                    @*     <a href="/settings/voices" *@
-                    @*        class="nav-link @GetNavClass("/settings/voices")" *@
-                    @*        @onclick="OnNavClick" *@
-                    @*        title="@(isSidebarCollapsed && !isMobile ? "Player" : "")"> *@
-                    @*         <i class="nav-icon bi bi-house"></i> *@
-                    @*         @if (!isSidebarCollapsed || isMobile) *@
-                    @*         { *@
-                    @*             <span class="nav-label">Player</span> *@
-                    @*         } *@
-                    @*     </a> *@
-                    @* </li> *@
+                    <li class="nav-item">
+                        <a href="/subjects"
+                           class="nav-link @GetNavClass("/subjects")"
+                           @onclick="OnNavClick"
+                           title="@(isSidebarCollapsed && !isMobile ? "Subjects" : "")">
+                            <i class="nav-icon bi bi-tags"></i>
+                            @if (!isSidebarCollapsed || isMobile)
+                            {
+                                <span class="nav-label">Subjects</span>
+                            }
+                        </a>
+                    </li>
                     @* <li class="nav-item"> *@
                     @*     <a href="/vocab-player" *@
                     @*        class="nav-link @GetNavClass("/vocab-player")" *@
@@ -128,14 +128,26 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/database-info" 
-                           class="nav-link @GetNavClass("/database-info")" 
-                           @onclick="OnNavClick" 
+                        <a href="/database-info"
+                           class="nav-link @GetNavClass("/database-info")"
+                           @onclick="OnNavClick"
                            title="@(isSidebarCollapsed && !isMobile ? "Database Info" : "")">
                             <i class="nav-icon bi bi-database"></i>
                             @if (!isSidebarCollapsed || isMobile)
                             {
                                 <span class="nav-label">Database Info</span>
+                            }
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/settings/voices"
+                           class="nav-link @GetNavClass("/settings/voices")"
+                           @onclick="OnNavClick"
+                           title="@(isSidebarCollapsed && !isMobile ? "Voices" : "")">
+                            <i class="nav-icon bi bi-mic"></i>
+                            @if (!isSidebarCollapsed || isMobile)
+                            {
+                                <span class="nav-label">Voices</span>
                             }
                         </a>
                     </li>
