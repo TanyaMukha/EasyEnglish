@@ -35,7 +35,7 @@ a reusable, strongly-typed delegate that:
 - checks `logger.IsEnabled(level)` internally before doing any work, and
 - writes structured fields (`{Message}`, `{Context}`, `{UserId}`, ...) without boxing.
 
-`LogerExtension` wraps six such compiled delegates (`Information` / `Error` / `Warning` / `Debug`,
+`LoggerExtension` wraps six such compiled delegates (`Information` / `Error` / `Warning` / `Debug`,
 plus two structured "with context" variants) behind convenient extension methods, so call sites
 look like ordinary logger calls:
 
@@ -48,15 +48,10 @@ logger.FastErrorMessage(ex, "Import failed for unit {0}", unitId);
 
 ```
 MukhaLab.LoggerExtensionDelegate/
-├── LoggerExtension.cs             # static class LogerExtension — compiled delegates + Fast* extension methods
+├── LoggerExtension.cs             # static class LoggerExtension — compiled delegates + Fast* extension methods
 ├── PerformanceLoggerExtensions.cs # BeginTimedScope(...) — IDisposable operation timer
 └── LoggerExtensionException.cs    # reserved exception type for consumer use (not thrown internally)
 ```
-
-> **Naming note:** the main class is `LogerExtension` (missing the second "g"), even though the
-> file is `LoggerExtension.cs` and the namespace is `MukhaLab.LoggerExtensionDelegate`. This is a
-> pre-existing typo kept as-is to avoid an API-breaking rename — search for `LogerExtension` (one
-> "g"), not `LoggerExtension`, when looking for this type in the codebase.
 
 ## Installation
 
@@ -150,12 +145,11 @@ logger.FastPerformanceLog(nameof(DoWork), sw.ElapsedMilliseconds);
 // >= 1000 ms -> Warning:     "PERFORMANCE: DoWork took 1450ms (SLOW)"
 ```
 
-The 1000 ms threshold is fixed and not configurable. Both branches are gated by
-`IsEnabled(LogLevel.Information)`, even the slow-operation branch that logs at `Warning` — with
-typical minimum-level filtering this is harmless (enabling `Information` implies `Warning` is also
-enabled), but a category-specific filter that allows `Warning`+ while suppressing `Information`
-would silently swallow the slow-operation warning. See
-[Known limitations](#known-limitations--gotchas).
+The 1000 ms threshold is fixed and not configurable. Each branch is gated by
+`IsEnabled(LogLevel)` for the level it actually logs at: the slow-operation branch checks
+`IsEnabled(LogLevel.Warning)`, the normal branch checks `IsEnabled(LogLevel.Information)`. A
+category configured to allow `Warning` while suppressing `Information` still receives
+slow-operation warnings.
 
 ## Timed scopes (`BeginTimedScope`)
 
@@ -167,17 +161,13 @@ using (logger.BeginTimedScope(nameof(ImportWordsAsync)))
 {
     await ImportWordsAsync();
 }
-// on enter:  Debug:  "ENTER .ctor(ImportWordsAsync)"   <- see caveat below
+// on enter:  Debug:  "ENTER ImportWordsAsync(ImportWordsAsync)"
 // on leave:  Information/Warning: "PERFORMANCE: ImportWordsAsync took Nms [(SLOW)]"
 ```
 
-> **Gotcha:** the entry log line reads `ENTER .ctor(...)`, not `ENTER ImportWordsAsync(...)`.
-> `BeginTimedScope` constructs a private `TimedScope` instance, and `TimedScope`'s constructor is
-> where `FastMethodEntry` is actually called — so `[CallerMemberName]` resolves to `.ctor` (the
-> constructor itself), not to the method that called `BeginTimedScope`. The **closing** duration
-> log is unaffected and correctly reports `operationName`. Do not rely on the entry log's member
-> name for this API; use the duration log instead, or call `FastMethodEntry` yourself with an
-> explicit `operationName` if you need an accurate entry trace.
+`BeginTimedScope` captures the real caller's method name via `[CallerMemberName]` on itself and
+forwards it explicitly into the entry log, so the entry line correctly names the method that opened
+the scope rather than `TimedScope`'s own constructor.
 
 ## `LoggerExtensionException`
 
@@ -189,32 +179,24 @@ logging-related error paths (e.g. failures while configuring a custom logging pr
 
 ## Known limitations & gotchas
 
-- **`BeginTimedScope`'s entry log always says `.ctor`, not the real caller.** See
-  [Timed scopes](#timed-scopes-begintimedscope). This affects only the entry line; the duration
-  line is correct.
-- **`FastMethodEntry`/`FastMethodExit` must be called directly from the traced method**, not from a
-  shared helper, or the captured `[CallerMemberName]` will name the helper instead.
-- **`FastPerformanceLog`'s slow-operation branch is gated on `IsEnabled(Information)`, not
-  `IsEnabled(Warning)`.** A logging configuration that disables `Information` but keeps `Warning`
-  enabled for this category will suppress the "(SLOW)" warning entirely.
+- **`FastMethodEntry`/`FastMethodExit` must be called directly from the method you want to trace**,
+  not from a shared helper — `[CallerMemberName]` names whatever method contains the call. If you
+  need an indirect call to report the original caller's name (as `BeginTimedScope` does), capture
+  `[CallerMemberName]` on your own wrapper and pass it through explicitly as `memberName`.
 - **Format strings use `string.Format` placeholders (`{0}`, `{1}`), not structured-logging property
   names.** Passing an `ILogger`-style `"{PropertyName}"` template to `FastInfoMessage(format, args)`
   will not populate structured log fields the way `ILogger.LogInformation` does.
-- **The main class is misspelled `LogerExtension`** (one "g"). See the note in
-  [Project layout](#project-layout).
 - **`LoggerExtensionException` is unused by the library itself** — don't expect it from any `Fast*`
   call; it is only a convenience type for consumers.
-- **No `IsEnabled` gate before `.ctor` in `BeginTimedScope`.** `TimedScope` unconditionally starts a
-  `Stopwatch` and calls `FastMethodEntry` even if `Debug` logging is disabled — the cost is small
-  (one `Stopwatch.StartNew()` plus a no-op-if-disabled `IsEnabled` check inside `FastMethodEntry`),
-  but there is no way to skip creating the `TimedScope` object itself when tracing is off.
+- **`BeginTimedScope` starts its `Stopwatch` unconditionally.** Even if `Debug` logging is disabled,
+  a `TimedScope` object and a `Stopwatch` are still created for every call — the cost is small (the
+  entry log itself is skipped via the `IsEnabled` check inside `FastMethodEntry`), but there is no
+  way to skip the scope object itself when tracing is off.
 
 ## Troubleshooting
 
 | Symptom | Likely cause |
 |---|---|
-| Entry log shows `ENTER .ctor(...)` instead of the operation name | Expected behavior of `BeginTimedScope` — see [Known limitations](#known-limitations--gotchas). |
 | `FastMethodEntry`/`FastMethodExit` logs the wrong method name | The call is happening inside a shared helper rather than the method you intended to trace; pass `memberName` explicitly if needed. |
-| A slow operation (> 1000 ms) doesn't produce a warning | `LogLevel.Information` is disabled for that category — `FastPerformanceLog` checks `Information`, not `Warning`, before logging either branch. |
 | `{PropertyName}`-style placeholders show up literally in the log output | `FastInfoMessage`/`FastErrorMessage`/etc. `(format, args)` overloads use `string.Format` syntax (`{0}`, `{1}`), not `ILogger` structured-logging syntax. |
-| Can't find `LoggerExtension` via "Find All References" | The class is actually named `LogerExtension` (typo, single "g"). |
+| `BeginTimedScope`'s entry log names the wrong method | Only possible if you call `FastMethodEntry`/`FastMethodExit` directly from your own wrapper without forwarding `[CallerMemberName]` — `BeginTimedScope` itself already forwards the real caller's name. |

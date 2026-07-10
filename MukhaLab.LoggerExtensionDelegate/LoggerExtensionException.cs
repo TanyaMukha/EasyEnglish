@@ -6,7 +6,7 @@ namespace MukhaLab.LoggerExtensionDelegate;
 /// </summary>
 /// <remarks>
 /// Not currently thrown anywhere inside <c>MukhaLab.LoggerExtensionDelegate</c> itself — the
-/// "Fast*" extension methods in <see cref="LogerExtension"/> and
+/// "Fast*" extension methods in <see cref="LoggerExtension"/> and
 /// <see cref="PerformanceLoggerExtensions"/> never fail on a null or misbehaving
 /// <see cref="Microsoft.Extensions.Logging.ILogger"/>, they simply no-op. This type exists for
 /// application code that wants a dedicated, catchable exception type for its own logging-related

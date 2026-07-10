@@ -8,20 +8,14 @@ namespace MukhaLab.LoggerExtensionDelegate;
 /// Provides optimized logging extension methods with enhanced browser console support.
 /// </summary>
 /// <remarks>
-/// The class name is spelled <c>LogerExtension</c> (missing the second "g"), unlike the containing
-/// file (<c>LoggerExtension.cs</c>) and namespace (<c>MukhaLab.LoggerExtensionDelegate</c>). This is
-/// a known naming inconsistency kept as-is to avoid a breaking API rename; keep it in mind when
-/// searching the codebase by type name.
-/// <para>
 /// Every method here is built on <see cref="LoggerMessage.Define{T}(LogLevel, EventId, string)"/>
 /// (and its multi-parameter overloads), the high-performance logging pattern recommended by
 /// Microsoft.Extensions.Logging. The delegate returned by <c>LoggerMessage.Define</c> checks
 /// <see cref="ILogger.IsEnabled(LogLevel)"/> internally and skips message-template formatting
 /// entirely when the level is disabled, which avoids the boxing/allocation overhead of the
 /// standard <see cref="LoggerExtensions.LogInformation(ILogger, string, object[])"/>-style calls.
-/// </para>
 /// </remarks>
-public static class LogerExtension
+public static class LoggerExtension
 {
     // Core single-parameter delegates: one per level, sharing the "{Message}" template.
     private static readonly Action<ILogger, string, Exception?> FastInfoLogger =
@@ -111,25 +105,24 @@ public static class LogerExtension
     /// <param name="operationName">The name of the operation.</param>
     /// <param name="elapsedMilliseconds">The elapsed time in milliseconds.</param>
     /// <remarks>
-    /// The enablement check guarding both branches is <see cref="ILogger.IsEnabled(LogLevel)"/> for
-    /// <see cref="LogLevel.Information"/>, not <see cref="LogLevel.Warning"/>. If a logging provider
-    /// is configured to allow <see cref="LogLevel.Warning"/> and above for this category while
-    /// suppressing <see cref="LogLevel.Information"/>, a slow-operation warning will silently not be
-    /// logged. This is safe with typical minimum-level filtering (where enabling a lower level
-    /// implies higher levels are enabled too) but can surprise category-specific overrides.
+    /// Each branch is gated by <see cref="ILogger.IsEnabled(LogLevel)"/> for the level it actually
+    /// logs at: the slow-operation branch checks <see cref="LogLevel.Warning"/>, the normal branch
+    /// checks <see cref="LogLevel.Information"/>. A category configured to allow
+    /// <see cref="LogLevel.Warning"/> while suppressing <see cref="LogLevel.Information"/> still
+    /// receives slow-operation warnings.
     /// </remarks>
     public static void FastPerformanceLog(this ILogger? logger, string operationName, long elapsedMilliseconds)
     {
-        if (logger != null && logger.IsEnabled(LogLevel.Information))
+        if (logger == null) return;
+
+        if (elapsedMilliseconds > 1000) // > 1 second
         {
-            if (elapsedMilliseconds > 1000) // > 1 second
-            {
+            if (logger.IsEnabled(LogLevel.Warning))
                 FastWarningLogger(logger, $"PERFORMANCE: {operationName} took {elapsedMilliseconds}ms (SLOW)", null);
-            }
-            else
-            {
-                FastInfoLogger(logger, $"PERFORMANCE: {operationName} took {elapsedMilliseconds}ms", null);
-            }
+        }
+        else if (logger.IsEnabled(LogLevel.Information))
+        {
+            FastInfoLogger(logger, $"PERFORMANCE: {operationName} took {elapsedMilliseconds}ms", null);
         }
     }
 
@@ -141,10 +134,10 @@ public static class LogerExtension
     /// <param name="memberName">The calling method name (automatically provided).</param>
     /// <remarks>
     /// <paramref name="memberName"/> is resolved by the compiler at the call site via
-    /// <see cref="CallerMemberNameAttribute"/>. Calling this method indirectly (from inside a helper
-    /// or wrapper, as <see cref="PerformanceLoggerExtensions.BeginTimedScope"/> does) captures the
-    /// name of that wrapper, not the name of the code that ultimately triggered the log — pass an
-    /// explicit <paramref name="memberName"/> in that case if the caller's name matters.
+    /// <see cref="CallerMemberNameAttribute"/>. Calling this method indirectly from inside a helper
+    /// or wrapper captures the name of that wrapper, not the name of the code that ultimately
+    /// triggered the log — pass an explicit <paramref name="memberName"/> in that case if the
+    /// caller's name matters (as <see cref="PerformanceLoggerExtensions.BeginTimedScope"/> does).
     /// </remarks>
     public static void FastMethodEntry(this ILogger? logger,
         object? parameters = null,
