@@ -21,6 +21,7 @@ using EasyEnglish.Cache.Extensions;
 using EasyEnglish.Core.Interfaces.Storage;
 using Plugin.Maui.Audio;
 using EasyEnglish.App.Services.Speech;
+using EasyEnglish.App.Services.SpeechRecognition;
 
 namespace EasyEnglish.App;
 
@@ -220,9 +221,11 @@ public static class MauiProgram
 #if WINDOWS
         services.AddSingleton<IVoiceProvider, WindowsVoiceProvider>();
         services.AddSingleton<ISpeechEngine,  WindowsSpeechEngine>();
+        services.AddTransient<IPronunciationCheckService, WindowsPronunciationCheckService>();
 #else
         services.AddSingleton<IVoiceProvider, MauiVoiceProvider>();
         services.AddSingleton<ISpeechEngine, MauiSpeechEngine>();
+        services.AddTransient<IPronunciationCheckService, UnsupportedPronunciationCheckService>();
 #endif
 
         services.AddSingleton<ISpeechService, MauiSpeechService>();

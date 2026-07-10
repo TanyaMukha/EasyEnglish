@@ -1,3 +1,6 @@
+@inject SpeechPlayer Player
+@inject IPronunciationCheckService PronunciationCheckService
+
 <div class="DrillingReviewCardContent">
     <div class="forms-container">
 
@@ -9,63 +12,105 @@
         <div class="form-row">
             <span class="form-label">@GetFormLabel(1)</span>
             <div class="form-content">
-                <span class="form-word">@_item.FirstForm</span>
-                @if (!string.IsNullOrEmpty(_item.FirstFormTranscription))
-                {
-                    <span class="form-transcription">[@_item.FirstFormTranscription]</span>
-                }
-                @if (_item.FirstFormPronunciation is { Length: > 0 })
-                {
-                    <span class="audio-play-icon stored" @onclick:stopPropagation="true" @onclick="async () => await PlayAudio(_item.FirstFormPronunciation)" title="Play pronunciation">
+                <div class="form-text-row">
+                    <span class="form-word">@_item.FirstForm</span>
+                    @if (!string.IsNullOrEmpty(_item.FirstFormTranscription))
+                    {
+                        <span class="form-transcription">[@_item.FirstFormTranscription]</span>
+                    }
+                </div>
+                <div class="form-controls-row">
+                    <span class="audio-play-icon @(_item.FirstFormPronunciation is { Length: > 0 } ? "stored" : "generated")" @onclick:stopPropagation="true" @onclick="() => PlayForm(_item.FirstForm, _item.FirstFormPronunciation)" title="Play pronunciation">
                         <i class="bi bi-volume-up-fill"></i>
                     </span>
-                }
+                    @if (PronunciationCheckService.IsSupported)
+                    {
+                        <span class="mic-check-icon @(IsChecking(1) ? "listening" : "")" @onclick:stopPropagation="true" @onclick="() => CheckForm(1, _item.FirstForm)" title="Перевірити вимову">
+                            <i class="bi bi-mic-fill"></i>
+                        </span>
+                    }
+                </div>
             </div>
         </div>
+        @if (GetResult(1) is { } result1)
+        {
+            <p class="pronunciation-feedback @GetFeedbackCssClass(result1)">
+                <i class="bi @GetFeedbackIcon(result1)"></i>
+                @GetFeedbackText(result1)
+            </p>
+        }
 
         <div class="form-row">
             <span class="form-label">@GetFormLabel(2)</span>
             <div class="form-content">
-                <span class="form-word">@_item.SecondForm</span>
-                @if (!string.IsNullOrEmpty(_item.SecondFormTranscription))
-                {
-                    <span class="form-transcription">[@_item.SecondFormTranscription]</span>
-                }
-                @if (!string.IsNullOrEmpty(_item.SecondFormTranslation))
-                {
-                    <span class="form-translation">@_item.SecondFormTranslation</span>
-                }
-                @if (_item.SecondFormPronunciation is { Length: > 0 })
-                {
-                    <span class="audio-play-icon stored" @onclick:stopPropagation="true" @onclick="async () => await PlayAudio(_item.SecondFormPronunciation)" title="Play pronunciation">
+                <div class="form-text-row">
+                    <span class="form-word">@_item.SecondForm</span>
+                    @if (!string.IsNullOrEmpty(_item.SecondFormTranscription))
+                    {
+                        <span class="form-transcription">[@_item.SecondFormTranscription]</span>
+                    }
+                    @if (!string.IsNullOrEmpty(_item.SecondFormTranslation))
+                    {
+                        <span class="form-translation">@_item.SecondFormTranslation</span>
+                    }
+                </div>
+                <div class="form-controls-row">
+                    <span class="audio-play-icon @(_item.SecondFormPronunciation is { Length: > 0 } ? "stored" : "generated")" @onclick:stopPropagation="true" @onclick="() => PlayForm(_item.SecondForm, _item.SecondFormPronunciation)" title="Play pronunciation">
                         <i class="bi bi-volume-up-fill"></i>
                     </span>
-                }
+                    @if (PronunciationCheckService.IsSupported)
+                    {
+                        <span class="mic-check-icon @(IsChecking(2) ? "listening" : "")" @onclick:stopPropagation="true" @onclick="() => CheckForm(2, _item.SecondForm)" title="Перевірити вимову">
+                            <i class="bi bi-mic-fill"></i>
+                        </span>
+                    }
+                </div>
             </div>
         </div>
+        @if (GetResult(2) is { } result2)
+        {
+            <p class="pronunciation-feedback @GetFeedbackCssClass(result2)">
+                <i class="bi @GetFeedbackIcon(result2)"></i>
+                @GetFeedbackText(result2)
+            </p>
+        }
 
         @if (!string.IsNullOrEmpty(_item.ThirdForm))
         {
             <div class="form-row">
                 <span class="form-label">@GetFormLabel(3)</span>
                 <div class="form-content">
-                    <span class="form-word">@_item.ThirdForm</span>
-                    @if (!string.IsNullOrEmpty(_item.ThirdFormTranscription))
-                    {
-                        <span class="form-transcription">[@_item.ThirdFormTranscription]</span>
-                    }
-                    @if (!string.IsNullOrEmpty(_item.ThirdFormTranslation))
-                    {
-                        <span class="form-translation">@_item.ThirdFormTranslation</span>
-                    }
-                    @if (_item.ThirdFormPronunciation is { Length: > 0 })
-                    {
-                        <span class="audio-play-icon stored" @onclick:stopPropagation="true" @onclick="async () => await PlayAudio(_item.ThirdFormPronunciation)" title="Play pronunciation">
+                    <div class="form-text-row">
+                        <span class="form-word">@_item.ThirdForm</span>
+                        @if (!string.IsNullOrEmpty(_item.ThirdFormTranscription))
+                        {
+                            <span class="form-transcription">[@_item.ThirdFormTranscription]</span>
+                        }
+                        @if (!string.IsNullOrEmpty(_item.ThirdFormTranslation))
+                        {
+                            <span class="form-translation">@_item.ThirdFormTranslation</span>
+                        }
+                    </div>
+                    <div class="form-controls-row">
+                        <span class="audio-play-icon @(_item.ThirdFormPronunciation is { Length: > 0 } ? "stored" : "generated")" @onclick:stopPropagation="true" @onclick="() => PlayForm(_item.ThirdForm, _item.ThirdFormPronunciation)" title="Play pronunciation">
                             <i class="bi bi-volume-up-fill"></i>
                         </span>
-                    }
+                        @if (PronunciationCheckService.IsSupported)
+                        {
+                            <span class="mic-check-icon @(IsChecking(3) ? "listening" : "")" @onclick:stopPropagation="true" @onclick="() => CheckForm(3, _item.ThirdForm)" title="Перевірити вимову">
+                                <i class="bi bi-mic-fill"></i>
+                            </span>
+                        }
+                    </div>
                 </div>
             </div>
+            @if (GetResult(3) is { } result3)
+            {
+                <p class="pronunciation-feedback @GetFeedbackCssClass(result3)">
+                    <i class="bi @GetFeedbackIcon(result3)"></i>
+                    @GetFeedbackText(result3)
+                </p>
+            }
         }
 
     </div>
@@ -105,13 +150,68 @@
         };
     }
 
-    private async Task PlayAudio(byte[] pronunciation)
+    private Task PlayForm(string? word, byte[]? storedAudio)
     {
-        if (pronunciation is { Length: > 0 })
+        if (string.IsNullOrEmpty(word))
+            return Task.CompletedTask;
+
+        return storedAudio is { Length: > 0 }
+            ? AudioService.PlayAsync(storedAudio)
+            : Player.PlayTextAsync(TextBracketsRemoverService.RemoveBracketsText(word), SpeechLanguage.EnglishBritish);
+    }
+
+    private readonly Dictionary<int, PronunciationCheckResult?> _formResults = new();
+    private readonly HashSet<int> _checkingForms = new();
+
+    private bool IsChecking(int n) => _checkingForms.Contains(n);
+    private PronunciationCheckResult? GetResult(int n) => _formResults.GetValueOrDefault(n);
+
+    private async Task CheckForm(int n, string? word)
+    {
+        if (string.IsNullOrEmpty(word) || _checkingForms.Contains(n))
+            return;
+
+        _checkingForms.Add(n);
+        _formResults[n] = null;
+        StateHasChanged();
+
+        try
         {
-            await AudioService.PlayAsync(pronunciation);
+            var expected = PronunciationTextNormalizer.PrepareExpectedText(word);
+            _formResults[n] = await PronunciationCheckService.CheckAsync(expected);
+        }
+        catch (Exception ex)
+        {
+            await BrowserConsole.LogErrorAsync("Не вдалося перевірити вимову форми", ex);
+        }
+        finally
+        {
+            _checkingForms.Remove(n);
+            StateHasChanged();
         }
     }
+
+    private static string GetFeedbackCssClass(PronunciationCheckResult result) => result switch
+    {
+        { Recognized: true, Confidence: PronunciationConfidence.High } => "success",
+        { Recognized: true, Confidence: PronunciationConfidence.Medium } => "warning",
+        _ => "danger",
+    };
+
+    private static string GetFeedbackIcon(PronunciationCheckResult result) => result switch
+    {
+        { Recognized: true, Confidence: PronunciationConfidence.High } => "bi-check-circle-fill",
+        { Recognized: true, Confidence: PronunciationConfidence.Medium } => "bi-exclamation-circle-fill",
+        _ => "bi-x-circle-fill",
+    };
+
+    private static string GetFeedbackText(PronunciationCheckResult result) => result switch
+    {
+        { Recognized: true, Confidence: PronunciationConfidence.High } => "Вимова розпізнана впевнено",
+        { Recognized: true, Confidence: PronunciationConfidence.Medium } => "Непогано, але спробуй ще чіткіше",
+        { Recognized: true, Confidence: PronunciationConfidence.Low } => "Розпізнано нечітко",
+        _ => "Не вдалося розпізнати",
+    };
 }
 
 <style>
@@ -140,9 +240,21 @@
 
     .form-content {
         display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-text-row {
+        display: flex;
         align-items: baseline;
         flex-wrap: wrap;
         gap: 1rem;
+    }
+
+    .form-controls-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
     }
 
     .form-word {
@@ -157,6 +269,40 @@
         font-style: italic;
     }
 
+    .mic-check-icon {
+        font-size: 1.5rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .mic-check-icon:hover {
+        color: var(--primary-color, #4f46e5);
+    }
+
+    .mic-check-icon.listening {
+        color: #dc3545;
+        animation: mic-pulse 1s ease-in-out infinite;
+    }
+
+    @@keyframes mic-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+
+    .pronunciation-feedback {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin: -0.5rem 0 0.5rem 160px;
+    }
+
+    .pronunciation-feedback.success { color: #198754; }
+    .pronunciation-feedback.warning { color: #b8860b; }
+    .pronunciation-feedback.danger { color: #dc3545; }
+
     @@media (max-width: 768px) {
         .form-row {
             grid-template-columns: 120px 1fr;
@@ -164,5 +310,9 @@
 
         .form-word        { font-size: 1.5rem; }
         .form-transcription { font-size: 1rem; }
+
+        .pronunciation-feedback {
+            margin-left: 120px;
+        }
     }
 </style>

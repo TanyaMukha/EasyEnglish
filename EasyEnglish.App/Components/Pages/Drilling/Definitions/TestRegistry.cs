@@ -18,6 +18,7 @@ public static class TestRegistry
         new TranslationToWordSingleChoiceDef(),
         new TranslationToWordKnowOrNotDef(),
         new TranslationToWordManualInputDef(),
+        new TranslationToWordPronunciationDef(),
     ];
 
     public static IReadOnlyList<TestDefinition<ExampleTestModel>> ExampleTests { get; } =
@@ -35,6 +36,7 @@ public static class TestRegistry
         new IrregularTranslationToWordManualInputDef(),
         new ReviewIrregularFormsCardDef(),
         new InputIrregularFormsDef(),
+        new IrregularFormsPronunciationDef(),
     ];
 
     public static IReadOnlyList<TestDefinition<StudyCardTestModel>> StudyCardTests { get; } =

@@ -42,9 +42,25 @@
 
                 @if (group.Voices.Count == 0)
                 {
+                    var availability = GetAvailability(lang);
                     <div class="no-voices">
-                        <i class="bi bi-exclamation-triangle"></i>
-                        Голосів не знайдено. Встановіть мовний пакет у системних налаштуваннях.
+                        <div class="no-voices-message">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            @(availability?.InstallInstructions ?? "Голосів не знайдено. Встановіть мовний пакет у системних налаштуваннях.")
+                        </div>
+                        <div class="no-voices-actions">
+                            @if (availability?.CanOpenSettings == true)
+                            {
+                                <button class="btn-open-settings" @onclick="() => OpenSettingsAsync(lang)">
+                                    <i class="bi bi-gear-fill"></i>
+                                    Відкрити налаштування
+                                </button>
+                            }
+                            <button class="btn-recheck" @onclick="ReloadAsync">
+                                <i class="bi bi-arrow-clockwise"></i>
+                                Перевірити знову
+                            </button>
+                        </div>
                     </div>
                 }
                 else
@@ -92,8 +108,13 @@
 @code {
     private List<Breadcrumb.BreadcrumbItem> breadcrumbs = BreadcrumbBuilder.Create().WithHome().WithActive("Налаштування голосів").Build();
 
+    private List<VoiceAvailabilityResult> _availability = [];
+
     protected override async Task OnInitializedAsync()
-        => await ViewModel.LoadAsync();
+    {
+        await ViewModel.LoadAsync();
+        await RecheckAvailabilityAsync();
+    }
 
     private void Select(SpeechLanguage lang, LocaleInfo voice)
     {
@@ -105,6 +126,29 @@
     {
         ViewModel.InvalidateCache();
         await ViewModel.LoadAsync();
+        await RecheckAvailabilityAsync();
+    }
+
+    private async Task RecheckAvailabilityAsync()
+    {
+        _availability = (await Availability.CheckAllAsync()).ToList();
+        StateHasChanged();
+    }
+
+    private VoiceAvailabilityResult? GetAvailability(SpeechLanguage lang) =>
+        _availability.FirstOrDefault(a => a.Language == lang);
+
+    private async Task OpenSettingsAsync(SpeechLanguage lang)
+    {
+#if ANDROID
+        if (lang == SpeechLanguage.Ukrainian)
+            AndroidVoiceInstallHelper.RequestLanguageInstall();
+        else
+            AndroidVoiceInstallHelper.OpenTtsSettings();
+#elif WINDOWS
+        await Launcher.OpenAsync("ms-settings:speech");
+#endif
+        await Task.CompletedTask;
     }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
@@ -162,6 +206,12 @@
 
     .no-voices {
         display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .no-voices-message {
+        display: flex;
         align-items: center;
         gap: 0.5rem;
         color: var(--text-muted);
@@ -169,7 +219,41 @@
         font-size: 0.9rem;
     }
 
-    .no-voices i { color: #F57C00; }
+    .no-voices-message i { color: #F57C00; }
+
+    .no-voices-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .btn-open-settings, .btn-recheck {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-radius: 10px;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-open-settings {
+        background: #A3BFFA;
+        border: 1.5px solid #A3BFFA;
+        color: white;
+    }
+
+    .btn-open-settings:hover { background: #7B9FE8; border-color: #7B9FE8; }
+
+    .btn-recheck {
+        background: var(--surface-alt);
+        border: 1.5px solid var(--border-muted);
+        color: var(--text-secondary);
+    }
+
+    .btn-recheck:hover { border-color: #A3BFFA; color: #5a7fb8; }
 
     .voice-list {
         display: flex;

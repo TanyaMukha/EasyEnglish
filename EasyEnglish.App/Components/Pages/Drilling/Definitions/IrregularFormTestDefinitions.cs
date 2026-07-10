@@ -1,12 +1,14 @@
 using EasyEnglish.Core.Models;
 using EasyEnglish.App.Models;
 using EasyEnglish.App.Services;
+using EasyEnglish.App.Services.SpeechRecognition;
 using EasyEnglish.App.Components.Pages.Drilling.Models;
 using ReviewWordCard = EasyEnglish.App.Components.Pages.Drilling.Cards.ReviewWordsCard;
 using SingleChoiceCard = EasyEnglish.App.Components.Pages.Drilling.Cards.SingleChoiceWordCard;
 using ManualInputCard = EasyEnglish.App.Components.Pages.Drilling.Cards.ManualInputWordCard;
 using ReviewIrregularFormsCard = EasyEnglish.App.Components.Pages.Drilling.Cards.ReviewIrregularFormsCard;
 using InputIrregularFormsCard = EasyEnglish.App.Components.Pages.Drilling.Cards.InputIrregularFormsCard;
+using StudyIrregularFormsCard = EasyEnglish.App.Components.Pages.Drilling.Cards.StudyIrregularFormsCard;
 
 namespace EasyEnglish.App.Components.Pages.Drilling.Definitions;
 
@@ -137,7 +139,7 @@ public sealed class IrregularTranslationToWordManualInputDef : TestDefinition<Ir
         !string.IsNullOrEmpty(item.FirstFormTranslation);
 
     public override WordCardViewModel  BuildViewModel(IrregularFormTestModel item) => IrregularVm.From(item);
-    public override string?            GetCorrectAnswer(WordCardViewModel vm)       => TextBracketsRemoverService.RemoveBracketsText(vm.Word);
+    public override string?            GetCorrectAnswer(WordCardViewModel vm)       => PronunciationTextNormalizer.PrepareExpectedText(vm.Word);
     public override bool               ShowNextButton(TestState s)                  => s.IsAnswerSubmitted;
     public override NextItemAction     GetNextAction(TestState s)                   => s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
     public override Type               ComponentType                                 => typeof(ManualInputCard);
@@ -178,4 +180,25 @@ public sealed class InputIrregularFormsDef : TestDefinition<IrregularFormTestMod
     // Питання — перша форма (Word), відповідь — введення форм вручну
     public override void RecordAnswer(IrregularFormTestModel item, bool isCorrect) =>
         item.RecordTestAnswer(CardDirection.WordToTranslation, CardType.ManualInput, isCorrect);
+}
+
+public sealed class IrregularFormsPronunciationDef : TestDefinition<IrregularFormTestModel>
+{
+    public override string Key          => "irregular-forms-pronunciation";
+    public override string Title        => "Скажіть форми";
+    public override string HeaderClass  => "pastel-sage";
+    public override string IconClass    => "bi-mic-fill";
+    public override bool   WordIsQuestion => false;
+
+    public override bool CanApplyTo(IrregularFormTestModel item) =>
+        !string.IsNullOrEmpty(item.FirstFormTranslation);
+
+    // RawItem-картка — BuildViewModel не потрібен
+    // Користувач сам вирішує, коли перейти далі — кнопка Next доступна одразу
+    public override bool           ShowNextButton(TestState s) => true;
+    public override NextItemAction GetNextAction(TestState s)  => s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
+    public override Type           ComponentType                => typeof(StudyIrregularFormsCard);
+
+    public override void RecordAnswer(IrregularFormTestModel item, bool isCorrect) =>
+        item.RecordTestAnswer(CardDirection.TranslationToWord, CardType.Pronunciation, isCorrect);
 }

@@ -1,10 +1,12 @@
 using EasyEnglish.App.Models;
 using EasyEnglish.App.Services;
+using EasyEnglish.App.Services.SpeechRecognition;
 using EasyEnglish.App.Components.Pages.Drilling.Models;
 using ReviewWordCard   = EasyEnglish.App.Components.Pages.Drilling.Cards.ReviewWordsCard;
 using SingleChoiceCard = EasyEnglish.App.Components.Pages.Drilling.Cards.SingleChoiceWordCard;
 using KnowOrNotCard    = EasyEnglish.App.Components.Pages.Drilling.Cards.KnowOrNotWordCard;
 using ManualInputCard  = EasyEnglish.App.Components.Pages.Drilling.Cards.ManualInputWordCard;
+using StudyWordCard    = EasyEnglish.App.Components.Pages.Drilling.Cards.StudyWordCard;
 
 namespace EasyEnglish.App.Components.Pages.Drilling.Definitions;
 
@@ -166,11 +168,31 @@ public sealed class TranslationToWordManualInputDef : TestDefinition<WordTestMod
     public override bool   WordIsQuestion => false;
 
     public override WordCardViewModel  BuildViewModel(WordTestModel item)      => WordVm.From(item);
-    public override string?            GetCorrectAnswer(WordCardViewModel vm)  => TextBracketsRemoverService.RemoveBracketsText(vm.Word);
+    public override string?            GetCorrectAnswer(WordCardViewModel vm)  => PronunciationTextNormalizer.PrepareExpectedText(vm.Word);
     public override bool               ShowNextButton(TestState s)             => s.IsAnswerSubmitted;
     public override NextItemAction     GetNextAction(TestState s)              => s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
     public override Type               ComponentType                            => typeof(ManualInputCard);
 
     public override void RecordAnswer(WordTestModel item, bool isCorrect) =>
         item.RecordTestAnswer(CardDirection.TranslationToWord, CardType.ManualInput, isCorrect);
+}
+
+// ── Pronunciation: Translation → Word (spoken) ───────────────────────────────
+
+public sealed class TranslationToWordPronunciationDef : TestDefinition<WordTestModel>
+{
+    public override string Key          => "translation-to-word-pronunciation";
+    public override string Title        => "Скажіть слово";
+    public override string HeaderClass  => "pastel-coral";
+    public override string IconClass    => "bi-mic-fill";
+    public override bool   WordIsQuestion => false;
+
+    public override WordCardViewModel  BuildViewModel(WordTestModel item) => WordVm.From(item);
+    // Користувач сам вирішує, коли перейти далі — кнопка Next доступна одразу
+    public override bool               ShowNextButton(TestState s)        => true;
+    public override NextItemAction     GetNextAction(TestState s)         => s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
+    public override Type               ComponentType                       => typeof(StudyWordCard);
+
+    public override void RecordAnswer(WordTestModel item, bool isCorrect) =>
+        item.RecordTestAnswer(CardDirection.TranslationToWord, CardType.Pronunciation, isCorrect);
 }

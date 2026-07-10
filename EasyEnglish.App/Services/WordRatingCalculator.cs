@@ -13,7 +13,8 @@ public enum CardType
     ManualInput = 1,         // Ввід вручну
     SingleChoice = 2,        // Вибір одного варіанта з декількох
     MultipleChoice = 3,      // Вибір кількох варіантів з декількох
-    Matching = 4             // Сопоставлення варіантів (пари)
+    Matching = 4,            // Сопоставлення варіантів (пари)
+    Pronunciation = 5        // Перевірка вимови через мікрофон
 }
 
 /// <summary>
@@ -51,7 +52,8 @@ public static class WordRatingCalculator
     {
         { CardType.SingleChoice, 0.5f },      // Середній вплив
         { CardType.KnowOrNot, 0.3f },         // МІЗЕРНИЙ вплив (було 0.7f)
-        { CardType.ManualInput, 1.0f }        // НАЙВАГОМІШИЙ вплив
+        { CardType.ManualInput, 1.0f },       // НАЙВАГОМІШИЙ вплив
+        { CardType.Pronunciation, 1.0f }      // Активне відтворення — так само вагомо, як ручний ввід
     };
 
     /// <summary>
@@ -81,6 +83,10 @@ public static class WordRatingCalculator
                 CardDirection.TranslationToWord
             },
             CardType.ManualInput => new List<CardDirection>
+            {
+                CardDirection.TranslationToWord
+            },
+            CardType.Pronunciation => new List<CardDirection>
             {
                 CardDirection.TranslationToWord
             },

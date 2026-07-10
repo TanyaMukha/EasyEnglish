@@ -33,16 +33,20 @@
     @if (!string.IsNullOrEmpty(Unit.Content))
     {
         <div class="content-section content-html">
-            <div class="section-header">
+            <div class="section-header collapsible" @onclick="ToggleMaterial">
                 <h2 class="section-title">
                     <i class="bi bi-file-text"></i>
                     Матеріал
                 </h2>
+                <i class="bi @(isMaterialExpanded ? "bi-chevron-up" : "bi-chevron-down") collapse-icon"></i>
             </div>
 
-            <div class="html-content">
-                @((MarkupString)GetHtmlContent())
-            </div>
+            @if (isMaterialExpanded)
+            {
+                <div class="html-content">
+                    @((MarkupString)GetHtmlContent())
+                </div>
+            }
         </div>
     }
 
@@ -561,6 +565,10 @@
         InitializeTabs();
     }
 
+    private bool isMaterialExpanded = false;
+
+    private void ToggleMaterial() => isMaterialExpanded = !isMaterialExpanded;
+
     private MarkupString GetHtmlContent()
     {
         if (string.IsNullOrEmpty(Unit.Content))
@@ -578,6 +586,23 @@
         font-weight: 700;
         color: var(--text-primary);
         margin: 0;
+    }
+
+.content-html .section-header.collapsible {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .content-html .section-header.collapsible:hover .section-title {
+        color: var(--accent);
+    }
+
+    .content-html .collapse-icon {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
     }
 
 .content-section.content-html {

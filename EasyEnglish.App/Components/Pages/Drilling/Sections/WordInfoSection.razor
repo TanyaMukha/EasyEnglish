@@ -1,21 +1,38 @@
 @inject SpeechPlayer Player
+@inject IPronunciationCheckService PronunciationCheckService
 
 <div class="word-info-section">
-    <div class="word-title-row">
+    <div class="word-title-block">
         <h2 class="word-title">@Word</h2>
-        @if (Pronunciation is { Length: > 0 })
-        {
-            <span class="audio-play-icon stored" @onclick:stopPropagation="true" @onclick="PlayAudio" title="Play pronunciation">
-                <i class="bi bi-volume-up-fill"></i>
-            </span>
-        }
-        else
-        {
-            <span class="audio-play-icon generated" @onclick:stopPropagation="true" @onclick="PlayWord" title="Play pronunciation">
-                <i class="bi bi-volume-up-fill"></i>
-            </span>
-        }
+        <div class="word-controls-row">
+            @if (Pronunciation is { Length: > 0 })
+            {
+                <span class="audio-play-icon stored" @onclick:stopPropagation="true" @onclick="PlayAudio" title="Play pronunciation">
+                    <i class="bi bi-volume-up-fill"></i>
+                </span>
+            }
+            else
+            {
+                <span class="audio-play-icon generated" @onclick:stopPropagation="true" @onclick="PlayWord" title="Play pronunciation">
+                    <i class="bi bi-volume-up-fill"></i>
+                </span>
+            }
+            @if (PronunciationCheckService.IsSupported)
+            {
+                <span class="mic-check-icon @(isCheckingPronunciation ? "listening" : "")" @onclick:stopPropagation="true" @onclick="CheckPronunciation" title="Перевірити вимову">
+                    <i class="bi bi-mic-fill"></i>
+                </span>
+            }
+        </div>
     </div>
+
+    @if (pronunciationResult is not null)
+    {
+        <p class="pronunciation-feedback @GetFeedbackCssClass()">
+            <i class="bi @GetFeedbackIcon()"></i>
+            @GetFeedbackText()
+        </p>
+    }
 
     @if (!string.IsNullOrEmpty(Transcription))
     {
@@ -57,10 +74,13 @@
     [Parameter] public byte[]? Pronunciation { get; set; }
 
     private ExampleViewModel? randomExample;
+    private bool isCheckingPronunciation;
+    private PronunciationCheckResult? pronunciationResult;
 
     protected override void OnParametersSet()
     {
         randomExample = GetRandomExample();
+        pronunciationResult = null;
     }
 
     private ExampleViewModel? GetRandomExample()
@@ -82,6 +102,53 @@
 
     private Task PlayWord()
         => Player.PlayTextAsync(TextBracketsRemoverService.RemoveBracketsText(Word), SpeechLanguage.EnglishBritish);
+
+    private async Task CheckPronunciation()
+    {
+        if (isCheckingPronunciation)
+            return;
+
+        isCheckingPronunciation = true;
+        pronunciationResult = null;
+        StateHasChanged();
+
+        try
+        {
+            var expected = PronunciationTextNormalizer.PrepareExpectedText(Word);
+            pronunciationResult = await PronunciationCheckService.CheckAsync(expected);
+        }
+        catch (Exception ex)
+        {
+            await BrowserConsole.LogErrorAsync("Не вдалося перевірити вимову", ex);
+        }
+        finally
+        {
+            isCheckingPronunciation = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetFeedbackCssClass() => pronunciationResult switch
+    {
+        { Recognized: true, Confidence: PronunciationConfidence.High } => "success",
+        { Recognized: true, Confidence: PronunciationConfidence.Medium } => "warning",
+        _ => "danger",
+    };
+
+    private string GetFeedbackIcon() => pronunciationResult switch
+    {
+        { Recognized: true, Confidence: PronunciationConfidence.High } => "bi-check-circle-fill",
+        { Recognized: true, Confidence: PronunciationConfidence.Medium } => "bi-exclamation-circle-fill",
+        _ => "bi-x-circle-fill",
+    };
+
+    private string GetFeedbackText() => pronunciationResult switch
+    {
+        { Recognized: true, Confidence: PronunciationConfidence.High } => "Вимова розпізнана впевнено",
+        { Recognized: true, Confidence: PronunciationConfidence.Medium } => "Непогано, але спробуй ще чіткіше",
+        { Recognized: true, Confidence: PronunciationConfidence.Low } => "Розпізнано нечітко, спробуй ще раз",
+        _ => "Не вдалося розпізнати, спробуй ще раз",
+    };
 }
 
 <style>
@@ -92,17 +159,57 @@
         align-items: center;
     }
 
-    .word-title-row {
+    .word-title-block {
         display: flex;
+        flex-direction: column;
         align-items: center;
-        align-items: baseline;
         gap: 0.5rem;
         margin: 0 0 0.75rem 0;
     }
 
-    .word-title-row .audio-play-icon {
+    .word-controls-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .word-controls-row .audio-play-icon {
         font-size: 2.25rem;
     }
+
+    .word-controls-row .mic-check-icon {
+        font-size: 1.75rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .word-controls-row .mic-check-icon:hover {
+        color: var(--primary-color, #4f46e5);
+    }
+
+    .word-controls-row .mic-check-icon.listening {
+        color: #dc3545;
+        animation: mic-pulse 1s ease-in-out infinite;
+    }
+
+    @@keyframes mic-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+
+    .pronunciation-feedback {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+        margin: 0 0 1rem 0;
+    }
+
+    .pronunciation-feedback.success { color: #198754; }
+    .pronunciation-feedback.warning { color: #b8860b; }
+    .pronunciation-feedback.danger { color: #dc3545; }
 
     .word-title {
         font-size: 2.5rem;

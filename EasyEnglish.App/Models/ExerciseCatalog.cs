@@ -12,6 +12,7 @@ public static class ExerciseCatalog
         new() { Key = "translation-to-word-single-choice", Title = "Слово за перекладом", Description = "Знайдіть англійське слово за його перекладом", Icon = "bi-search", Color = "orange" },
         new() { Key = "translation-to-word-know-or-not", Title = "Перевірка слова", Description = "Підтвердіть, чи знаєте слово за перекладом", Icon = "bi-eye-slash", Color = "pink" },
         new() { Key = "translation-to-word-manual-input", Title = "Напишіть слово", Description = "Введіть англійське слово за його перекладом", Icon = "bi-keyboard", Color = "mint" },
+        new() { Key = "translation-to-word-pronunciation", Title = "Скажіть слово", Description = "Вимовте англійське слово за перекладом і підказкою", Icon = "bi-mic-fill", Color = "coral" },
     };
 
     public static readonly List<ExerciseOption> Examples = new()
@@ -29,5 +30,6 @@ public static class ExerciseCatalog
         new() { Key = "irregular-translation-to-word-manual-input", Title = "Напишіть форму", Description = "Введіть форму слова за перекладом", Icon = "bi-keyboard", Color = "mint" },
         new() { Key = "review-irregular-forms-card", Title = "Картка форм", Description = "Переглядайте всі форми слова на одній картці", Icon = "bi-card-list", Color = "blue" },
         new() { Key = "input-irregular-forms", Title = "Введіть форми", Description = "Напишіть другу та третю форму слова", Icon = "bi-keyboard", Color = "green" },
+        new() { Key = "irregular-forms-pronunciation", Title = "Скажіть форми", Description = "Вимовте всі три форми слова одразу за перекладом", Icon = "bi-mic-fill", Color = "sage" },
     };
 }

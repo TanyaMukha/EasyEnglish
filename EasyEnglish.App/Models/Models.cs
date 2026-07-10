@@ -176,6 +176,7 @@ public class TestDetailModel
     public TestResult SingleChoice { get; set; } = new();
     public TestResult MultipleChoice { get; set; } = new();
     public TestResult Matching { get; set; } = new();
+    public TestResult Pronunciation { get; set; } = new();
 
     // Індексатор для доступу через CardType
     public TestResult this[CardType type]
@@ -187,6 +188,7 @@ public class TestDetailModel
             CardType.SingleChoice => SingleChoice,
             CardType.MultipleChoice => MultipleChoice,
             CardType.Matching => Matching,
+            CardType.Pronunciation => Pronunciation,
             _ => throw new ArgumentOutOfRangeException(nameof(type))
         };
         set
@@ -207,6 +209,9 @@ public class TestDetailModel
                     break;
                 case CardType.Matching:
                     Matching = value;
+                    break;
+                case CardType.Pronunciation:
+                    Pronunciation = value;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type));

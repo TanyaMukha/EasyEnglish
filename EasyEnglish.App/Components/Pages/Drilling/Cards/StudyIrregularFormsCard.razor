@@ -1,0 +1,214 @@
+@inject SpeechPlayer Player
+@inject IPronunciationCheckService PronunciationCheckService
+
+<div class="DrillingReviewCardContent">
+    @if (!string.IsNullOrEmpty(_item.FirstFormTranslation))
+    {
+        <QuestionSection Text="@_item.FirstFormTranslation" />
+    }
+
+    @if (!string.IsNullOrEmpty(_item.FirstFormTranscription))
+    {
+        <p class="pronunciation-hint">[ @_item.FirstFormTranscription ]</p>
+    }
+
+    <div class="mic-record-row">
+        <span class="mic-check-icon large @(_isChecking ? "listening" : "")" @onclick="CheckPronunciation" title="Скажіть усі три форми">
+            <i class="bi bi-mic-fill"></i>
+        </span>
+    </div>
+
+    @if (_result is not null)
+    {
+        <p class="pronunciation-feedback @GetFeedbackCssClass()">
+            <i class="bi @GetFeedbackIcon()"></i>
+            @GetFeedbackText()
+        </p>
+    }
+
+    @if (_revealed)
+    {
+        <div class="answer-reveal">
+            <span class="revealed-word">@BuildRevealText()</span>
+            <span class="audio-play-icon generated" @onclick:stopPropagation="true" @onclick="PlayAllForms" title="Прослухати форми">
+                <i class="bi bi-volume-up-fill"></i>
+            </span>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public TestCardContext Context { get; set; } = null!;
+
+    private IrregularFormModel _item => Context.GetRawItem<IrregularFormModel>();
+
+    private bool _isChecking;
+    private bool _revealed;
+    private PronunciationCheckResult? _result;
+
+    protected override void OnParametersSet()
+    {
+        if (!Context.State.IsAnswerSubmitted)
+        {
+            _isChecking = false;
+            _revealed = false;
+            _result = null;
+        }
+    }
+
+    private async Task CheckPronunciation()
+    {
+        if (_isChecking)
+            return;
+
+        _isChecking = true;
+        StateHasChanged();
+
+        PronunciationCheckResult result;
+        try
+        {
+            result = await PronunciationCheckService.CheckAsync(BuildExpectedPhrase());
+        }
+        catch (Exception ex)
+        {
+            await BrowserConsole.LogErrorAsync("Не вдалося перевірити вимову форм", ex);
+            result = new PronunciationCheckResult(false, string.Empty, PronunciationConfidence.Rejected);
+        }
+
+        _result = result;
+        _isChecking = false;
+
+        var isCorrect = result.Recognized && result.Confidence >= PronunciationConfidence.Medium;
+
+        // Розкриваємо форми одразу, якщо взагалі нічого не розпізнано, або якщо вимову підтверджено.
+        if (isCorrect || result.Confidence == PronunciationConfidence.Rejected)
+            _revealed = true;
+
+        StateHasChanged();
+
+        await Context.Callbacks.OnCheckAnswer.InvokeAsync(isCorrect);
+    }
+
+    private string BuildExpectedPhrase() =>
+        string.Join(" ", new[] { _item.FirstForm, _item.SecondForm, _item.ThirdForm }
+            .Where(f => !string.IsNullOrWhiteSpace(f))
+            .Select(f => PronunciationTextNormalizer.PrepareExpectedText(f!)));
+
+    private string BuildRevealText() =>
+        string.Join(" — ", new[] { _item.FirstForm, _item.SecondForm, _item.ThirdForm }
+            .Where(f => !string.IsNullOrWhiteSpace(f)));
+
+    private async Task PlayAllForms()
+    {
+        await PlayForm(_item.FirstForm, _item.FirstFormPronunciation);
+        await PlayForm(_item.SecondForm, _item.SecondFormPronunciation);
+        await PlayForm(_item.ThirdForm, _item.ThirdFormPronunciation);
+    }
+
+    private Task PlayForm(string? word, byte[]? storedAudio)
+    {
+        if (string.IsNullOrEmpty(word))
+            return Task.CompletedTask;
+
+        return storedAudio is { Length: > 0 }
+            ? AudioService.PlayAsync(storedAudio)
+            : Player.PlayTextAsync(TextBracketsRemoverService.RemoveBracketsText(word), SpeechLanguage.EnglishBritish);
+    }
+
+    private string GetFeedbackCssClass() => _result switch
+    {
+        { Recognized: true, Confidence: PronunciationConfidence.High } => "success",
+        { Recognized: true, Confidence: PronunciationConfidence.Medium } => "warning",
+        _ => "danger",
+    };
+
+    private string GetFeedbackIcon() => _result switch
+    {
+        { Recognized: true, Confidence: PronunciationConfidence.High } => "bi-check-circle-fill",
+        { Recognized: true, Confidence: PronunciationConfidence.Medium } => "bi-exclamation-circle-fill",
+        _ => "bi-x-circle-fill",
+    };
+
+    private string GetFeedbackText() => _result switch
+    {
+        { Recognized: true, Confidence: PronunciationConfidence.High } => "Вимова розпізнана впевнено",
+        { Recognized: true, Confidence: PronunciationConfidence.Medium } => "Непогано, але спробуй ще чіткіше",
+        { Recognized: true, Confidence: PronunciationConfidence.Low } => "Розпізнано нечітко",
+        _ => "Не вдалося розпізнати всі три форми",
+    };
+}
+
+<style>
+    .pronunciation-hint {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        font-style: italic;
+        text-align: center;
+        margin: 0 0 1.5rem 0;
+    }
+
+    .mic-record-row {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .mic-check-icon {
+        font-size: 1.75rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .mic-check-icon:hover {
+        color: var(--primary-color, #4f46e5);
+    }
+
+    .mic-check-icon.large {
+        font-size: 3rem;
+    }
+
+    .mic-check-icon.listening {
+        color: #dc3545;
+        animation: mic-pulse 1s ease-in-out infinite;
+    }
+
+    @@keyframes mic-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+
+    .pronunciation-feedback {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+        margin: 0 0 1rem 0;
+    }
+
+    .pronunciation-feedback.success { color: #198754; }
+    .pronunciation-feedback.warning { color: #b8860b; }
+    .pronunciation-feedback.danger { color: #dc3545; }
+
+    .answer-reveal {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .revealed-word {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .answer-reveal .audio-play-icon {
+        font-size: 1.75rem;
+        cursor: pointer;
+    }
+</style>

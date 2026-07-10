@@ -79,6 +79,7 @@
             stats = new List<StatItem>
             {
                 new("bi-journals", "Курси", await CourseService.CountAsync()),
+                new("bi-tags", "Предмети", await SubjectService.CountAsync()),
                 new("bi-collection", "Модулі", await UnitService.CountAsync()),
                 new("bi-card-text", "Слова", await WordService.CountAsync()),
                 new("bi-arrow-repeat", "Приклади", await ExampleService.CountAsync()),
