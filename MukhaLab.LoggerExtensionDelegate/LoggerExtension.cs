@@ -7,9 +7,23 @@ namespace MukhaLab.LoggerExtensionDelegate;
 /// <summary>
 /// Provides optimized logging extension methods with enhanced browser console support.
 /// </summary>
+/// <remarks>
+/// The class name is spelled <c>LogerExtension</c> (missing the second "g"), unlike the containing
+/// file (<c>LoggerExtension.cs</c>) and namespace (<c>MukhaLab.LoggerExtensionDelegate</c>). This is
+/// a known naming inconsistency kept as-is to avoid a breaking API rename; keep it in mind when
+/// searching the codebase by type name.
+/// <para>
+/// Every method here is built on <see cref="LoggerMessage.Define{T}(LogLevel, EventId, string)"/>
+/// (and its multi-parameter overloads), the high-performance logging pattern recommended by
+/// Microsoft.Extensions.Logging. The delegate returned by <c>LoggerMessage.Define</c> checks
+/// <see cref="ILogger.IsEnabled(LogLevel)"/> internally and skips message-template formatting
+/// entirely when the level is disabled, which avoids the boxing/allocation overhead of the
+/// standard <see cref="LoggerExtensions.LogInformation(ILogger, string, object[])"/>-style calls.
+/// </para>
+/// </remarks>
 public static class LogerExtension
 {
-    // Existing optimized delegates
+    // Core single-parameter delegates: one per level, sharing the "{Message}" template.
     private static readonly Action<ILogger, string, Exception?> FastInfoLogger =
         LoggerMessage.Define<string>(
             LogLevel.Information,
@@ -34,7 +48,7 @@ public static class LogerExtension
             new EventId(4, "DEBUG"),
             "{Message}");
 
-    // Додаткові делегати для structured logging
+    // Additional delegates for structured logging (caller context / user context placeholders).
     private static readonly Action<ILogger, string, string, Exception?> FastInfoWithContextLogger =
         LoggerMessage.Define<string, string>(
             LogLevel.Information,
@@ -70,12 +84,13 @@ public static class LogerExtension
     }
 
     /// <summary>
-    /// Logs an information message with user context.
+    /// Logs an information message tagged with the calling method name and a user identifier,
+    /// formatted as <c>[{memberName}] User: {userId} - {message}</c>.
     /// </summary>
     /// <param name="logger">The logger instance.</param>
     /// <param name="userId">The user identifier.</param>
     /// <param name="message">The message to log.</param>
-    /// <param name="memberName">The calling method name (automatically provided).</param>
+    /// <param name="memberName">The calling method name (automatically provided); rendered as the "Context" in the log template.</param>
     public static void FastInfoWithUserContext(this ILogger? logger,
         string userId,
         string message,
@@ -88,11 +103,21 @@ public static class LogerExtension
     }
 
     /// <summary>
-    /// Logs performance metrics.
+    /// Logs how long an operation took. Logs at <see cref="LogLevel.Warning"/> with a "(SLOW)"
+    /// marker when <paramref name="elapsedMilliseconds"/> exceeds 1000 ms, otherwise logs at
+    /// <see cref="LogLevel.Information"/>.
     /// </summary>
     /// <param name="logger">The logger instance.</param>
     /// <param name="operationName">The name of the operation.</param>
     /// <param name="elapsedMilliseconds">The elapsed time in milliseconds.</param>
+    /// <remarks>
+    /// The enablement check guarding both branches is <see cref="ILogger.IsEnabled(LogLevel)"/> for
+    /// <see cref="LogLevel.Information"/>, not <see cref="LogLevel.Warning"/>. If a logging provider
+    /// is configured to allow <see cref="LogLevel.Warning"/> and above for this category while
+    /// suppressing <see cref="LogLevel.Information"/>, a slow-operation warning will silently not be
+    /// logged. This is safe with typical minimum-level filtering (where enabling a lower level
+    /// implies higher levels are enabled too) but can surprise category-specific overrides.
+    /// </remarks>
     public static void FastPerformanceLog(this ILogger? logger, string operationName, long elapsedMilliseconds)
     {
         if (logger != null && logger.IsEnabled(LogLevel.Information))
@@ -109,11 +134,18 @@ public static class LogerExtension
     }
 
     /// <summary>
-    /// Logs method entry (useful for debugging).
+    /// Logs method entry at <see cref="LogLevel.Debug"/> (useful for tracing execution flow).
     /// </summary>
     /// <param name="logger">The logger instance.</param>
     /// <param name="parameters">Method parameters to log.</param>
     /// <param name="memberName">The calling method name (automatically provided).</param>
+    /// <remarks>
+    /// <paramref name="memberName"/> is resolved by the compiler at the call site via
+    /// <see cref="CallerMemberNameAttribute"/>. Calling this method indirectly (from inside a helper
+    /// or wrapper, as <see cref="PerformanceLoggerExtensions.BeginTimedScope"/> does) captures the
+    /// name of that wrapper, not the name of the code that ultimately triggered the log вЂ” pass an
+    /// explicit <paramref name="memberName"/> in that case if the caller's name matters.
+    /// </remarks>
     public static void FastMethodEntry(this ILogger? logger,
         object? parameters = null,
         [CallerMemberName] string memberName = "")
@@ -128,11 +160,15 @@ public static class LogerExtension
     }
 
     /// <summary>
-    /// Logs method exit (useful for debugging).
+    /// Logs method exit at <see cref="LogLevel.Debug"/> (useful for tracing execution flow).
     /// </summary>
     /// <param name="logger">The logger instance.</param>
     /// <param name="result">Method result to log.</param>
     /// <param name="memberName">The calling method name (automatically provided).</param>
+    /// <remarks>
+    /// Same <see cref="CallerMemberNameAttribute"/> caveat as <see cref="FastMethodEntry"/> applies:
+    /// calling this indirectly captures the immediate caller's name, not the original caller's.
+    /// </remarks>
     public static void FastMethodExit(this ILogger? logger,
         object? result = null,
         [CallerMemberName] string memberName = "")
@@ -146,7 +182,15 @@ public static class LogerExtension
         }
     }
 
-    // Зберігаємо всі ваші оригінальні методи
+    // Simple message-logging overloads (no caller-context capture). Overloads that take an
+    // already-formatted "message" string log unconditionally and rely on the internal
+    // IsEnabled check inside the LoggerMessage.Define delegate; overloads that take a composite
+    // "format" string check IsEnabled explicitly first, to skip the cost of string.Format when
+    // the level is disabled.
+
+    /// <summary>Logs a pre-formatted message at <see cref="LogLevel.Information"/>.</summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="message">The message to log.</param>
     public static void FastInfoMessage(this ILogger? logger, string message)
     {
         if (logger != null)
@@ -155,6 +199,10 @@ public static class LogerExtension
         }
     }
 
+    /// <summary>Formats <paramref name="format"/> with <paramref name="args"/> and logs it at <see cref="LogLevel.Information"/>.</summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="format">A composite format string (<see cref="string.Format(IFormatProvider, string, object[])"/> syntax).</param>
+    /// <param name="args">Format arguments.</param>
     public static void FastInfoMessage(this ILogger? logger, string format, params object[] args)
     {
         if (logger != null && logger.IsEnabled(LogLevel.Information))
@@ -163,6 +211,10 @@ public static class LogerExtension
         }
     }
 
+    /// <summary>Logs a pre-formatted message and an optional exception at <see cref="LogLevel.Error"/>.</summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="message">The message to log.</param>
+    /// <param name="exception">The associated exception, if any.</param>
     public static void FastErrorMessage(this ILogger? logger, string message, Exception? exception = null)
     {
         if (logger != null)
@@ -171,6 +223,10 @@ public static class LogerExtension
         }
     }
 
+    /// <summary>Formats <paramref name="format"/> with <paramref name="args"/> and logs it at <see cref="LogLevel.Error"/>.</summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="format">A composite format string (<see cref="string.Format(IFormatProvider, string, object[])"/> syntax).</param>
+    /// <param name="args">Format arguments.</param>
     public static void FastErrorMessage(this ILogger? logger, string format, params object[] args)
     {
         if (logger != null && logger.IsEnabled(LogLevel.Error))
@@ -179,6 +235,11 @@ public static class LogerExtension
         }
     }
 
+    /// <summary>Formats <paramref name="format"/> with <paramref name="args"/> and logs it with <paramref name="exception"/> at <see cref="LogLevel.Error"/>.</summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="exception">The associated exception.</param>
+    /// <param name="format">A composite format string (<see cref="string.Format(IFormatProvider, string, object[])"/> syntax).</param>
+    /// <param name="args">Format arguments.</param>
     public static void FastErrorMessage(this ILogger? logger, Exception exception, string format, params object[] args)
     {
         if (logger != null && logger.IsEnabled(LogLevel.Error))
@@ -187,6 +248,10 @@ public static class LogerExtension
         }
     }
 
+    /// <summary>Logs a pre-formatted message and an optional exception at <see cref="LogLevel.Warning"/>.</summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="message">The message to log.</param>
+    /// <param name="exception">The associated exception, if any.</param>
     public static void FastWarningMessage(this ILogger? logger, string message, Exception? exception = null)
     {
         if (logger != null)
@@ -195,6 +260,10 @@ public static class LogerExtension
         }
     }
 
+    /// <summary>Formats <paramref name="format"/> with <paramref name="args"/> and logs it at <see cref="LogLevel.Warning"/>.</summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="format">A composite format string (<see cref="string.Format(IFormatProvider, string, object[])"/> syntax).</param>
+    /// <param name="args">Format arguments.</param>
     public static void FastWarningMessage(this ILogger? logger, string format, params object[] args)
     {
         if (logger != null && logger.IsEnabled(LogLevel.Warning))
@@ -203,6 +272,11 @@ public static class LogerExtension
         }
     }
 
+    /// <summary>Formats <paramref name="format"/> with <paramref name="args"/> and logs it with <paramref name="exception"/> at <see cref="LogLevel.Warning"/>.</summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="exception">The associated exception.</param>
+    /// <param name="format">A composite format string (<see cref="string.Format(IFormatProvider, string, object[])"/> syntax).</param>
+    /// <param name="args">Format arguments.</param>
     public static void FastWarningMessage(this ILogger? logger, Exception exception, string format, params object[] args)
     {
         if (logger != null && logger.IsEnabled(LogLevel.Warning))
@@ -211,6 +285,10 @@ public static class LogerExtension
         }
     }
 
+    /// <summary>Logs a pre-formatted message and an optional exception at <see cref="LogLevel.Debug"/>.</summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="message">The message to log.</param>
+    /// <param name="exception">The associated exception, if any.</param>
     public static void FastDebugMessage(this ILogger? logger, string message, Exception? exception = null)
     {
         if (logger != null)
@@ -219,6 +297,10 @@ public static class LogerExtension
         }
     }
 
+    /// <summary>Formats <paramref name="format"/> with <paramref name="args"/> and logs it at <see cref="LogLevel.Debug"/>.</summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="format">A composite format string (<see cref="string.Format(IFormatProvider, string, object[])"/> syntax).</param>
+    /// <param name="args">Format arguments.</param>
     public static void FastDebugMessage(this ILogger? logger, string format, params object[] args)
     {
         if (logger != null && logger.IsEnabled(LogLevel.Debug))
@@ -227,6 +309,11 @@ public static class LogerExtension
         }
     }
 
+    /// <summary>Formats <paramref name="format"/> with <paramref name="args"/> and logs it with <paramref name="exception"/> at <see cref="LogLevel.Debug"/>.</summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="exception">The associated exception.</param>
+    /// <param name="format">A composite format string (<see cref="string.Format(IFormatProvider, string, object[])"/> syntax).</param>
+    /// <param name="args">Format arguments.</param>
     public static void FastDebugMessage(this ILogger? logger, Exception exception, string format, params object[] args)
     {
         if (logger != null && logger.IsEnabled(LogLevel.Debug))
