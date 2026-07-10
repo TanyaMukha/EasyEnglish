@@ -81,44 +81,77 @@ public static class QueryHelperExtensions
     }
 
     /// <summary>
-    /// Builds the boolean expression for one filter: resolves <see cref="FilterValue.Field"/> to a
-    /// property/navigation expression, then combines it with the converted filter value(s)
-    /// according to <see cref="FilterValue.Operation"/>.
+    /// Builds the boolean expression for one filter. Plain and dot-separated paths resolve to a
+    /// property/navigation expression via <see cref="GetPropertyExpression"/> and are compared
+    /// directly. A path containing a collection segment (e.g. <c>"Executors[Title]"</c>) instead
+    /// resolves to <c>collection.Any(item =&gt; &lt;comparison against item.Property&gt;)</c> — the
+    /// same comparison logic (<see cref="BuildComparisonExpression"/>) is applied to the collection
+    /// item's property, so collection filters compare against
+    /// <see cref="FilterParameter.Value"/>/<see cref="FilterParameter.From"/>/<see cref="FilterParameter.To"/>
+    /// exactly like non-collection filters do.
     /// </summary>
-    /// <remarks>
-    /// <b>Collection paths</b> (e.g. <c>"Executors[Title]"</c>) resolve to a boolean
-    /// <c>collection.Any(item =&gt; item.Property != null)</c> expression produced by
-    /// <see cref="GetPropertyExpression"/>. When <see cref="FilterValue.Operation"/> is anything
-    /// other than <see cref="FilterOperation.Equal"/>, that boolean expression is returned directly
-    /// — it is an existence check only and does <b>not</b> compare against
-    /// <see cref="FilterParameter.Value"/>. If <see cref="FilterOperation.Equal"/> is used on a
-    /// collection path, execution falls through to the normal comparison below, which then compares
-    /// that boolean result against <see cref="FilterParameter.Value"/> (so <see cref="FilterDataType.Boolean"/>
-    /// must be used in that case).
-    /// </remarks>
     private static Expression BuildFilterExpression(ParameterExpression parameter, FilterParameter filter)
     {
-        Expression propertyExpr = GetPropertyExpression(parameter, filter.Field);
+        var parts = filter.Field.Split('.');
+        var collectionIndex = Array.FindIndex(parts, p => p.Contains('[') && p.Contains(']'));
 
-        if (propertyExpr == null)
+        if (collectionIndex < 0)
+        {
+            Expression propertyExpr = GetPropertyExpression(parameter, filter.Field);
+            return propertyExpr == null ? null! : BuildComparisonExpression(propertyExpr, filter) ?? null!;
+        }
+
+        // Navigate to the expression the collection segment hangs off of, supporting a collection
+        // nested behind a dot-separated prefix (e.g. "Unit.Executors[Title]").
+        Expression current = parameter;
+        for (var i = 0; i < collectionIndex; i++)
+            current = Expression.Property(current, parts[i]);
+
+        var collectionPart = parts[collectionIndex];
+        var collectionName = collectionPart.Substring(0, collectionPart.IndexOf('['));
+        var itemPropertyPath = collectionPart.Substring(collectionPart.IndexOf('[') + 1, collectionPart.IndexOf(']') - collectionPart.IndexOf('[') - 1);
+
+        var collectionProperty = Expression.Property(current, collectionName);
+        var itemType = collectionProperty.Type.GetGenericArguments()[0];
+        var itemParameter = Expression.Parameter(itemType, "i");
+
+        // The bracket's inner path, plus any dot segments after the collection segment, resolve
+        // against the collection's item type (e.g. "Executors[Contact.Email]").
+        var itemPathParts = new[] { itemPropertyPath }.Concat(parts.Skip(collectionIndex + 1));
+        Expression itemPropertyExpr = itemPathParts.Aggregate((Expression)itemParameter, Expression.Property);
+
+        var comparison = BuildComparisonExpression(itemPropertyExpr, filter);
+        if (comparison == null)
             return null!;
 
-        // Collection path (see GetPropertyExpression): resolved to an Any() existence check.
-        // For every operation except Equal, return that boolean check as-is instead of trying
-        // to compare it against filter.Value.
-        if (propertyExpr.Type == typeof(bool) && filter.Operation != FilterOperation.Equal)
-            return propertyExpr;
+        var anyLambda = Expression.Lambda(comparison, itemParameter);
+        var anyMethod = typeof(Enumerable).GetMethods()
+            .First(m => m.Name == "Any" && m.GetParameters().Length == 2)
+            .MakeGenericMethod(itemType);
 
+        return Expression.Call(anyMethod, collectionProperty, anyLambda);
+    }
+
+    /// <summary>
+    /// Builds the comparison expression for <paramref name="propertyExpr"/> according to
+    /// <see cref="FilterValue.Operation"/>, using the converted <see cref="FilterParameter.Value"/>/
+    /// <see cref="FilterParameter.From"/>/<see cref="FilterParameter.To"/>.
+    /// </summary>
+    /// <returns>The comparison expression, or <c>null</c> for an unrecognized operation.</returns>
+    private static Expression? BuildComparisonExpression(Expression propertyExpr, FilterParameter filter)
+    {
         var value = ConvertFilterValue(filter.Value, filter.DataType);
         var from = ConvertFilterValue(filter.From, filter.DataType);
         var to = ConvertFilterValue(filter.To, filter.DataType);
 
-        // Expression.Constant(null) without an explicit type yields Type == typeof(object); this
-        // is only assignment-compatible with reference types and Nullable<T> value types, so
-        // IsNull/IsNotNull below throws for non-nullable value type properties.
         Expression valueExpr = value is not null ? Expression.Constant(value, propertyExpr.Type) : Expression.Constant(null);
         Expression fromExpr = from is not null ? Expression.Constant(from, propertyExpr.Type) : Expression.Constant(null);
         Expression toExpr = to is not null ? Expression.Constant(to, propertyExpr.Type) : Expression.Constant(null);
+
+        // A non-nullable value type (e.g. int, non-nullable DateTime) can never be null, so
+        // IsNull/IsNotNull resolve to a constant instead of an invalid comparison against a null
+        // constant (which Expression.Equal/NotEqual would reject for non-nullable value types).
+        var isNullableTarget = !propertyExpr.Type.IsValueType || Nullable.GetUnderlyingType(propertyExpr.Type) != null;
 
         return filter.Operation switch
         {
@@ -132,9 +165,9 @@ public static class QueryHelperExtensions
             FilterOperation.StartsWith => Expression.Call(propertyExpr, typeof(string).GetMethod("StartsWith", new[] { typeof(string) })!, valueExpr),
             FilterOperation.EndsWith => Expression.Call(propertyExpr, typeof(string).GetMethod("EndsWith", new[] { typeof(string) })!, valueExpr),
             FilterOperation.Between => Expression.AndAlso(Expression.GreaterThanOrEqual(propertyExpr, fromExpr), Expression.LessThanOrEqual(propertyExpr, toExpr)),
-            FilterOperation.IsNull => Expression.Equal(propertyExpr, Expression.Constant(null)),
-            FilterOperation.IsNotNull => Expression.NotEqual(propertyExpr, Expression.Constant(null)),
-            _ => null!
+            FilterOperation.IsNull => isNullableTarget ? Expression.Equal(propertyExpr, Expression.Constant(null)) : Expression.Constant(false),
+            FilterOperation.IsNotNull => isNullableTarget ? Expression.NotEqual(propertyExpr, Expression.Constant(null)) : Expression.Constant(true),
+            _ => null
         };
     }
 
@@ -149,10 +182,14 @@ public static class QueryHelperExtensions
     /// <item><description>
     /// A collection segment <c>"Collection[Property]"</c> (e.g. <c>"Executors[Title]"</c>), resolved
     /// to <c>collection.Any(item =&gt; item.Property != null)</c> — a boolean existence check for a
-    /// non-null nested property, <b>not</b> a value comparison. It ignores whatever filter value the
-    /// caller supplied. See <see cref="BuildFilterExpression"/> for how this interacts with
-    /// <see cref="FilterOperation"/>. Once a collection segment is resolved the result is boolean, so
-    /// it cannot be the target of a further dot-separated segment.
+    /// non-null nested property. This method is only used this way for <b>sorting</b>
+    /// (<see cref="ApplyOrder{T}"/>); ordering by that boolean is a legitimate but unusual use case
+    /// (entities with a non-null nested property sort before/after the rest). <b>Filtering</b>
+    /// (<see cref="BuildFilterExpression"/>) does not call this method for collection segments — it
+    /// builds a value-comparing <c>Any(...)</c> directly, since sorting and filtering need different
+    /// things from the collection item's property (a sort key vs. a comparison against the filter
+    /// value). Once a collection segment is resolved here, the result is boolean, so it cannot be
+    /// the target of a further dot-separated segment.
     /// </description></item>
     /// </list>
     /// </remarks>

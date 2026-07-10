@@ -34,9 +34,9 @@ public class QueryParameters
 {
     /// <summary>
     /// One-based page number. Paging is only applied by <c>ApplyQueryParameters</c> when both
-    /// <see cref="PageNumber"/> and <see cref="RowCount"/> have a value. Defaults to 1 whenever the
-    /// constructor is not called with both <paramref name="pageNumber"/> and
-    /// <paramref name="rowCount"/> set (see the constructor remarks below).
+    /// <see cref="PageNumber"/> and <see cref="RowCount"/> have a value. When constructed with a
+    /// <see cref="RowCount"/> but no explicit page number, defaults to 1 (see the constructor
+    /// remarks below).
     /// </summary>
     public int? PageNumber { get; init; }
 
@@ -49,15 +49,16 @@ public class QueryParameters
     /// <summary>Filters to apply before sorting and paging. Null or empty means "no filtering".</summary>
     public List<FilterParameter>? Filters { get; init; }
 
-    /// <param name="pageNumber">One-based page number. Ignored unless <paramref name="rowCount"/> is also provided.</param>
-    /// <param name="rowCount">Page size. When provided without <paramref name="pageNumber"/>, the page number still defaults to 1.</param>
+    /// <param name="pageNumber">One-based page number. Used as given when provided; has no effect unless <paramref name="rowCount"/> is also set.</param>
+    /// <param name="rowCount">Page size. When provided without <paramref name="pageNumber"/>, the page number defaults to 1.</param>
     /// <param name="sort">Sort keys, applied in list order.</param>
     /// <param name="filters">Filters to apply before sorting and paging.</param>
     /// <remarks>
-    /// <see cref="PageNumber"/> is set to <paramref name="pageNumber"/> only when both
-    /// <paramref name="rowCount"/> and <paramref name="pageNumber"/> are supplied; otherwise it
-    /// defaults to 1. This default has no observable effect unless <see cref="RowCount"/> is also
-    /// set, because <c>ApplyQueryParameters</c> requires both values before it applies paging.
+    /// <see cref="PageNumber"/> is set to <paramref name="pageNumber"/> when it is provided; if it is
+    /// omitted, it defaults to 1 only when <paramref name="rowCount"/> is set (i.e. paging was
+    /// actually requested), and otherwise stays <c>null</c>. An explicitly supplied
+    /// <paramref name="pageNumber"/> is never overwritten, even if <paramref name="rowCount"/> is
+    /// omitted.
     /// </remarks>
     public QueryParameters(
         int? pageNumber = null,
@@ -65,7 +66,7 @@ public class QueryParameters
         List<SortDescriptor>? sort = null,
         List<FilterParameter>? filters = null)
     {
-        PageNumber = rowCount is not null && pageNumber.HasValue ? pageNumber : 1;
+        PageNumber = pageNumber ?? (rowCount.HasValue ? 1 : null);
         RowCount = rowCount;
         Sort = sort;
         Filters = filters;

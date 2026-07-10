@@ -121,27 +121,24 @@ query = query.ApplyPaging(pageNumber: 2, pageSize: 20);
 
 ## Field path syntax
 
-`FilterValue.Field` and `SortDescriptor.Field` share the same path resolver
-(`QueryHelperExtensions.GetPropertyExpression`). Three forms are supported:
+`FilterValue.Field` and `SortDescriptor.Field` accept three path forms:
 
-| Syntax | Example | Meaning |
+| Syntax | Example | Meaning (filtering) |
 |---|---|---|
 | Simple property | `"Word"` | `x.Word` |
 | Dot-separated navigation | `"Unit.Title"` | `x.Unit.Title` |
-| Collection existence check | `"Examples[Sentence]"` | `x.Examples.Any(i => i.Sentence != null)` |
+| Collection segment | `"Examples[Sentence]"` | `x.Examples.Any(i => <comparison against i.Sentence>)` |
 
-> **Important — collection filters are existence checks, not value comparisons.**
-> `"Examples[Sentence]"` does **not** filter by the sentence text. It only resolves to a boolean
-> "does at least one related `Example` have a non-null `Sentence`" check, and it completely ignores
-> `FilterParameter.Value`. This applies to *any* `FilterOperation` other than `Equal`. If you use
-> `Operation = FilterOperation.Equal` on a collection path, the boolean check is instead compared
-> against `Value` — so `DataType` must be `Boolean` and `Value` must be `"true"`/`"false"` in that
-> case. There is currently no built-in syntax for "does the collection contain an item whose
-> property equals X"; if you need that, filter with a plain LINQ `Where` in the repository instead
-> of `FilterParameter`. See [Known limitations](#known-limitations--gotchas).
+A collection segment `"Collection[Property]"` filters by comparing the collection item's
+`Property` against `FilterParameter.Value`/`From`/`To`, using the same `Operation`/`DataType` as a
+normal filter — e.g. `Field = "Examples[Sentence]"`, `Operation = Contains`, `Value = "hello"`
+becomes `x.Examples.Any(i => i.Sentence.Contains("hello"))`. The bracket's inner path can itself
+be a dot-separated navigation (e.g. `"Examples[Author.Name]"`), and the collection segment can be
+preceded by a dot-separated prefix (e.g. `"Unit.Executors[Title]"`).
 
-Once a path segment resolves to a collection existence check, it becomes `bool` and cannot be
-followed by another dot-separated segment (there is nothing to navigate into after a boolean).
+Sorting (`SortDescriptor.Field`) resolves collection segments differently — see
+[Sorting](#sorting) — because there is no single "value" to sort by for a collection; only
+filtering compares against an actual value.
 
 ## Filter operations
 
@@ -157,8 +154,8 @@ followed by another dot-separated segment (there is nothing to navigate into aft
 | `StartsWith` | `x.Field.StartsWith(Value)` | `Field` must be `string`. |
 | `EndsWith` | `x.Field.EndsWith(Value)` | `Field` must be `string`. |
 | `Between` | `x.Field >= From && x.Field <= To` | Uses `From`/`To`, not `Value`. Inclusive on both ends. |
-| `IsNull` | `x.Field == null` | `Field` must be a reference type or a nullable value type (`int?`, `DateTime?`, ...); throws for non-nullable value types. |
-| `IsNotNull` | `x.Field != null` | Same restriction as `IsNull`. |
+| `IsNull` | `x.Field == null` (or constant `false` for a non-nullable value type) | For reference types and `Nullable<T>` this is a normal null check. For a non-nullable value type (`int`, non-nullable `DateTime`, ...), which can never be `null`, this resolves to a constant `false` instead of throwing. |
+| `IsNotNull` | `x.Field != null` (or constant `true` for a non-nullable value type) | Mirror of `IsNull` — resolves to constant `true` for a non-nullable value type. |
 
 `FilterParameter.ToString()` returns `Field`, which is convenient for logging/diagnostics
 ("which filter caused this query to fail").
@@ -201,8 +198,14 @@ Sort = new List<SortDescriptor>
 `ApplySorting` walks the list in order: the **first** non-blank descriptor becomes
 `OrderBy`/`OrderByDescending`, every descriptor after that becomes `ThenBy`/`ThenByDescending`.
 Descriptors with a blank `Field` are skipped, so you can safely include placeholder rows from a
-UI form. Sorting by a collection path (e.g. `"Examples[Sentence]"`) is technically possible but
-sorts by the boolean existence check described above, not by any actual value — avoid it.
+UI form.
+
+Sorting by a collection path (e.g. `"Examples[Sentence]"`) is technically possible but resolves to
+`x.Examples.Any(i => i.Sentence != null)` — an existence check for a non-null nested property, not
+a value to sort by. This differs from how the same path is used for **filtering** (which compares
+by actual value, see [Field path syntax](#field-path-syntax)); sorting has no single "value" to
+extract from a collection, so it falls back to this existence check. Avoid sorting by collection
+paths unless that existence semantics is genuinely what you want.
 
 ## Paging
 
@@ -217,16 +220,17 @@ so the query should already be sorted for the result to be stable across pages.
 `ApplyQueryParameters` only pages when **both** `QueryParameters.PageNumber` and
 `QueryParameters.RowCount` have a value.
 
-> **Gotcha:** the `QueryParameters` constructor defaults `PageNumber` to `1` unless it is
-> constructed with *both* `pageNumber` and `rowCount` supplied — even if `rowCount` is left `null`.
-> This default is harmless (paging still won't run without `RowCount`), but don't rely on
-> `PageNumber == null` to mean "no page was requested"; check `RowCount` instead.
->
-> ```csharp
-> new QueryParameters().PageNumber              // == 1, RowCount == null -> paging not applied
-> new QueryParameters(rowCount: 20).PageNumber   // == 1 (defaulted), RowCount == 20 -> page 1 applied
-> new QueryParameters(pageNumber: 3, rowCount: 20).PageNumber // == 3, RowCount == 20 -> page 3 applied
-> ```
+The `QueryParameters` constructor only defaults `PageNumber` to `1` when `rowCount` is supplied and
+`pageNumber` is not — i.e. when paging was actually requested but no explicit page was given. An
+explicitly supplied `pageNumber` is always used as given, and `PageNumber` stays `null` when
+neither value is provided:
+
+```csharp
+new QueryParameters().PageNumber                              // == null, RowCount == null -> paging not applied
+new QueryParameters(rowCount: 20).PageNumber                   // == 1 (defaulted: paging requested, no page given)
+new QueryParameters(pageNumber: 3, rowCount: 20).PageNumber    // == 3 (explicit value used as given)
+new QueryParameters(pageNumber: 5).PageNumber                  // == 5 (explicit value preserved even without RowCount)
+```
 
 ## Putting it all together
 
@@ -321,11 +325,6 @@ with AutoMapper — see [`BaseService.cs`](../MukhaLab.Database/BaseService.cs).
 
 ## Known limitations & gotchas
 
-- **Collection filters (`Field[Property]`) ignore the filter value.** They only check whether at
-  least one related item has a non-null `Property`; see [Field path syntax](#field-path-syntax).
-- **`IsNull`/`IsNotNull` throw on non-nullable value types.** `Expression.Constant(null)` is typed
-  as `object`, which is not assignment-compatible with e.g. `int` or `float`. Only use these
-  operations on reference types or `Nullable<T>` properties.
 - **`GreaterThan`/`LessThan`(`OrEqual`) don't work on `string`.** `Expression.GreaterThan` requires
   a native comparison operator; strings don't have one. Use `Contains`/`StartsWith`/`EndsWith` for
   string comparisons, or compare a parsed value (e.g. `DateTime`, numeric) instead.
@@ -334,11 +333,11 @@ with AutoMapper — see [`BaseService.cs`](../MukhaLab.Database/BaseService.cs).
 - **Conversion errors surface as `FormatException`/`OverflowException`.** `ConvertFilterValue` does
   not catch parsing errors from `Convert.ToXxx`/`Guid.Parse`; validate `DataType` vs. `Value` before
   building a `FilterParameter` from untrusted input (e.g. an HTTP request).
-- **`QueryParameters.PageNumber` defaults to `1` even without a `RowCount`.** See
-  [Paging](#paging). Check `RowCount.HasValue` if you need to know whether paging was requested.
 - **Values are `object`, so there is no compile-time type safety.** Mismatches between `DataType`
   and the entity property's actual type are only caught at query-build time (an exception), not at
   compile time.
+- **Sorting by a collection path uses existence semantics, not value semantics** (unlike filtering
+  by the same path). See [Sorting](#sorting).
 
 ## Extending the library
 
@@ -347,7 +346,8 @@ The engine has two natural extension points, both in
 
 - **New `FilterOperation`:** add the enum member to
   [`FilterOperation.cs`](Models/FilterOperation.cs), then add a matching arm to the `switch` inside
-  `BuildFilterExpression`.
+  `BuildComparisonExpression` — it is shared by plain-property filtering and collection-path
+  filtering, so one change covers both.
 - **New `FilterDataType`:** add the enum member to
   [`FilterDataType.cs`](Models/FilterDataType.cs), then add a matching arm to the `switch` inside
   `ConvertFilterValue`.
@@ -359,8 +359,8 @@ missing case — remember to update both the model and the extension method toge
 
 | Symptom | Likely cause |
 |---|---|
-| `InvalidOperationException` mentioning coercion between a value type and `System.Object` | `IsNull`/`IsNotNull` used on a non-nullable value type property. |
 | `ArgumentException` about method `Contains`/`StartsWith`/`EndsWith` not applicable | The filter targets a non-`string` property. |
+| `InvalidOperationException`/`ArgumentException` from `Expression.GreaterThan`/`LessThan` | Those operations were used on a `string` property, which has no native comparison operator. |
 | `FormatException` / `OverflowException` from `Convert.ToXxx` | `DataType` doesn't match the shape of `Value`/`From`/`To` (e.g. `DataType.Integer` with a non-numeric string). |
-| A filter on `"Collection[Property]"` doesn't actually filter by value | Expected — see [Field path syntax](#field-path-syntax); it's an existence check only. |
+| A collection sort (`"Collection[Property]"` in `SortDescriptor.Field`) doesn't order by the value you expect | Expected — sorting by a collection path uses existence semantics, not value semantics; see [Sorting](#sorting). |
 | Paging silently doesn't happen | `QueryParameters.RowCount` is `null` — both `PageNumber` and `RowCount` must be set. |
