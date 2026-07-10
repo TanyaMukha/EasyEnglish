@@ -55,7 +55,7 @@ public static class MauiProgram
         builder.Services.AddEasyEnglishCacheServices();
         RegisterServices(builder.Services);
 
-        builder.Services.AddScoped<IBrowserConsoleService, BrowserConsoleService>();
+        builder.Services.AddBrowserConsoleService();
 
         // ВАЖЛИВО: Замінюємо небезпечне логування на безпечне
         ConfigureLogging(builder);
