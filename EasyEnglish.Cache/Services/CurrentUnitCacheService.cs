@@ -2,26 +2,36 @@
 using EasyEnglish.Core.Models;
 using EasyEnglish.Core.Interfaces.Storage;
 using EasyEnglish.Core.Interfaces.Cache;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EasyEnglish.Cache.Services;
 
+/// <summary>Caches the single "currently open" unit — see <see cref="BaseSingleCacheService{TEntity, TId}"/> for the caching semantics.</summary>
 public class CurrentUnitCacheService : BaseSingleCacheService<UnitModel, int>, ICurrentUnitCacheService
 {
-    private readonly IUnitService _unitService;
+    private readonly IServiceScopeFactory _scopeFactory;
 
+    /// <param name="storage">Persistent storage for the selected unit id.</param>
+    /// <param name="scopeFactory">
+    /// Used to resolve <see cref="IUnitService"/> in a short-lived scope per fetch, instead of
+    /// injecting it directly — <see cref="IUnitService"/> is registered scoped, while this service is
+    /// a singleton, and a singleton must not hold a scoped dependency directly (captive dependency).
+    /// </param>
     public CurrentUnitCacheService(
         IStorageService storage,
-        IUnitService unitService)
+        IServiceScopeFactory scopeFactory)
         : base(storage)
     {
-        _unitService = unitService;
+        _scopeFactory = scopeFactory;
     }
 
     protected override string StorageKey => "currentUnitId";
 
-    protected override Task<UnitModel?> FetchEntityAsync(int id)
+    protected override async Task<UnitModel?> FetchEntityAsync(int id)
     {
-        return _unitService.GetByIdAsync(id); // якщо такий метод є
+        using var scope = _scopeFactory.CreateScope();
+        var unitService = scope.ServiceProvider.GetRequiredService<IUnitService>();
+        return await unitService.GetByIdAsync(id);
     }
 
     protected override int GetEntityId(UnitModel entity)
