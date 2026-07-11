@@ -16,7 +16,6 @@
   <ItemGroup>
     <!-- Project References -->
     <ProjectReference Include="..\EasyEnglish.Core\EasyEnglish.Core.csproj" />
-    <ProjectReference Include="..\EasyEnglish.Data\EasyEnglish.Data.csproj" />
   </ItemGroup>
 
 </Project>

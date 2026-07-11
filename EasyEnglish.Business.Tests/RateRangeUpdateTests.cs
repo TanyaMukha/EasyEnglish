@@ -4,10 +4,10 @@ using EasyEnglish.Core.Interfaces.Services;
 namespace EasyEnglish.Business.Tests;
 
 /// <summary>
-/// <c>UpdateRateRangeAsync</c> on <see cref="EasyEnglish.Services.Services.IrregularFormService"/>,
-/// <see cref="EasyEnglish.Services.Services.StudyCardService"/>, and
-/// <see cref="EasyEnglish.Services.Services.TestCardService"/> share the same shape as
-/// <see cref="EasyEnglish.Services.Services.WordService.UpdateWordRateRangeAsync"/> — updates matched
+/// <c>UpdateRateRangeAsync</c> on <see cref="EasyEnglish.Business.Services.IrregularFormService"/>,
+/// <see cref="EasyEnglish.Business.Services.StudyCardService"/>, and
+/// <see cref="EasyEnglish.Business.Services.TestCardService"/> share the same shape as
+/// <see cref="EasyEnglish.Business.Services.WordService.UpdateWordRateRangeAsync"/> — updates matched
 /// ids, silently skips ids that don't match an existing row.
 /// </summary>
 public class RateRangeUpdateTests : SqliteTestBase

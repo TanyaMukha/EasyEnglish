@@ -2,14 +2,13 @@ using EasyEnglish.Business.Tests.Fixtures;
 using EasyEnglish.Core.Entities;
 using EasyEnglish.Core.Models;
 using EasyEnglish.Core.Presets;
+using MukhaLab.Database;
 
 namespace EasyEnglish.Business.Tests;
 
 /// <summary>
-/// Tests for <see cref="EasyEnglish.Services.Services.UnitService.ReconcileAndUpdateAsync"/> — the
+/// Tests for <see cref="EasyEnglish.Business.Services.UnitService.ReconcileAndUpdateAsync"/> — the
 /// highest-risk logic in EasyEnglish.Business (GUID-based reconciliation across 5 child collections).
-/// See EasyEnglish.Business/README.md Known Issues #4 for the null-collection mass-delete risk this
-/// class specifically pins down.
 /// </summary>
 public class ReconcileAndUpdateAsyncTests : SqliteTestBase
 {
@@ -83,18 +82,52 @@ public class ReconcileAndUpdateAsyncTests : SqliteTestBase
     }
 
     [Fact]
-    public async Task NullIncomingWords_WithDeleteMissingTrue_DeletesAllExistingWords()
+    public async Task NullIncomingWords_WithDeleteMissingTrue_LeavesExistingWordsUntouched()
     {
-        // Documents the data-loss risk flagged in EasyEnglish.Business/README.md Known Issues #4:
-        // a null child collection is indistinguishable from "explicitly emptied out."
-        var (unitId, _, _, _) = await SeedUnitWithWordsAsync();
+        // incoming.Words == null means "this payload doesn't say anything about words" -- it must
+        // NOT be treated as "the words list is now empty," even with deleteMissing: true. See
+        // EasyEnglish.Business/README.md Known Issues #4.
+        var (unitId, word1, word2, _) = await SeedUnitWithWordsAsync();
         var incoming = await UnitService.GetByIdAsync(unitId, UnitIncludes.Full);
         incoming!.Words = null;
 
         await UnitService.ReconcileAndUpdateAsync(incoming, deleteMissing: true);
 
         await using var ctx = CreateContext();
+        var wordsInDb = ctx.Words.Where(w => w.UnitId == unitId).ToList();
+        Assert.Equal(2, wordsInDb.Count);
+        Assert.Contains(wordsInDb, w => w.Id == word1.Id);
+        Assert.Contains(wordsInDb, w => w.Id == word2.Id);
+    }
+
+    [Fact]
+    public async Task ExplicitEmptyIncomingWords_WithDeleteMissingTrue_DeletesAllExistingWords()
+    {
+        // The escape hatch for callers who really do want to clear a unit's words: pass an explicit
+        // empty list rather than null.
+        var (unitId, _, _, _) = await SeedUnitWithWordsAsync();
+        var incoming = await UnitService.GetByIdAsync(unitId, UnitIncludes.Full);
+        incoming!.Words = [];
+
+        await UnitService.ReconcileAndUpdateAsync(incoming, deleteMissing: true);
+
+        await using var ctx = CreateContext();
         Assert.Empty(ctx.Words.Where(w => w.UnitId == unitId));
+    }
+
+    [Fact]
+    public async Task NullExamplesOnMatchedWord_LeavesExistingExamplesUntouched()
+    {
+        var (unitId, word1, _, example1) = await SeedUnitWithWordsAsync();
+        var incoming = await UnitService.GetByIdAsync(unitId, UnitIncludes.Full);
+        incoming!.Words!.Single(w => w.Id == word1.Id).Examples = null;
+
+        await UnitService.ReconcileAndUpdateAsync(incoming, deleteMissing: true);
+
+        await using var ctx = CreateContext();
+        var examples = ctx.Examples.Where(e => e.WordId == word1.Id).ToList();
+        var example = Assert.Single(examples);
+        Assert.Equal(example1.Id, example.Id);
     }
 
     [Fact]
@@ -137,11 +170,11 @@ public class ReconcileAndUpdateAsyncTests : SqliteTestBase
     }
 
     [Fact]
-    public async Task UnitNotFound_ThrowsArgumentException()
+    public async Task UnitNotFound_ThrowsEntityNotFoundException()
     {
         var incoming = new UnitModel { Id = 999_999, Title = "Ghost" };
 
-        await Assert.ThrowsAsync<ArgumentException>(() =>
+        await Assert.ThrowsAsync<EntityNotFoundException>(() =>
             UnitService.ReconcileAndUpdateAsync(incoming, deleteMissing: false));
     }
 }

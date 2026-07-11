@@ -1,4 +1,5 @@
 using EasyEnglish.Core.Enums;
+using EasyEnglish.Core.Extensions;
 using EasyEnglish.Core.Interfaces.Fields;
 using EasyEnglish.Core.Options;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +26,7 @@ public static class LearningQueryExtensions
         where T : class, IRateInfo, IReviewInfo
     {
         if (!options.IncludeLearnedWords)
-            query = query.Where(w => EF.Property<float>(w, nameof(IRateInfo.Rate)) >= 1.6f);
+            query = query.Where(w => EF.Property<float>(w, nameof(IRateInfo.Rate)) >= RateExtensions.EasyMax);
 
         if (options.Priority == LearningPriority.Random)
         {
@@ -47,9 +48,13 @@ public static class LearningQueryExtensions
                 .Where(w => EF.Property<DateTime?>(w, nameof(IReviewInfo.LastReviewDate)) != null)
                 .OrderBy(w => EF.Property<DateTime?>(w, nameof(IReviewInfo.LastReviewDate))),
 
+            // Spans every item, not just never-reviewed ones (unlike New): ranks by whichever
+            // timestamp reflects "last touched" -- LastReviewDate if it's been reviewed, CreatedAt
+            // otherwise -- so a long-neglected never-reviewed item and a long-ago-reviewed item both
+            // surface as "old", ordered oldest-touched first.
             LearningPriority.Old => query
-                .Where(w => EF.Property<DateTime?>(w, nameof(IReviewInfo.LastReviewDate)) == null)
-                .OrderBy(w => EF.Property<DateTime>(w, "CreatedAt")),
+                .OrderBy(w => EF.Property<DateTime?>(w, nameof(IReviewInfo.LastReviewDate))
+                    ?? EF.Property<DateTime>(w, "CreatedAt")),
 
             _ => query
         };

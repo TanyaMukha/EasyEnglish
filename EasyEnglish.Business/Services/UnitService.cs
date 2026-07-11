@@ -7,7 +7,7 @@ using AutoMapper;
 using Microsoft.Extensions.Logging;
 using MukhaLab.Database;
 
-namespace EasyEnglish.Services.Services;
+namespace EasyEnglish.Business.Services;
 
 /// <summary>Service for <see cref="UnitModel"/>, beyond the generic CRUD in <see cref="BaseWithGuidService{T, TModel}"/>.</summary>
 public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitService
@@ -73,21 +73,28 @@ public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitServ
     /// 0 (inserted as a new row). FKs (UnitId/WordId) don't need manual fixing — EF assigns them when
     /// saving the graph through the navigation collections.
     /// <para>
-    /// <b>Data-loss risk:</b> if <paramref name="incoming"/>'s child collection is <c>null</c>
-    /// (e.g. the caller never populated it) and <paramref name="deleteMissing"/> is <c>true</c>,
-    /// every existing child of that kind is treated as an orphan and deleted — a <c>null</c>
-    /// collection is indistinguishable from "explicitly emptied out." See
-    /// EasyEnglish.Business/README.md Known Issues.
+    /// A <c>null</c> child collection on <paramref name="incoming"/> (or a matched word's
+    /// <c>Examples</c>) means "don't touch this collection" — it's replaced with the unit's existing
+    /// children before reconciliation runs, so it's never treated as emptied out. To actually delete
+    /// every child of a kind, pass an explicit empty list with <paramref name="deleteMissing"/> <c>true</c>.
     /// </para>
     /// </remarks>
     /// <param name="deleteMissing">
     /// When <c>true</c>, children whose RecordGuid isn't among the incoming ones are deleted from the
     /// database (strict sync). When <c>false</c>, such children are left unchanged (add/update only).
     /// </param>
+    /// <exception cref="EntityNotFoundException"><paramref name="incoming"/>.Id doesn't match an existing unit.</exception>
     public async Task<UnitModel> ReconcileAndUpdateAsync(UnitModel incoming, bool deleteMissing, CancellationToken cancellationToken = default)
     {
         var existing = await GetByIdAsync(incoming.Id, UnitIncludes.Full, cancellationToken)
-            ?? throw new ArgumentException($"Unit with ID {incoming.Id} not found");
+            ?? throw new EntityNotFoundException($"Unit with id {incoming.Id} was not found");
+
+        // A null collection means "leave these children alone" -- fill it in from the current state
+        // before any reconciliation/orphan logic runs, so it's never mistaken for "explicitly emptied."
+        incoming.Words ??= existing.Words;
+        incoming.IrregularForms ??= existing.IrregularForms;
+        incoming.StudyCards ??= existing.StudyCards;
+        incoming.TestCards ??= existing.TestCards;
 
         var existingWordsByGuid = (existing.Words ?? []).ToDictionary(w => w.RecordGuid);
         var orphanExampleIds = new List<int>();
@@ -98,6 +105,7 @@ public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitServ
             if (!existingWordsByGuid.TryGetValue(word.RecordGuid, out var existingWord))
                 continue; // new word -- its examples are new too, nothing to reconcile against
 
+            word.Examples ??= existingWord.Examples;
             ReconcileIds(word.Examples, existingWord.Examples ?? []);
             if (deleteMissing)
                 orphanExampleIds.AddRange(FindOrphanIds(word.Examples, existingWord.Examples ?? []));

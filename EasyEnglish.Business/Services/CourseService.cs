@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using EasyEnglish.Core.Options;
 using MukhaLab.Database;
 
-namespace EasyEnglish.Services.Services;
+namespace EasyEnglish.Business.Services;
 
 /// <summary>Service for <see cref="CourseModel"/>, beyond the generic CRUD in <see cref="BaseWithGuidService{T, TModel}"/>.</summary>
 public class CourseService : BaseWithGuidService<CourseEntity, CourseModel>, ICourseService

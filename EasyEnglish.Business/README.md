@@ -7,12 +7,6 @@ The service layer: implementations of `EasyEnglish.Core.Interfaces.Services.*`, 
 mapping entities to models, delegating to the matching `I*Repository`, and occasionally composing
 other services.
 
-**Naming note:** the project/folder/assembly is named `EasyEnglish.Business`, but every file in it
-uses the C# namespace `EasyEnglish.Services.*` (`EasyEnglish.Services.Services`,
-`EasyEnglish.Services.Extensions`) — not `EasyEnglish.Business.*`. `EasyEnglish.App` already
-references it via `using EasyEnglish.Services.Extensions;`, so this is baked into how consumers use
-the project, not just an internal quirk. See [Known Issues](#known-issues--suggested-improvements) #1.
-
 ## Project layout
 
 | File | Purpose |
@@ -40,74 +34,65 @@ var updated = await unitService.ReconcileAndUpdateAsync(importedUnit, deleteMiss
 - A child with a `RecordGuid` not seen before keeps `Id == 0` and is inserted as new.
 - `deleteMissing: true` additionally deletes any existing child whose `RecordGuid` isn't present in
   `incoming` — a strict sync. `deleteMissing: false` only adds/updates, never deletes.
+- A `null` child collection on `incoming` (or a matched word's `Examples`) means "this payload
+  doesn't say anything about this collection" — it's left completely untouched, regardless of
+  `deleteMissing`. To actually clear every child of a kind, pass an explicit empty list (`[]`) with
+  `deleteMissing: true`.
 
 FKs (`UnitId`/`WordId`) aren't touched by hand — EF assigns them when the graph is saved through
 navigation collections in the underlying `UpdateAsync` call.
 
 ## Known Issues & Suggested Improvements
 
-Found while documenting this library. None have been changed.
+Found while documenting this library. All issues below have since been fixed. Kept here as a record
+of what changed and why.
 
-1. **Project name (`EasyEnglish.Business`) doesn't match its namespace (`EasyEnglish.Services.*`)**
-   — see the naming note above. Purely cosmetic (compiles and runs fine either way), but confusing
-   for anyone navigating by "what namespace is X in" instead of "what folder is X in."
+1. ~~**Project name (`EasyEnglish.Business`) didn't match its namespace
+   (`EasyEnglish.Services.*`).**~~ **Fixed.** Renamed to `EasyEnglish.Business.Services`/
+   `EasyEnglish.Business.Extensions` throughout, including `EasyEnglish.App`'s
+   `using EasyEnglish.Services.Extensions;` (now `EasyEnglish.Business.Extensions`). Note:
+   `EasyEnglish.App` also has its own, unrelated, bare `EasyEnglish.Services` namespace (for
+   `UnitBackupOptions`/`CourseZipBackupService`/`FileService`) — that one was intentionally left
+   untouched; it isn't part of this project.
 
-2. **`EasyEnglish.Business.csproj` references `EasyEnglish.Data.csproj`, but nothing in the project
-   actually uses any `EasyEnglish.Data` type.** The only trace of why the reference might exist —
-   `using EasyEnglish.Data.Repositories;` in `UnitService.cs` and `WordService.cs` — was an unused
-   import, now removed. A service layer depending on the concrete persistence layer at compile time
-   (rather than only on `EasyEnglish.Core`'s interfaces, with `EasyEnglish.Data` wired in only via DI
-   at the `EasyEnglish.App` composition root) blurs the intended layering; the `ProjectReference`
-   itself is still there and could likely be removed.
+2. ~~**`EasyEnglish.Business.csproj` referenced `EasyEnglish.Data.csproj` unused.**~~ **Fixed.**
+   `ProjectReference` removed.
 
-3. **`WordService.UpdateWordRateAsync` throws `NullReferenceException` instead of a clear
-   not-found signal.** When `word.Id` doesn't match an existing word, `GetByIdAsync` returns `null`,
-   but the method still does `model!.Id` — the `!` doesn't null-check, it just silences the compiler.
-   Every other "not found" path in this codebase (`MukhaLab.Database`'s `BaseRepository`/`BaseService`)
-   was unified under `EntityNotFoundException` earlier this session; this method predates/bypasses
-   that convention. **Highest-severity finding** — an NRE crash is a worse failure mode for callers
-   than a typed exception they can catch and handle (e.g. show "word not found" instead of a generic
-   error).
+3. ~~**`WordService.UpdateWordRateAsync` threw `NullReferenceException` instead of a clear
+   not-found signal.**~~ **Fixed.** Now throws `EntityNotFoundException`, matching the rest of the
+   codebase's not-found convention.
 
-4. **`ReconcileAndUpdateAsync` can silently mass-delete a unit's children.** If a caller passes an
-   `incoming` `UnitModel` whose `Words` (or `Examples`/`IrregularForms`/`StudyCards`/`TestCards`) is
-   `null` — the default for a freshly-constructed `UnitModel`, not an explicit "empty the list"
-   signal — combined with `deleteMissing: true`, `FindOrphanIds` treats *every* existing child of
-   that kind as orphaned and deletes it. A `null` collection and an intentionally-emptied collection
-   are indistinguishable to this method. Anyone calling this without populating every child
-   collection they don't intend to touch, while passing `deleteMissing: true`, risks silent,
-   unrecoverable data loss.
+4. ~~**`ReconcileAndUpdateAsync` could silently mass-delete a unit's children** when an incoming
+   child collection was `null`.~~ **Fixed.** A `null` collection (on `incoming` or on a matched
+   word's `Examples`) is now filled in from the unit's current state before reconciliation runs, so
+   it's treated as "don't touch this collection," never as "empty it out." An explicit empty list
+   (`[]`) still triggers full deletion under `deleteMissing: true`. This was a real, reachable bug,
+   not just a theoretical one: the one production call site
+   (`EasyEnglish.App/Components/Pages/ImportCourseZip.razor`) passes units deserialized from a
+   backup ZIP's JSON, which can plausibly omit a child array entirely.
 
-5. **`ReconcileAndUpdateAsync` throws a plain `ArgumentException` when the unit isn't found**
-   (`"Unit with ID {id} not found"`), not `EntityNotFoundException` like the rest of the codebase's
-   not-found paths (see #3 — the same underlying inconsistency in two places).
+5. ~~**`ReconcileAndUpdateAsync` threw a plain `ArgumentException` when the unit isn't found.**~~
+   **Fixed.** Now throws `EntityNotFoundException`, matching #3's fix and the rest of the codebase.
 
-6. **Inconsistent `try`/`catch`/log/rethrow usage.** `WordService.UpdateWordRateRangeAsync`/
-   `GetNavigationIdsAsync`, `IrregularFormService.UpdateRateRangeAsync`, and the equivalent
-   `StudyCardService`/`TestCardService` methods wrap their bodies in `try { ... } catch (Exception ex)
-   { _logger.LogError(...); throw; }` (log then rethrow unchanged) — but `SubjectService`,
-   `ExampleService`, `CourseService`, and most of `UnitService` don't. Since the exception always
-   propagates either way, this only affects whether an error gets one extra structured log entry
-   before bubbling up — worth a consistent rule (always, or only at a single boundary layer) rather
-   than per-method judgment calls.
+6. ~~**Inconsistent `try`/`catch`/log/rethrow usage.**~~ **Fixed.** Removed the redundant
+   `try { ... } catch (Exception ex) { _logger.LogError(...); throw; }` wrappers (they only added a
+   log entry before rethrowing the same exception unchanged) from `WordService`/`IrregularFormService`/
+   `StudyCardService`/`TestCardService`, matching the rest of the codebase's plain (unwrapped) style.
 
-7. **`WordService.cs` had a ~15-line commented-out earlier draft of `UpdateWordRateRangeAsync`**
-   sitting directly above the real, working implementation — removed during this documentation pass
-   (confirmed dead: the live method below it is what's actually registered/called).
+7. ~~**`WordService.cs` had a ~15-line commented-out earlier draft of `UpdateWordRateRangeAsync`.**~~
+   **Fixed.** Removed during the documentation pass (confirmed dead).
 
 ## Testing
 
-`EasyEnglish.Business.Tests` (19 tests). Risk-based priority, same framework as
+`EasyEnglish.Business.Tests` (21 tests). Risk-based priority, same framework as
 `EasyEnglish.Core`/`EasyEnglish.Data`:
 
 - **`UnitService.ReconcileAndUpdateAsync`** (highest priority) — GUID-matching across 5 child
-  collections, both `deleteMissing` branches, and specifically the null-collection mass-delete risk
-  (#4 above) as a documented regression test, not a silent assumption.
-- **`WordService.UpdateWordRateAsync`** — including a regression test that pins down the current
-  `NullReferenceException` behavior on a not-found id (#3 above), so a future fix has something to
-  update rather than a behavior nobody wrote down.
+  collections, both `deleteMissing` branches, and the null-vs-explicit-empty-collection distinction
+  (Known Issue #4) with a dedicated regression test for each.
+- **`WordService.UpdateWordRateAsync`** — happy path plus the not-found → `EntityNotFoundException` case.
 - **`*.UpdateRateRangeAsync`** (`Word`/`IrregularForm`/`StudyCard`/`TestCard`) — ids that don't match
-  an existing row are silently skipped; worth confirming that's what actually happens.
+  an existing row are confirmed silently skipped, not reported.
 - **`CourseService.GetWordsAsync`** — the `ShuffleWords` branch (order differs, membership doesn't).
 - Baseline pass-through coverage for the remaining simple delegation methods.
 

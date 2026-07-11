@@ -1,14 +1,14 @@
-﻿using EasyEnglish.Core.Interfaces.Services;
-using EasyEnglish.Services.Services;
+﻿using EasyEnglish.Business.Services;
+using EasyEnglish.Core.Interfaces.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EasyEnglish.Services.Extensions;
+namespace EasyEnglish.Business.Extensions;
 
 public static class ServiceCollectionExtensions
 {
     /// <summary>
     /// Registers every <c>EasyEnglish.Core.Interfaces.Services.*</c> service interface with its
-    /// <c>EasyEnglish.Services.Services.*</c> implementation, scoped per DI scope. Requires
+    /// <c>EasyEnglish.Business.Services.*</c> implementation, scoped per DI scope. Requires
     /// <c>AddEasyEnglishRepositories()</c> (from <c>EasyEnglish.Data</c>) to also be called, plus an
     /// <c>IMapper</c> registration — neither is registered here.
     /// </summary>

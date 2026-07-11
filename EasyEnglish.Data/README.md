@@ -14,6 +14,7 @@ DI registration extension, `AddEasyEnglishRepositories()`, is called from app st
 | `DesignTimeDbContextFactory.cs` | `IDesignTimeDbContextFactory<EasyEnglishDbContext>` — used only by `dotnet ef` CLI commands, not at app runtime. |
 | `Extensions/ServiceCollectionExtensions.cs` | `AddEasyEnglishRepositories()` — registers all 8 repositories. Does *not* register `IDbContextFactory<EasyEnglishDbContext>` or `IUserContext`; those come from `EasyEnglish.App`'s startup code. |
 | `Extensions/LearningQueryExtensions.cs` | `ApplyLearningSelectionAsync` — shared "pick N items for a learning session" query logic, reused by `WordRepository`/`IrregularFormRepository`/`StudyCardRepository`/`TestCardRepository`. |
+| `Extensions/NavigationQueryExtensions.cs` | `GetCyclicNavigationAsync` — shared cyclic prev/next index math, reused by `WordRepository`/`StudyCardRepository`/`TestCardRepository`'s `GetNavigationIdsAsync`. |
 | `Repositories/*.cs` | One class per entity, each a thin `BaseRepository<T, EasyEnglishDbContext>`/`BaseWithGuidRepository<T, EasyEnglishDbContext>` subclass from `MukhaLab.Database`, adding only the domain queries declared on its `I*Repository` interface. |
 | `Migrations/` | EF Core-generated. Not hand-documented here — see the current schema in `EasyEnglish.Docs/Diagrams/database.mdpuml`/`entities.mdpuml` instead of reading migration history. |
 
@@ -34,7 +35,7 @@ member-by-member.
 ## Repositories
 
 Every repository follows the same shape: constructor takes `IDbContextFactory<EasyEnglishDbContext>`
-(+ `IUserContext`, see [Known Issues](#known-issues--suggested-improvements) #1) and opens a fresh
+and an optional `IUserContext` (defaulting to `null` — consistent across all 8) and opens a fresh
 `DbContext` per method call via `contextFactory.CreateDbContextAsync()` — never a long-lived context
 field. All read-only queries use `.AsNoTracking()`.
 
@@ -59,8 +60,9 @@ entity:
 
 - **`GetForLearningAsync`** (`Word`, `IrregularForm`, `StudyCard`, `TestCard`) — delegates to
   `LearningQueryExtensions.ApplyLearningSelectionAsync`, scoped to a course and optionally a unit.
-- **`GetNavigationIdsAsync`** (`Word`, `StudyCard`, `TestCard` — *not* `IrregularForm`, see Known
-  Issues #3) — cyclic prev/next lookup for a "swipe through items" UI.
+- **`GetNavigationIdsAsync`** (`Word`, `StudyCard`, `TestCard` — *not* `IrregularForm`, confirmed
+  intentional, see Known Issues #3) — cyclic prev/next lookup for a "swipe through items" UI, via
+  the shared `NavigationQueryExtensions.GetCyclicNavigationAsync` helper.
 - **`CountReviewedSinceAsync`** (`Word`, `IrregularForm`, `StudyCard`, `TestCard`) — for stats.
 - One-off queries: `SubjectRepository.CountCoursesAsync`, `UnitRepository.GetByCourseAsync`/
   `GetUnitCardsAsync`, `ExampleRepository.GetByUnitAsync`, `WordRepository.GetNextWordsAsync`/
@@ -91,45 +93,46 @@ var words = await ctx.Words
 `Take` would need to be re-run per page and doesn't compose with the rest of this method's shape, so
 that branch pulls the full filtered set into memory and shuffles with `Random.Shared` instead.
 
+`LearningPriority.Old` spans *both* reviewed and never-reviewed items — unlike `New` (never-reviewed
+only) and `Review` (reviewed only) — ranked by `COALESCE(LastReviewDate, CreatedAt)` ascending, so a
+long-neglected never-reviewed item and a long-ago-reviewed item both count as "old" (see Known
+Issues #5).
+
 ## Known Issues & Suggested Improvements
 
-Found while documenting this library. None have been changed.
+Found while documenting this library. Issues #1, #2, #4, and #5 below have since been fixed; #3 was
+investigated and confirmed intentional. Kept here as a record of what changed and why.
 
-1. **`IUserContext` is required in 5 repository constructors, optional (defaulting to `null`) in 3
-   (`CourseRepository`, `UnitRepository`, `WordRepository`).** In practice this doesn't matter today:
-   `EasyEnglish.App` registers `AnonymousUserContext` for `IUserContext` unconditionally, so every
-   repository receives a non-null instance via DI regardless of which signature it uses — and *none*
-   of the 8 repositories ever call `ConfigureUserIdField(...)`, so `BaseRepository.IsUserFilteringActive`
-   stays `false` everywhere either way. Per-user row scoping is fully wired in `MukhaLab.Database` but
-   completely inert in this app (expected — EasyEnglish is single-user/on-device). The inconsistency
-   is only a latent footgun: if per-user scoping is ever turned on for one entity, there's no clear
-   reason the constructor pattern differs today, so it's easy to miss updating the "optional" trio.
+1. ~~**`IUserContext` was required in 5 repository constructors, optional in 3.**~~ **Fixed.** All 8
+   repository constructors now take `IUserContext? userContext = null`, matching
+   `MukhaLab.Database.BaseRepository`'s own default. No behavior change — per-user row scoping still
+   never activates anywhere in this app, since none of the 8 repositories call
+   `ConfigureUserIdField(...)`.
 
-2. **`LearningQueryExtensions`'s "already learned" threshold (`1.6f`) doesn't match
-   `RateExtensions.EasyMax`** (`5f / 3f ≈ 1.667`) — a different, hand-typed magic number expressing
-   what looks like the same concept ("easy" / "already learned"). They currently happen to produce
-   similar but not identical cutoffs; if `EasyMax` is ever retuned, this filter silently drifts out
-   of sync with the `DifficultyLevel` bucketing shown in the UI.
+2. ~~**`LearningQueryExtensions`'s "already learned" threshold (`1.6f`) didn't match
+   `RateExtensions.EasyMax`**~~ **Fixed.** Now reads `RateExtensions.EasyMax` directly instead of a
+   separately hand-typed `1.6f` — the two can no longer drift apart. (Behavior technically changed at
+   the boundary: `1.6f` → `5f/3f ≈ 1.6667f`, a difference of `0.0667`; a word with `Rate` in that
+   narrow band flips from "learned" to "not learned" for `IncludeLearnedWords: false`. Test updated
+   to assert against the constant rather than the old literal.)
 
 3. **`IrregularFormRepository`/`IIrregularFormRepository` has no `GetNavigationIdsAsync`**, unlike
-   `Word`/`StudyCard`/`TestCard`. May be intentional (no prev/next UI for irregular forms), but it's
-   worth confirming — since the interface and implementation are already consistent with each other,
-   this wouldn't surface as a compiler error or test failure either way.
+   `Word`/`StudyCard`/`TestCard`. Investigated — this is a deliberate scope boundary (no prev/next
+   swipe UI for irregular forms in `EasyEnglish.App`), not an oversight. Left as-is.
 
-4. **`GetNavigationIdsAsync`'s cyclic-navigation logic is duplicated near-identically three times**
-   (`WordRepository`, `StudyCardRepository`, `TestCardRepository`) — same index math, same modulo
-   wraparound, different entity type. A shared generic helper (parallel to how
-   `ApplyLearningSelectionAsync` already centralizes the learning-selection logic) would remove the
-   duplication and the risk of the three copies drifting apart.
+4. ~~**`GetNavigationIdsAsync`'s cyclic-navigation logic was duplicated near-identically three
+   times**~~ **Fixed.** Extracted into `NavigationQueryExtensions.GetCyclicNavigationAsync` — each
+   repository now supplies only its own filter/order/select (1 line), the shared helper does the
+   index math. No behavior change (`GetNavigationIdsAsyncTests` unchanged, still green).
 
-5. **`LearningPriority.Old` and `LearningPriority.New` filter identically** (`LastReviewDate == null`)
-   in `ApplyLearningSelectionAsync`, differing only in sort direction (`Old` ascending `CreatedAt`,
-   `New` descending). But `LearningPriority.Old`'s own XML doc (in `EasyEnglish.Core`) says "not
-   reviewed for the longest time" — wording that reads like it should target items that *were*
-   reviewed, a long time ago (i.e. overdue, similar to `Review`), not items that were *never*
-   reviewed at all (which is what `New` already covers). Found and pinned down as a regression test
-   in `EasyEnglish.Data.Tests` (`Old_UsesSameNeverReviewedFilterAsNew_JustAscendingOrder`) — flagged
-   here rather than "fixed" since which behavior is actually intended isn't clear from the code alone.
+5. ~~**`LearningPriority.Old` and `LearningPriority.New` filtered identically**
+   (`LastReviewDate == null`), differing only in sort direction.~~ **Fixed** (after initially being
+   confirmed intentional and left as-is — the project owner reversed that call). `Old` now spans
+   *both* reviewed and never-reviewed items, ordered by `COALESCE(LastReviewDate, CreatedAt)`
+   ascending: a never-reviewed item's `CreatedAt` stands in for "last touched" when it has no
+   `LastReviewDate`, so a word added long ago and still untouched, and a word last reviewed long ago,
+   both surface as "old" — genuinely distinct from `New` (never-reviewed only, newest-first) and
+   `Review` (reviewed only, oldest-review-first) instead of overlapping with `New`.
 
 ## Testing
 

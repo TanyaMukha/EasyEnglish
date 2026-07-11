@@ -27,25 +27,11 @@ public class WordRepository : BaseRepository<WordEntity, EasyEnglishDbContext>, 
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();
 
-        var wordIds = await ctx.Words
+        return await ctx.Words
             .Where(w => w.UnitId == unitId)
             .OrderBy(w => w.Id)
             .Select(w => w.Id)
-            .ToListAsync();
-
-        var currentIndex = wordIds.IndexOf(currentWordId);
-        if (currentIndex == -1)
-            return (null, null, 0, wordIds.Count);
-
-        // Cyclic navigation: last word wraps to the first, first word wraps to the last.
-        var previousId = wordIds.Count > 1
-            ? wordIds[(currentIndex - 1 + wordIds.Count) % wordIds.Count]
-            : (int?)null;
-        var nextId = wordIds.Count > 1
-            ? wordIds[(currentIndex + 1) % wordIds.Count]
-            : (int?)null;
-
-        return (previousId, nextId, currentIndex + 1, wordIds.Count);
+            .GetCyclicNavigationAsync(currentWordId);
     }
 
     /// <inheritdoc/>

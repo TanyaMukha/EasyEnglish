@@ -1,4 +1,5 @@
 using EasyEnglish.Core.Enums;
+using EasyEnglish.Core.Extensions;
 using EasyEnglish.Core.Options;
 using EasyEnglish.Data.Extensions;
 using EasyEnglish.Data.Tests.Fixtures;
@@ -19,7 +20,7 @@ public class LearningQueryExtensionsTests : SqliteTestBase
         await using var ctx = CreateContext();
         var unit = await TestDataHelpers.SeedUnitAsync(ctx);
         await TestDataHelpers.SeedWordAsync(ctx, unit.Id, "easy", rate: 1.0f);
-        await TestDataHelpers.SeedWordAsync(ctx, unit.Id, "atThreshold", rate: 1.6f);
+        await TestDataHelpers.SeedWordAsync(ctx, unit.Id, "atThreshold", rate: RateExtensions.EasyMax);
         await TestDataHelpers.SeedWordAsync(ctx, unit.Id, "hard", rate: 4.0f);
 
         var result = await ctx.Words.AsNoTracking().ApplyLearningSelectionAsync(
@@ -123,26 +124,29 @@ public class LearningQueryExtensionsTests : SqliteTestBase
     }
 
     [Fact]
-    public async Task Old_UsesSameNeverReviewedFilterAsNew_JustAscendingOrder()
+    public async Task Old_SpansBothReviewedAndNeverReviewedItems_OrderedByLastTouchAscending()
     {
-        // Documents actual behavior, not necessarily intended behavior: LearningPriority.Old's own
-        // XML doc says "not reviewed for the longest time" (which sounds like it should target
-        // *reviewed-but-overdue* items, similar to Review), but the implementation filters to
-        // LastReviewDate == null -- identical to New's filter -- differing only in sort direction.
-        // See EasyEnglish.Data/README.md Known Issues #5.
+        // LearningPriority.Old is a broader "staleness" ranking than New (never-reviewed only) or
+        // Review (reviewed only): it spans BOTH pools, ranking each item by whichever timestamp
+        // reflects when it was last touched -- LastReviewDate if reviewed, CreatedAt otherwise --
+        // so a long-neglected never-reviewed item and a long-ago-reviewed item both count as "old".
         await using var ctx = CreateContext();
         var unit = await TestDataHelpers.SeedUnitAsync(ctx);
-        var reviewed = await TestDataHelpers.SeedWordAsync(ctx, unit.Id, "reviewed", lastReviewDate: DateTime.UtcNow);
-        var older = await TestDataHelpers.SeedWordAsync(ctx, unit.Id, "olderWord");
-        var newer = await TestDataHelpers.SeedWordAsync(ctx, unit.Id, "newerWord");
-        await TestDataHelpers.SetWordCreatedAtAsync(ctx, older.Id, new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-        await TestDataHelpers.SetWordCreatedAtAsync(ctx, newer.Id, new DateTime(2024, 6, 1, 0, 0, 0, DateTimeKind.Utc));
+        var reviewedLongAgo = await TestDataHelpers.SeedWordAsync(ctx, unit.Id, "reviewedLongAgo",
+            lastReviewDate: new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        var reviewedRecently = await TestDataHelpers.SeedWordAsync(ctx, unit.Id, "reviewedRecently",
+            lastReviewDate: new DateTime(2024, 6, 1, 0, 0, 0, DateTimeKind.Utc));
+        var neverReviewedOld = await TestDataHelpers.SeedWordAsync(ctx, unit.Id, "neverReviewedOld");
+        var neverReviewedNew = await TestDataHelpers.SeedWordAsync(ctx, unit.Id, "neverReviewedNew");
+        await TestDataHelpers.SetWordCreatedAtAsync(ctx, neverReviewedOld.Id, new DateTime(2023, 6, 1, 0, 0, 0, DateTimeKind.Utc));
+        await TestDataHelpers.SetWordCreatedAtAsync(ctx, neverReviewedNew.Id, new DateTime(2024, 8, 1, 0, 0, 0, DateTimeKind.Utc));
 
         var result = await ctx.Words.AsNoTracking().ApplyLearningSelectionAsync(
             new LearningSelectionOptions { Priority = LearningPriority.Old, WordCount = 0, IncludeLearnedWords = true });
 
-        Assert.DoesNotContain(result, w => w.Id == reviewed.Id);
-        Assert.Equal(["olderWord", "newerWord"], result.Select(w => w.Word));
+        Assert.Equal(
+            ["neverReviewedOld", "reviewedLongAgo", "reviewedRecently", "neverReviewedNew"],
+            result.Select(w => w.Word));
     }
 
     [Fact]

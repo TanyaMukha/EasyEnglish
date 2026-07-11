@@ -8,7 +8,7 @@ namespace EasyEnglish.Data.Repositories;
 /// <summary>EF Core-backed <see cref="IExampleRepository"/>.</summary>
 public class ExampleRepository : BaseRepository<ExampleEntity, EasyEnglishDbContext>, IExampleRepository
 {
-    public ExampleRepository(IDbContextFactory<EasyEnglishDbContext> contextFactory, IUserContext userContext)
+    public ExampleRepository(IDbContextFactory<EasyEnglishDbContext> contextFactory, IUserContext? userContext = null)
         : base(contextFactory, userContext)
     {
     }

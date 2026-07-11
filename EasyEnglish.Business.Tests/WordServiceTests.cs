@@ -1,5 +1,6 @@
 using EasyEnglish.Business.Tests.Fixtures;
 using EasyEnglish.Core.Interfaces.Services;
+using MukhaLab.Database;
 
 namespace EasyEnglish.Business.Tests;
 
@@ -30,12 +31,9 @@ public class WordServiceTests : SqliteTestBase
     }
 
     [Fact]
-    public async Task UpdateWordRateAsync_WordNotFound_ThrowsNullReferenceException()
+    public async Task UpdateWordRateAsync_WordNotFound_ThrowsEntityNotFoundException()
     {
-        // Regression test pinning down the current (buggy) behavior — see
-        // EasyEnglish.Business/README.md Known Issues #3: a not-found id should surface as a clear
-        // domain exception, but currently crashes with NullReferenceException via a lying `!`.
-        await Assert.ThrowsAsync<NullReferenceException>(() =>
+        await Assert.ThrowsAsync<EntityNotFoundException>(() =>
             WordService.UpdateWordRateAsync(new UpdateWordRateRequest { Id = 999_999, Rate = 4f }));
     }
 

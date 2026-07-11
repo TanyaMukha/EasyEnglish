@@ -7,7 +7,7 @@ namespace EasyEnglish.Data.Repositories;
 
 public class SubjectRepository : BaseRepository<SubjectEntity, EasyEnglishDbContext>, ISubjectRepository
 {
-    public SubjectRepository(IDbContextFactory<EasyEnglishDbContext> contextFactory, IUserContext userContext)
+    public SubjectRepository(IDbContextFactory<EasyEnglishDbContext> contextFactory, IUserContext? userContext = null)
         : base(contextFactory, userContext)
     {
     }

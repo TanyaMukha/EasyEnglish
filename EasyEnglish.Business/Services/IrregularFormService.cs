@@ -7,7 +7,7 @@ using EasyEnglish.Core.Options;
 using Microsoft.Extensions.Logging;
 using MukhaLab.Database;
 
-namespace EasyEnglish.Services.Services;
+namespace EasyEnglish.Business.Services;
 
 /// <summary>Service for <see cref="IrregularFormModel"/>, beyond the generic CRUD in <see cref="BaseService{T, TModel}"/>.</summary>
 public class IrregularFormService : BaseService<IrregularFormEntity ,IrregularFormModel>, IIrregularFormService
@@ -43,37 +43,29 @@ public class IrregularFormService : BaseService<IrregularFormEntity ,IrregularFo
     /// <remarks>Ids in <paramref name="forms"/> not found among existing rows are silently skipped, not reported.</remarks>
     public async Task<IEnumerable<IrregularFormModel>> UpdateRateRangeAsync(IEnumerable<UpdateWordRateRequest> forms)
     {
-        try
+        var formsList = forms.ToList();
+        _logger.LogDebug("Updating rating for {Count} irregular forms", formsList.Count);
+
+        List<int> ids = formsList.Select(f => f.Id).ToList();
+
+        // Fetch WITHOUT includes for the update
+        var entities = await _repository.FindManyAsync(ids);
+
+        var entitiesDict = entities.ToDictionary(e => e.Id);
+
+        foreach (var form in formsList)
         {
-            var formsList = forms.ToList();
-            _logger.LogDebug("Updating rating for {Count} irregular forms", formsList.Count);
-
-            List<int> ids = formsList.Select(f => f.Id).ToList();
-
-            // Fetch WITHOUT includes for the update
-            var entities = await _repository.FindManyAsync(ids);
-
-            var entitiesDict = entities.ToDictionary(e => e.Id);
-
-            foreach (var form in formsList)
+            if (entitiesDict.TryGetValue(form.Id, out var entity))
             {
-                if (entitiesDict.TryGetValue(form.Id, out var entity))
-                {
-                    _mapper.Map(form, entity);
-                }
+                _mapper.Map(form, entity);
             }
-
-            await _repository.UpdateRangeAsync(entities);
-
-            var updatedModels = _mapper.Map<IEnumerable<IrregularFormModel>>(entities);
-
-            _logger.LogInformation("Updated rating for {Count} irregular forms", formsList.Count);
-            return updatedModels;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating irregular form ratings");
-            throw;
-        }
+
+        await _repository.UpdateRangeAsync(entities);
+
+        var updatedModels = _mapper.Map<IEnumerable<IrregularFormModel>>(entities);
+
+        _logger.LogInformation("Updated rating for {Count} irregular forms", formsList.Count);
+        return updatedModels;
     }
 }

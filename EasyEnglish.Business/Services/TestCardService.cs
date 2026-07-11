@@ -7,7 +7,7 @@ using EasyEnglish.Core.Options;
 using Microsoft.Extensions.Logging;
 using MukhaLab.Database;
 
-namespace EasyEnglish.Services.Services;
+namespace EasyEnglish.Business.Services;
 
 /// <summary>Service for <see cref="TestCardModel"/>, beyond the generic CRUD in <see cref="BaseService{T, TModel}"/>.</summary>
 public class TestCardService : BaseService<TestCardEntity, TestCardModel>, ITestCardService
@@ -42,50 +42,33 @@ public class TestCardService : BaseService<TestCardEntity, TestCardModel>, ITest
     /// <inheritdoc/>
     public async Task<(int? PreviousId, int? NextId, int Position, int Total)> GetNavigationIdsAsync(int unitId, int currentCardId)
     {
-        try
-        {
-            _logger.LogDebug("Fetching neighboring test card ids for card {CardId} in unit {UnitId}", currentCardId, unitId);
-            return await _testCardRepository.GetNavigationIdsAsync(unitId, currentCardId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error fetching neighboring test card ids for card {CardId}", currentCardId);
-            throw;
-        }
+        return await _testCardRepository.GetNavigationIdsAsync(unitId, currentCardId);
     }
 
     /// <inheritdoc/>
     /// <remarks>Ids in <paramref name="cards"/> not found among existing rows are silently skipped, not reported.</remarks>
     public async Task<IEnumerable<TestCardModel>> UpdateRateRangeAsync(IEnumerable<UpdateWordRateRequest> cards)
     {
-        try
+        var cardsList = cards.ToList();
+        _logger.LogDebug("Updating rating for {Count} test cards", cardsList.Count);
+
+        var ids = cardsList.Select(c => c.Id).ToList();
+        var entities = await _repository.FindManyAsync(ids);
+        var entitiesDict = entities.ToDictionary(e => e.Id);
+
+        foreach (var card in cardsList)
         {
-            var cardsList = cards.ToList();
-            _logger.LogDebug("Updating rating for {Count} test cards", cardsList.Count);
-
-            var ids = cardsList.Select(c => c.Id).ToList();
-            var entities = await _repository.FindManyAsync(ids);
-            var entitiesDict = entities.ToDictionary(e => e.Id);
-
-            foreach (var card in cardsList)
+            if (entitiesDict.TryGetValue(card.Id, out var entity))
             {
-                if (entitiesDict.TryGetValue(card.Id, out var entity))
-                {
-                    _mapper.Map(card, entity);
-                }
+                _mapper.Map(card, entity);
             }
-
-            await _repository.UpdateRangeAsync(entities);
-
-            var updatedModels = _mapper.Map<IEnumerable<TestCardModel>>(entities);
-
-            _logger.LogInformation("Updated rating for {Count} test cards", cardsList.Count);
-            return updatedModels;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating test card ratings");
-            throw;
-        }
+
+        await _repository.UpdateRangeAsync(entities);
+
+        var updatedModels = _mapper.Map<IEnumerable<TestCardModel>>(entities);
+
+        _logger.LogInformation("Updated rating for {Count} test cards", cardsList.Count);
+        return updatedModels;
     }
 }

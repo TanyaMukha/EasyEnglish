@@ -10,7 +10,7 @@ namespace EasyEnglish.Data.Repositories;
 /// <summary>EF Core-backed <see cref="ITestCardRepository"/>.</summary>
 public class TestCardRepository : BaseRepository<TestCardEntity, EasyEnglishDbContext>, ITestCardRepository
 {
-    public TestCardRepository(IDbContextFactory<EasyEnglishDbContext> contextFactory, IUserContext userContext)
+    public TestCardRepository(IDbContextFactory<EasyEnglishDbContext> contextFactory, IUserContext? userContext = null)
         : base(contextFactory, userContext)
     {
     }
@@ -35,24 +35,11 @@ public class TestCardRepository : BaseRepository<TestCardEntity, EasyEnglishDbCo
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();
 
-        var cardIds = await ctx.TestCards
+        return await ctx.TestCards
             .Where(c => c.UnitId == unitId)
             .OrderBy(c => c.Id)
             .Select(c => c.Id)
-            .ToListAsync();
-
-        var currentIndex = cardIds.IndexOf(currentCardId);
-        if (currentIndex == -1)
-            return (null, null, 0, cardIds.Count);
-
-        var previousId = cardIds.Count > 1
-            ? cardIds[(currentIndex - 1 + cardIds.Count) % cardIds.Count]
-            : (int?)null;
-        var nextId = cardIds.Count > 1
-            ? cardIds[(currentIndex + 1) % cardIds.Count]
-            : (int?)null;
-
-        return (previousId, nextId, currentIndex + 1, cardIds.Count);
+            .GetCyclicNavigationAsync(currentCardId);
     }
 
     /// <inheritdoc/>

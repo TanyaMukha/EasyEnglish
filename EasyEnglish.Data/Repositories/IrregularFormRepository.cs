@@ -15,7 +15,7 @@ namespace EasyEnglish.Data.Repositories;
 /// </summary>
 public class IrregularFormRepository : BaseRepository<IrregularFormEntity, EasyEnglishDbContext>, IIrregularFormRepository
 {
-    public IrregularFormRepository(IDbContextFactory<EasyEnglishDbContext> contextFactory, IUserContext userContext)
+    public IrregularFormRepository(IDbContextFactory<EasyEnglishDbContext> contextFactory, IUserContext? userContext = null)
         : base(contextFactory, userContext)
     {
     }

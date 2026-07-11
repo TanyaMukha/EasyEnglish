@@ -6,7 +6,7 @@ using EasyEnglish.Core.Models;
 using Microsoft.Extensions.Logging;
 using MukhaLab.Database;
 
-namespace EasyEnglish.Services.Services;
+namespace EasyEnglish.Business.Services;
 
 /// <summary>Service for <see cref="ExampleModel"/>, beyond the generic CRUD in <see cref="BaseService{T, TModel}"/>.</summary>
 public class ExampleService : BaseService<ExampleEntity, ExampleModel>, IExampleService

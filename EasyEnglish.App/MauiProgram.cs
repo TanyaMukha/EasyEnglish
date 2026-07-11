@@ -13,7 +13,7 @@ using MukhaLab.BrowserConsoleLogger;
 using MukhaLab.LoggerExtensionDelegate;
 using Microsoft.EntityFrameworkCore.Internal;
 using EasyEnglish.Data.Extensions;
-using EasyEnglish.Services.Extensions;
+using EasyEnglish.Business.Extensions;
 using EasyEnglish.App.Services;
 using EasyEnglish.App.Interfaces;
 using EasyEnglish.App.Models;
