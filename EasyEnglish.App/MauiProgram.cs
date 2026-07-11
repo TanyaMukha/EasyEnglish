@@ -187,7 +187,7 @@ public static class MauiProgram
 
     private static void RegisterServices(IServiceCollection services)
     {
-        services.AddScoped<IUserContext, NullUserContext>();
+        services.AddScoped<IUserContext, AnonymousUserContext>();
         services.AddScoped<CourseZipBackupService>();
 
         services.AddTransient<UnitMappingAction>();
