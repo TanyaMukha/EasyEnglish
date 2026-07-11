@@ -1,8 +1,8 @@
 namespace EasyEnglish.Core.Models;
 
 /// <summary>
-/// Payload для <c>TestCardKind.Matching</c>. Left пакується разом із Right
-/// у поле <c>Options</c> сутності TestCardEntity, CorrectRightIndexes — у <c>CorrectAnswers</c>.
+/// Payload for <c>TestCardKind.Matching</c>. Left is packed together with Right into the
+/// <c>Options</c> field of TestCardEntity; CorrectRightIndexes goes into <c>CorrectAnswers</c>.
 /// </summary>
 public class MatchingPayload
 {
@@ -10,6 +10,6 @@ public class MatchingPayload
 
     public string[] Right { get; set; } = [];
 
-    /// <summary>CorrectRightIndexes[i] = індекс у Right, що правильно пасує до Left[i].</summary>
+    /// <summary>CorrectRightIndexes[i] = the index in Right that correctly matches Left[i].</summary>
     public int[] CorrectRightIndexes { get; set; } = [];
 }

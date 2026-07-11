@@ -7,8 +7,8 @@ using System.Text.Json;
 namespace EasyEnglish.Core.Mapping;
 
 /// <summary>
-/// Форма, у якій пара Left/Right (TestCardKind.Matching) пакується в поле Options.
-/// Спільна для обох напрямків конвертації, щоб назви властивостей завжди збігалися.
+/// The shape in which the Left/Right pair (<see cref="TestCardKind.Matching"/>) is packed into the
+/// <c>Options</c> column. Shared by both conversion directions so the property names always match.
 /// </summary>
 internal sealed class MatchingOptionsJson
 {

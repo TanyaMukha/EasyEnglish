@@ -1,5 +1,6 @@
 ﻿namespace EasyEnglish.Core.Interfaces.Fields;
 
+/// <summary>Implemented by entities/models that track creation and last-update timestamps.</summary>
 public interface IAuditInfo
 {
     /// <summary>

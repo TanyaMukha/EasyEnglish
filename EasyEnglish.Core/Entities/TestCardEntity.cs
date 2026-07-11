@@ -6,6 +6,13 @@ using EasyEnglish.Core.Enums;
 
 namespace EasyEnglish.Core.Entities;
 
+/// <summary>
+/// A graded test card belonging to a <see cref="UnitEntity"/>. <see cref="Options"/> and
+/// <see cref="CorrectAnswers"/> are opaque JSON columns whose shape depends on <see cref="Kind"/> —
+/// see <see cref="EasyEnglish.Core.Mapping.TestCardEntityToModelConverter"/> for the packing format
+/// of each <see cref="TestCardKind"/>, and the typed <c>EasyEnglish.Core.Models.TestCards.*Payload</c>
+/// classes for the corresponding model-side shape.
+/// </summary>
 [Table("test_cards")]
 public class TestCardEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInfo, IGuidRecord
 {
@@ -45,13 +52,15 @@ public class TestCardEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInfo
     [Column("explanation")]
     public string? Explanation { get; set; }
 
+    /// <summary>JSON; shape depends on <see cref="Kind"/> — see the class summary.</summary>
     [MaxLength(1000)]
     [Column("options")]
-    public string? Options { get; set; }                   // JSON, структура залежить від Kind
+    public string? Options { get; set; }
 
+    /// <summary>JSON; shape depends on <see cref="Kind"/> — see the class summary.</summary>
     [MaxLength(1000)]
     [Column("correct_answers")]
-    public string? CorrectAnswers { get; set; }             // JSON, структура залежить від Kind
+    public string? CorrectAnswers { get; set; }
 
     [Column("last_review_date")]
     public DateTime? LastReviewDate { get; set; }

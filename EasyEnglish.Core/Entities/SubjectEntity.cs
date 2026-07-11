@@ -6,6 +6,10 @@ using EasyEnglish.Core.Interfaces.Fields;
 
 namespace EasyEnglish.Core.Entities;
 
+/// <summary>
+/// A top-level grouping for <see cref="CourseEntity"/> (e.g. "English", "German"). Optional —
+/// a course does not have to belong to a subject (see <see cref="CourseEntity.SubjectId"/>).
+/// </summary>
 [Table("subjects")]
 public class SubjectEntity : AbstractEntity, IAuditInfo
 {

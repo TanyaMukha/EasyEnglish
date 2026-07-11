@@ -6,6 +6,11 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace EasyEnglish.Core.Entities;
 
+/// <summary>
+/// An irregular verb (or other irregular word) belonging to a <see cref="UnitEntity"/>, tracked as
+/// up to three forms (e.g. "go" / "went" / "gone") each with its own transcription/translation/
+/// pronunciation, plus its own review/rating state independent of <see cref="WordEntity"/>.
+/// </summary>
 [Table("irregular_forms")]
 public class IrregularFormEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInfo, IGuidRecord
 {

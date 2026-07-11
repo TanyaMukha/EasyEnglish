@@ -6,6 +6,10 @@ using EasyEnglish.Core.Interfaces.Fields;
 
 namespace EasyEnglish.Core.Entities;
 
+/// <summary>
+/// A learning course (e.g. "Business English"), optionally grouped under a <see cref="SubjectEntity"/>
+/// and made up of one or more <see cref="UnitEntity"/> records.
+/// </summary>
 [Table("courses")]
 public class CourseEntity : AbstractEntity, IGuidInfo, IAuditInfo, IGuidRecord
 {
@@ -26,8 +30,8 @@ public class CourseEntity : AbstractEntity, IGuidInfo, IAuditInfo, IGuidRecord
     public string? Description { get; set; }
 
     /// <summary>
-    /// Мова курсу у форматі BCP-47 (наприклад, "en-us"). Використовується для
-    /// відображення прапора курсу.
+    /// The course's language, as a BCP-47 tag (e.g. "en-us"). Used to pick which flag icon to
+    /// display for the course.
     /// </summary>
     [MaxLength(20)]
     [Column("language_code")]

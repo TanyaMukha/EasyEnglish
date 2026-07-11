@@ -6,6 +6,11 @@ using EasyEnglish.Core.Interfaces.Fields;
 
 namespace EasyEnglish.Core.Entities;
 
+/// <summary>
+/// A lesson/module within a <see cref="CourseEntity"/>. Owns the four kinds of learning content:
+/// <see cref="WordEntity"/>, <see cref="IrregularFormEntity"/>, <see cref="StudyCardEntity"/>, and
+/// <see cref="TestCardEntity"/>.
+/// </summary>
 [Table("units")]
 public class UnitEntity : AbstractEntity, IReviewInfo, IAuditInfo, IGuidRecord
 {

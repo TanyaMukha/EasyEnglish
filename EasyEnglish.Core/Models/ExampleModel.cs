@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace EasyEnglish.Core.Models;
 
+/// <summary>DTO for <see cref="EasyEnglish.Core.Entities.ExampleEntity"/>.</summary>
 public class ExampleModel : AbstractModel, IGuidRecord
 {
     public Guid RecordGuid { get; set; } = Guid.NewGuid();

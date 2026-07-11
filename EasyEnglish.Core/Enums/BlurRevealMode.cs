@@ -1,18 +1,13 @@
 namespace EasyEnglish.Core.Enums;
 
 /// <summary>
-/// Спосіб розкриття розмитих фрагментів у картці виду <see cref="StudyCardKind.BlurredText"/>.
+/// How blurred segments reveal in a <see cref="StudyCardKind.BlurredText"/> card.
 /// </summary>
 public enum BlurRevealMode
 {
-    /// <summary>
-    /// Кожен розмитий фрагмент відкривається своїм кліком незалежно від інших.
-    /// </summary>
+    /// <summary>Each blurred segment reveals on its own click, independent of the others.</summary>
     Independent = 0,
 
-    /// <summary>
-    /// Клік по будь-якому розмитому фрагменту відкриває одразу всі
-    /// (наприклад, для фразових дієслів на кшталт "look up").
-    /// </summary>
+    /// <summary>Clicking any blurred segment reveals all of them at once (e.g. for phrasal verbs like "look up").</summary>
     Grouped = 1
 }

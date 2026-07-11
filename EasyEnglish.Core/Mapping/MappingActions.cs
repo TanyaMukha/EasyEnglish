@@ -3,12 +3,18 @@ using EasyEnglish.Core.Models;
 
 namespace EasyEnglish.Core.Mapping;
 
+/// <summary>
+/// Post-processes a <c>UnitModel → UnitModel</c> self-map, applying <see cref="UnitMappingOptions"/>
+/// passed via <c>ResolutionContext.Items[UnitMappingOptions.Key]</c> (see <see cref="MappingContextExtensions.GetUnitOptions"/>).
+/// Used for cloning a unit (e.g. import/export/duplication) where the caller wants to reset identity
+/// fields and/or learning progress instead of a literal deep copy.
+/// </summary>
 public class UnitMappingAction : IMappingAction<UnitModel, UnitModel>
 {
     public void Process(UnitModel source, UnitModel destination, ResolutionContext context)
     {
         var opts = context.GetUnitOptions();
-        if (opts is null) return; // ← без опцій — нічого не чіпаємо
+        if (opts is null) return; // no options supplied — leave the plain copy as-is
 
         if (opts.ResetId)
         {
@@ -23,6 +29,11 @@ public class UnitMappingAction : IMappingAction<UnitModel, UnitModel>
     }
 }
 
+/// <summary>
+/// Post-processes a <c>WordModel → WordModel</c> self-map, applying <see cref="WordMappingOptions"/>
+/// nested under the ambient <see cref="UnitMappingOptions"/> (see <see cref="UnitMappingAction"/>).
+/// A no-op when no <see cref="UnitMappingOptions"/> is in the mapping context.
+/// </summary>
 public class WordMappingAction : IMappingAction<WordModel, WordModel>
 {
     public void Process(WordModel source, WordModel destination, ResolutionContext context)
@@ -50,6 +61,11 @@ public class WordMappingAction : IMappingAction<WordModel, WordModel>
     }
 }
 
+/// <summary>
+/// Post-processes an <c>ExampleModel → ExampleModel</c> self-map, applying the same
+/// <see cref="WordMappingOptions"/> as <see cref="WordMappingAction"/> (examples share their
+/// parent word's <c>ResetId</c> flag, since they're always cloned together).
+/// </summary>
 public class ExampleMappingAction : IMappingAction<ExampleModel, ExampleModel>
 {
     public void Process(ExampleModel source, ExampleModel destination, ResolutionContext context)
@@ -65,6 +81,10 @@ public class ExampleMappingAction : IMappingAction<ExampleModel, ExampleModel>
     }
 }
 
+/// <summary>
+/// Post-processes an <c>IrregularFormModel → IrregularFormModel</c> self-map, applying
+/// <see cref="IrregularFormMappingOptions"/> nested under the ambient <see cref="UnitMappingOptions"/>.
+/// </summary>
 public class IrregularFormMappingAction : IMappingAction<IrregularFormModel, IrregularFormModel>
 {
     public void Process(IrregularFormModel source, IrregularFormModel destination, ResolutionContext context)
@@ -89,6 +109,10 @@ public class IrregularFormMappingAction : IMappingAction<IrregularFormModel, Irr
     }
 }
 
+/// <summary>
+/// Post-processes a <c>StudyCardModel → StudyCardModel</c> self-map, applying
+/// <see cref="StudyCardMappingOptions"/> nested under the ambient <see cref="UnitMappingOptions"/>.
+/// </summary>
 public class StudyCardMappingAction : IMappingAction<StudyCardModel, StudyCardModel>
 {
     public void Process(StudyCardModel source, StudyCardModel destination, ResolutionContext context)
@@ -106,6 +130,10 @@ public class StudyCardMappingAction : IMappingAction<StudyCardModel, StudyCardMo
     }
 }
 
+/// <summary>
+/// Post-processes a <c>TestCardModel → TestCardModel</c> self-map, applying
+/// <see cref="TestCardMappingOptions"/> nested under the ambient <see cref="UnitMappingOptions"/>.
+/// </summary>
 public class TestCardMappingAction : IMappingAction<TestCardModel, TestCardModel>
 {
     public void Process(TestCardModel source, TestCardModel destination, ResolutionContext context)

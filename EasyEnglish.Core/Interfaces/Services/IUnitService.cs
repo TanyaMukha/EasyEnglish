@@ -3,12 +3,16 @@ using MukhaLab.Database;
 
 namespace EasyEnglish.Core.Interfaces.Services;
 
+/// <summary>Service for <see cref="UnitModel"/>, beyond the generic CRUD in <see cref="IBaseWithGuidService{TModel}"/>.</summary>
 public interface IUnitService : IBaseWithGuidService<UnitModel>
 {
+    /// <summary>Units of a course as lightweight <see cref="UnitCardModel"/> summaries.</summary>
     Task<IReadOnlyList<UnitCardModel>> GetUnitCardsAsync(int courseId);
 
+    /// <summary>All units belonging to a course.</summary>
     Task<IEnumerable<UnitModel>> GetByCourseAsync(int courseId);
 
+    /// <summary>All words in a unit.</summary>
     Task<IEnumerable<WordModel>> GetWordsAsync(int unitId, string[]? includes = null);
 
     /// <summary>All examples belonging to a unit's words, as a flat list.</summary>

@@ -4,8 +4,10 @@ using MukhaLab.Database;
 
 namespace EasyEnglish.Core.Interfaces.Services;
 
+/// <summary>Service for <see cref="IrregularFormModel"/>, beyond the generic CRUD in <see cref="IBaseService{TModel}"/>.</summary>
 public interface IIrregularFormService : IBaseService<IrregularFormModel>
 {
+    /// <summary>Applies review results (rate/date/count) to several irregular forms at once.</summary>
     Task<IEnumerable<IrregularFormModel>> UpdateRateRangeAsync(IEnumerable<UpdateWordRateRequest> forms);
 
     /// <summary>Selects irregular forms from a course/unit for learning, according to the given options.</summary>

@@ -1,5 +1,6 @@
 ﻿namespace EasyEnglish.Core.Enums;
 
+/// <summary>CEFR (Common European Framework of Reference for Languages) proficiency level.</summary>
 public enum LanguageLevel
 {
     A1,     // Beginner

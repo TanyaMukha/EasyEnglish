@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace EasyEnglish.Core.Models;
 
+/// <summary>DTO for <see cref="EasyEnglish.Core.Entities.WordEntity"/>.</summary>
 public class WordModel : AbstractModel, IReviewInfo, IRateInfo, IAuditInfo, IGuidRecord
 {
     public Guid RecordGuid { get; set; } = Guid.NewGuid();
@@ -32,6 +33,7 @@ public class WordModel : AbstractModel, IReviewInfo, IRateInfo, IAuditInfo, IGui
 
     public DateTime? UpdatedAt { get; set; }
 
+    /// <remarks>Denormalized from <c>Unit.CourseId</c> by the entity→model map — not a real column on <c>words</c>.</remarks>
     [JsonIgnore]
     public int CourseId { get; set; }
 

@@ -7,6 +7,11 @@ using EasyEnglish.Core.Enums;
 
 namespace EasyEnglish.Core.Entities;
 
+/// <summary>
+/// A non-graded study card belonging to a <see cref="UnitEntity"/>. Unlike <see cref="TestCardEntity"/>,
+/// a study card has no correct/incorrect answer — it presents information for the learner to review.
+/// Its field usage depends on <see cref="Kind"/>: see <see cref="Title"/> and <see cref="Body"/>.
+/// </summary>
 [Table("study_cards")]
 public class StudyCardEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInfo, IGuidRecord
 {
@@ -16,14 +21,22 @@ public class StudyCardEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInf
     [Column("kind")]
     public StudyCardKind Kind { get; set; }
 
+    /// <summary>
+    /// The term (<see cref="StudyCardKind.Term"/>), the heading (<see cref="StudyCardKind.Text"/>),
+    /// or optional (<see cref="StudyCardKind.BlurredText"/>), depending on <see cref="Kind"/>.
+    /// </summary>
     [NotNull]
     [MaxLength(200)]
     [Column("title")]
-    public string Title { get; set; } = string.Empty;   // = Term (Kind.Term) / заголовок (Kind.Text) / необов'язково (Kind.BlurredText)
+    public string Title { get; set; } = string.Empty;
 
+    /// <summary>
+    /// The definition (<see cref="StudyCardKind.Term"/>), the main body text (<see cref="StudyCardKind.Text"/>),
+    /// or text containing **blurred** segments (<see cref="StudyCardKind.BlurredText"/>), depending on <see cref="Kind"/>.
+    /// </summary>
     [MaxLength(2000)]
     [Column("body")]
-    public string? Body { get; set; }                    // = Definition (Kind.Term) / основний текст / текст з **розмитим**
+    public string? Body { get; set; }
 
     [MaxLength(2000)]
     [Column("dialogue")]
@@ -33,8 +46,9 @@ public class StudyCardEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInf
     [Column("code_block")]
     public string? CodeBlock { get; set; }
 
+    /// <summary>Only meaningful when <see cref="Kind"/> is <see cref="StudyCardKind.BlurredText"/>.</summary>
     [Column("reveal_mode")]
-    public BlurRevealMode? RevealMode { get; set; }       // тільки для Kind.BlurredText
+    public BlurRevealMode? RevealMode { get; set; }
 
     [Column("last_review_date")]
     public DateTime? LastReviewDate { get; set; }

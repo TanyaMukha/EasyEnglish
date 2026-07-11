@@ -5,6 +5,7 @@ using MukhaLab.Database;
 
 namespace EasyEnglish.Core.Entities;
 
+/// <summary>An example sentence demonstrating the usage of a <see cref="WordEntity"/>.</summary>
 [Table("examples")]
 public class ExampleEntity : AbstractEntity, IGuidRecord
 {

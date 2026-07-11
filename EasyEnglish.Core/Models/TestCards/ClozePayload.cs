@@ -1,22 +1,22 @@
 namespace EasyEnglish.Core.Models;
 
 /// <summary>
-/// Payload для <c>TestCardKind.Cloze</c>. Text картки — шаблон із позиційними
-/// плейсхолдерами "{0}", "{1}", ... Пакується/розпаковується у поля
-/// <c>Options</c>/<c>CorrectAnswers</c> сутності TestCardEntity.
+/// Payload for <c>TestCardKind.Cloze</c>. The card's text is a template with positional
+/// placeholders "{0}", "{1}", ... Packed/unpacked into the <c>Options</c>/<c>CorrectAnswers</c>
+/// fields of TestCardEntity.
 /// </summary>
 public class ClozePayload
 {
     /// <summary>
-    /// По одному масиву прийнятних відповідей на кожен "{i}" у Text, індекс = i.
-    /// Кілька елементів на позиції i — будь-який з них зараховується як правильний
-    /// (актуально і для поля вводу, і для випадаючого списку).
+    /// One array of acceptable answers per "{i}" in the text, indexed by i. Multiple items at
+    /// position i means any of them counts as correct (applies to both a free-text input and a
+    /// dropdown).
     /// </summary>
     public string[][] CorrectAnswers { get; set; } = [];
 
     /// <summary>
-    /// null або відсутність елемента на позиції i — поле вводу для цього "{i}".
-    /// Непорожній масив на позиції i — випадаючий список із цими варіантами.
+    /// <c>null</c> or a missing element at position i means a free-text input for that "{i}".
+    /// A non-empty array at position i means a dropdown with those choices.
     /// </summary>
     public string[][]? Options { get; set; }
 }

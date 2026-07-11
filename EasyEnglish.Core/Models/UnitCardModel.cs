@@ -1,5 +1,10 @@
 ﻿namespace EasyEnglish.Core.Models;
 
+/// <summary>
+/// Lightweight summary of a unit for a course overview list — avoids loading each unit's full word
+/// list just to show progress. Counts are bucketed by <see cref="EasyEnglish.Core.Enums.DifficultyLevel"/>
+/// (see <see cref="EasyEnglish.Core.Extensions.RateExtensions.ToDifficulty(float)"/>).
+/// </summary>
 public class UnitCardModel
 {
     public int Id { get; set; }

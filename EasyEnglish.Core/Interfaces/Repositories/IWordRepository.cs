@@ -4,8 +4,13 @@ using MukhaLab.Database;
 
 namespace EasyEnglish.Core.Interfaces.Repositories;
 
+/// <summary>Repository for <see cref="WordEntity"/>, beyond the generic CRUD in <see cref="IBaseRepository{T}"/>.</summary>
 public interface IWordRepository : IBaseRepository<WordEntity>
 {
+    /// <summary>
+    /// Finds the previous/next word id relative to <paramref name="currentWordId"/> within its unit,
+    /// plus the word's 1-based position and the unit's total word count — for prev/next navigation UI.
+    /// </summary>
     Task<(int? PreviousId, int? NextId, int Position, int Total)> GetNavigationIdsAsync(int unitId, int currentWordId);
 
     /// <summary>Words that haven't been reviewed for the longest time.</summary>

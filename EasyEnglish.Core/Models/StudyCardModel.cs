@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace EasyEnglish.Core.Models;
 
+/// <summary>DTO for <see cref="EasyEnglish.Core.Entities.StudyCardEntity"/>.</summary>
 public class StudyCardModel : AbstractModel, IReviewInfo, IRateInfo, IAuditInfo, IGuidRecord
 {
     public Guid RecordGuid { get; set; } = Guid.NewGuid();

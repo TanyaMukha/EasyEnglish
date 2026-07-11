@@ -6,6 +6,10 @@ using EasyEnglish.Core.Interfaces.Fields;
 
 namespace EasyEnglish.Core.Entities;
 
+/// <summary>
+/// A vocabulary word belonging to a <see cref="UnitEntity"/>, with its own review/rating state
+/// and zero or more usage <see cref="ExampleEntity"/> records.
+/// </summary>
 [Table("words")]
 public class WordEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInfo, IGuidRecord
 {
@@ -26,9 +30,8 @@ public class WordEntity : AbstractEntity, IReviewInfo, IRateInfo, IAuditInfo, IG
     public string? Translation { get; set; }
 
     /// <summary>
-    /// Додаткова примітка до слова (найчастіше позначається у дужках,
-    /// наприклад форми неправильного дієслова "get-got-got").
-    /// Не показується в режимі навчання.
+    /// A free-form note about the word, usually shown in parentheses (e.g. the irregular verb
+    /// forms "get-got-got"). Not shown while the word is presented for learning.
     /// </summary>
     [MaxLength(300)]
     [Column("note")]

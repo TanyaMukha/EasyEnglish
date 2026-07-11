@@ -40,7 +40,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.TestCards, opt => opt.MapFrom(src => src.TestCards))
             .ForMember(dest => dest.Course, opt => opt.Ignore());
 
-        // Model → Model з опціями
+        // Model → Model with options (see UnitMappingOptions/UnitMappingAction)
         CreateMap<UnitModel, UnitModel>()
             .ForMember(dest => dest.Words, opt => opt.MapFrom(src => src.Words))
             .ForMember(dest => dest.IrregularForms, opt => opt.MapFrom(src => src.IrregularForms))
@@ -60,15 +60,17 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Unit, opt => opt.Ignore())
             .ForMember(dest => dest.Examples, opt => opt.MapFrom(src => src.Examples));
 
-        // Model → Model з опціями
+        // Model → Model with options (see WordMappingOptions/WordMappingAction)
         CreateMap<WordModel, WordModel>()
             .ForMember(dest => dest.Examples, opt => opt.MapFrom(src => src.Examples))
             .ForMember(dest => dest.Unit, opt => opt.Ignore())
             .AfterMap<WordMappingAction>();
 
-        CreateMap<UpdateWordRateRequest, WordModel>().ReverseMap();
-        
-        CreateMap<UpdateWordRateRequest, WordEntity>();
+        // MemberList.Source: these are partial-update DTOs (Id/Rate/LastReviewDate/ReviewCount only),
+        // so validation should check every *source* member is mapped, not every destination member.
+        CreateMap<UpdateWordRateRequest, WordModel>(MemberList.Source).ReverseMap();
+
+        CreateMap<UpdateWordRateRequest, WordEntity>(MemberList.Source);
 
         // ========== EXAMPLE ==========
         CreateMap<ExampleEntity, ExampleModel>();
@@ -81,16 +83,18 @@ public class MappingProfile : Profile
             .AfterMap<ExampleMappingAction>();
 
         // ========== IRREGULAR FORM ==========
-        CreateMap<IrregularFormEntity, IrregularFormModel>();
-        
+        CreateMap<IrregularFormEntity, IrregularFormModel>()
+            .ForMember(dest => dest.Unit, opt => opt.MapFrom(src => src.Unit));
+
         CreateMap<IrregularFormModel, IrregularFormEntity>()
             .ForMember(dest => dest.Unit, opt => opt.Ignore());
 
-        // Model → Model з опціями
+        // Model → Model with options (see IrregularFormMappingOptions/IrregularFormMappingAction)
         CreateMap<IrregularFormModel, IrregularFormModel>()
+            .ForMember(dest => dest.Unit, opt => opt.Ignore())
             .AfterMap<IrregularFormMappingAction>();
 
-        CreateMap<UpdateWordRateRequest, IrregularFormEntity>();
+        CreateMap<UpdateWordRateRequest, IrregularFormEntity>(MemberList.Source);
 
         // ========== STUDY CARD ==========
         CreateMap<StudyCardEntity, StudyCardModel>()
@@ -99,22 +103,22 @@ public class MappingProfile : Profile
         CreateMap<StudyCardModel, StudyCardEntity>()
             .ForMember(dest => dest.Unit, opt => opt.Ignore());
 
-        // Model → Model (потрібен для копіювання Unit при бекапі/експорті/імпорті —
-        // UnitModel→UnitModel мапить свою колекцію StudyCards саме через цей self-map)
+        // Model → Model (needed for copying a Unit during backup/export/import —
+        // UnitModel→UnitModel maps its StudyCards collection through exactly this self-map)
         CreateMap<StudyCardModel, StudyCardModel>()
             .ForMember(dest => dest.Unit, opt => opt.Ignore())
             .AfterMap<StudyCardMappingAction>();
 
         // ========== TEST CARD ==========
-        // Options/CorrectAnswers — гнучкі JSON-поля, структура залежить від Kind,
-        // тож пакування/розпакування виконує кастомний ITypeConverter, а не ForMember.
+        // Options/CorrectAnswers are flexible JSON fields whose structure depends on Kind,
+        // so packing/unpacking goes through a custom ITypeConverter instead of ForMember.
         CreateMap<TestCardEntity, TestCardModel>()
             .ConvertUsing<TestCardEntityToModelConverter>();
 
         CreateMap<TestCardModel, TestCardEntity>()
             .ConvertUsing<TestCardModelToEntityConverter>();
 
-        // Model → Model (той самий випадок, що й для StudyCard вище)
+        // Model → Model (same case as StudyCard above)
         CreateMap<TestCardModel, TestCardModel>()
             .ForMember(dest => dest.Unit, opt => opt.Ignore())
             .AfterMap<TestCardMappingAction>();
@@ -124,7 +128,7 @@ public class MappingProfile : Profile
         CreateMap<ClozePayload, ClozePayload>();
         CreateMap<MatchingPayload, MatchingPayload>();
 
-        CreateMap<UpdateWordRateRequest, StudyCardEntity>();
-        CreateMap<UpdateWordRateRequest, TestCardEntity>();
+        CreateMap<UpdateWordRateRequest, StudyCardEntity>(MemberList.Source);
+        CreateMap<UpdateWordRateRequest, TestCardEntity>(MemberList.Source);
     }
 } 

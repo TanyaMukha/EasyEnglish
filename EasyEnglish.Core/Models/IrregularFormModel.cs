@@ -2,12 +2,12 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
-using EasyEnglish.Core.Entities;
 using EasyEnglish.Core.Interfaces.Fields;
 using System.Text.Json.Serialization;
 
 namespace EasyEnglish.Core.Models;
 
+/// <summary>DTO for <see cref="EasyEnglish.Core.Entities.IrregularFormEntity"/>.</summary>
 public class IrregularFormModel : AbstractModel, IReviewInfo, IRateInfo, IAuditInfo, IGuidRecord
 {
     public Guid RecordGuid { get; set; } = Guid.NewGuid();
@@ -51,5 +51,5 @@ public class IrregularFormModel : AbstractModel, IReviewInfo, IRateInfo, IAuditI
     public int UnitId { get; set; }
 
     [JsonIgnore]
-    public UnitEntity? Unit { get; set; }
+    public UnitModel? Unit { get; set; }
 }

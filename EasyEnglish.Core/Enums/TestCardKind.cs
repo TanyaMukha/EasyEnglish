@@ -1,32 +1,23 @@
 namespace EasyEnglish.Core.Enums;
 
 /// <summary>
-/// Вид оцінюваної тестової картки модуля.
+/// The kind of graded test card in a unit. Determines the shape of the packed
+/// <c>Options</c>/<c>CorrectAnswers</c> JSON — see <see cref="Entities.TestCardEntity"/>.
 /// </summary>
 public enum TestCardKind
 {
-    /// <summary>
-    /// Вибір однієї правильної відповіді з декількох варіантів.
-    /// </summary>
+    /// <summary>Choosing one correct answer out of several options.</summary>
     SingleChoice = 0,
 
-    /// <summary>
-    /// Вибір кількох правильних відповідей з декількох варіантів.
-    /// </summary>
+    /// <summary>Choosing several correct answers out of several options.</summary>
     MultipleChoice = 1,
 
-    /// <summary>
-    /// Відповідь довільним текстом.
-    /// </summary>
+    /// <summary>A free-text answer.</summary>
     ShortAnswer = 2,
 
-    /// <summary>
-    /// Текст із одним чи кількома пропусками (позиційні плейсхолдери {0}, {1}, ... у Text).
-    /// </summary>
+    /// <summary>Text with one or more blanks (positional placeholders {0}, {1}, ... in the text).</summary>
     Cloze = 3,
 
-    /// <summary>
-    /// Встановлення відповідності між двома колонками значень.
-    /// </summary>
+    /// <summary>Matching items between two columns of values.</summary>
     Matching = 4
 }

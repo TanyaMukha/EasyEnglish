@@ -1,10 +1,10 @@
-﻿using EasyEnglish.Core.Entities;
-using EasyEnglish.Core.Interfaces.Fields;
+﻿using EasyEnglish.Core.Interfaces.Fields;
 using MukhaLab.Database;
 using System.Text.Json.Serialization;
 
 namespace EasyEnglish.Core.Models;
 
+/// <summary>DTO for <see cref="EasyEnglish.Core.Entities.UnitEntity"/>.</summary>
 public class UnitModel : AbstractModel, IReviewInfo, IAuditInfo, IGuidRecord
 {
     public Guid RecordGuid { get; set; } = Guid.NewGuid();
@@ -14,8 +14,6 @@ public class UnitModel : AbstractModel, IReviewInfo, IAuditInfo, IGuidRecord
     public string? Description { get; set; }
 
     public string? Content { get; set; }
-
-    public string? LanguageCode { get; set; }
 
     public DateTime? LastReviewDate { get; set; }
 
@@ -38,6 +36,11 @@ public class UnitModel : AbstractModel, IReviewInfo, IAuditInfo, IGuidRecord
     [JsonIgnore]
     public CourseModel? Course { get; set; }
 
+    /// <summary>
+    /// Resets identity fields (<c>Id</c>, <c>CourseId</c>, timestamps) on this unit and every child
+    /// in <see cref="Words"/>, <see cref="IrregularForms"/>, <see cref="StudyCards"/>, and
+    /// <see cref="TestCards"/>, in place, for cloning as a brand-new record (e.g. import/duplication).
+    /// </summary>
     public UnitModel ClearKeyFields()
     {
         this.Id = 0;
@@ -50,18 +53,52 @@ public class UnitModel : AbstractModel, IReviewInfo, IAuditInfo, IGuidRecord
             foreach (var word in this.Words)
             {
                 word.Id = 0;
-                //word.Pronunciation = null;
-                //word.LastTotalAttempts = 0;
-                //word.LastIncorrectAttempts = 0;
                 word.UnitId = 0;
                 word.CreatedAt = DateTime.UtcNow;
                 word.UpdatedAt = null;
             }
         }
 
+        if (this.IrregularForms is not null)
+        {
+            foreach (var form in this.IrregularForms)
+            {
+                form.Id = 0;
+                form.UnitId = 0;
+                form.CreatedAt = DateTime.UtcNow;
+                form.UpdatedAt = null;
+            }
+        }
+
+        if (this.StudyCards is not null)
+        {
+            foreach (var card in this.StudyCards)
+            {
+                card.Id = 0;
+                card.UnitId = 0;
+                card.CreatedAt = DateTime.UtcNow;
+                card.UpdatedAt = null;
+            }
+        }
+
+        if (this.TestCards is not null)
+        {
+            foreach (var card in this.TestCards)
+            {
+                card.Id = 0;
+                card.UnitId = 0;
+                card.CreatedAt = DateTime.UtcNow;
+                card.UpdatedAt = null;
+            }
+        }
+
         return this;
     }
 
+    /// <summary>
+    /// Resets review/rating state on this unit and every child in <see cref="Words"/>,
+    /// <see cref="IrregularForms"/>, <see cref="StudyCards"/>, and <see cref="TestCards"/>, in place.
+    /// </summary>
     public UnitModel ClearLearningProgress()
     {
         this.LastReviewDate = null;
@@ -77,9 +114,40 @@ public class UnitModel : AbstractModel, IReviewInfo, IAuditInfo, IGuidRecord
             }
         }
 
+        if (this.IrregularForms is not null)
+        {
+            foreach (var form in this.IrregularForms)
+            {
+                form.Rate = 3.0f;
+                form.LastReviewDate = null;
+                form.ReviewCount = 0;
+            }
+        }
+
+        if (this.StudyCards is not null)
+        {
+            foreach (var card in this.StudyCards)
+            {
+                card.Rate = 3.0f;
+                card.LastReviewDate = null;
+                card.ReviewCount = 0;
+            }
+        }
+
+        if (this.TestCards is not null)
+        {
+            foreach (var card in this.TestCards)
+            {
+                card.Rate = 3.0f;
+                card.LastReviewDate = null;
+                card.ReviewCount = 0;
+            }
+        }
+
         return this;
     }
 
+    /// <summary>Clears <see cref="WordModel.Examples"/> on every word in <see cref="Words"/>, in place.</summary>
     public UnitModel RemoveExamples()
     {
         if (this.Words is not null)

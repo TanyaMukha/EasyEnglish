@@ -1,5 +1,6 @@
 ﻿namespace EasyEnglish.Core.Enums;
 
+/// <summary>Grammatical category of a word or phrase.</summary>
 public enum PartOfSpeech
 {
     Noun,

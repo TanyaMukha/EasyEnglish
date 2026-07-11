@@ -1,22 +1,16 @@
 namespace EasyEnglish.Core.Enums;
 
 /// <summary>
-/// Вид навчальної (неоцінюваної) картки модуля.
+/// The kind of non-graded study card in a unit.
 /// </summary>
 public enum StudyCardKind
 {
-    /// <summary>
-    /// Термін і його визначення.
-    /// </summary>
+    /// <summary>A term and its definition.</summary>
     Term = 0,
 
-    /// <summary>
-    /// Короткий текст, можливо з блоком коду чи діалогом.
-    /// </summary>
+    /// <summary>A short text, possibly with a code block or a dialogue.</summary>
     Text = 1,
 
-    /// <summary>
-    /// Текст із розмитими фрагментами, які відкриваються по кліку.
-    /// </summary>
+    /// <summary>Text with blurred segments that reveal on click.</summary>
     BlurredText = 2
 }

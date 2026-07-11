@@ -6,6 +6,13 @@ using System.Text.Json.Serialization;
 
 namespace EasyEnglish.Core.Models;
 
+/// <summary>
+/// DTO for <see cref="EasyEnglish.Core.Entities.TestCardEntity"/>. Packed/unpacked by
+/// <see cref="EasyEnglish.Core.Mapping.TestCardEntityToModelConverter"/> and
+/// <see cref="EasyEnglish.Core.Mapping.TestCardModelToEntityConverter"/> — exactly one of
+/// <see cref="Choice"/>, <see cref="ShortAnswer"/>, <see cref="Cloze"/>, <see cref="Matching"/> is
+/// non-null, chosen by <see cref="Kind"/>.
+/// </summary>
 public class TestCardModel : AbstractModel, IReviewInfo, IRateInfo, IAuditInfo, IGuidRecord
 {
     public Guid RecordGuid { get; set; } = Guid.NewGuid();

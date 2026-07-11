@@ -4,6 +4,7 @@ using MukhaLab.Database;
 
 namespace EasyEnglish.Core.Interfaces.Repositories;
 
+/// <summary>Repository for <see cref="IrregularFormEntity"/>, beyond the generic CRUD in <see cref="IBaseRepository{T}"/>.</summary>
 public interface IIrregularFormRepository : IBaseRepository<IrregularFormEntity>
 {
     /// <summary>Selects irregular forms from a course/unit for learning, according to the given options.</summary>

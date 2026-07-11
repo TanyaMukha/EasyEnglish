@@ -13,8 +13,15 @@ public class LearningSelectionOptions
         ShuffleWords = false;
     }
 
+    /// <summary>How many items to select. Default: 15.</summary>
     public int WordCount { get; set; }
+
+    /// <summary>Selection strategy. Default: <see cref="LearningPriority.Random"/>.</summary>
     public LearningPriority Priority { get; set; }
+
+    /// <summary>Whether already-learned items are eligible for selection. Default: <c>false</c>.</summary>
     public bool IncludeLearnedWords { get; set; }
+
+    /// <summary>Whether to shuffle the selected items' order. Default: <c>false</c>.</summary>
     public bool ShuffleWords { get; set; }
 }
