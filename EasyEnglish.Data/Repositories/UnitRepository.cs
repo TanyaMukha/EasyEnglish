@@ -7,6 +7,7 @@ using EasyEnglish.Core.Extensions;
 
 namespace EasyEnglish.Data.Repositories;
 
+/// <summary>EF Core-backed <see cref="IUnitRepository"/>.</summary>
 public class UnitRepository : BaseWithGuidRepository<UnitEntity, EasyEnglishDbContext>, IUnitRepository
 {
     public UnitRepository(
@@ -16,6 +17,7 @@ public class UnitRepository : BaseWithGuidRepository<UnitEntity, EasyEnglishDbCo
     {
     }
 
+    /// <inheritdoc/>
     public async Task<List<UnitEntity>> GetByCourseAsync(int courseId)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();
@@ -26,6 +28,13 @@ public class UnitRepository : BaseWithGuidRepository<UnitEntity, EasyEnglishDbCo
             .ToListAsync();
     }
 
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Difficulty counts are computed in SQL from <see cref="EasyEnglish.Core.Extensions.RateExtensions.EasyMax"/>/
+    /// <see cref="EasyEnglish.Core.Extensions.RateExtensions.HardMin"/> directly (not via
+    /// <c>ToDifficulty()</c>, which isn't translatable) — kept in sync by construction since both read
+    /// the same constants, but mirrors the bucketing logic by hand rather than calling it.
+    /// </remarks>
     public async Task<List<UnitCardModel>> GetUnitCardsAsync(int courseId)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();

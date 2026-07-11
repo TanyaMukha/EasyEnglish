@@ -7,6 +7,12 @@ using MukhaLab.Database;
 
 namespace EasyEnglish.Data.Repositories;
 
+/// <summary>
+/// EF Core-backed <see cref="IIrregularFormRepository"/>. Unlike its siblings
+/// (<see cref="WordRepository"/>, <see cref="StudyCardRepository"/>, <see cref="TestCardRepository"/>),
+/// this repository has no <c>GetNavigationIdsAsync</c> — <see cref="IIrregularFormRepository"/> simply
+/// doesn't declare one, so there's no prev/next navigation UI for irregular forms.
+/// </summary>
 public class IrregularFormRepository : BaseRepository<IrregularFormEntity, EasyEnglishDbContext>, IIrregularFormRepository
 {
     public IrregularFormRepository(IDbContextFactory<EasyEnglishDbContext> contextFactory, IUserContext userContext)
@@ -14,6 +20,7 @@ public class IrregularFormRepository : BaseRepository<IrregularFormEntity, EasyE
     {
     }
 
+    /// <inheritdoc/>
     public async Task<List<IrregularFormEntity>> GetForLearningAsync(int courseId, int? unitId, LearningSelectionOptions options)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();
@@ -27,6 +34,7 @@ public class IrregularFormRepository : BaseRepository<IrregularFormEntity, EasyE
         return await query.AsNoTracking().ApplyLearningSelectionAsync(options);
     }
 
+    /// <inheritdoc/>
     public async Task<int> CountReviewedSinceAsync(DateTime since)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();

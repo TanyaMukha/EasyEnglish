@@ -6,6 +6,12 @@ namespace EasyEnglish.Data.Extensions;
 
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Registers every <c>EasyEnglish.Core.Interfaces.Repositories.*</c> repository interface with its
+    /// <c>EasyEnglish.Data.Repositories.*</c> implementation, scoped per DI scope. Does not register
+    /// <c>IDbContextFactory&lt;EasyEnglishDbContext&gt;</c> or <c>MukhaLab.Database.IUserContext</c> —
+    /// those are wired up separately (see <c>EasyEnglish.App</c>'s startup code).
+    /// </summary>
     public static IServiceCollection AddEasyEnglishRepositories(this IServiceCollection services)
     {
         services.AddScoped<ICourseRepository, CourseRepository>();

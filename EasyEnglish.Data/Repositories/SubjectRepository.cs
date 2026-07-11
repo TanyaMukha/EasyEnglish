@@ -12,6 +12,7 @@ public class SubjectRepository : BaseRepository<SubjectEntity, EasyEnglishDbCont
     {
     }
 
+    /// <inheritdoc/>
     public async Task<int> CountCoursesAsync(int subjectId)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();

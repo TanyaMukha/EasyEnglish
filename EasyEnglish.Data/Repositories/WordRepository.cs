@@ -7,6 +7,7 @@ using MukhaLab.Database;
 
 namespace EasyEnglish.Data.Repositories;
 
+/// <summary>EF Core-backed <see cref="IWordRepository"/>.</summary>
 public class WordRepository : BaseRepository<WordEntity, EasyEnglishDbContext>, IWordRepository
 {
     public WordRepository(
@@ -16,6 +17,12 @@ public class WordRepository : BaseRepository<WordEntity, EasyEnglishDbContext>, 
     {
     }
 
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Loads every word id in the unit and does the position/neighbor math in memory rather than in
+    /// SQL — simplest way to express cyclic wraparound (last → first, first → last). Fine at this
+    /// app's scale (a unit's word count), not written to scale to very large units.
+    /// </remarks>
     public async Task<(int? PreviousId, int? NextId, int Position, int Total)> GetNavigationIdsAsync(int unitId, int currentWordId)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();
@@ -30,7 +37,7 @@ public class WordRepository : BaseRepository<WordEntity, EasyEnglishDbContext>, 
         if (currentIndex == -1)
             return (null, null, 0, wordIds.Count);
 
-        // Циклічна навігація: з останнього слова - на перше, з першого - на останнє.
+        // Cyclic navigation: last word wraps to the first, first word wraps to the last.
         var previousId = wordIds.Count > 1
             ? wordIds[(currentIndex - 1 + wordIds.Count) % wordIds.Count]
             : (int?)null;
@@ -41,6 +48,7 @@ public class WordRepository : BaseRepository<WordEntity, EasyEnglishDbContext>, 
         return (previousId, nextId, currentIndex + 1, wordIds.Count);
     }
 
+    /// <inheritdoc/>
     public async Task<List<WordEntity>> GetNextWordsAsync(int count)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();
@@ -52,6 +60,7 @@ public class WordRepository : BaseRepository<WordEntity, EasyEnglishDbContext>, 
             .ToListAsync();
     }
 
+    /// <inheritdoc/>
     public async Task<List<WordEntity>> GetHardWordsAsync(int count)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();
@@ -63,6 +72,7 @@ public class WordRepository : BaseRepository<WordEntity, EasyEnglishDbContext>, 
             .ToListAsync();
     }
 
+    /// <inheritdoc/>
     public async Task<List<WordEntity>> GetByUnitAsync(int unitId, string[]? includes = null)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();
@@ -76,6 +86,7 @@ public class WordRepository : BaseRepository<WordEntity, EasyEnglishDbContext>, 
         return await query.AsNoTracking().ToListAsync();
     }
 
+    /// <inheritdoc/>
     public async Task<List<WordEntity>> GetForLearningAsync(int courseId, int? unitId, LearningSelectionOptions options)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();
@@ -89,6 +100,7 @@ public class WordRepository : BaseRepository<WordEntity, EasyEnglishDbContext>, 
         return await query.AsNoTracking().ApplyLearningSelectionAsync(options);
     }
 
+    /// <inheritdoc/>
     public async Task<int> CountReviewedSinceAsync(DateTime since)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();

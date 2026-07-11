@@ -7,6 +7,7 @@ using MukhaLab.Database;
 
 namespace EasyEnglish.Data.Repositories;
 
+/// <summary>EF Core-backed <see cref="IStudyCardRepository"/>.</summary>
 public class StudyCardRepository : BaseRepository<StudyCardEntity, EasyEnglishDbContext>, IStudyCardRepository
 {
     public StudyCardRepository(IDbContextFactory<EasyEnglishDbContext> contextFactory, IUserContext userContext)
@@ -14,6 +15,7 @@ public class StudyCardRepository : BaseRepository<StudyCardEntity, EasyEnglishDb
     {
     }
 
+    /// <inheritdoc/>
     public async Task<List<StudyCardEntity>> GetForLearningAsync(int courseId, int? unitId, LearningSelectionOptions options)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();
@@ -27,6 +29,8 @@ public class StudyCardRepository : BaseRepository<StudyCardEntity, EasyEnglishDb
         return await query.AsNoTracking().ApplyLearningSelectionAsync(options);
     }
 
+    /// <inheritdoc/>
+    /// <remarks>Same cyclic-navigation approach as <see cref="WordRepository.GetNavigationIdsAsync"/>.</remarks>
     public async Task<(int? PreviousId, int? NextId, int Position, int Total)> GetNavigationIdsAsync(int unitId, int currentCardId)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();
@@ -51,6 +55,7 @@ public class StudyCardRepository : BaseRepository<StudyCardEntity, EasyEnglishDb
         return (previousId, nextId, currentIndex + 1, cardIds.Count);
     }
 
+    /// <inheritdoc/>
     public async Task<int> CountReviewedSinceAsync(DateTime since)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();

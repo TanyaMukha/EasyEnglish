@@ -5,6 +5,7 @@ using MukhaLab.Database;
 
 namespace EasyEnglish.Data.Repositories;
 
+/// <summary>EF Core-backed <see cref="IExampleRepository"/>.</summary>
 public class ExampleRepository : BaseRepository<ExampleEntity, EasyEnglishDbContext>, IExampleRepository
 {
     public ExampleRepository(IDbContextFactory<EasyEnglishDbContext> contextFactory, IUserContext userContext)
@@ -12,6 +13,8 @@ public class ExampleRepository : BaseRepository<ExampleEntity, EasyEnglishDbCont
     {
     }
 
+    /// <inheritdoc/>
+    /// <remarks>Joins through <c>Example.Word.UnitId</c> — no direct <c>UnitId</c> column on <c>examples</c>.</remarks>
     public async Task<List<ExampleEntity>> GetByUnitAsync(int unitId)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();
