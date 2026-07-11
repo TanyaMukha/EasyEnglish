@@ -140,6 +140,14 @@ Sorting (`SortDescriptor.Field`) resolves collection segments differently — se
 [Sorting](#sorting) — because there is no single "value" to sort by for a collection; only
 filtering compares against an actual value.
 
+> **Dot-separated navigation never null-checks intermediate steps.** `"Unit.Executors[Title]"`
+> resolves to `x.Unit.Executors...` with no null guard on `x.Unit` — under a real, SQL-translating
+> provider (EF Core, etc.) this is safe: SQL's `NULL` semantics mean a missing intermediate row
+> simply produces no match, not an error. Evaluated directly against LINQ-to-Objects
+> (`IEnumerable<T>.AsQueryable()`), however, a `null` intermediate throws `NullReferenceException`,
+> since there is no such automatic null-propagation in plain C#. This only matters for in-memory
+> testing/usage; against EF Core it behaves as expected.
+
 ## Filter operations
 
 | `FilterOperation` | Generated expression | Requirements |
@@ -181,6 +189,11 @@ Conversion rules:
   form are handled the same way), then parsed with the matching `Convert.ToXxx`/`Guid.Parse` call.
 - `null` and blank/whitespace-only strings both convert to `null`.
 - `FilterDataType.Date` truncates the parsed `DateTime` to its date component (`.Date`).
+- Numeric, date, and boolean conversions use `CultureInfo.InvariantCulture` explicitly (e.g. `"."`
+  as the decimal separator) rather than the current thread/OS culture — filter values normally
+  arrive from a query string or JSON payload in a culture-neutral format, so parsing them with the
+  ambient culture would make a value like `"1.50"` fail on a machine whose culture uses `","` as
+  the decimal separator.
 - Conversion failures (e.g. `DataType.Integer` with `Value = "abc"`) throw a `FormatException`
   from the underlying `Convert.ToXxx` call — validate input before constructing `FilterParameter`
   instances from untrusted request data.

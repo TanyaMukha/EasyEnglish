@@ -66,6 +66,32 @@ internal sealed class BrowserConsoleLogQueue
         _cachedJSRuntime = null;
     }
 
+    /// <summary>Number of entries currently waiting to be flushed. Test-only inspection hook.</summary>
+    internal int PendingCount => _pendingLogs.Count;
+
+    /// <summary>
+    /// Test-only helper: polls until the queue has no pending entries and no flush is currently
+    /// running, or until <paramref name="timeout"/> elapses. Exists because <see cref="Enqueue"/>
+    /// triggers a fire-and-forget background flush (<see cref="ProcessQueueAsync"/>) that a
+    /// black-box test cannot otherwise await deterministically — awaiting a single captured
+    /// <see cref="Task"/> is not sufficient since overlapping <see cref="Enqueue"/> calls can each
+    /// schedule their own short-circuiting attempt while an earlier one is still draining the queue.
+    /// </summary>
+    /// <returns><c>true</c> if the queue reached an idle state before the timeout; otherwise <c>false</c>.</returns>
+    internal async Task<bool> WaitUntilIdleAsync(TimeSpan timeout)
+    {
+        var deadline = DateTime.UtcNow + timeout;
+        while (DateTime.UtcNow < deadline)
+        {
+            if (IsIdle()) return true;
+            await Task.Delay(5);
+        }
+
+        return IsIdle();
+
+        bool IsIdle() => _pendingLogs.IsEmpty && Interlocked.CompareExchange(ref _isProcessingQueue, 0, 0) == 0;
+    }
+
     /// <summary>
     /// Drains up to <see cref="MaxBatchSize"/> queued entries and forwards each to the browser console
     /// via <see cref="IJSRuntime.InvokeVoidAsync(string, object[])"/>.

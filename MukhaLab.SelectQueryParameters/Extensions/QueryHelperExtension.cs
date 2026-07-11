@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Linq.Expressions;
 using MukhaLab.SelectQueryParameters.Models;
 
@@ -92,32 +93,41 @@ public static class QueryHelperExtensions
     /// </summary>
     private static Expression BuildFilterExpression(ParameterExpression parameter, FilterParameter filter)
     {
-        var parts = filter.Field.Split('.');
-        var collectionIndex = Array.FindIndex(parts, p => p.Contains('[') && p.Contains(']'));
+        var field = filter.Field;
+        var bracketStart = field.IndexOf('[');
+        var bracketEnd = bracketStart < 0 ? -1 : field.IndexOf(']', bracketStart);
 
-        if (collectionIndex < 0)
+        if (bracketStart < 0 || bracketEnd < 0)
         {
-            Expression propertyExpr = GetPropertyExpression(parameter, filter.Field);
+            Expression propertyExpr = GetPropertyExpression(parameter, field);
             return propertyExpr == null ? null! : BuildComparisonExpression(propertyExpr, filter) ?? null!;
         }
+
+        // The bracket's position is located in the raw field string *before* splitting on '.', so
+        // a dot inside the brackets (e.g. "Children[Author.Name]") is never mistaken for a
+        // top-level path separator.
+        var prefix = field.Substring(0, bracketStart);
+        var prefixParts = prefix.Split('.');
+        var collectionName = prefixParts[^1];
 
         // Navigate to the expression the collection segment hangs off of, supporting a collection
         // nested behind a dot-separated prefix (e.g. "Unit.Executors[Title]").
         Expression current = parameter;
-        for (var i = 0; i < collectionIndex; i++)
-            current = Expression.Property(current, parts[i]);
+        for (var i = 0; i < prefixParts.Length - 1; i++)
+            current = Expression.Property(current, prefixParts[i]);
 
-        var collectionPart = parts[collectionIndex];
-        var collectionName = collectionPart.Substring(0, collectionPart.IndexOf('['));
-        var itemPropertyPath = collectionPart.Substring(collectionPart.IndexOf('[') + 1, collectionPart.IndexOf(']') - collectionPart.IndexOf('[') - 1);
+        var innerPath = field.Substring(bracketStart + 1, bracketEnd - bracketStart - 1);
+        var suffix = bracketEnd + 1 < field.Length ? field.Substring(bracketEnd + 1).TrimStart('.') : string.Empty;
 
         var collectionProperty = Expression.Property(current, collectionName);
         var itemType = collectionProperty.Type.GetGenericArguments()[0];
         var itemParameter = Expression.Parameter(itemType, "i");
 
-        // The bracket's inner path, plus any dot segments after the collection segment, resolve
-        // against the collection's item type (e.g. "Executors[Contact.Email]").
-        var itemPathParts = new[] { itemPropertyPath }.Concat(parts.Skip(collectionIndex + 1));
+        // The bracket's inner path (which may itself contain dots, e.g. "Author.Name"), plus any
+        // dot segments after the closing bracket, resolve against the collection's item type
+        // (e.g. "Executors[Contact].Email").
+        var itemPathParts = innerPath.Split('.')
+            .Concat(string.IsNullOrEmpty(suffix) ? Array.Empty<string>() : suffix.Split('.'));
         Expression itemPropertyExpr = itemPathParts.Aggregate((Expression)itemParameter, Expression.Property);
 
         var comparison = BuildComparisonExpression(itemPropertyExpr, filter);
@@ -176,60 +186,67 @@ public static class QueryHelperExtensions
     /// <see cref="SortDescriptor.Field"/>) into an expression rooted at <paramref name="parameter"/>.
     /// </summary>
     /// <remarks>
-    /// Each dot-separated segment is either:
-    /// <list type="bullet">
-    /// <item><description>A plain property name (e.g. <c>"Title"</c>), resolved with <see cref="Expression.Property(Expression, string)"/>.</description></item>
-    /// <item><description>
-    /// A collection segment <c>"Collection[Property]"</c> (e.g. <c>"Executors[Title]"</c>), resolved
-    /// to <c>collection.Any(item =&gt; item.Property != null)</c> — a boolean existence check for a
-    /// non-null nested property. This method is only used this way for <b>sorting</b>
+    /// If <paramref name="propertyPath"/> contains no <c>[</c>/<c>]</c> pair, it is treated as a
+    /// plain dot-separated navigation path (e.g. <c>"Task.Title"</c>), resolved segment-by-segment
+    /// with <see cref="Expression.Property(Expression, string)"/>.
+    /// <para>
+    /// Otherwise the first <c>[</c>/<c>]</c> pair is located in the raw string (before any
+    /// dot-splitting, so a dot inside the brackets is never mistaken for a path separator), and the
+    /// path is treated as a single collection segment <c>"Prefix.Collection[Property]"</c> (e.g.
+    /// <c>"Executors[Title]"</c> or <c>"Unit.Executors[Title]"</c>), resolved to
+    /// <c>prefix.Collection.Any(item =&gt; item.Property != null)</c> — a boolean existence check for
+    /// a non-null nested property. This method is only used this way for <b>sorting</b>
     /// (<see cref="ApplyOrder{T}"/>); ordering by that boolean is a legitimate but unusual use case
     /// (entities with a non-null nested property sort before/after the rest). <b>Filtering</b>
     /// (<see cref="BuildFilterExpression"/>) does not call this method for collection segments — it
     /// builds a value-comparing <c>Any(...)</c> directly, since sorting and filtering need different
     /// things from the collection item's property (a sort key vs. a comparison against the filter
-    /// value). Once a collection segment is resolved here, the result is boolean, so it cannot be
-    /// the target of a further dot-separated segment.
-    /// </description></item>
-    /// </list>
+    /// value). Once a collection segment is resolved, the result is boolean, so anything after the
+    /// closing bracket is ignored.
+    /// </para>
     /// </remarks>
     /// <param name="parameter">Root expression (typically the lambda parameter for the entity type).</param>
     /// <param name="propertyPath">Dot/bracket path, e.g. <c>"Title"</c>, <c>"Task.Title"</c>, or <c>"Executors[Title]"</c>.</param>
     /// <returns>The resolved expression.</returns>
     private static Expression GetPropertyExpression(Expression parameter, string propertyPath)
     {
-        Expression expr = parameter;
-        var parts = propertyPath.Split('.');
+        var bracketStart = propertyPath.IndexOf('[');
+        var bracketEnd = bracketStart < 0 ? -1 : propertyPath.IndexOf(']', bracketStart);
 
-        foreach (var part in parts)
+        if (bracketStart < 0 || bracketEnd < 0)
         {
-            if (part.Contains("[") && part.Contains("]"))
-            {
-                // Collection segment: "Collection[Property]" -> Collection.Any(i => i.Property != null)
-                var collectionName = part.Substring(0, part.IndexOf('['));
-                var propertyName = part.Substring(part.IndexOf('[') + 1, part.IndexOf(']') - part.IndexOf('[') - 1);
-
-                var collectionProperty = Expression.Property(expr, collectionName);
-                var itemType = collectionProperty.Type.GetGenericArguments()[0];
-
-                var lambdaParam = Expression.Parameter(itemType, "i");
-                var itemProperty = Expression.Property(lambdaParam, propertyName);
-
-                var anyLambda = Expression.Lambda(itemProperty != null ? Expression.NotEqual(itemProperty, Expression.Constant(null)) : Expression.Constant(true), lambdaParam);
-
-                var anyMethod = typeof(Enumerable).GetMethods()
-                    .First(m => m.Name == "Any" && m.GetParameters().Length == 2)
-                    .MakeGenericMethod(itemType);
-
-                expr = Expression.Call(anyMethod, collectionProperty, anyLambda);
-            }
-            else
-            {
-                expr = Expression.Property(expr, part);
-            }
+            Expression plainExpr = parameter;
+            foreach (var part in propertyPath.Split('.'))
+                plainExpr = Expression.Property(plainExpr, part);
+            return plainExpr;
         }
 
-        return expr;
+        // The bracket's position is located in the raw path string *before* splitting on '.', so a
+        // dot inside the brackets is never mistaken for a top-level path separator.
+        var prefix = propertyPath.Substring(0, bracketStart);
+        var prefixParts = prefix.Split('.');
+        var collectionName = prefixParts[^1];
+
+        Expression expr = parameter;
+        for (var i = 0; i < prefixParts.Length - 1; i++)
+            expr = Expression.Property(expr, prefixParts[i]);
+
+        // Collection segment: "Collection[Property]" -> Collection.Any(i => i.Property != null)
+        var propertyName = propertyPath.Substring(bracketStart + 1, bracketEnd - bracketStart - 1);
+
+        var collectionProperty = Expression.Property(expr, collectionName);
+        var itemType = collectionProperty.Type.GetGenericArguments()[0];
+
+        var lambdaParam = Expression.Parameter(itemType, "i");
+        var itemProperty = Expression.Property(lambdaParam, propertyName);
+
+        var anyLambda = Expression.Lambda(Expression.NotEqual(itemProperty, Expression.Constant(null)), lambdaParam);
+
+        var anyMethod = typeof(Enumerable).GetMethods()
+            .First(m => m.Name == "Any" && m.GetParameters().Length == 2)
+            .MakeGenericMethod(itemType);
+
+        return Expression.Call(anyMethod, collectionProperty, anyLambda);
     }
 
     /// <summary>
@@ -239,7 +256,12 @@ public static class QueryHelperExtensions
     /// The value is always round-tripped through <see cref="object.ToString"/> before conversion —
     /// even if it is already the target type — so a boxed <see cref="int"/> and its string
     /// representation are handled identically. A null value or a blank string both convert to
-    /// <c>null</c>.
+    /// <c>null</c>. Numeric and date conversions use <see cref="CultureInfo.InvariantCulture"/>
+    /// explicitly (e.g. <c>"."</c> as the decimal separator, ISO-8601-style dates) rather than the
+    /// current thread/OS culture, since filter values typically arrive from a query string or JSON
+    /// payload in a culture-neutral format — using the ambient culture here would make a value like
+    /// <c>"1.50"</c> fail to parse on a machine whose culture uses <c>","</c> as the decimal
+    /// separator.
     /// </remarks>
     /// <param name="value">Raw value, typically a string from a query string or a JSON payload.</param>
     /// <param name="dataType">Target CLR type.</param>
@@ -256,11 +278,11 @@ public static class QueryHelperExtensions
         return dataType switch
         {
             FilterDataType.String => str,
-            FilterDataType.Integer => Convert.ToInt32(str),
-            FilterDataType.Decimal => Convert.ToDecimal(str),
-            FilterDataType.DateTime => Convert.ToDateTime(str),
-            FilterDataType.Date => Convert.ToDateTime(str).Date,
-            FilterDataType.Boolean => Convert.ToBoolean(str),
+            FilterDataType.Integer => Convert.ToInt32(str, CultureInfo.InvariantCulture),
+            FilterDataType.Decimal => Convert.ToDecimal(str, CultureInfo.InvariantCulture),
+            FilterDataType.DateTime => Convert.ToDateTime(str, CultureInfo.InvariantCulture),
+            FilterDataType.Date => Convert.ToDateTime(str, CultureInfo.InvariantCulture).Date,
+            FilterDataType.Boolean => Convert.ToBoolean(str, CultureInfo.InvariantCulture),
             FilterDataType.Guid => Guid.Parse(str),
             _ => str
         };

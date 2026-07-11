@@ -68,13 +68,24 @@ title Database Diagram
 ' end legend
 
 ' Определение таблиц базы данных
+table(subjects) {
+    PK(id): INT AUTO_INCREMENT
+    column(title): TEXT NOT NULL
+    column(description): TEXT
+    column(created_at): TEXT NOT NULL
+    column(updated_at): TEXT NULL
+}
+
 table(courses) {
     PK(id): INT AUTO_INCREMENT
     column(guid): TEXT NOT NULL
     column(title): TEXT NOT NULL
     column(description): TEXT
-    column(created_at): TEXT NULL
+    column(language_code): TEXT
+    column(created_at): TEXT NOT NULL
     column(updated_at): TEXT NULL
+    --
+    FK(subject_id): INT NULL
 }
 
 table(units) {
@@ -83,13 +94,12 @@ table(units) {
     column(title): TEXT NOT NULL
     column(description): TEXT
     column(content): TEXT
-    column(level): TEXT
     column(last_review_date): TIMESTAMP
     column(review_count): INT
-    column(created_at): TEXT NULL
+    column(created_at): TEXT NOT NULL
     column(updated_at): TEXT NULL
     --
-    FK(courses_id): INT
+    FK(course_id): INT NOT NULL
 }
 
 table(words) {
@@ -98,35 +108,29 @@ table(words) {
     column(word): TEXT NOT NULL
     column(transcription): TEXT
     column(translation): TEXT
-    column(explanation): TEXT
-    column(definition): TEXT
-    column(part_of_speech): TEXT NOT NULL
-    column(language): TEXT NOT NULL DEFAULT 'en'
-    column(level): TEXT
+    column(note): TEXT
     column(pronunciation): BLOB
     column(last_review_date): TIMESTAMP
     column(review_count): INT
-    column(rate): INT
-    column(created_at): TEXT NULL
+    column(rate): REAL
+    column(created_at): TEXT NOT NULL
     column(updated_at): TEXT NULL
     --
-    FK(unit_id): INT
+    FK(unit_id): INT NOT NULL
 }
 
-table(tags) {
-  PK(id): INT AUTO_INCREMENT
-  column(title): TEXT NOT NULL
-  column(created_at): TEXT NULL
-  column(updated_at): TEXT NULL
-}
-
-table(word_tags) {
-  FPK(word_id): INT NOT NULL
-  FPK(tag_id): INT NOT NULL
+table(examples) {
+    PK(id): INT AUTO_INCREMENT
+    column(guid): TEXT NOT NULL
+    column(sentence): TEXT NOT NULL
+    column(translation): TEXT
+    --
+    FK(word_id): INT NOT NULL
 }
 
 table(irregular_forms) {
   PK(id): INT AUTO_INCREMENT
+  column(guid): TEXT NOT NULL
   column(first_form): TEXT NOT NULL
   column(first_form_transcription): TEXT
   column(first_form_translation): TEXT
@@ -140,63 +144,64 @@ table(irregular_forms) {
   column(third_form_transcription): TEXT
   column(third_form_translation): TEXT
   column(third_form_pronunciation): BLOB
+  column(last_review_date): TIMESTAMP
+  column(review_count): INT
+  column(rate): REAL
+  column(created_at): TEXT NOT NULL
+  column(updated_at): TEXT NULL
   --
-  FK(unit_id): INT
-}
-
-table(examples) {
-  PK(id): INT AUTO_INCREMENT
-  column(sentence): TEXT NOT NULL
-  column(translation): TEXT
-  --
-  FK(word_id): INT
+  FK(unit_id): INT NOT NULL
 }
 
 table(study_cards) {
   PK(id): INT AUTO_INCREMENT
   column(guid): TEXT NOT NULL
+  column(kind): INT NOT NULL
   column(title): TEXT NOT NULL
-  column(description): TEXT
+  column(body): TEXT
   column(dialogue): TEXT
+  column(code_block): TEXT
+  column(reveal_mode): INT
   column(last_review_date): TIMESTAMP
   column(review_count): INT
-  column(rate): INT
-  column(created_at): TEXT NULL
+  column(rate): REAL
+  column(created_at): TEXT NOT NULL
   column(updated_at): TEXT NULL
   --
-  FK(unit_id): INT
+  FK(unit_id): INT NOT NULL
 }
 
 table(test_cards) {
   PK(id): INT AUTO_INCREMENT
   column(guid): TEXT NOT NULL
-  column(test_type): TEXT
-  column(title): TEXT NOT NULL
-  column(description): TEXT
+  column(kind): INT NOT NULL
+  column(title): TEXT
   column(text): TEXT
-  column(mask): TEXT
+  column(hint): TEXT
+  column(image): BLOB
+  column(formatted_text): TEXT
+  column(explanation): TEXT
   column(options): TEXT
   column(correct_answers): TEXT
   column(last_review_date): TIMESTAMP
   column(review_count): INT
-  column(rate): INT
-  column(created_at): TEXT NULL
+  column(rate): REAL
+  column(created_at): TEXT NOT NULL
   column(updated_at): TEXT NULL
   --
-  FK(unit_id): INT
+  FK(unit_id): INT NOT NULL
 }
 
 ' Определение связей между таблицами
+subjects |o--o{ courses
+
 courses ||--o{ units
 
-units ||--o{ study_cards
 units ||--o{ words
 units ||--o{ irregular_forms
+units ||--o{ study_cards
 units ||--o{ test_cards
 
 words ||--o{ examples
-
-word_tags ||--o{ tags
-word_tags ||--o{ words
 
 @enduml

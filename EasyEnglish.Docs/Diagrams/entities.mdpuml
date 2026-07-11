@@ -1,4 +1,4 @@
-﻿@startuml EasyEnglish Entities
+@startuml EasyEnglish Entities
 
 ' Определение стилей для полей интерфейсов
 !define AUDIT(x)    <b><color:#4A90E2>x 🕐</color></b>
@@ -32,111 +32,73 @@ title EasyEnglish Entities
 
 legend top left
 
-**IRecordReviewInfo**
+**IReviewInfo**
     LastReviewDate : DateTime? 🔄
     ReviewCount : int 🔄
 
-**IRecordRateInfo**
+**IRateInfo**
     Rate : float ⭐
 
-**IRecordAuditInfo**
+**IAuditInfo**
     CreatedAt : DateTime 🕐
     UpdatedAt : DateTime? 🕐
 
+Id (🔑, from AbstractEntity) and RecordGuid (from IGuidRecord) are shown in italic/grey — not
+every entity has RecordGuid (see Subject).
+
 end legend
 
-entity "Course<AbstractMainEntity>" as Course {
+entity "Subject<AbstractEntity>" as Subject {
     INHERITED_PK(+ Id : int)
-    INHERITED(+ RecordGuid : Guid)
     FIELD(+ Title : string)
     FIELD(+ Description : string?)
     AUDIT(+ CreatedAt : DateTime)
     AUDIT(+ UpdatedAt : DateTime?)
     --
-    FIELD(+ Units : List<Unit>)
+    FIELD(+ Courses : List<Course>)
 }
 
-entity "Unit<AbstractMainEntity>" as Unit {
+entity "Course<AbstractEntity>" as Course {
     INHERITED_PK(+ Id : int)
     INHERITED(+ RecordGuid : Guid)
     FIELD(+ Title : string)
     FIELD(+ Description : string?)
+    FIELD(+ LanguageCode : string?)
+    AUDIT(+ CreatedAt : DateTime)
+    AUDIT(+ UpdatedAt : DateTime?)
+    FK_FIELD(+ SubjectId : int?)
+    --
+    FIELD(+ Subject : Subject?)
+    FIELD(+ Units : List<Unit>)
+}
+
+entity "Unit<AbstractEntity>" as Unit {
+    INHERITED_PK(+ Id : int)
+    INHERITED(+ RecordGuid : Guid)
+    FIELD(+ Title : string)
+    FIELD(+ Description : string?)
+    FIELD(+ Content : string?)
     REVIEW(+ LastReviewDate : DateTime?)
     REVIEW(+ ReviewCount : int)
     AUDIT(+ CreatedAt : DateTime)
     AUDIT(+ UpdatedAt : DateTime?)
+    FK_FIELD(+ CourseId : int)
     --
+    FIELD(+ Course : Course?)
     FIELD(+ Words : List<Word>)
+    FIELD(+ IrregularForms : List<IrregularForm>)
+    FIELD(+ StudyCards : List<StudyCard>)
+    FIELD(+ TestCards : List<TestCard>)
 }
 
-entity "Word<AbstractMainEntity>" as Word {
+entity "Word<AbstractEntity>" as Word {
     INHERITED_PK(+ Id : int)
     INHERITED(+ RecordGuid : Guid)
     FIELD(+ Word : string)
     FIELD(+ Transcription : string?)
     FIELD(+ Translation : string?)
-    FIELD(+ Explanation : string?)
-    FIELD(+ Definition : string?)
-    FIELD(+ PartOfSpeech : string)
-    FIELD(+ Language : string)
-    FIELD(+ Level : string)
-    FIELD(+ IsIrregular : bool)
+    FIELD(+ Note : string?)
     FIELD(+ Pronunciation : byte[]?)
-    REVIEW(+ LastReviewDate : DateTime?)
-    REVIEW(+ ReviewCount : int)
-    RATE(+ Rate : float)
-    AUDIT(+ CreatedAt : DateTime)
-    AUDIT(+ UpdatedAt : DateTime?)
-    FK_FIELD(+ DictionaryId : int)
-    --
-    FIELD(+ Dictionary : Dictionary?)
-    FIELD(+ Examples : List<Example>)
-    FIELD(+ WordTags : List<WordTag>)
-    FIELD(+ Units : List<UnitItem>)
-}
-
-entity "Example<AbstractEntity>" as Example {
-    INHERITED_PK(+ Id : int)
-    FIELD(+ Sentence : string)
-    FIELD(+ Translation : string?)
-    FK_FIELD(+ WordId : int)
-    --
-    FIELD(+ Word : Word?)
-}
-
-entity "Tag<AbstractEntity>" as Tag {
-    INHERITED_PK(+ Id : int)
-    FIELD(+ Title : string)
-    AUDIT(+ CreatedAt : DateTime)
-    AUDIT(+ UpdatedAt : DateTime?)
-    --
-    FIELD(+ WordTags : List<WordTag>)
-}
-
-entity "WordTag" as WordTag {
-    PFK_FIELD(+ WordId : int)
-    PFK_FIELD(+ TagId : int)
-    --
-    FIELD(+ Word : Word?)
-    FIELD(+ Tag : Tag?)
-}
-
-entity "IrregularForm" as IrregularForm {
-    PFK_FIELD(+ FirstFormId : int)
-    PFK_FIELD(+ SecondFormId : int)
-    PFK_FIELD(+ ThirdFormId : int?)
-    --
-    FIELD(+ FirstForm : Word?)
-    FIELD(+ SecondForm : Word?)
-    FIELD(+ ThirdForm : Word?)
-}
-
-entity "StudyCard<AbstractMainEntity>" as StudyCard {
-    INHERITED_PK(+ Id : int)
-    INHERITED(+ RecordGuid : Guid)
-    FIELD(+ Title : string)
-    FIELD(+ Description : string?)
-    FIELD(+ Dialogue : string?)
     REVIEW(+ LastReviewDate : DateTime?)
     REVIEW(+ ReviewCount : int)
     RATE(+ Rate : float)
@@ -145,55 +107,74 @@ entity "StudyCard<AbstractMainEntity>" as StudyCard {
     FK_FIELD(+ UnitId : int)
     --
     FIELD(+ Unit : Unit?)
-    FIELD(+ StudyCardItems : List<StudyCardItem>)
+    FIELD(+ Examples : List<Example>)
 }
 
-entity "StudyCardItem" as StudyCardItem {
-    PFK_FIELD(+ CardId : int)
-    PFK_FIELD(+ WordId : int)
+entity "Example<AbstractEntity>" as Example {
+    INHERITED_PK(+ Id : int)
+    INHERITED(+ RecordGuid : Guid)
+    FIELD(+ Sentence : string)
+    FIELD(+ Translation : string?)
+    FK_FIELD(+ WordId : int)
     --
-    FIELD(+ StudyCard : StudyCard?)
     FIELD(+ Word : Word?)
 }
 
-entity "GrammarTopic<AbstractMainEntity>" as GrammarTopic {
+entity "IrregularForm<AbstractEntity>" as IrregularForm {
     INHERITED_PK(+ Id : int)
     INHERITED(+ RecordGuid : Guid)
-    FIELD(+ Title : string)
-    FIELD(+ Description : string?)
-    FIELD(+ Content : string)
-    FIELD(+ Language : string)
+    FIELD(+ FirstForm : string)
+    FIELD(+ FirstFormTranscription : string?)
+    FIELD(+ FirstFormTranslation : string?)
+    FIELD(+ FirstFormPronunciation : byte[]?)
+    FIELD(+ PartOfSpeech : string)
+    FIELD(+ SecondForm : string)
+    FIELD(+ SecondFormTranscription : string?)
+    FIELD(+ SecondFormTranslation : string?)
+    FIELD(+ SecondFormPronunciation : byte[]?)
+    FIELD(+ ThirdForm : string?)
+    FIELD(+ ThirdFormTranscription : string?)
+    FIELD(+ ThirdFormTranslation : string?)
+    FIELD(+ ThirdFormPronunciation : byte[]?)
     REVIEW(+ LastReviewDate : DateTime?)
     REVIEW(+ ReviewCount : int)
+    RATE(+ Rate : float)
     AUDIT(+ CreatedAt : DateTime)
     AUDIT(+ UpdatedAt : DateTime?)
-    FK_FIELD(+ TopicId : int?)
+    FK_FIELD(+ UnitId : int)
     --
-    FIELD(+ ParentTopic : GrammarTopic?)
-    FIELD(+ ChildTopics : List<GrammarTopic>)
+    FIELD(+ Unit : Unit?)
 }
 
-entity "GrammarTest<AbstractMainEntity>" as GrammarTest {
+entity "StudyCard<AbstractEntity>" as StudyCard {
     INHERITED_PK(+ Id : int)
     INHERITED(+ RecordGuid : Guid)
+    FIELD(+ Kind : StudyCardKind)
     FIELD(+ Title : string)
-    FIELD(+ Description : string?)
+    FIELD(+ Body : string?)
+    FIELD(+ Dialogue : string?)
+    FIELD(+ CodeBlock : string?)
+    FIELD(+ RevealMode : BlurRevealMode?)
     REVIEW(+ LastReviewDate : DateTime?)
     REVIEW(+ ReviewCount : int)
+    RATE(+ Rate : float)
     AUDIT(+ CreatedAt : DateTime)
     AUDIT(+ UpdatedAt : DateTime?)
+    FK_FIELD(+ UnitId : int)
     --
-    FIELD(+ TestCards : List<TestCard>)
+    FIELD(+ Unit : Unit?)
 }
 
-entity "TestCard<AbstractMainEntity>" as TestCard {
+entity "TestCard<AbstractEntity>" as TestCard {
     INHERITED_PK(+ Id : int)
     INHERITED(+ RecordGuid : Guid)
-    FIELD(+ TestType : string?)
-    FIELD(+ Title : string)
-    FIELD(+ Description : string?)
-    FIELD(+ Text : string?)
-    FIELD(+ Mask : string?)
+    FIELD(+ Kind : TestCardKind)
+    FIELD(+ Title : string?)
+    FIELD(+ Question : string?)
+    FIELD(+ Hint : string?)
+    FIELD(+ Image : byte[]?)
+    FIELD(+ FormattedText : string?)
+    FIELD(+ Explanation : string?)
     FIELD(+ Options : string?)
     FIELD(+ CorrectAnswers : string?)
     REVIEW(+ LastReviewDate : DateTime?)
@@ -201,29 +182,41 @@ entity "TestCard<AbstractMainEntity>" as TestCard {
     RATE(+ Rate : float)
     AUDIT(+ CreatedAt : DateTime)
     AUDIT(+ UpdatedAt : DateTime?)
-    FK_FIELD(+ TestId : int)
+    FK_FIELD(+ UnitId : int)
     --
-    FIELD(+ GrammarTest : GrammarTest?)
+    FIELD(+ Unit : Unit?)
 }
 
-' Inheritance relationships
-' (Inheritance links removed as requested)
+enum StudyCardKind {
+    Term
+    Text
+    BlurredText
+}
+
+enum BlurRevealMode {
+    Independent
+    Grouped
+}
+
+enum TestCardKind {
+    SingleChoice
+    MultipleChoice
+    ShortAnswer
+    Cloze
+    Matching
+}
 
 ' Relationships
+Subject |o--o{ Course : "groups courses"
 Course ||--o{ Unit : "has units"
 Unit ||--o{ Word : "has words"
+Unit ||--o{ IrregularForm : "has irregular forms"
+Unit ||--o{ StudyCard : "has study cards"
+Unit ||--o{ TestCard : "has test cards"
 Word ||--o{ Example : "has examples"
-Word ||--o{ WordTag : "has tags"
 
-Word ||--o{ StudyCardItem : "in study cards"
-Word ||--o{ IrregularForm : "irregular forms"
-
-Tag ||--o{ WordTag : "tagged words"
-
-
-StudyCard ||--o{ StudyCardItem : "contains words"
-
-GrammarTopic ||--o{ GrammarTopic : "parent/child"
-GrammarTest ||--o{ TestCard : "has test cards"
+StudyCard ..> StudyCardKind
+StudyCard ..> BlurRevealMode
+TestCard ..> TestCardKind
 
 @enduml
