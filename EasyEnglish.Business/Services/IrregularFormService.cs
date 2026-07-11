@@ -9,6 +9,7 @@ using MukhaLab.Database;
 
 namespace EasyEnglish.Services.Services;
 
+/// <summary>Service for <see cref="IrregularFormModel"/>, beyond the generic CRUD in <see cref="BaseService{T, TModel}"/>.</summary>
 public class IrregularFormService : BaseService<IrregularFormEntity ,IrregularFormModel>, IIrregularFormService
 {
     private readonly IIrregularFormRepository _irregularFormRepository;
@@ -22,6 +23,8 @@ public class IrregularFormService : BaseService<IrregularFormEntity ,IrregularFo
         _irregularFormRepository = repository;
     }
 
+    /// <inheritdoc/>
+    /// <remarks>Shuffling happens here, after the repository query returns — not pushed down to SQL.</remarks>
     public async Task<IEnumerable<IrregularFormModel>> GetForLearningAsync(int courseId, int? unitId, LearningSelectionOptions options)
     {
         var entities = await _irregularFormRepository.GetForLearningAsync(courseId, unitId, options);
@@ -33,18 +36,21 @@ public class IrregularFormService : BaseService<IrregularFormEntity ,IrregularFo
         return _mapper.Map<IEnumerable<IrregularFormModel>>(result);
     }
 
+    /// <inheritdoc/>
     public Task<int> CountReviewedSinceAsync(DateTime since) => _irregularFormRepository.CountReviewedSinceAsync(since);
 
+    /// <inheritdoc/>
+    /// <remarks>Ids in <paramref name="forms"/> not found among existing rows are silently skipped, not reported.</remarks>
     public async Task<IEnumerable<IrregularFormModel>> UpdateRateRangeAsync(IEnumerable<UpdateWordRateRequest> forms)
     {
         try
         {
             var formsList = forms.ToList();
-            _logger.LogDebug("Оновлення рейтингу для {Count} неправильних форм", formsList.Count);
+            _logger.LogDebug("Updating rating for {Count} irregular forms", formsList.Count);
 
             List<int> ids = formsList.Select(f => f.Id).ToList();
 
-            // Отримуємо БЕЗ includes для update
+            // Fetch WITHOUT includes for the update
             var entities = await _repository.FindManyAsync(ids);
 
             var entitiesDict = entities.ToDictionary(e => e.Id);
@@ -61,12 +67,12 @@ public class IrregularFormService : BaseService<IrregularFormEntity ,IrregularFo
 
             var updatedModels = _mapper.Map<IEnumerable<IrregularFormModel>>(entities);
 
-            _logger.LogInformation("Оновлено рейтинг для {Count} неправильних форм", formsList.Count);
+            _logger.LogInformation("Updated rating for {Count} irregular forms", formsList.Count);
             return updatedModels;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Помилка при оновленні рейтингу неправильних форм");
+            _logger.LogError(ex, "Error updating irregular form ratings");
             throw;
         }
     }

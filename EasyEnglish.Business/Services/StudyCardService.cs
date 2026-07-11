@@ -9,6 +9,7 @@ using MukhaLab.Database;
 
 namespace EasyEnglish.Services.Services;
 
+/// <summary>Service for <see cref="StudyCardModel"/>, beyond the generic CRUD in <see cref="BaseService{T, TModel}"/>.</summary>
 public class StudyCardService : BaseService<StudyCardEntity, StudyCardModel>, IStudyCardService
 {
     private readonly IStudyCardRepository _studyCardRepository;
@@ -22,6 +23,8 @@ public class StudyCardService : BaseService<StudyCardEntity, StudyCardModel>, IS
         _studyCardRepository = repository;
     }
 
+    /// <inheritdoc/>
+    /// <remarks>Shuffling happens here, after the repository query returns — not pushed down to SQL.</remarks>
     public async Task<IEnumerable<StudyCardModel>> GetForLearningAsync(int courseId, int? unitId, LearningSelectionOptions options)
     {
         var entities = await _studyCardRepository.GetForLearningAsync(courseId, unitId, options);
@@ -33,28 +36,32 @@ public class StudyCardService : BaseService<StudyCardEntity, StudyCardModel>, IS
         return _mapper.Map<IEnumerable<StudyCardModel>>(result);
     }
 
+    /// <inheritdoc/>
     public Task<int> CountReviewedSinceAsync(DateTime since) => _studyCardRepository.CountReviewedSinceAsync(since);
 
+    /// <inheritdoc/>
     public async Task<(int? PreviousId, int? NextId, int Position, int Total)> GetNavigationIdsAsync(int unitId, int currentCardId)
     {
         try
         {
-            _logger.LogDebug("Отримання ID сусідніх навчальних карток для картки {CardId} у модулі {UnitId}", currentCardId, unitId);
+            _logger.LogDebug("Fetching neighboring study card ids for card {CardId} in unit {UnitId}", currentCardId, unitId);
             return await _studyCardRepository.GetNavigationIdsAsync(unitId, currentCardId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Помилка при отриманні ID сусідніх навчальних карток для картки {CardId}", currentCardId);
+            _logger.LogError(ex, "Error fetching neighboring study card ids for card {CardId}", currentCardId);
             throw;
         }
     }
 
+    /// <inheritdoc/>
+    /// <remarks>Ids in <paramref name="cards"/> not found among existing rows are silently skipped, not reported.</remarks>
     public async Task<IEnumerable<StudyCardModel>> UpdateRateRangeAsync(IEnumerable<UpdateWordRateRequest> cards)
     {
         try
         {
             var cardsList = cards.ToList();
-            _logger.LogDebug("Оновлення рейтингу для {Count} навчальних карток", cardsList.Count);
+            _logger.LogDebug("Updating rating for {Count} study cards", cardsList.Count);
 
             var ids = cardsList.Select(c => c.Id).ToList();
             var entities = await _repository.FindManyAsync(ids);
@@ -72,12 +79,12 @@ public class StudyCardService : BaseService<StudyCardEntity, StudyCardModel>, IS
 
             var updatedModels = _mapper.Map<IEnumerable<StudyCardModel>>(entities);
 
-            _logger.LogInformation("Оновлено рейтинг для {Count} навчальних карток", cardsList.Count);
+            _logger.LogInformation("Updated rating for {Count} study cards", cardsList.Count);
             return updatedModels;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Помилка при оновленні рейтингу навчальних карток");
+            _logger.LogError(ex, "Error updating study card ratings");
             throw;
         }
     }

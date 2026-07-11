@@ -9,6 +9,7 @@ using MukhaLab.Database;
 
 namespace EasyEnglish.Services.Services;
 
+/// <summary>Service for <see cref="CourseModel"/>, beyond the generic CRUD in <see cref="BaseWithGuidService{T, TModel}"/>.</summary>
 public class CourseService : BaseWithGuidService<CourseEntity, CourseModel>, ICourseService
 {
     private readonly IUnitService unitService;
@@ -26,11 +27,14 @@ public class CourseService : BaseWithGuidService<CourseEntity, CourseModel>, ICo
         this.wordService = wordService ?? throw new ArgumentNullException(nameof(wordService));
     }
 
+    /// <inheritdoc/>
     public async Task<IEnumerable<UnitModel>> GetUnitsAsync(int courseId)
     {
         return await this.unitService.GetByCourseAsync(courseId);
     }
 
+    /// <inheritdoc/>
+    /// <remarks>Shuffling happens here, after <see cref="IWordService.GetForLearningAsync"/> returns — not pushed down to SQL.</remarks>
     public async Task<IEnumerable<WordModel>> GetWordsAsync(int courseId, int? unitId = null, LearningSelectionOptions? options = null)
     {
         options ??= new LearningSelectionOptions();

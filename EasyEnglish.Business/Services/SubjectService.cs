@@ -8,6 +8,7 @@ using MukhaLab.Database;
 
 namespace EasyEnglish.Services.Services;
 
+/// <summary>Service for <see cref="SubjectModel"/>, beyond the generic CRUD in <see cref="BaseService{T, TModel}"/>.</summary>
 public class SubjectService : BaseService<SubjectEntity, SubjectModel>, ISubjectService
 {
     private readonly ISubjectRepository _subjectRepository;
@@ -21,5 +22,6 @@ public class SubjectService : BaseService<SubjectEntity, SubjectModel>, ISubject
         _subjectRepository = repository;
     }
 
+    /// <inheritdoc/>
     public Task<int> GetCourseCountAsync(int subjectId) => _subjectRepository.CountCoursesAsync(subjectId);
 }

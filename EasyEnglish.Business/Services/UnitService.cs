@@ -6,10 +6,10 @@ using EasyEnglish.Core.Presets;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using MukhaLab.Database;
-using EasyEnglish.Data.Repositories;
 
 namespace EasyEnglish.Services.Services;
 
+/// <summary>Service for <see cref="UnitModel"/>, beyond the generic CRUD in <see cref="BaseWithGuidService{T, TModel}"/>.</summary>
 public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitService
 {
     private readonly IUnitRepository unitRepository;
@@ -38,44 +38,56 @@ public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitServ
         this.testCardService = testCardService ?? throw new ArgumentNullException(nameof(testCardService));
     }
 
+    /// <inheritdoc/>
     public async Task<IReadOnlyList<UnitCardModel>> GetUnitCardsAsync(int courseId)
     {
-        _logger.LogDebug("Завантаження карток юнітів для курсу {CourseId}", courseId);
+        _logger.LogDebug("Loading unit cards for course {CourseId}", courseId);
         return await this.unitRepository.GetUnitCardsAsync(courseId);
     }
 
+    /// <inheritdoc/>
     public async Task<IEnumerable<UnitModel>> GetByCourseAsync(int courseId)
     {
         var entities = await this.unitRepository.GetByCourseAsync(courseId);
         return _mapper.Map<IEnumerable<UnitModel>>(entities);
     }
 
+    /// <inheritdoc/>
     public async Task<IEnumerable<WordModel>> GetWordsAsync(int unitId, string[]? includes = null)
     {
         return await this.wordService.GetByUnitAsync(unitId, includes);
     }
 
+    /// <inheritdoc/>
     public async Task<IEnumerable<ExampleModel>> GetExamplesAsync(int unitId)
     {
         return await this.exampleService.GetByUnitAsync(unitId);
     }
 
-    /// <summary>
-    /// Оновлює юніт разом з дочірніми елементами (Words/Examples/IrregularForms/StudyCards/TestCards),
-    /// зіставляючи їх з наявними в базі за <see cref="MukhaLab.Database.IGuidRecord.RecordGuid"/> замість
-    /// сліпого EF-каскаду за Id. Елемент, чий RecordGuid уже є серед дочірніх елементів наявного юніта,
-    /// отримує реальний Id цього рядка (і буде оновлений на місці); новий RecordGuid — Id лишається 0
-    /// (буде вставлений як новий рядок). FK (UnitId/WordId) виправляти вручну не треба — EF сам
-    /// підставляє їх при збереженні графа через навігаційні колекції.
-    /// </summary>
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Updates a unit together with its children (Words/Examples/IrregularForms/StudyCards/TestCards),
+    /// matching each child against the existing unit's children by <see cref="MukhaLab.Database.IGuidRecord.RecordGuid"/>
+    /// instead of a blind EF cascade by Id. A child whose RecordGuid already exists among the current
+    /// unit's children gets that row's real Id (and is updated in place); a new RecordGuid keeps Id at
+    /// 0 (inserted as a new row). FKs (UnitId/WordId) don't need manual fixing — EF assigns them when
+    /// saving the graph through the navigation collections.
+    /// <para>
+    /// <b>Data-loss risk:</b> if <paramref name="incoming"/>'s child collection is <c>null</c>
+    /// (e.g. the caller never populated it) and <paramref name="deleteMissing"/> is <c>true</c>,
+    /// every existing child of that kind is treated as an orphan and deleted — a <c>null</c>
+    /// collection is indistinguishable from "explicitly emptied out." See
+    /// EasyEnglish.Business/README.md Known Issues.
+    /// </para>
+    /// </remarks>
     /// <param name="deleteMissing">
-    /// Якщо true — дочірні елементи, чийого RecordGuid немає серед вхідних, видаляються з бази
-    /// (сувора синхронізація). Якщо false — такі елементи лишаються без змін (тільки додавання/оновлення).
+    /// When <c>true</c>, children whose RecordGuid isn't among the incoming ones are deleted from the
+    /// database (strict sync). When <c>false</c>, such children are left unchanged (add/update only).
     /// </param>
     public async Task<UnitModel> ReconcileAndUpdateAsync(UnitModel incoming, bool deleteMissing, CancellationToken cancellationToken = default)
     {
         var existing = await GetByIdAsync(incoming.Id, UnitIncludes.Full, cancellationToken)
-            ?? throw new ArgumentException($"Юніт з ID {incoming.Id} не знайдено");
+            ?? throw new ArgumentException($"Unit with ID {incoming.Id} not found");
 
         var existingWordsByGuid = (existing.Words ?? []).ToDictionary(w => w.RecordGuid);
         var orphanExampleIds = new List<int>();
@@ -84,7 +96,7 @@ public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitServ
         foreach (var word in incoming.Words ?? [])
         {
             if (!existingWordsByGuid.TryGetValue(word.RecordGuid, out var existingWord))
-                continue; // нове слово — його приклади теж нові, звіряти нема з чим
+                continue; // new word -- its examples are new too, nothing to reconcile against
 
             ReconcileIds(word.Examples, existingWord.Examples ?? []);
             if (deleteMissing)
@@ -107,6 +119,12 @@ public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitServ
         return await UpdateAsync(incoming.Id, incoming, cancellationToken);
     }
 
+    /// <summary>
+    /// For each item in <paramref name="incoming"/> whose <c>RecordGuid</c> matches an item in
+    /// <paramref name="existing"/>, overwrites its <c>Id</c> with that existing row's real <c>Id</c> —
+    /// in place. Items with no match keep <c>Id == 0</c> (a plain new <see cref="AbstractModel"/>
+    /// default), so they'll be inserted as new rows. A no-op when <paramref name="incoming"/> is <c>null</c>.
+    /// </summary>
     private static void ReconcileIds<T>(IList<T>? incoming, IEnumerable<T> existing)
         where T : AbstractModel, IGuidRecord
     {
@@ -118,6 +136,12 @@ public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitServ
                 item.Id = existingId;
     }
 
+    /// <summary>
+    /// Returns the <c>Id</c>s of every item in <paramref name="existing"/> whose <c>RecordGuid</c> is
+    /// not present in <paramref name="incoming"/> — i.e. children that were removed from the incoming
+    /// graph and should be deleted under strict sync. A <c>null</c> <paramref name="incoming"/> is
+    /// treated the same as an empty collection, so <em>every</em> existing item comes back as an orphan.
+    /// </summary>
     private static List<int> FindOrphanIds<T>(IList<T>? incoming, IEnumerable<T> existing)
         where T : AbstractModel, IGuidRecord
     {
@@ -125,6 +149,7 @@ public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitServ
         return existing.Where(e => !incomingGuids.Contains(e.RecordGuid)).Select(e => e.Id).ToList();
     }
 
+    /// <summary>Deletes <paramref name="orphanIds"/> via <paramref name="service"/>, if there are any.</summary>
     private static async Task DeleteOrphansAsync<TModel>(IBaseService<TModel> service, List<int> orphanIds, CancellationToken cancellationToken)
         where TModel : class
     {
