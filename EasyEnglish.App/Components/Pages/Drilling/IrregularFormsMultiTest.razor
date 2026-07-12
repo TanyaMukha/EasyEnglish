@@ -77,8 +77,16 @@
 
     private async Task FinishTest()
     {
-        var toUpdate = WordRatingCalculator.UpdateWordRate(_items);
-        await IrregularFormService.UpdateRateRangeAsync(mapper.Map<List<UpdateWordRateRequest>>(toUpdate));
+        try
+        {
+            var toUpdate = WordRatingCalculator.UpdateWordRate(_items);
+            await IrregularFormService.UpdateRateRangeAsync(mapper.Map<List<UpdateWordRateRequest>>(toUpdate));
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Помилка збереження результатів: {ex.Message}";
+            return;
+        }
 
         var next = PracticeQueueService.Advance();
         NavigationManager.NavigateTo(next ?? (UnitId.HasValue ? $"/courses/{CourseId}/units/{UnitId}" : $"/courses/{CourseId}"));

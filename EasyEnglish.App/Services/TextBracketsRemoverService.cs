@@ -2,19 +2,18 @@ using System.Text.RegularExpressions;
 
 namespace EasyEnglish.App.Services;
 
-/// <summary>
-/// Сервіс для видалення частини текстового рядка, що міститься у квадратних дужках
-/// </summary>
+/// <summary>Removes bracketed annotations (e.g. "[formal]", "[plural]") from example/definition text.</summary>
 public static class TextBracketsRemoverService
 {
     private static readonly Regex BracketsPattern = new(@"(?<lead> ?)\[[^\[\]]*\](?<trail> ?)", RegexOptions.Compiled);
 
     /// <summary>
-    /// Видаляє з тексту всі підрядки у квадратних дужках разом із самими дужками.
-    /// Якщо одразу після дужки є пробіл — прибирає саме його. Якщо пробілу після
-    /// дужки немає (кінець рядка або далі йде символ, що не є буквою чи цифрою,
-    /// наприклад крапка чи інша дужка) — замість нього прибирає пробіл перед дужкою,
-    /// якщо він там був.
+    /// Removes every <c>[...]</c> substring (brackets included) from <paramref name="text"/>.
+    /// Collapses whichever single adjacent space would otherwise be left behind: prefers dropping
+    /// the space right after the bracket, but falls back to dropping the space before it when
+    /// there's no trailing space to remove and what follows isn't a letter or digit (end of
+    /// string, punctuation, another bracket, etc.) — avoiding both a leftover double-space and an
+    /// accidentally joined word.
     /// </summary>
     public static string RemoveBracketsText(string? text)
     {

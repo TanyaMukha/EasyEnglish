@@ -92,7 +92,8 @@ public class FileService : IFileService
     // =========================================================================
 
     /// <summary>
-    /// Common file picker logic shared by both read methods.
+    /// Common file picker logic shared by both read methods. <paramref name="fileTypes"/> (e.g.
+    /// <c>[".zip"]</c>) is applied identically across all platforms via <see cref="FilePickerFileType"/>.
     /// </summary>
     private static async Task<FileResult?> PickFileInternalAsync(string[] fileTypes)
     {
@@ -114,7 +115,8 @@ public class FileService : IFileService
     }
 
     /// <summary>
-    /// Routes a temp file to the correct platform save implementation.
+    /// Routes a temp file to the correct platform save implementation: Android's MediaStore/Downloads
+    /// API, iOS/macCatalyst's share sheet, or (on Windows/other) a direct copy to the user's Downloads folder.
     /// </summary>
     private static async Task<bool> SaveToPlatformAsync(string fileName, string tempFilePath, string mimeType)
     {
@@ -135,6 +137,11 @@ public class FileService : IFileService
     }
 
 #if ANDROID
+    /// <summary>
+    /// Saves via the MediaStore Downloads API on Android 10+ (scoped storage), or a direct file copy
+    /// plus a media-scanner broadcast on older versions. Falls back to the OS share sheet if either
+    /// approach throws.
+    /// </summary>
     private static async Task<bool> SaveFileAndroid(string fileName, string sourceFilePath, string mimeType)
     {
         try
@@ -200,6 +207,7 @@ public class FileService : IFileService
 #endif
 
 #if IOS || MACCATALYST
+    /// <summary>iOS/macCatalyst have no direct "save to Downloads" API — always routes through the OS share sheet.</summary>
     private static async Task<bool> SaveFileIOS(string fileName, string sourceFilePath, string mimeType)
     {
         try

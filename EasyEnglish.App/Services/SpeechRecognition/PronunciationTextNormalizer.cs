@@ -1,14 +1,16 @@
 namespace EasyEnglish.App.Services.SpeechRecognition;
 
 /// <summary>
-/// Готує текст слова/форми для перевірки вимови: прибирає вміст у квадратних дужках
-/// та початковий інфінітивний маркер "to"/артикль "a"/"an"/"the", які зазвичай не
-/// вимовляють окремо, коли просто називають слово.
+/// Prepares a word/form's text for pronunciation checking: strips bracketed annotations (via
+/// <see cref="TextBracketsRemoverService"/>) and a single leading infinitive marker ("to") or
+/// article ("a"/"an"/"the"), since learners typically don't voice these when just saying the
+/// word on its own.
 /// </summary>
 public static class PronunciationTextNormalizer
 {
     private static readonly string[] LeadingPrefixes = ["to ", "an ", "a ", "the "];
 
+    /// <summary>Returns the text a learner is expected to say for <paramref name="text"/>, with brackets and a leading "to"/article stripped.</summary>
     public static string PrepareExpectedText(string? text)
     {
         var value = TextBracketsRemoverService.RemoveBracketsText(text).Trim();

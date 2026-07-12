@@ -4,8 +4,17 @@ using System.Text.Json;
 
 namespace EasyEnglish.App.Services;
 
+/// <summary>
+/// <see cref="IStorageService"/> backed by MAUI's <see cref="Preferences"/> API — the real
+/// implementation behind every <c>EasyEnglish.Core.Interfaces.Storage.IStorageService</c> consumer
+/// in this app, including <c>EasyEnglish.Cache</c>'s cache services and this folder's
+/// <see cref="RecentActivityService"/>/<see cref="StreakService"/>/<c>VoiceSettingsService</c>.
+/// Values are JSON-serialized to a string before being handed to <see cref="Preferences"/>, so every
+/// read deserializes a fresh object — callers never get back the same object reference twice.
+/// </summary>
 public class LocalStorageService : IStorageService
 {
+    /// <summary>Returns <c>default</c> (not an exception) if the key is missing, empty, or fails to deserialize.</summary>
     public Task<T?> GetAsync<T>(string key)
     {
         try
@@ -21,6 +30,7 @@ public class LocalStorageService : IStorageService
         }
     }
 
+    /// <summary>Serializes <paramref name="value"/> to JSON and stores it. Failures are logged, not thrown.</summary>
     public Task SetAsync<T>(string key, T value)
     {
         try

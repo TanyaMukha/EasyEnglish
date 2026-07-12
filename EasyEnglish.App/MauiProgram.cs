@@ -205,8 +205,6 @@ public static class MauiProgram
         services.AddSingleton<RecentActivityService>();
         services.AddScoped<HomeStatsService>();
 
-        //services.AddScoped<WordLearningService>();
-
         services.AddSingleton(AudioManager.Current);
         services.AddTransient<IAudioService, AudioService>();
 

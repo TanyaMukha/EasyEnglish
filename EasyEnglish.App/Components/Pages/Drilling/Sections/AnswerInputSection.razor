@@ -22,7 +22,7 @@
 {
     <div class="feedback @alertClass">
         <i class="bi @(alertClass == "success" ? "bi-check-circle" : "bi-x-circle")"></i>
-        @((MarkupString)CustomMarkdownRenderer.RenderCustomMarkdown(feedbackMessage ?? ""))
+        @((MarkupString)ExampleMarkdownService.RenderMarkdown(feedbackMessage ?? ""))
     </div>
 }
 

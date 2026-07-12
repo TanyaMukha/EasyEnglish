@@ -176,7 +176,7 @@ public class CourseZipBackupService
         using var archive = new ZipArchive(zipStream, ZipArchiveMode.Read, leaveOpen: true);
 
         var entry = archive.GetEntry("course.json")
-            ?? throw new InvalidDataException("Архів не містить файл course.json.");
+            ?? throw new InvalidDataException("The archive doesn't contain a course.json file.");
 
         await using var stream = entry.Open();
         return await JsonSerializer.DeserializeAsync<CoursePackageManifest>(stream, JsonOpts);
@@ -225,14 +225,14 @@ public class CourseZipBackupService
         foreach (var unitEntry in manifest.Units)
         {
             var zipEntry = archive.GetEntry(unitEntry.FileName)
-                ?? throw new InvalidDataException($"Відсутній файл: {unitEntry.FileName}");
+                ?? throw new InvalidDataException($"Missing file: {unitEntry.FileName}");
 
             await using var us = zipEntry.Open();
             using var sr       = new StreamReader(us, Encoding.UTF8);
             var json = await sr.ReadToEndAsync();
 
             var unit = JsonSerializer.Deserialize<UnitModel>(json, JsonOpts)
-                ?? throw new InvalidDataException($"Не вдалося розпарсити {unitEntry.FileName}");
+                ?? throw new InvalidDataException($"Failed to parse {unitEntry.FileName}");
 
             // Re-attach audio.
             if (unit.Words is not null)
@@ -307,6 +307,7 @@ public class CourseZipBackupService
 // RESULT DTO
 // =========================================================================
 
+/// <summary>Result of <see cref="CourseZipBackupService.ImportFromZipAsync"/> — fully-materialized units plus the manifest they came from.</summary>
 public class CourseImportResult
 {
     public CoursePackageManifest                           Manifest { get; init; } = null!;

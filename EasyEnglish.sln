@@ -41,6 +41,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyEnglish.Business.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyEnglish.Cache.Tests", "EasyEnglish.Cache.Tests\EasyEnglish.Cache.Tests.csproj", "{56054CF4-8A8D-4E8D-8D52-6797F9E92F0E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyEnglish.App.Tests", "EasyEnglish.App.Tests\EasyEnglish.App.Tests.csproj", "{260D3AB2-866E-47CF-90BB-370E9A769A2C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -280,6 +282,18 @@ Global
 		{56054CF4-8A8D-4E8D-8D52-6797F9E92F0E}.Release|x64.Build.0 = Release|Any CPU
 		{56054CF4-8A8D-4E8D-8D52-6797F9E92F0E}.Release|x86.ActiveCfg = Release|Any CPU
 		{56054CF4-8A8D-4E8D-8D52-6797F9E92F0E}.Release|x86.Build.0 = Release|Any CPU
+		{260D3AB2-866E-47CF-90BB-370E9A769A2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{260D3AB2-866E-47CF-90BB-370E9A769A2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{260D3AB2-866E-47CF-90BB-370E9A769A2C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{260D3AB2-866E-47CF-90BB-370E9A769A2C}.Debug|x64.Build.0 = Debug|Any CPU
+		{260D3AB2-866E-47CF-90BB-370E9A769A2C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{260D3AB2-866E-47CF-90BB-370E9A769A2C}.Debug|x86.Build.0 = Debug|Any CPU
+		{260D3AB2-866E-47CF-90BB-370E9A769A2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{260D3AB2-866E-47CF-90BB-370E9A769A2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{260D3AB2-866E-47CF-90BB-370E9A769A2C}.Release|x64.ActiveCfg = Release|Any CPU
+		{260D3AB2-866E-47CF-90BB-370E9A769A2C}.Release|x64.Build.0 = Release|Any CPU
+		{260D3AB2-866E-47CF-90BB-370E9A769A2C}.Release|x86.ActiveCfg = Release|Any CPU
+		{260D3AB2-866E-47CF-90BB-370E9A769A2C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

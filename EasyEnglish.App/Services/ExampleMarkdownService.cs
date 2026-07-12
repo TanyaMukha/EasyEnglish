@@ -3,20 +3,24 @@ using System.Text.RegularExpressions;
 namespace EasyEnglish.App.Services;
 
 /// <summary>
-/// Сервіс для роботи з прикладами, що містять markdown та прихований текст
+/// Parses and renders example sentences that mix a small markdown subset with an optional
+/// "hidden text" span (the part a flashcard blurs out until the learner reveals it).
 /// </summary>
 public static class ExampleMarkdownService
 {
-    /// <summary>
-    /// Типи markdown маркерів, які можуть бути прихованим текстом
-    /// </summary>
+    /// <summary>Which markdown marker, if any, denotes the hidden/blurred span in a sentence.</summary>
     public enum HiddenTextMarker
     {
-        None,           // Немає прихованого тексту
-        Bold,           // **text**
-        Italic,         // __text__
-        BoldItalic,     // ***text***
-        Code            // `text`
+        /// <summary>No hidden text — the whole sentence renders normally.</summary>
+        None,
+        /// <summary><c>**text**</c></summary>
+        Bold,
+        /// <summary><c>__text__</c></summary>
+        Italic,
+        /// <summary><c>***text***</c></summary>
+        BoldItalic,
+        /// <summary><c>`text`</c></summary>
+        Code
     }
 
     private static readonly Dictionary<HiddenTextMarker, string> MarkerPatterns = new()
@@ -28,7 +32,10 @@ public static class ExampleMarkdownService
     };
 
     /// <summary>
-    /// Парсить речення та знаходить приховану частину
+    /// Splits <paramref name="sentence"/> at the first occurrence of <paramref name="marker"/> into
+    /// the text before it, the hidden text itself (marker stripped), and the text after it. Only
+    /// the first match is considered — see <see cref="ParseSegments"/> for multi-occurrence support.
+    /// Returns <c>(sentence, "", "")</c> if there's no match.
     /// </summary>
     public static (string beforeHidden, string hiddenText, string afterHidden) ParseHiddenText(
         string sentence,
@@ -55,9 +62,7 @@ public static class ExampleMarkdownService
         return (sentence, "", "");
     }
 
-    /// <summary>
-    /// Перевіряє чи містить речення приховану частину
-    /// </summary>
+    /// <summary>Returns whether <paramref name="sentence"/> contains at least one occurrence of <paramref name="marker"/>.</summary>
     public static bool HasHiddenText(string sentence, HiddenTextMarker marker = HiddenTextMarker.Bold)
     {
         if (marker == HiddenTextMarker.None || !MarkerPatterns.ContainsKey(marker))
@@ -68,7 +73,11 @@ public static class ExampleMarkdownService
     }
 
     /// <summary>
-    /// Рендерить markdown (окрім вказаного маркера, якщо він прихований)
+    /// Renders the small markdown subset (bold-italic, bold, italic, code, links, newlines) to
+    /// HTML. When <paramref name="hiddenMarker"/> is not <see cref="HiddenTextMarker.None"/>, that
+    /// marker's pattern is skipped here — the caller is expected to have already extracted/rendered
+    /// the hidden span separately (see <see cref="RenderMarkdownWithHidden"/>), so this doesn't
+    /// double-render it.
     /// </summary>
     public static string RenderMarkdown(
         string text,
@@ -79,35 +88,44 @@ public static class ExampleMarkdownService
 
         var html = text;
 
-        // Жирний наклонний: ***text*** (обробляємо першим!)
+        // Bold-italic: ***text*** (must run before the plain Bold/Italic patterns below.)
         if (hiddenMarker != HiddenTextMarker.BoldItalic)
         {
             html = Regex.Replace(html, @"\*\*\*(.+?)\*\*\*", "<strong><em>$1</em></strong>");
         }
 
-        // Жирний: **text**
+        // Bold: **text**
         if (hiddenMarker != HiddenTextMarker.Bold)
         {
             html = Regex.Replace(html, @"\*\*(.+?)\*\*", "<strong>$1</strong>");
         }
 
-        // Наклонний: __text__
+        // Italic: __text__
         if (hiddenMarker != HiddenTextMarker.Italic)
         {
             html = Regex.Replace(html, @"__(.+?)__", "<em>$1</em>");
         }
 
-        // Код: `text`
+        // Code: `text`
         if (hiddenMarker != HiddenTextMarker.Code)
         {
             html = Regex.Replace(html, @"`(.+?)`", "<code>$1</code>");
         }
 
+        // Link: [text](url)
+        html = Regex.Replace(html, @"\[(.+?)\]\((.+?)\)", "<a href=\"$2\">$1</a>");
+
+        // Newlines
+        html = html.Replace("\n", "<br />");
+
         return html;
     }
 
     /// <summary>
-    /// Рендерить markdown включаючи приховану частину як span з класом
+    /// Like <see cref="RenderMarkdown"/>, but also renders the hidden span itself as a
+    /// <c>&lt;span class="hidden-text revealed"&gt;</c> (when <paramref name="showHidden"/> is
+    /// <c>true</c>) or <c>&lt;span class="hidden-text blurred"&gt;</c> (otherwise) — the CSS classes
+    /// the flashcard UI hooks into to show/blur the text.
     /// </summary>
     public static string RenderMarkdownWithHidden(
         string sentence,
@@ -119,7 +137,7 @@ public static class ExampleMarkdownService
 
         var html = sentence;
 
-        // Обробляємо приховану частину
+        // Render the hidden span first, before the rest of the markdown.
         if (hiddenMarker != HiddenTextMarker.None && MarkerPatterns.ContainsKey(hiddenMarker))
         {
             var pattern = MarkerPatterns[hiddenMarker];
@@ -142,15 +160,13 @@ public static class ExampleMarkdownService
             }
         }
 
-        // Потім інші markdown елементи
+        // Then the rest of the markdown.
         html = RenderMarkdown(html, hiddenMarker);
 
         return html;
     }
 
-    /// <summary>
-    /// Видаляє всі markdown маркери і повертає чистий текст
-    /// </summary>
+    /// <summary>Strips every recognized markdown marker (bold-italic, bold, italic, code), leaving plain text.</summary>
     public static string StripMarkdown(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
@@ -158,7 +174,6 @@ public static class ExampleMarkdownService
 
         var clean = text;
 
-        // Видаляємо всі markdown маркери
         clean = Regex.Replace(clean, @"\*\*\*(.+?)\*\*\*", "$1"); // ***text***
         clean = Regex.Replace(clean, @"\*\*(.+?)\*\*", "$1");     // **text**
         clean = Regex.Replace(clean, @"__(.+?)__", "$1");         // __text__
@@ -167,9 +182,7 @@ public static class ExampleMarkdownService
         return clean;
     }
 
-    /// <summary>
-    /// Отримує тільки приховану частину без markdown
-    /// </summary>
+    /// <summary>Returns just the hidden span's text (marker stripped), or <c>""</c> if there's no match.</summary>
     public static string GetHiddenTextOnly(string sentence, HiddenTextMarker marker = HiddenTextMarker.Bold)
     {
         if (marker == HiddenTextMarker.None || !MarkerPatterns.ContainsKey(marker))
@@ -180,9 +193,7 @@ public static class ExampleMarkdownService
         return match.Success ? match.Groups[1].Value : "";
     }
 
-    /// <summary>
-    /// Перевіряє відповідь користувача (ігноруючи регістр та пробіли)
-    /// </summary>
+    /// <summary>Compares a learner's manual-input answer against the correct one, ignoring case and leading/trailing whitespace.</summary>
     public static bool CheckAnswer(string userAnswer, string correctAnswer)
     {
         var userClean = userAnswer.Trim().ToLowerInvariant();
@@ -192,10 +203,10 @@ public static class ExampleMarkdownService
     }
 
     /// <summary>
-    /// Розбиває текст на впорядковану послідовність сегментів — звичайний текст і приховані
-    /// фрагменти — підтримуючи довільну кількість входжень маркера (на відміну від
-    /// <see cref="ParseHiddenText"/>, яка бачить лише перше). Використовується картками,
-    /// що дозволяють розкривати кілька розмитих слів в одному тексті.
+    /// Splits <paramref name="sentence"/> into an ordered sequence of plain-text and hidden
+    /// segments, supporting any number of marker occurrences (unlike <see cref="ParseHiddenText"/>,
+    /// which only sees the first). Used by cards that reveal several blurred words within one
+    /// sentence.
     /// </summary>
     public static List<(bool IsHidden, string Text)> ParseSegments(
         string sentence,

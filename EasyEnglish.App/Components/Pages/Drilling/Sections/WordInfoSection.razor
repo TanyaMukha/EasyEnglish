@@ -52,9 +52,9 @@
     @if (randomExample is not null)
     {
         <div class="example-section">
-            <p class="example-text">@((MarkupString)CustomMarkdownRenderer.RenderCustomMarkdown(randomExample.Sentence))</p>
+            <p class="example-text">@((MarkupString)ExampleMarkdownService.RenderMarkdown(randomExample.Sentence))</p>
             <p class="example-translation">
-                <i>@((MarkupString)CustomMarkdownRenderer.RenderCustomMarkdown(randomExample.Translation))</i>
+                <i>@((MarkupString)ExampleMarkdownService.RenderMarkdown(randomExample.Translation))</i>
             </p>
         </div>
     }

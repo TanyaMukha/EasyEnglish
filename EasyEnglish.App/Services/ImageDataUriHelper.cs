@@ -7,6 +7,7 @@ namespace EasyEnglish.App.Services;
 /// </summary>
 public static class ImageDataUriHelper
 {
+    /// <summary>Builds a base64 <c>data:</c> URI from raw image bytes, or <c>null</c> if <paramref name="imageBytes"/> is empty/missing.</summary>
     public static string? BuildDataUri(byte[]? imageBytes)
     {
         if (imageBytes is not { Length: > 0 })

@@ -3,9 +3,9 @@ using EasyEnglish.Core.Enums;
 using EasyEnglish.Core.Models;
 using System.Text.Json.Nodes;
 
-// Використання: dotnet run -- <module-key>
-// Кожен модуль курсу має свій метод нижче — просто додай новий, коли з'явиться наступний.
-// За замовчуванням (без аргументів) запускається останній доданий модуль.
+// Usage: dotnet run -- <module-key>
+// Each course module has its own method below — just add a new one when the next module comes up.
+// With no arguments, the most recently added module runs by default.
 
 if (args.Length > 0 && args[0] == "verify")
 {
@@ -50,7 +50,7 @@ switch (moduleKey)
         break;
 }
 
-/// <summary>Друкує короткий підсумок вмісту юніта — скільки слів/карток кожного виду.</summary>
+/// <summary>Prints a short summary of a unit's contents — how many words/cards of each kind.</summary>
 static void Verify(string zipPath, string unitFile)
 {
     var unit = CourseZipEditor.LoadUnit(zipPath, unitFile);
@@ -69,9 +69,10 @@ static void Verify(string zipPath, string unitFile)
 }
 
 /// <summary>
-/// "Present Simple #1" (english_for_it_b2_1.zip) — гра з різними видами карток:
-/// StudyCard (Term, Text, BlurredText) і TestCard (SingleChoice, MultipleChoice, Cloze, Matching).
-/// ShortAnswer-картки (переклад речень) для цього ж модуля вже додані окремо раніше.
+/// "Present Simple #1" (<c>english_for_it_b2_1.zip</c>) — a mix of card kinds: <c>StudyCard</c>
+/// (Term, Text, BlurredText) and <c>TestCard</c> (SingleChoice, MultipleChoice, Cloze, Matching).
+/// ShortAnswer cards (sentence translation) for this same module were already added separately
+/// earlier.
 /// </summary>
 internal static class EnglishForItB2Unit1
 {
@@ -90,7 +91,7 @@ internal static class EnglishForItB2Unit1
         unit.StudyCards ??= new List<StudyCardModel>();
         unit.TestCards ??= new List<TestCardModel>();
 
-        // ── StudyCard: Term — граматичне правило, а не окреме слово зі списку ──
+        // ── StudyCard: Term -- a grammar rule, not a single vocabulary word ──
         unit.StudyCards.Add(StudyCardBuilder.Term(
             "Present Simple: рутинні дії",
             "Вживається для звичних дій, фактів і розкладів. I/you/we/they + дієслово; " +
@@ -103,7 +104,7 @@ internal static class EnglishForItB2Unit1
             "підметом третьої особи однини. З модуля: insists, expects, breaks down (break → breaks down), " +
             "gets together."));
 
-        // ── StudyCard: Text — короткий текст, що поєднує кілька виразів разом ──
+        // ── StudyCard: Text -- a short passage weaving several expressions together ──
         unit.StudyCards.Add(StudyCardBuilder.Text(
             "Ранок у команді розробки",
             "Every morning our team gathers for a standup. The Scrum Master insists that everyone " +
@@ -111,7 +112,7 @@ internal static class EnglishForItB2Unit1
             "together for a tech brainstorm. Our tech lead usually signs off on the plan before we " +
             "start coding."));
 
-        // ── StudyCard: BlurredText — Independent (один фрагмент) і Grouped (розділений вираз) ──
+        // ── StudyCard: BlurredText -- Independent (one span) and Grouped (a split expression) ──
         unit.StudyCards.Add(StudyCardBuilder.BlurredText(
             "Our tech lead usually **signs off on** architectural changes before we start coding.",
             BlurRevealMode.Independent));
@@ -142,7 +143,7 @@ internal static class EnglishForItB2Unit1
             ["questionable", "doubtful", "dodgy", "complex"],
             ["questionable", "doubtful", "dodgy"]));
 
-        // ── TestCard: Cloze — один з випадаючим списком, другий повністю на ввід ──
+        // ── TestCard: Cloze -- one blank with a dropdown, the other free-text input ──
         unit.TestCards.Add(TestCardBuilder.Cloze(
             "The Scrum Master {0} that everyone updates Jira {1}.",
             [["insists"], ["by the end of the day", "by end of day"]],
@@ -172,11 +173,11 @@ internal static class EnglishForItB2Unit1
 }
 
 /// <summary>
-/// Другий заїзд по тому самому модулю — картки "з підвохом" на тонкощі перекладу.
-/// Модуль насичений парами близьких синонімів, які словник перекладає майже однаково,
-/// але вживаються по-різному (регістр/офіційність, емоційне vs технічне значення,
-/// суб'єкт вживання). Кожна картка навмисно ставить у варіанти відповіді "правильний
-/// на перший погляд, але неправильний за контекстом" синонім як дистрактор.
+/// A second pass over the same module — "gotcha" cards on translation nuance. The module is
+/// dense with pairs of near-synonyms that a dictionary translates almost identically but that are
+/// actually used differently (register/formality, emotional vs. technical meaning, who typically
+/// uses which). Every card deliberately puts a "looks right at first glance but wrong for this
+/// context" synonym among the answer options as a distractor.
 /// </summary>
 internal static class EnglishForItB2Unit1TranslationTraps
 {
@@ -195,51 +196,51 @@ internal static class EnglishForItB2Unit1TranslationTraps
         unit.TestCards ??= new List<TestCardModel>();
         var before = unit.TestCards.Count;
 
-        // 1. dodgy vs questionable vs doubtful — усі три перекладаються як "сумнівний",
-        //    але тут контекст явно вимагає розмовний сленг, а не нейтрально-професійне слово.
+        // 1. dodgy vs questionable vs doubtful -- all three translate as "сумнівний", but the
+        //    context here clearly calls for the colloquial/slang word, not a neutral professional one.
         unit.TestCards.Add(TestCardBuilder.SingleChoice(
             "'Цей тимчасовий костиль виглядає для мене трохи ___.' (розмовне, сленгове слово)",
             ["doubtful", "questionable", "dodgy", "difficult"],
             "dodgy"));
 
-        // 2. difficult vs complex — обидва "складний", але difficult про емоційно/ситуативно
-        //    важке, а complex — про технічну складність архітектури/коду.
+        // 2. difficult vs complex -- both mean "складний", but difficult is about something
+        //    emotionally/situationally hard, while complex is about technical architecture/code complexity.
         unit.TestCards.Add(TestCardBuilder.SingleChoice(
             "'Ця складна архітектура вимагає глибокого аналізу.' Яке слово тут доречне?",
             ["difficult", "complex", "dodgy", "doubtful"],
             "complex"));
 
-        // 3. make sure vs ensure — синоніми, але ensure формальніший, для офіційного тексту.
+        // 3. make sure vs ensure -- synonyms, but ensure is more formal, for official text.
         unit.TestCards.Add(TestCardBuilder.SingleChoice(
             "Офіційний звіт для менеджменту: 'We need to ___ smooth deployment.'",
             ["make sure", "ensure", "expect", "insist"],
             "ensure"));
 
-        // 4. meet standards vs comply with standards vs be up to standard — усі про
-        //    "відповідати стандартам", але саме юридично-регуляторний контекст
-        //    вимагає comply with, а не найчастотніший в IT варіант meet standards.
+        // 4. meet standards vs comply with standards vs be up to standard -- all about "meeting
+        //    standards," but a legal/regulatory context specifically calls for comply with, not the
+        //    more common-in-IT meet standards.
         unit.TestCards.Add(TestCardBuilder.SingleChoice(
             "'Медичне ПЗ повинно ___ суворим стандартам безпеки.' (йдеться про обов'язкові регламенти)",
             ["meet standards", "comply with standards", "be up to standard", "take on standards"],
             "comply with standards"));
 
-        // 5. to have a standup vs to hold a standup — обидва "проводити стендап",
-        //    але hold підкреслює організацію/модерацію процесу, have — просто участь.
+        // 5. to have a standup vs to hold a standup -- both mean "running a standup," but hold
+        //    emphasizes organizing/moderating the process, have just participation.
         unit.TestCards.Add(TestCardBuilder.SingleChoice(
             "'Скрам-майстер організовує щоденний стендап.' (акцент саме на організації)",
             ["has a standup", "holds a standup", "gets a standup", "takes a standup"],
             "holds a standup"));
 
-        // 6. to gather vs to get together for — обидва "збиратися разом", але get together
-        //    for — тепліший, неформальний відтінок (п'ятничний брейншторм для команди-друзів).
+        // 6. to gather vs to get together for -- both mean "gathering together," but get together
+        //    for has a warmer, informal shade (a Friday brainstorm among a close-knit team).
         unit.TestCards.Add(TestCardBuilder.SingleChoice(
             "'Ми зазвичай ___ на технічний брейншторм щоп'ятниці.' (неформально, по-дружньому)",
             ["gather", "get together for", "hold", "meet"],
             "get together for"));
 
-        // 7. Граматична пастка: "insist that + підмет + дієслово" — з модуля точно відомо,
-        //    як це вживається ('insists that everyone updates'), дистрактори — типові помилки
-        //    змішування конструкцій "insist on + gerund/to-infinitive" з "insist that + clause".
+        // 7. Grammar trap: "insist that + subject + verb" -- the module establishes exactly how
+        //    this is used ('insists that everyone updates'); the distractors are typical mistakes
+        //    mixing "insist on + gerund/to-infinitive" with "insist that + clause."
         unit.TestCards.Add(TestCardBuilder.SingleChoice(
             "Scrum-майстер наполягає, щоб кожен оновлював Jira. Оберіть граматично правильний варіант:",
             [
@@ -250,24 +251,25 @@ internal static class EnglishForItB2Unit1TranslationTraps
             ],
             "insists that everyone updates Jira"));
 
-        // 8. overloaded vs overcommitted — той самий пропуск-дропдаун для обох речень:
-        //    підказки однакові, тож пастка не в лексиці, а саме в тому, до якого суб'єкта
-        //    (сервер чи спринт) яке слово прив'язане.
+        // 8. overloaded vs overcommitted -- the same dropdown-blank trick across both clauses:
+        //    the options are identical, so the trap isn't the vocabulary itself but which subject
+        //    (a server vs. a sprint) each word actually attaches to.
         unit.TestCards.Add(TestCardBuilder.Cloze(
             "Our servers get {0} during marketing campaigns, while a sprint becomes {1} " +
             "when the team takes on too many tasks during planning.",
             [["overloaded"], ["overcommitted"]],
             [["overloaded", "overcommitted"], ["overloaded", "overcommitted"]]));
 
-        // 9. make sure vs ensure — той самий підступ: однакові варіанти на обидва пропуски,
-        //    правильний вибір залежить від регістру речення (розмовне vs офіційний контракт).
+        // 9. make sure vs ensure -- same trick: identical options on both blanks, and the right
+        //    choice depends on the sentence's register (colloquial vs. official contract).
         unit.TestCards.Add(TestCardBuilder.Cloze(
             "Run the tests to {0} everything works. In the official contract, the vendor must {1} 99.9% uptime.",
             [["make sure"], ["ensure"]],
             [["make sure", "ensure"], ["make sure", "ensure"]]));
 
-        // 10. Matching на всі три "сумнівні" слова одночасно — найважчий варіант пастки,
-        //     бо всі варіанти праворуч звучать як "сумнівний", і треба зіставити з точним контекстом.
+        // 10. Matching across all three "сумнівний"-translating words at once -- the hardest
+        //     variant of the trap, since every option on the right sounds like a plausible match
+        //     and the learner has to pin down the exact context.
         unit.TestCards.Add(TestCardBuilder.Matching(
             "Зіставте слово з контекстом, де воно вживається правильно (усі варіанти справа " +
             "перекладаються схоже, але підходить лише один)",
@@ -287,10 +289,11 @@ internal static class EnglishForItB2Unit1TranslationTraps
 }
 
 /// <summary>
-/// Другий модуль курсу — "Prepositions of place" (at/on/in/by за просторовим значенням).
-/// На відміну від попередніх прогонів, тут не просто дописуємо картки в наявний unit-файл:
-/// цілий unit_2.json — новий, тож також реєструємо його в course.json (інакше застосунок
-/// не побачить цей файл при імпорті — маніфест є єдиним джерелом списку модулів архіву).
+/// The course's second module — "Prepositions of place" (at/on/in/by by spatial meaning). Unlike
+/// earlier runs, this doesn't just append cards to an existing unit file: the whole
+/// <c>unit_2.json</c> is new, so it also has to be registered in <c>course.json</c> — otherwise
+/// the app won't see this file on import, since the manifest is the sole source of truth for
+/// which module files exist in the archive.
 /// </summary>
 internal static class EnglishForItB2PrepositionsOfPlace
 {
@@ -299,10 +302,10 @@ internal static class EnglishForItB2PrepositionsOfPlace
     private const string UnitFile = "units/unit_2.json";
     private const string UnitTitle = "Prepositions of place";
 
-    // (шаблон речення з {0}, правильний прийменник, переклад повного речення — стане Hint)
+    // (sentence template with {0}, the correct preposition, full-sentence translation -- becomes the Hint)
     private static readonly (string Template, string Answer, string Hint)[] Cards =
     [
-        // ── AT — точні точки та локації ──
+        // ── AT -- precise points and locations ──
         ("She lives {0} 35 Hill St.", "at", "Вона живе на Хілл-стріт, 35."),
         ("Sherlock Holmes lived {0} 221B Baker Street.", "at", "Шерлок Голмс жив на Бейкер-стріт, 221Б."),
         ("Let's meet {0} the intersection of Pine & Maple.", "at", "Давай зустрінемось на перехресті Пайн і Мейпл."),
@@ -330,7 +333,7 @@ internal static class EnglishForItB2PrepositionsOfPlace
         ("He is currently speaking {0} a meeting.", "at", "Зараз він виступає на нараді."),
         ("Leaders met {0} a conference to discuss climate change.", "at", "Лідери зустрілися на конференції, щоб обговорити зміну клімату."),
 
-        // ── ON — поверхні, вулиці та транспорт ──
+        // ── ON -- surfaces, streets, and transport ──
         ("Turn left {0} Hill St.", "on", "Поверніть ліворуч на Хілл-стріт."),
         ("There is a lot of traffic {0} San Fernando Rd today.", "on", "Сьогодні на Сан-Фернандо-роуд великі затори."),
         ("They live in a small house {0} Fairfax Ave.", "on", "Вони живуть у невеликому будинку на Ферфакс-авеню."),
@@ -358,7 +361,7 @@ internal static class EnglishForItB2PrepositionsOfPlace
         ("She rested her head {0} my shoulder.", "on", "Вона поклала голову мені на плече."),
         ("He had a look of surprise {0} his face.", "on", "На його обличчі був вираз здивування."),
 
-        // ── IN — обмежений простір та географія ──
+        // ── IN -- enclosed spaces and geography ──
         ("We live {0} an apartment in the city center.", "in", "Ми живемо в квартирі в центрі міста."),
         ("She rents a small flat {0} London.", "in", "Вона орендує невелику квартиру в Лондоні."),
         ("There are five rooms {0} a house.", "in", "У будинку п'ять кімнат."),
@@ -391,7 +394,7 @@ internal static class EnglishForItB2PrepositionsOfPlace
         ("I keep my passport {0} my bag.", "in", "Я тримаю паспорт у своїй сумці."),
         ("The documents are stored {0} the drawer.", "in", "Документи зберігаються в шухляді."),
 
-        // ── Особливі випадки — той самий фізичний об'єкт, різне значення прийменника ──
+        // ── Special cases -- the same physical object, different preposition meaning ──
         ("He is still {0} school; he wants to become a doctor.", "in", "Він досі навчається (у школі); хоче стати лікарем. (in — означає бути учнем/студентом)"),
         ("My mom is physically {0} school right now for a parent meeting.", "at", "Моя мама зараз фізично в школі — на батьківських зборах. (at — фізично перебуває у будівлі)"),
         ("He is lucky to be {0} work during the economic crisis.", "in", "Йому пощастило мати роботу під час економічної кризи. (in — має роботу, працевлаштований)"),
@@ -405,7 +408,7 @@ internal static class EnglishForItB2PrepositionsOfPlace
         ("He is recovering from surgery {0} the hospital.", "in", "Він одужує після операції в лікарні. (in — як пацієнт)"),
         ("I am visiting my friend {0} the hospital.", "at", "Я відвідую свого друга в лікарні. (at — як відвідувач)"),
 
-        // ── BY — близькість та розташування поруч ──
+        // ── BY -- proximity and being located nearby ──
         ("Sit {0} the window to get more light.", "by", "Сядь біля вікна, щоб було більше світла."),
         ("Please leave your umbrella {0} the door.", "by", "Будь ласка, залиш парасольку біля дверей."),
         ("It is cozy to sit {0} the fireplace in winter.", "by", "Взимку затишно сидіти біля каміна."),
@@ -462,9 +465,11 @@ internal static class EnglishForItB2PrepositionsOfPlace
         Console.WriteLine($"  course.json units: {unitsArray.Count}");
     }
 }
-/// (усі з відповіддю "at") користувачка вже створила вручну через застосунок і вони вже є
-/// в цьому зіп-архіві. Цей прогін дописує решту 61 картку того самого вправи
-/// (at/on/in/by), кожна з перекладом повного речення у полі Hint.
+/// <summary>
+/// The course's first module — "Prepositions of time" (at/on/in/by by time meaning). The opening
+/// cards (all with answer "at") were already created by hand through the app and are already in
+/// this ZIP archive. This run appends the remaining 61 cards of the same exercise (at/on/in/by),
+/// each with a full-sentence translation in the <c>Hint</c> field.
 /// </summary>
 internal static class EnglishForItB2PrepositionsOfTime
 {
@@ -472,7 +477,7 @@ internal static class EnglishForItB2PrepositionsOfTime
     private const string TargetZip = @"C:\Users\User\Downloads\english_for_it_b2_2026-07-08_updated.zip";
     private const string UnitFile = "units/unit_1.json";
 
-    // (шаблон речення з {0}, правильний прийменник, переклад повного речення — стане Hint)
+    // (sentence template with {0}, the correct preposition, full-sentence translation -- becomes the Hint)
     private static readonly (string Template, string Answer, string Hint)[] Cards =
     [
         ("{0} the end, everyone was crying.", "at", "Наприкінці всі плакали."),
@@ -563,11 +568,11 @@ internal static class EnglishForItB2PrepositionsOfTime
 }
 
 /// <summary>
-/// Одноразова корекція: перші 10 карток "Prepositions of time" зберегли Id/UnitId (91-100 / 116)
-/// зі свого першого реального експорту з застосунку. Але користувачка ще жодного разу не
-/// імпортувала жоден з побудованих тут архівів назад — тобто ці ID ніде насправді не задіяні
-/// і лише вводять в оману. Скидаємо їх у 0 (як і решту карток, побудованих цим інструментом),
-/// щоб при майбутньому імпорті всі 71+113 карток трактувались однаково — як нові.
+/// A one-off correction: the first 10 "Prepositions of time" cards kept the <c>Id</c>/<c>UnitId</c>
+/// (91-100 / 116) from their original real export out of the app. But the user hasn't imported any
+/// of the archives built here back in yet — so those IDs aren't actually tied to anything real and
+/// are just misleading. Resets them to <c>0</c> (matching every other card this tool builds), so
+/// that on a future import all 71+113 cards are treated the same way — as new.
 /// </summary>
 internal static class EnglishForItB2Unit1ResetFirst10Ids
 {

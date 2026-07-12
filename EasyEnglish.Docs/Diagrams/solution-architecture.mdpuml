@@ -1,0 +1,90 @@
+@startuml Solution Architecture
+
+<style>
+title {
+  HorizontalAlignment right
+  FontSize 24
+}
+
+legend {
+  FontSize 13
+  BackGroundColor #f7f7f7
+  Margin 10
+  Padding 12
+}
+</style>
+
+skinparam {
+    PackageStyle rectangle
+    ComponentStyle rectangle
+    ArrowColor #2688d4
+    ArrowThickness 1.5
+    PackageBorderThickness 1.5
+    PackageBorderColor #2688d4
+    PackageBackgroundColor white
+    PackageFontColor black
+    PackageFontSize 13
+    ComponentBorderColor #666666
+    ComponentBackgroundColor #fafafa
+    ComponentFontSize 11
+    padding 6
+    roundCorner 10
+    shadowing false
+    direction top to bottom
+}
+
+title EasyEnglish Solution Architecture
+
+legend top left
+  Layered architecture, bottom = fewest dependencies. Dashed arrows = "depends on" / "implements".
+  <b>Key fact</b>: EasyEnglish.Business depends only on interfaces declared in EasyEnglish.Core
+  (<c>IWordService</c>, <c>IWordRepository</c>, etc.) -- it has **no** project reference to
+  EasyEnglish.Data. EasyEnglish.Data implements those same interfaces concretely.
+  EasyEnglish.App is the composition root: it references both Data and Business and wires the
+  concrete repositories to the interfaces Business expects via DI
+  (<c>AddEasyEnglishRepositories()</c> + <c>AddEasyEnglishDataServices()</c> in MauiProgram.cs).
+  This is classic Dependency Inversion -- Business is testable/reusable without a database.
+end legend
+
+package "MukhaLab.* -- generic, reusable, zero EasyEnglish-specific code" as Mukha {
+  [MukhaLab.SelectQueryParameters]\ngeneric filter/sort/paging\nover IQueryable<T> as SQP
+  [MukhaLab.Database]\ngeneric BaseRepository / BaseService\n/ BaseWithGuidRepository as Db
+  [MukhaLab.LoggerExtensionDelegate]\nFastXMessage / BeginTimedScope\nlogging helpers as LogExt
+  [MukhaLab.BrowserConsoleLogger]\nILogger sink -> browser\nconsole.log via JSInterop as BrowserLog
+}
+
+Db ..> SQP : ApplyQueryParameters()
+
+package "EasyEnglish.Core -- domain model + abstractions, no EF/MAUI dependency" as Core {
+  [Entities & Models] as CoreModels
+  [Repository & Service\ninterfaces] as CoreInterfaces
+  [Enums / RateExtensions\n/ Mapping / Options] as CoreMisc
+}
+
+Core ..> Db : AbstractEntity, IGuidRecord,\nIUserContext
+
+package "EasyEnglish.Data\nimplements Core's repository interfaces (EF Core / SQLite)" as Data {
+}
+Data ..> Core
+
+package "EasyEnglish.Business\nimplements Core's service interfaces (domain logic)" as Business {
+}
+Business ..> CoreInterfaces : interfaces only\n(no reference to Data)
+
+package "EasyEnglish.Cache\nin-memory working-set cache (current unit, active words)" as Cache {
+}
+Cache ..> CoreInterfaces : IWordService / IUnitService\n(via IServiceScopeFactory)
+
+package "EasyEnglish.App\nMAUI Blazor Hybrid UI -- the composition root" as App {
+}
+App ..> Cache
+App ..> Data : registers concrete repos
+App ..> Business : registers concrete services\n(wires Data's repos to Business's\ninterfaces here, at DI time)
+App ..> BrowserLog
+App ..> LogExt
+
+package "EasyEnglish.ContentTools\nstandalone CLI -- course-content authoring,\nNOT part of the running app" as ContentTools {
+}
+ContentTools ..> Core
+
+@enduml

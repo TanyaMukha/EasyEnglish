@@ -2,17 +2,24 @@ using EasyEnglish.Core.Interfaces.Services;
 
 namespace EasyEnglish.App.Services;
 
+/// <summary>Today's review progress for the home page's progress ring.</summary>
 public class TodayReviewStats
 {
+    /// <summary>Words/irregular forms/study cards/test cards reviewed today (UTC), summed across all kinds.</summary>
     public int Reviewed { get; set; }
+
+    /// <summary>Target for today, currently always <see cref="HomeStatsService.DailyGoal"/>.</summary>
     public int Goal { get; set; }
 }
 
+/// <summary>Total counts across the whole library, for the home page's overview cards.</summary>
 public class LibraryOverview
 {
     public int Courses { get; set; }
     public int Units { get; set; }
     public int Words { get; set; }
+
+    /// <summary>Study cards plus test cards combined.</summary>
     public int Cards { get; set; }
 }
 
@@ -50,6 +57,7 @@ public class HomeStatsService
         _unitService = unitService;
     }
 
+    /// <summary>Counts everything reviewed since midnight UTC, across all 4 learnable-item kinds.</summary>
     public async Task<TodayReviewStats> GetTodayReviewedCountAsync()
     {
         var since = DateTime.UtcNow.Date;
@@ -67,6 +75,7 @@ public class HomeStatsService
         };
     }
 
+    /// <summary>Unfiltered totals — every course/unit/word/card in the database, regardless of review state.</summary>
     public async Task<LibraryOverview> GetLibraryOverviewAsync()
     {
         var counts = await Task.WhenAll(

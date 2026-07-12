@@ -3,17 +3,21 @@
 namespace EasyEnglish.App.Services.Speech;
 
 /// <summary>
-/// Scoped сервіс для керування відтворенням з Blazor-компонентів.
+/// Scoped wrapper around <see cref="ISpeechService"/> for Blazor components to drive playback
+/// from: each <c>Play*Async</c> call cancels/replaces whatever was previously playing (so a
+/// component never needs to track cancellation itself), and disposal stops playback.
 /// </summary>
 public sealed class SpeechPlayer : IAsyncDisposable
 {
     private readonly ISpeechService _service;
     private CancellationTokenSource? _cts;
 
+    /// <summary>Whether the underlying <see cref="ISpeechService"/> is currently speaking.</summary>
     public bool IsPlaying => _service.IsSpeaking;
 
     public SpeechPlayer(ISpeechService service) => _service = service;
 
+    /// <summary>Plays a sequence of segments back-to-back with <paramref name="pauseBetween"/> silence in between, canceling any current playback first.</summary>
     public async Task PlayAsync(
         IEnumerable<SpeechSegment> segments,
         TimeSpan pauseBetween)
@@ -27,6 +31,7 @@ public sealed class SpeechPlayer : IAsyncDisposable
         catch (OperationCanceledException) { }
     }
 
+    /// <summary>Plays a single segment, canceling any current playback first.</summary>
     public async Task PlayAsync(SpeechSegment segment)
     {
         await StopAsync();
@@ -38,6 +43,7 @@ public sealed class SpeechPlayer : IAsyncDisposable
         catch (OperationCanceledException) { }
     }
 
+    /// <summary>Plays plain text in a single language, canceling any current playback first.</summary>
     public async Task PlayTextAsync(string text, SpeechLanguage language)
     {
         await StopAsync();
@@ -49,6 +55,7 @@ public sealed class SpeechPlayer : IAsyncDisposable
         catch (OperationCanceledException) { }
     }
 
+    /// <summary>Cancels any in-flight playback and stops the underlying speech service.</summary>
     public async Task StopAsync()
     {
         if (_cts is not null)

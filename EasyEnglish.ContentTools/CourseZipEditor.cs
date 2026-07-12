@@ -9,15 +9,18 @@ using EasyEnglish.Core.Models;
 namespace EasyEnglish.ContentTools;
 
 /// <summary>
-/// Читає/пише один unit_N.json усередині експортованого courseZip-архіву
-/// (формат — EasyEnglish.App/Services/CourseZipBackupService.cs), не чіпаючи
-/// решту архіву (слова, аудіо, course.json). Призначено для ручного/скриптового
-/// додавання StudyCard/TestCard у вже експортований модуль, без запуску застосунку.
+/// Reads/writes a single <c>unit_N.json</c> inside an exported course-ZIP archive (the format
+/// produced by <c>EasyEnglish.App/Services/CourseZipBackupService.cs</c>), without touching the
+/// rest of the archive (words, audio, <c>course.json</c>). Meant for manually/programmatically
+/// adding <c>StudyCard</c>/<c>TestCard</c> entries to an already-exported module without running
+/// the app itself.
 /// </summary>
 public static class CourseZipEditor
 {
-    // Має точно збігатися з EasyEnglish.App/Services/CourseZipBackupService.JsonOpts,
-    // інакше застосунок не зможе прочитати файл назад.
+    /// <summary>
+    /// Must match <c>EasyEnglish.App/Services/CourseZipBackupService.JsonOpts</c> exactly, or the
+    /// app won't be able to read the file back.
+    /// </summary>
     public static readonly JsonSerializerOptions JsonOpts = new()
     {
         WriteIndented = true,
@@ -27,6 +30,8 @@ public static class CourseZipEditor
         Converters = { new JsonStringEnumConverter() },
     };
 
+    /// <summary>Reads and deserializes <paramref name="unitFileName"/> (e.g. <c>"units/unit_1.json"</c>) from inside the ZIP at <paramref name="zipPath"/>.</summary>
+    /// <exception cref="InvalidOperationException">The entry is missing or fails to parse.</exception>
     public static UnitModel LoadUnit(string zipPath, string unitFileName)
     {
         using var archive = ZipFile.OpenRead(zipPath);
@@ -38,7 +43,7 @@ public static class CourseZipEditor
             ?? throw new InvalidOperationException($"Не вдалося розпарсити {unitFileName}");
     }
 
-    /// <summary>Перезаписує unit_N.json усередині вже наявного (скопійованого) архіву.</summary>
+    /// <summary>Overwrites <paramref name="unitFileName"/> inside an already-existing (copied) archive.</summary>
     public static void SaveUnit(string zipPath, string unitFileName, UnitModel unit)
     {
         using var archive = ZipFile.Open(zipPath, ZipArchiveMode.Update);
@@ -51,6 +56,7 @@ public static class CourseZipEditor
         stream.Write(Encoding.UTF8.GetBytes(json));
     }
 
+    /// <summary>Copies a course-ZIP archive, overwriting <paramref name="targetPath"/> if it already exists — the usual first step before editing a unit in place.</summary>
     public static void CopyArchive(string sourcePath, string targetPath) =>
         File.Copy(sourcePath, targetPath, overwrite: true);
 
@@ -58,6 +64,8 @@ public static class CourseZipEditor
     // console project doesn't reference (MAUI multi-targeting). We patch course.json as a
     // raw JsonNode tree instead — only the "units" array needs touching here.
 
+    /// <summary>Reads <c>course.json</c> from inside the ZIP at <paramref name="zipPath"/> as a raw JSON tree (see the remark above on why not a typed model).</summary>
+    /// <exception cref="InvalidOperationException"><c>course.json</c> is missing or fails to parse.</exception>
     public static JsonNode LoadManifestNode(string zipPath)
     {
         using var archive = ZipFile.OpenRead(zipPath);
@@ -69,7 +77,7 @@ public static class CourseZipEditor
             ?? throw new InvalidOperationException("Не вдалося розпарсити course.json");
     }
 
-    /// <summary>Перезаписує course.json — використовується після додавання нового unit-файлу в архів.</summary>
+    /// <summary>Overwrites <c>course.json</c> — used after adding a new unit file to the archive, since the manifest is the only place that lists which unit files exist.</summary>
     public static void SaveManifestNode(string zipPath, JsonNode manifest)
     {
         using var archive = ZipFile.Open(zipPath, ZipArchiveMode.Update);
@@ -82,6 +90,7 @@ public static class CourseZipEditor
         stream.Write(Encoding.UTF8.GetBytes(json));
     }
 
+    /// <summary>Lists every <c>units/*.json</c> entry inside the archive at <paramref name="zipPath"/>, sorted by file name.</summary>
     public static List<string> ListUnitFiles(string zipPath)
     {
         using var archive = ZipFile.OpenRead(zipPath);

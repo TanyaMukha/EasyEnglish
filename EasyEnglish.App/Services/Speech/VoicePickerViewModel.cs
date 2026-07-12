@@ -4,6 +4,7 @@ using EasyEnglish.App.Interfaces;
 
 namespace EasyEnglish.App.Services.Speech;
 
+/// <summary>All voices available for one <see cref="SpeechLanguage"/> in the voice-picker UI, with a display label and the currently-relevant native codes for ordering (see <see cref="VoicePickerViewModel.BuildGroup"/>).</summary>
 public record LanguageVoiceGroup(
     SpeechLanguage Language,
     string Label,
@@ -11,6 +12,12 @@ public record LanguageVoiceGroup(
     string[] NativeCodes
 );
 
+/// <summary>
+/// Backs the voice-selection settings screen: loads every available voice grouped by
+/// <see cref="SpeechLanguage"/>, tracks the learner's in-progress selection per language (not
+/// persisted until <see cref="SetSelected"/> is called), and can preview a voice by speaking a
+/// short sample sentence.
+/// </summary>
 public sealed partial class VoicePickerViewModel : ObservableObject
 {
     private readonly IVoiceProvider _voiceProvider;
@@ -22,14 +29,8 @@ public sealed partial class VoicePickerViewModel : ObservableObject
     [ObservableProperty] private bool _isLoading = true;
     [ObservableProperty] private string? _errorMessage;
 
+    /// <summary>One group per <see cref="SpeechLanguage"/>, populated by <see cref="LoadAsync"/>.</summary>
     public ObservableCollection<LanguageVoiceGroup> Groups { get; } = [];
-
-    private static readonly Dictionary<SpeechLanguage, string[]> NativeCodes = new()
-    {
-        [SpeechLanguage.EnglishBritish] = ["en-GB", "en-AU", "en-IE"],
-        [SpeechLanguage.EnglishAmerican] = ["en-US", "en-CA"],
-        [SpeechLanguage.Ukrainian] = ["uk-UA"],
-    };
 
     public VoicePickerViewModel(
         IVoiceProvider voiceProvider,
@@ -41,6 +42,7 @@ public sealed partial class VoicePickerViewModel : ObservableObject
         _engine = engine;
     }
 
+    /// <summary>Loads every available voice and rebuilds <see cref="Groups"/>. Sets <see cref="ErrorMessage"/> (Ukrainian, user-facing) instead of throwing if the underlying provider fails.</summary>
     public async Task LoadAsync()
     {
         IsLoading = true;
@@ -65,15 +67,22 @@ public sealed partial class VoicePickerViewModel : ObservableObject
         }
     }
 
+    /// <summary>Clears the underlying voice-provider cache; the next <see cref="LoadAsync"/> call re-queries the platform.</summary>
     public void InvalidateCache() => _voiceProvider.InvalidateCache();
 
+    /// <summary>
+    /// Builds the voice list for one language: filters to voices matching the bare language code,
+    /// ordered offline-first then by priority within <see cref="NativeVoiceCodes"/> then by display
+    /// name. Resolves the group's initial selection the same way — saved choice, then a native-code
+    /// match, then simply the first voice in the ordered list — and records it in <c>_selected</c>.
+    /// </summary>
     private LanguageVoiceGroup BuildGroup(
         SpeechLanguage lang,
         IReadOnlyList<LocaleInfo> allVoices,
         VoiceSettings settings)
     {
-        var codes = NativeCodes[lang];
-        var langCode = codes[0].Split('-')[0];
+        var codes = NativeVoiceCodes.For(lang);
+        var langCode = NativeVoiceCodes.BareLanguageCode(lang);
         var savedVoiceId = settings.GetVoiceId(lang);
 
         var voices = allVoices
@@ -90,20 +99,12 @@ public sealed partial class VoicePickerViewModel : ObservableObject
             .ThenBy(v => v.DisplayName)
             .ToList();
 
-        // Визначаємо поточний вибір
         LocaleInfo? current = null;
 
         if (savedVoiceId is not null)
             current = voices.FirstOrDefault(v => v.Id == savedVoiceId);
 
-        current ??= voices.FirstOrDefault(v =>
-            codes.Any(c =>
-            {
-                var parts = c.Split('-');
-                return string.Equals(v.Language, parts[0], StringComparison.OrdinalIgnoreCase)
-                    && (parts.Length < 2 || string.Equals(v.Country, parts[1],
-                        StringComparison.OrdinalIgnoreCase));
-            }));
+        current ??= voices.FirstOrDefault(v => NativeVoiceCodes.Matches(v, codes));
 
         current ??= voices.FirstOrDefault();
         _selected[lang] = current;
@@ -120,15 +121,18 @@ public sealed partial class VoicePickerViewModel : ObservableObject
             new ObservableCollection<LocaleInfo>(voices), codes);
     }
 
+    /// <summary>Returns the currently selected voice for <paramref name="lang"/>, or <c>null</c> if none is selected/loaded yet.</summary>
     public LocaleInfo? GetSelected(SpeechLanguage lang) =>
         _selected.TryGetValue(lang, out var v) ? v : null;
 
+    /// <summary>Updates the in-memory selection for <paramref name="lang"/> and fires off a (fire-and-forget) persist via <see cref="VoiceSettingsService.SaveAsync"/>.</summary>
     public void SetSelected(SpeechLanguage lang, LocaleInfo? voice)
     {
         _selected[lang] = voice;
         _ = _settingsService.SaveAsync(lang, voice?.Id);
     }
 
+    /// <summary>Speaks a short sample sentence (chosen by <paramref name="voice"/>'s language/country) so the learner can hear the voice before selecting it.</summary>
     public async Task PreviewAsync(LocaleInfo voice)
     {
         var text = voice.Language switch

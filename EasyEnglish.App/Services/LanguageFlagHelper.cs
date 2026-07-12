@@ -1,19 +1,20 @@
 namespace EasyEnglish.App.Services;
 
 /// <summary>
-/// Перетворює код мови у форматі BCP-47 (наприклад, "en-us") на шлях до SVG-іконки прапора
-/// відповідного регіону. Іконки — з набору flag-icons (MIT, github.com/lipis/flag-icons),
-/// самохостяться в wwwroot/flags/. Emoji-прапори (комбінації Regional Indicator Symbols)
-/// на Windows часто не рендеряться як прапор, а показуються двома літерами — тому іконки.
+/// Maps a BCP-47 language code (e.g. "en-us") to the wwwroot-relative path of the matching
+/// region's SVG flag icon. Icons are self-hosted under <c>wwwroot/flags/</c>, sourced from the
+/// flag-icons set (MIT, github.com/lipis/flag-icons) — emoji flags (Regional Indicator Symbol
+/// pairs) frequently fail to render as an actual flag glyph on Windows, showing two letters
+/// instead, hence real icon files.
 /// </summary>
 public static class LanguageFlagHelper
 {
     private const string DefaultFlagPath = "flags/xx.svg";
 
     /// <summary>
-    /// Повертає шлях (відносно wwwroot) до SVG-іконки прапора для регіону, вказаного в коді мови.
-    /// Наприклад, "en-us" → "flags/us.svg", "uk-ua" → "flags/ua.svg".
-    /// Якщо код відсутній або не містить розпізнаваного регіону — повертає нейтральний прапор.
+    /// Returns the wwwroot-relative path to the region's flag icon, e.g. "en-us" → "flags/us.svg",
+    /// "uk-ua" → "flags/ua.svg". Falls back to the neutral flag when <paramref name="languageCode"/>
+    /// is missing or has no recognizable 2-letter region.
     /// </summary>
     public static string GetFlagIconPath(string? languageCode)
     {
