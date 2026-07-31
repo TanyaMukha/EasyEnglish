@@ -42,7 +42,7 @@ A `Unit` is the unit of study: it owns four independent kinds of learnable conte
 | `Interfaces/Cache/`, `Interfaces/Storage/` | App-level caching/persistent-storage abstractions, unrelated to the SQLite database. |
 | `Enums/` | Plain domain enums (`TestCardKind`, `StudyCardKind`, `PartOfSpeech`, `LanguageLevel`, `DifficultyLevel`, `LearningPriority`, `BlurRevealMode`). |
 | `Extensions/` | `RateExtensions` — buckets a numeric rate into a `DifficultyLevel`. |
-| `Options/` | `LearningSelectionOptions` — parameters for "pick N items for a learning session" queries. |
+| `Options/` | `LearningSelectionOptions` — parameters for "pick N items for a learning session" queries. `UnitMergeOptions` — what an incoming unit graph is authoritative for, so a partial course archive can be merged without destroying data it doesn't carry (see `EasyEnglish.Business`'s `ReconcileAndUpdateAsync`). |
 | `Presets/` | Named string arrays of EF Core `Include()` paths per entity (`*Includes.None`/`.Full`/...). |
 
 ## Entities vs. Models — why two parallel hierarchies

@@ -7,8 +7,12 @@ namespace EasyEnglish.Core.Models;
 /// </summary>
 public class CoursePackageManifest
 {
-    /// <summary>Format version — increment on breaking schema changes.</summary>
-    public string SchemaVersion { get; set; } = "1.0";
+    /// <summary>
+    /// Format version — increment on breaking schema changes. <c>2.0</c> dropped the <c>isFullBackup</c>
+    /// option and stopped writing database IDs into unit files (identity is <c>RecordGuid</c> only).
+    /// <c>1.0</c> archives still import correctly: their IDs are simply ignored.
+    /// </summary>
+    public string SchemaVersion { get; set; } = "2.0";
 
     /// <summary>
     /// Stable identifier of the course.
@@ -39,22 +43,25 @@ public class CoursePackageManifest
 }
 
 /// <summary>
-/// Export / import options stored once in <c>course.json</c>.
+/// Export / import options stored once in <c>course.json</c>. These describe <em>what the archive
+/// contains</em>, which is what lets import merge a partial archive without destroying the data it
+/// doesn't carry (see <c>EasyEnglish.Core.Options.UnitMergeOptions</c>).
 ///
 /// Resulting <c>course.json</c> fragment:
 /// <code>
 /// "options": {
 ///   "includeExamples": true,
-///   "includeLearningProgress": true,
-///   "isFullBackup": false
+///   "includeLearningProgress": true
 /// }
 /// </code>
+///
+/// A schema 1.0 archive also carried <c>isFullBackup</c> ("keep database IDs"); it's ignored on
+/// import now, since IDs never travel between app instances.
 /// </summary>
 public class CourseExportOptions
 {
     public bool IncludeExamples         { get; set; } = true;
     public bool IncludeLearningProgress { get; set; } = true;
-    public bool IsFullBackup            { get; set; } = false;
 }
 
 /// <summary>Describes a single unit inside the archive.</summary>

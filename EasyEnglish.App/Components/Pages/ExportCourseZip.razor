@@ -114,9 +114,6 @@
                         <InputCheckboxField @bind-Value="options.IncludeLearningProgress"
                             Label="Прогрес вивчення"
                             Icon="bi-tags" />
-                        <InputCheckboxField @bind-Value="options.IsFullBackup"
-                            Label="Резервна копія (зберегти ID для відновлення)"
-                            Icon="bi-list-ul" />
                     </div>
 
                     @if (exportError != null)
@@ -266,7 +263,9 @@
         }
         catch (Exception ex)
         {
-            exportError = $"Помилка експорту: {ex.Message}";
+            // AutoMapper wraps the real cause in an "Error mapping types" exception, so the outer
+            // message says which member failed but never why -- show the innermost message instead.
+            exportError = $"Помилка експорту: {ex.GetBaseException().Message}";
         }
         finally
         {

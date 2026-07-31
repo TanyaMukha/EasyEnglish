@@ -191,3 +191,52 @@ at a dead Azure demo server. Fixed via Tools → Options → PlantUML → Advanc
 
 **Consequences**: Anyone opening this repo for the first time and finding diagrams don't render
 should check this setting before assuming the `.mdpuml` files themselves are broken.
+
+---
+
+## 11. Course archives carry RecordGuid only — never database IDs
+
+**Context**: Course export/import used an `isFullBackup` flag that, when set, wrote real database
+IDs into the archive and restored them verbatim. "Update an existing course" was only offered for
+such archives, on the theory that IDs were needed to find the rows to update. Two things were wrong
+with that. First, IDs are local to one app instance: importing an archive from another device wrote
+foreign IDs into this database. For a child that matched an existing row by GUID this was masked
+(the ID got overwritten anyway), but a *new* child kept its foreign ID, and EF then treated it as an
+existing row — verified to throw a `DbUpdateConcurrencyException`, and in an ID-collision case it
+would have silently overwritten an unrelated word instead. Second, gating "update" on full backups
+meant a partial export (a few units, or no examples/progress) could never be used to update, even
+though `ReconcileAndUpdateAsync` already matched children by `RecordGuid` and never needed the IDs.
+
+**Decision**: `RecordGuid` is the only identity that crosses the archive boundary. Export always
+zeroes IDs; import always resolves real local IDs by GUID. `isFullBackup` is gone from both the
+export options and the manifest (schema bumped to `2.0`; `1.0` archives still import — their IDs
+are simply ignored). "Update existing course" is now offered whenever the course GUID matches,
+regardless of how partial the archive is. `ReconcileAndUpdateAsync` zeroes any unmatched child's ID
+itself rather than trusting the caller to have done it.
+
+**Consequences**: Updating from a partial archive is now safe, which required teaching the merge
+what the payload is actually authoritative for (`UnitMergeOptions`) — an archive exported without
+examples still deserializes each word with an *empty* examples list, and one exported without
+progress deserializes with *default* rate/review values. Applied verbatim, both silently destroy
+real data; `MergeExamples` and `LearningProgress` exist to distinguish "not included" from "deleted"
+and from "reset". See also decision 12.
+
+---
+
+## 12. Learning progress merges newest-wins, per item
+
+**Context**: With updating from partial archives now allowed (decision 11), the same course can
+legitimately be studied on two devices and synced in either direction. Blindly applying the
+archive's progress means importing a slightly older export silently rolls back everything learned
+locally since.
+
+**Decision**: For children matched by GUID, whichever side has the later `LastReviewDate` wins,
+carrying `Rate`/`ReviewCount` with it (a rating without the review history that produced it is
+meaningless). A never-reviewed item counts as oldest, so a fresh copy of a word can't erase existing
+history. When the archive doesn't carry progress at all, the stored values are simply kept
+(`LearningProgressMerge.KeepExisting`).
+
+**Consequences**: Progress never moves backwards, in either sync direction, without needing
+timestamps beyond what the models already track. The cost is that it's per item rather than per
+course — two devices that each studied a *different* subset merge to the union, which is the
+desirable outcome here but would surprise anyone expecting whole-course "last write wins".

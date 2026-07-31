@@ -24,7 +24,7 @@ visually, and [project-dependencies.mdpuml](../Diagrams/project-dependencies.mdp
 - **[EasyEnglish.Business](../../EasyEnglish.Business/README.md)** — the domain service layer
   (`WordService`, `UnitService`, etc.), implementing Core's service interfaces. **Depends only on
   Core's repository interfaces, not on EasyEnglish.Data directly** — see
-  [key-decisions.md](../Decisions/key-decisions.md) for why that matters. 21 tests in
+  [key-decisions.md](../Decisions/key-decisions.md) for why that matters. 29 tests in
   `EasyEnglish.Business.Tests`.
 
 - **[EasyEnglish.Cache](../../EasyEnglish.Cache/README.md)** — a small in-memory "working set"

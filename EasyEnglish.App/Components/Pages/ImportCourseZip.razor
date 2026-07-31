@@ -4,6 +4,7 @@
 @using EasyEnglish.App.Interfaces
 @using EasyEnglish.Core.Mapping
 @using EasyEnglish.Core.Models
+@using EasyEnglish.Core.Options
 @using EasyEnglish.Services
 @inject CourseZipBackupService ZipBackupService
 @inject IFileService FileService
@@ -68,7 +69,7 @@
                             Інформація про курс
                         </h2>
 
-                        @if (existingCourse != null && manifest.Options.IsFullBackup)
+                        @if (existingCourse != null)
                         {
                             <div class="alert alert-warning">
                                 <i class="bi bi-arrow-repeat"></i>
@@ -87,41 +88,9 @@
                                     <i class="bi bi-arrow-clockwise"></i>
                                     <div>
                                         <strong>Оновити наявний курс</strong>
-                                        <span>Модулі з тим самим GUID оновляться; нові — додадуться</span>
+                                        <span>Модулі, слова й картки з тим самим GUID оновляться; нові — додадуться</span>
                                     </div>
                                 </div>
-                                <div class="radio-option @(importMode == ImportMode.CreateNew ? "radio-option--active" : "")"
-                                     @onclick="@(() => importMode = ImportMode.CreateNew)">
-                                    <i class="bi bi-plus-circle"></i>
-                                    <div>
-                                        <strong>Створити новий курс</strong>
-                                        <span>Буде створено окремий курс незалежно від наявного</span>
-                                    </div>
-                                </div>
-                                <div class="radio-option @(importMode == ImportMode.MergeInto ? "radio-option--active" : "")"
-                                     @onclick="@(() => importMode = ImportMode.MergeInto)">
-                                    <i class="bi bi-diagram-3"></i>
-                                    <div>
-                                        <strong>Злити з іншим курсом</strong>
-                                        <span>Модулі будуть додані до обраного курсу з новими GUID</span>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                        else if (existingCourse != null)
-                        {
-                            <div class="alert alert-warning">
-                                <i class="bi bi-info-circle"></i>
-                                <div>
-                                    <strong>Курс вже існує</strong>
-                                    <p>
-                                        «<strong>@existingCourse.Title</strong>» з таким самим GUID вже є в базі.
-                                        Оскільки це не повна резервна копія, буде створено окрему копію курсу.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="radio-group">
                                 <div class="radio-option @(importMode == ImportMode.CreateNew ? "radio-option--active" : "")"
                                      @onclick="@(() => importMode = ImportMode.CreateNew)">
                                     <i class="bi bi-plus-circle"></i>
@@ -139,6 +108,28 @@
                                     </div>
                                 </div>
                             </div>
+
+                            @if (importMode == ImportMode.Update && IsPartialArchive)
+                            {
+                                <div class="alert alert-info">
+                                    <i class="bi bi-shield-check"></i>
+                                    <div>
+                                        <strong>Архів частковий — решта даних не постраждає</strong>
+                                        <p>
+                                            Оновиться лише те, що є в архіві.
+                                            @if (!manifest.Options.IncludeExamples)
+                                            {
+                                                <text>Наявні <strong>приклади</strong> залишаться недоторканими. </text>
+                                            }
+                                            @if (!manifest.Options.IncludeLearningProgress)
+                                            {
+                                                <text>Ваш <strong>прогрес вивчення</strong> збережеться. </text>
+                                            }
+                                            Модулі, яких немає в архіві, теж не зміняться.
+                                        </p>
+                                    </div>
+                                </div>
+                            }
                         }
                         else
                         {
@@ -274,12 +265,6 @@
                                     Label="Прогрес вивчення"
                                     Icon="bi-tags" />
                             }
-                            @if (manifest.Options.IsFullBackup)
-                            {
-                                <InputCheckboxField @bind-Value="importOptions.IsFullBackup"
-                                    Label="Відновити як резервну копію (зберегти ID)"
-                                    Icon="bi-list-ul" />
-                            }
                             @if (importMode == ImportMode.Update)
                             {
                                 <InputCheckboxField @bind-Value="deleteMissingItems"
@@ -287,6 +272,14 @@
                                     Icon="bi-trash3" />
                             }
                         </div>
+
+                        @if (importMode == ImportMode.Update && deleteMissingItems)
+                        {
+                            <p class="hint">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Стосується лише того, що архів дійсно містить@(!manifest.Options.IncludeExamples ? " — приклади не видалятимуться" : ""). Модулі поза архівом не чіпаються.
+                            </p>
+                        }
                     </div>
 
                     <!-- ═══════════ STEP 4 — SAVE ═══════════ -->
@@ -360,6 +353,15 @@
 
     private enum ImportMode { CreateNew, Update, MergeInto }
 
+    /// <summary>
+    /// Whether the archive deliberately left something out. Such an archive is still safe to update
+    /// with — the excluded data is simply not touched (see <see cref="UnitMergeOptions"/>) — but the
+    /// UI says so explicitly, since "update" would otherwise sound like it could overwrite everything.
+    /// </summary>
+    private bool IsPartialArchive =>
+        manifest is not null &&
+        (!manifest.Options.IncludeExamples || !manifest.Options.IncludeLearningProgress);
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
@@ -424,10 +426,9 @@
 
         if (existingCourse != null)
         {
-            // Оновлення доступне лише для повного бекапу — тільки тоді збережені Id
-            importMode = manifest.Options.IsFullBackup
-                ? ImportMode.Update
-                : ImportMode.CreateNew;
+            // Оновлення доступне для будь-якого архіву: збіг шукається за GUID, а не за Id.
+            // Часткові архіви оновлюють лише те, що містять (див. UnitMergeOptions).
+            importMode = ImportMode.Update;
 
             var guids = manifest.Units.Select(u => u.UnitGuid).ToList();
             existingUnitGuids = (await UnitService.GetExistingGuidsAsync(guids)).ToHashSet();
@@ -437,7 +438,6 @@
         {
             IncludeExamples         = manifest.Options.IncludeExamples,
             IncludeLearningProgress = manifest.Options.IncludeLearningProgress,
-            IsFullBackup            = manifest.Options.IsFullBackup,
         };
     }
 
@@ -477,9 +477,10 @@
             {
                 targetCourse = new CourseModel
                 {
-                    RecordGuid   = importOptions.IsFullBackup && !isCopy
-                        ? manifest.CourseGuid
-                        : Guid.NewGuid(),
+                    // A copy is a genuinely separate course, so it gets a fresh GUID; a first-time
+                    // import keeps the archive's, which is what makes a later re-import recognizable
+                    // as an update of this same course.
+                    RecordGuid   = isCopy ? Guid.NewGuid() : manifest.CourseGuid,
                     Title        = isCopy
                         ? $"{manifest.CourseTitle} (копія)"
                         : manifest.CourseTitle,
@@ -493,10 +494,22 @@
             int updated = 0;
 
             // 2. Build mapping options once — same for all units in this import.
-            // MergeInto завжди скидає Id і генерує нові Guid — модулі незалежні від оригіналу.
+            // MergeInto завжди генерує нові Guid — модулі незалежні від оригіналу.
             var mappingOptions = importMode == ImportMode.MergeInto
                 ? importOptions.ToMappingOptions(isCopy: true)
                 : importOptions.ToMappingOptions(isCopy);
+
+            // What this archive is actually authoritative for. Anything the user unchecked (or the
+            // export never included) is left alone rather than overwritten with the defaults the
+            // archive deserializes to.
+            var mergeOptions = new UnitMergeOptions
+            {
+                DeleteMissing    = deleteMissingItems,
+                MergeExamples    = importOptions.IncludeExamples,
+                LearningProgress = importOptions.IncludeLearningProgress
+                    ? LearningProgressMerge.PreferNewest
+                    : LearningProgressMerge.KeepExisting,
+            };
 
             // 3. Process each unit.
             foreach (var (entry, rawUnit) in importResult.Units)
@@ -515,7 +528,7 @@
                     if (dbUnit != null)
                     {
                         unit.Id = dbUnit.Id;
-                        await UnitService.ReconcileAndUpdateAsync(unit, deleteMissingItems);
+                        await UnitService.ReconcileAndUpdateAsync(unit, mergeOptions);
                         updated++;
                         continue;
                     }
@@ -793,6 +806,9 @@
 
     .alert-warning { background: rgba(255,193,7,0.1); color: #856404; border-color: rgba(255,193,7,0.4); }
     .alert-warning i { color: #d4a017; }
+
+    .alert-info { background: rgba(163,191,250,0.1); color: #2c4a7c; border-color: rgba(163,191,250,0.45); }
+    .alert-info i { color: #5a7fb8; }
 
     @@media (max-width: 768px) {
 

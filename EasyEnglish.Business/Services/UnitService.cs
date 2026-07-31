@@ -1,7 +1,9 @@
 ﻿using EasyEnglish.Core.Entities;
 using EasyEnglish.Core.Models;
+using EasyEnglish.Core.Interfaces.Fields;
 using EasyEnglish.Core.Interfaces.Services;
 using EasyEnglish.Core.Interfaces.Repositories;
+using EasyEnglish.Core.Options;
 using EasyEnglish.Core.Presets;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
@@ -73,18 +75,27 @@ public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitServ
     /// 0 (inserted as a new row). FKs (UnitId/WordId) don't need manual fixing — EF assigns them when
     /// saving the graph through the navigation collections.
     /// <para>
+    /// <b>Any <c>Id</c> on <paramref name="incoming"/>'s children is ignored and overwritten</b> — the
+    /// graph typically arrives from a course archive produced by a different app instance, where those
+    /// IDs refer to entirely unrelated rows. RecordGuid is the only identity that travels.
+    /// </para>
+    /// <para>
     /// A <c>null</c> child collection on <paramref name="incoming"/> (or a matched word's
     /// <c>Examples</c>) means "don't touch this collection" — it's replaced with the unit's existing
     /// children before reconciliation runs, so it's never treated as emptied out. To actually delete
-    /// every child of a kind, pass an explicit empty list with <paramref name="deleteMissing"/> <c>true</c>.
+    /// every child of a kind, pass an explicit empty list with <see cref="UnitMergeOptions.DeleteMissing"/>
+    /// <c>true</c>.
+    /// </para>
+    /// <para>
+    /// <paramref name="options"/> covers the case where the incoming graph is only <em>partially</em>
+    /// authoritative: <see cref="UnitMergeOptions.MergeExamples"/> <c>false</c> leaves stored examples
+    /// alone entirely, and <see cref="UnitMergeOptions.LearningProgress"/> decides whether incoming
+    /// progress may overwrite what's stored. Both exist because an archive exported without that data
+    /// still deserializes to *default* values, which would otherwise silently wipe real data.
     /// </para>
     /// </remarks>
-    /// <param name="deleteMissing">
-    /// When <c>true</c>, children whose RecordGuid isn't among the incoming ones are deleted from the
-    /// database (strict sync). When <c>false</c>, such children are left unchanged (add/update only).
-    /// </param>
     /// <exception cref="EntityNotFoundException"><paramref name="incoming"/>.Id doesn't match an existing unit.</exception>
-    public async Task<UnitModel> ReconcileAndUpdateAsync(UnitModel incoming, bool deleteMissing, CancellationToken cancellationToken = default)
+    public async Task<UnitModel> ReconcileAndUpdateAsync(UnitModel incoming, UnitMergeOptions options, CancellationToken cancellationToken = default)
     {
         var existing = await GetByIdAsync(incoming.Id, UnitIncludes.Full, cancellationToken)
             ?? throw new EntityNotFoundException($"Unit with id {incoming.Id} was not found");
@@ -96,26 +107,36 @@ public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitServ
         incoming.StudyCards ??= existing.StudyCards;
         incoming.TestCards ??= existing.TestCards;
 
+        MergeProgress(incoming, existing, options.LearningProgress);
+
         var existingWordsByGuid = (existing.Words ?? []).ToDictionary(w => w.RecordGuid);
         var orphanExampleIds = new List<int>();
 
-        ReconcileIds(incoming.Words, existing.Words ?? []);
+        ReconcileChildren(incoming.Words, existing.Words ?? [], options.LearningProgress);
         foreach (var word in incoming.Words ?? [])
         {
             if (!existingWordsByGuid.TryGetValue(word.RecordGuid, out var existingWord))
                 continue; // new word -- its examples are new too, nothing to reconcile against
 
+            // Without MergeExamples the payload says nothing about examples, so whatever it carries
+            // (typically an empty list from an export that excluded them) must not be applied.
+            if (!options.MergeExamples)
+            {
+                word.Examples = existingWord.Examples;
+                continue;
+            }
+
             word.Examples ??= existingWord.Examples;
             ReconcileIds(word.Examples, existingWord.Examples ?? []);
-            if (deleteMissing)
+            if (options.DeleteMissing)
                 orphanExampleIds.AddRange(FindOrphanIds(word.Examples, existingWord.Examples ?? []));
         }
 
-        ReconcileIds(incoming.IrregularForms, existing.IrregularForms ?? []);
-        ReconcileIds(incoming.StudyCards, existing.StudyCards ?? []);
-        ReconcileIds(incoming.TestCards, existing.TestCards ?? []);
+        ReconcileChildren(incoming.IrregularForms, existing.IrregularForms ?? [], options.LearningProgress);
+        ReconcileChildren(incoming.StudyCards, existing.StudyCards ?? [], options.LearningProgress);
+        ReconcileChildren(incoming.TestCards, existing.TestCards ?? [], options.LearningProgress);
 
-        if (deleteMissing)
+        if (options.DeleteMissing)
         {
             await DeleteOrphansAsync(wordService, FindOrphanIds(incoming.Words, existing.Words ?? []), cancellationToken);
             await DeleteOrphansAsync(exampleService, orphanExampleIds, cancellationToken);
@@ -128,10 +149,12 @@ public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitServ
     }
 
     /// <summary>
-    /// For each item in <paramref name="incoming"/> whose <c>RecordGuid</c> matches an item in
-    /// <paramref name="existing"/>, overwrites its <c>Id</c> with that existing row's real <c>Id</c> —
-    /// in place. Items with no match keep <c>Id == 0</c> (a plain new <see cref="AbstractModel"/>
-    /// default), so they'll be inserted as new rows. A no-op when <paramref name="incoming"/> is <c>null</c>.
+    /// Rewrites every item's <c>Id</c> from its <c>RecordGuid</c>: a match in <paramref name="existing"/>
+    /// gets that row's real <c>Id</c> (updated in place), anything else is forced to <c>0</c> so it's
+    /// inserted as a new row. <b>Whatever <c>Id</c> the caller supplied is discarded either way</b> — the
+    /// graph usually comes from another app instance where those IDs point at unrelated rows, and an
+    /// unzeroed foreign Id would make EF either collide with or silently overwrite a stranger's row.
+    /// A no-op when <paramref name="incoming"/> is <c>null</c>.
     /// </summary>
     private static void ReconcileIds<T>(IList<T>? incoming, IEnumerable<T> existing)
         where T : AbstractModel, IGuidRecord
@@ -140,8 +163,52 @@ public class UnitService : BaseWithGuidService<UnitEntity, UnitModel>, IUnitServ
 
         var existingIdsByGuid = existing.ToDictionary(e => e.RecordGuid, e => e.Id);
         foreach (var item in incoming)
-            if (existingIdsByGuid.TryGetValue(item.RecordGuid, out var existingId))
-                item.Id = existingId;
+            item.Id = existingIdsByGuid.TryGetValue(item.RecordGuid, out var existingId) ? existingId : 0;
+    }
+
+    /// <summary>
+    /// <see cref="ReconcileIds"/> plus per-item learning-progress merging, for the child types that
+    /// track review state. Both run off the same RecordGuid match, so they're done in one pass.
+    /// </summary>
+    private static void ReconcileChildren<T>(IList<T>? incoming, IEnumerable<T> existing, LearningProgressMerge policy)
+        where T : AbstractModel, IGuidRecord, IReviewInfo
+    {
+        if (incoming is null) return;
+
+        var existingByGuid = existing.ToDictionary(e => e.RecordGuid);
+        foreach (var item in incoming)
+        {
+            if (!existingByGuid.TryGetValue(item.RecordGuid, out var match))
+            {
+                item.Id = 0;
+                continue;
+            }
+
+            item.Id = match.Id;
+            MergeProgress(item, match, policy);
+        }
+    }
+
+    /// <summary>
+    /// Copies <paramref name="existing"/>'s learning progress onto <paramref name="incoming"/> when the
+    /// stored side should win: always under <see cref="LearningProgressMerge.KeepExisting"/>, and under
+    /// <see cref="LearningProgressMerge.PreferNewest"/> only when it was reviewed more recently (a
+    /// never-reviewed item counts as oldest). Otherwise the incoming values stand.
+    /// <c>Rate</c> travels with the review state rather than being merged separately — a rating without
+    /// the review history that produced it would be meaningless.
+    /// </summary>
+    private static void MergeProgress(IReviewInfo incoming, IReviewInfo existing, LearningProgressMerge policy)
+    {
+        var existingWins = policy == LearningProgressMerge.KeepExisting
+            || (existing.LastReviewDate ?? DateTime.MinValue) > (incoming.LastReviewDate ?? DateTime.MinValue);
+
+        if (!existingWins) return;
+
+        incoming.LastReviewDate = existing.LastReviewDate;
+        incoming.ReviewCount = existing.ReviewCount;
+
+        if (incoming is IRateInfo incomingRate && existing is IRateInfo existingRate)
+            incomingRate.Rate = existingRate.Rate;
     }
 
     /// <summary>

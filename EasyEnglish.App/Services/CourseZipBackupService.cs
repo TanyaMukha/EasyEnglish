@@ -26,9 +26,14 @@ namespace EasyEnglish.Services;
 ///     └── banana.mp3
 /// </code>
 ///
-/// Options (IncludeExamples, IncludeLearningProgress, IsFullBackup) are stored once
-/// in course.json. Unit files never contain options — they always carry the full
-/// model snapshot produced by AutoMapper according to those options.
+/// Options (IncludeExamples, IncludeLearningProgress) are stored once in course.json. Unit files
+/// never contain options — they always carry the full model snapshot produced by AutoMapper
+/// according to those options.
+///
+/// Database IDs are never written: every model in the archive has Id/CourseId/UnitId/WordId at 0,
+/// and identity travels as RecordGuid alone. Import resolves real local IDs by GUID
+/// (see UnitService.ReconcileAndUpdateAsync), which is what makes an archive portable between app
+/// instances whose IDs have nothing to do with each other.
 /// </summary>
 public class CourseZipBackupService
 {
@@ -79,7 +84,6 @@ public class CourseZipBackupService
                 {
                     IncludeExamples         = options.IncludeExamples,
                     IncludeLearningProgress = options.IncludeLearningProgress,
-                    IsFullBackup            = options.IsFullBackup,
                 },
             };
 

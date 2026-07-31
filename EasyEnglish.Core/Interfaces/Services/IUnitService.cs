@@ -1,4 +1,5 @@
 ﻿using EasyEnglish.Core.Models;
+using EasyEnglish.Core.Options;
 using MukhaLab.Database;
 
 namespace EasyEnglish.Core.Interfaces.Services;
@@ -21,7 +22,9 @@ public interface IUnitService : IBaseWithGuidService<UnitModel>
     /// <summary>
     /// Updates a unit together with its children, matching each child against the unit's existing
     /// ones by RecordGuid instead of blindly cascading by Id (which would duplicate everything whose
-    /// Id was reset to 0 during import mapping). See implementation remarks for details.
+    /// Id was reset to 0 during import mapping). <paramref name="options"/> declares what the
+    /// incoming graph is authoritative for, so a partial payload doesn't destroy data it doesn't
+    /// carry. See implementation remarks for details.
     /// </summary>
-    Task<UnitModel> ReconcileAndUpdateAsync(UnitModel incoming, bool deleteMissing, CancellationToken cancellationToken = default);
+    Task<UnitModel> ReconcileAndUpdateAsync(UnitModel incoming, UnitMergeOptions options, CancellationToken cancellationToken = default);
 }

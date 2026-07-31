@@ -19,25 +19,47 @@ other services.
 
 ## `ReconcileAndUpdateAsync`
 
-`IUnitService.ReconcileAndUpdateAsync(UnitModel incoming, bool deleteMissing, ...)` updates a unit
-together with its children (`Words`/`Examples`/`IrregularForms`/`StudyCards`/`TestCards`), matching
-each incoming child against the unit's *existing* children by `RecordGuid` instead of a blind EF
-cascade by `Id`. This is what makes "import a unit you exported earlier, but some IDs got reset to 0
-during round-tripping" behave as an update instead of duplicating everything:
+`IUnitService.ReconcileAndUpdateAsync(UnitModel incoming, UnitMergeOptions options, ...)` updates a
+unit together with its children (`Words`/`Examples`/`IrregularForms`/`StudyCards`/`TestCards`),
+matching each incoming child against the unit's *existing* children by `RecordGuid` instead of a
+blind EF cascade by `Id`. This is what lets a course archive from another device — where every
+local `Id` means something entirely different — be applied as an update instead of duplicating
+everything or corrupting unrelated rows:
 
 ```csharp
-var updated = await unitService.ReconcileAndUpdateAsync(importedUnit, deleteMissing: true);
+var updated = await unitService.ReconcileAndUpdateAsync(importedUnit, new UnitMergeOptions
+{
+    DeleteMissing    = true,
+    MergeExamples    = archive.Options.IncludeExamples,
+    LearningProgress = LearningProgressMerge.PreferNewest,
+});
 ```
+
+**Identity is `RecordGuid`, never `Id`:**
 
 - A child whose `RecordGuid` already exists among the unit's current children gets that row's real
   `Id` and is updated in place.
-- A child with a `RecordGuid` not seen before keeps `Id == 0` and is inserted as new.
-- `deleteMissing: true` additionally deletes any existing child whose `RecordGuid` isn't present in
-  `incoming` — a strict sync. `deleteMissing: false` only adds/updates, never deletes.
+- A child with a `RecordGuid` not seen before is forced to `Id == 0` and inserted as new — whatever
+  `Id` the caller supplied is discarded. Leaving a foreign `Id` in place makes EF treat the child as
+  an existing row and throw `DbUpdateConcurrencyException` (or, on an ID collision, silently
+  overwrite a stranger's row). See [key-decisions.md #11](../EasyEnglish.Docs/Decisions/key-decisions.md).
+
+**Partial payloads** — the archive may deliberately not carry everything, and "absent" must not read
+as "deleted" or "reset":
+
 - A `null` child collection on `incoming` (or a matched word's `Examples`) means "this payload
-  doesn't say anything about this collection" — it's left completely untouched, regardless of
-  `deleteMissing`. To actually clear every child of a kind, pass an explicit empty list (`[]`) with
-  `deleteMissing: true`.
+  doesn't say anything about this collection" — left completely untouched, regardless of
+  `DeleteMissing`. To actually clear every child of a kind, pass an explicit empty list (`[]`) with
+  `DeleteMissing = true`.
+- `MergeExamples = false` leaves every matched word's stored examples alone and ignores the incoming
+  ones. Needed because an export that excluded examples still deserializes each word with an *empty*
+  list, which would otherwise delete them all under `DeleteMissing`.
+- `LearningProgress` decides whether incoming `Rate`/`LastReviewDate`/`ReviewCount` may win.
+  `KeepExisting` for archives that don't carry progress (they deserialize to *defaults*, which would
+  silently reset real progress); `PreferNewest` compares `LastReviewDate` per item so syncing between
+  two devices never rolls progress backwards.
+- `DeleteMissing` only ever applies to collections the payload is authoritative for — with
+  `MergeExamples = false`, examples are never deleted no matter what it says.
 
 FKs (`UnitId`/`WordId`) aren't touched by hand — EF assigns them when the graph is saved through
 navigation collections in the underlying `UpdateAsync` call.
@@ -84,12 +106,17 @@ of what changed and why.
 
 ## Testing
 
-`EasyEnglish.Business.Tests` (21 tests). Risk-based priority, same framework as
+`EasyEnglish.Business.Tests` (29 tests). Risk-based priority, same framework as
 `EasyEnglish.Core`/`EasyEnglish.Data`:
 
 - **`UnitService.ReconcileAndUpdateAsync`** (highest priority) — GUID-matching across 5 child
-  collections, both `deleteMissing` branches, and the null-vs-explicit-empty-collection distinction
-  (Known Issue #4) with a dedicated regression test for each.
+  collections, both `DeleteMissing` branches, and the null-vs-explicit-empty-collection distinction
+  (Known Issue #4) with a dedicated regression test for each. Plus the identity and partial-payload
+  guarantees: a foreign `Id` on an unmatched child is zeroed (verified to throw
+  `DbUpdateConcurrencyException` without the fix — a real crash, not a hypothetical),
+  `MergeExamples = false` preserves stored examples against an empty incoming list, and each
+  `LearningProgressMerge` branch is pinned including the "never-reviewed incoming can't erase stored
+  history" edge case.
 - **`WordService.UpdateWordRateAsync`** — happy path plus the not-found → `EntityNotFoundException` case.
 - **`*.UpdateRateRangeAsync`** (`Word`/`IrregularForm`/`StudyCard`/`TestCard`) — ids that don't match
   an existing row are confirmed silently skipped, not reported.
