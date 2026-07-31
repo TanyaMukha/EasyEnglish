@@ -86,8 +86,8 @@ for you.
 
 | Project | Tests | Notes |
 |---|---|---|
-| `EasyEnglish.Core.Tests` | 50 | Pure POCOs mostly untested by design; the 3 pockets of real logic (`TestCardConverters` JSON pack/unpack, `MappingActions`, `RateExtensions`) are covered. |
-| `EasyEnglish.Data.Tests` | 36 | Real in-memory SQLite `DbContext`. |
+| `EasyEnglish.Core.Tests` | 52 | Pure POCOs mostly untested by design; the 3 pockets of real logic (`TestCardConverters` JSON pack/unpack, `MappingActions`, `RateExtensions`) are covered, plus a container-level guard that every mapping action/converter the profile uses is actually DI-registered. |
+| `EasyEnglish.Data.Tests` | 37 | Real in-memory SQLite `DbContext`. |
 | `EasyEnglish.Business.Tests` | 29 | Real-SQLite integration tests for `UnitService.ReconcileAndUpdateAsync`, including GUID-only identity and partial-payload merging. |
 | `EasyEnglish.Cache.Tests` | 19 | `NSubstitute` for `IWordService`/`IUnitService`; a real `IServiceScopeFactory` (not mocked) to exercise the actual DI-scope-per-fetch mechanism. |
 | `EasyEnglish.App.Tests` | 103 | Pure-logic subset of `EasyEnglish.App/Services/` only — see that project's README for why the test project can't `ProjectReference` the MAUI head project. |
@@ -96,7 +96,7 @@ for you.
 | `MukhaLab.BrowserConsoleLogger.Tests` | 32 | `NSubstitute` for `IJSRuntime`; `[InternalsVisibleTo]` exposes an internal accessor so async flush behavior can be awaited deterministically instead of polled. |
 | `MukhaLab.LoggerExtensionDelegate.Tests` | 28 | `Microsoft.Extensions.Diagnostics.Testing`'s `FakeLogger`/`FakeLogCollector`. |
 
-**397 tests total**, all green as of the last full solution run.
+**400 tests total**, all green as of the last full solution run.
 
 ## What's not covered, and why that's a deliberate choice, not an oversight
 

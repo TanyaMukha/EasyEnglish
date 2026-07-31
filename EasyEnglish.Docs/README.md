@@ -44,7 +44,7 @@ dead demo server and diagrams silently fail to render. See
 | [getting-started.md](Guides/getting-started.md) | Prerequisites, build, run, test — onboarding. |
 | [solution-structure.md](Guides/solution-structure.md) | Every project, one paragraph each, linking to its own README. |
 | [conventions.md](Guides/conventions.md) | Naming, language (code vs. UI text), exceptions, DI, testing, documentation conventions — and the gotchas that don't follow from reading any single file. |
-| [testing-strategy.md](Guides/testing-strategy.md) | The risk-based framework used to decide what to test in every project, plus a coverage summary (397 tests across 9 `.Tests` projects as of the last full run). |
+| [testing-strategy.md](Guides/testing-strategy.md) | The risk-based framework used to decide what to test in every project, plus a coverage summary (400 tests across 9 `.Tests` projects as of the last full run). |
 
 ## Decisions
 

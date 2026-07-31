@@ -36,10 +36,17 @@
     }
 
     <div class="card-footer">
-        <div class="card-stat">
-            <i class="bi bi-card-text"></i>
-            <span>@ItemsCount items</span>
-        </div>
+        @if (StatsContent != null)
+        {
+            @StatsContent
+        }
+        else
+        {
+            <div class="card-stat">
+                <i class="bi bi-card-text"></i>
+                <span>@ItemsCount items</span>
+            </div>
+        }
         @if (!string.IsNullOrWhiteSpace(BadgeText))
         {
             <span class="card-badge">@BadgeText</span>
@@ -57,6 +64,9 @@
 
     [Parameter] public RenderFragment? AdditionalMainContent { get; set; }
     [Parameter] public RenderFragment? AdditionalBottomContent { get; set; }
+
+    /// <summary>Replaces the default "N items" footer line when a card counts more than one kind of item.</summary>
+    [Parameter] public RenderFragment? StatsContent { get; set; }
 
     [Parameter] public EventCallback<int> GoToViewPage { get; set; }
     [Parameter] public EventCallback<int> GoToEditPage { get; set; }

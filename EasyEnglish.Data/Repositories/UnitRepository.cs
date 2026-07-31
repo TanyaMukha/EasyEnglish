@@ -50,16 +50,27 @@ public class UnitRepository : BaseWithGuidRepository<UnitEntity, EasyEnglishDbCo
                 Title = u.Title,
                 Description = u.Description,
 
-                TotalCount = u.Words.Count + u.IrregularForms.Count,
+                WordCount = u.Words.Count,
+                IrregularFormCount = u.IrregularForms.Count,
+                StudyCardCount = u.StudyCards.Count,
+                TestCardCount = u.TestCards.Count,
+
+                TotalCount = u.Words.Count + u.IrregularForms.Count + u.StudyCards.Count + u.TestCards.Count,
 
                 EasyCount = u.Words.Count(w => w.Rate < RateExtensions.EasyMax)
-                + u.IrregularForms.Count(f => f.Rate < RateExtensions.EasyMax),
+                + u.IrregularForms.Count(f => f.Rate < RateExtensions.EasyMax)
+                + u.StudyCards.Count(c => c.Rate < RateExtensions.EasyMax)
+                + u.TestCards.Count(c => c.Rate < RateExtensions.EasyMax),
 
                 MediumCount = u.Words.Count(w => w.Rate >= RateExtensions.EasyMax && w.Rate < RateExtensions.HardMin)
-                + u.IrregularForms.Count(f => f.Rate >= RateExtensions.EasyMax && f.Rate < RateExtensions.HardMin),
+                + u.IrregularForms.Count(f => f.Rate >= RateExtensions.EasyMax && f.Rate < RateExtensions.HardMin)
+                + u.StudyCards.Count(c => c.Rate >= RateExtensions.EasyMax && c.Rate < RateExtensions.HardMin)
+                + u.TestCards.Count(c => c.Rate >= RateExtensions.EasyMax && c.Rate < RateExtensions.HardMin),
 
                 HardCount = u.Words.Count(w => w.Rate >= RateExtensions.HardMin)
-                + u.IrregularForms.Count(f => f.Rate >= RateExtensions.HardMin),
+                + u.IrregularForms.Count(f => f.Rate >= RateExtensions.HardMin)
+                + u.StudyCards.Count(c => c.Rate >= RateExtensions.HardMin)
+                + u.TestCards.Count(c => c.Rate >= RateExtensions.HardMin),
             })
             .ToListAsync();
     }

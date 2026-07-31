@@ -18,6 +18,7 @@ using EasyEnglish.App.Services;
 using EasyEnglish.App.Interfaces;
 using EasyEnglish.App.Models;
 using EasyEnglish.Cache.Extensions;
+using EasyEnglish.Core.Extensions;
 using EasyEnglish.Core.Interfaces.Storage;
 using Plugin.Maui.Audio;
 using EasyEnglish.App.Services.Speech;
@@ -190,13 +191,6 @@ public static class MauiProgram
         services.AddScoped<IUserContext, AnonymousUserContext>();
         services.AddScoped<CourseZipBackupService>();
 
-        services.AddTransient<UnitMappingAction>();
-        services.AddTransient<WordMappingAction>();
-        services.AddTransient<ExampleMappingAction>();
-        services.AddTransient<IrregularFormMappingAction>();
-        services.AddTransient<TestCardEntityToModelConverter>();
-        services.AddTransient<TestCardModelToEntityConverter>();
-
         services.AddSingleton<IStorageService, LocalStorageService>();
         services.AddSingleton<StreakService>();
         services.AddSingleton<IFileService, FileService>();
@@ -236,6 +230,10 @@ public static class MauiProgram
             config.AddProfile<MappingProfile>();
             config.AddProfile<MappingUIProfile>();
         });
+
+        // AutoMapper builds the profile's mapping actions and type converters through the container,
+        // so each one has to be registered or the map that uses it throws at map time.
+        services.AddEasyEnglishMappingServices();
     }
 
     /// <summary>

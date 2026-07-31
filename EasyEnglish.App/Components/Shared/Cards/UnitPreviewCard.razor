@@ -1,4 +1,5 @@
 @namespace EasyEnglish.App.Components.Shared
+@using System.Globalization
 
 <PreviewCard
     Id="@Id"
@@ -11,17 +12,33 @@
     GoToEditPage="@GoToEditPage"
     RemoveItem="@RemoveItem"
 >
+    <StatsContent>
+        <div class="card-stats">
+            <span class="stat @(WordCount == 0 ? "stat--empty" : "")" title="Слова">
+                <i class="bi bi-card-text"></i>@WordCount
+            </span>
+            <span class="stat @(IrregularFormCount == 0 ? "stat--empty" : "")" title="Неправильні форми">
+                <i class="bi bi-layers"></i>@IrregularFormCount
+            </span>
+            <span class="stat @(StudyCardCount == 0 ? "stat--empty" : "")" title="Навчальні картки">
+                <i class="bi bi-journal-text"></i>@StudyCardCount
+            </span>
+            <span class="stat @(TestCardCount == 0 ? "stat--empty" : "")" title="Тестові картки">
+                <i class="bi bi-patch-question"></i>@TestCardCount
+            </span>
+        </div>
+    </StatsContent>
     <AdditionalBottomContent>
         <div class="d-flex align-items-center">
             <div class="card-progress w-100">
                 <div class="progress-stacked">
-                    <div class="progress" style="width: @GreenRateCount%">
+                    <div class="progress" style="width: @Width(GreenRateCount)">
                         <div class="progress-bar bg-success"></div>
                     </div>
-                    <div class="progress" style="width: @YellowRateCount%">
+                    <div class="progress" style="width: @Width(YellowRateCount)">
                         <div class="progress-bar bg-warning"></div>
                     </div>
-                    <div class="progress" style="width: @RedRateCount%">
+                    <div class="progress" style="width: @Width(RedRateCount)">
                         <div class="progress-bar bg-danger"></div>
                     </div>
                 </div>
@@ -38,6 +55,12 @@
     [Parameter] public required string Title { get; set; }
     [Parameter] public string? Description { get; set; }
     [Parameter] public required int ItemsCount { get; set; } = 0;
+
+    [Parameter] public int WordCount { get; set; } = 0;
+    [Parameter] public int IrregularFormCount { get; set; } = 0;
+    [Parameter] public int StudyCardCount { get; set; } = 0;
+    [Parameter] public int TestCardCount { get; set; } = 0;
+
     [Parameter] public float GreenRateCount { get; set; } = 0.0f;
     [Parameter] public float YellowRateCount { get; set; } = 0.0f;
     [Parameter] public float RedRateCount { get; set; } = 0.0f;
@@ -48,9 +71,58 @@
     [Parameter] public EventCallback<int> GoToEditPage { get; set; }
     [Parameter] public EventCallback<int> RemoveItem { get; set; }
     [Parameter] public EventCallback<int> GoToLearningPage { get; set; }
+
+    /// <summary>
+    /// CSS width for one bar segment. Formatted with the invariant culture — under a comma-decimal
+    /// locale (uk-UA) the default float rendering emits "33,3%", which CSS drops as invalid.
+    /// </summary>
+    private static string Width(float percent) =>
+        percent.ToString("0.##", CultureInfo.InvariantCulture) + "%";
 }
 
-<style>  
+<style>
+    /* Чотири лічильники в одному рядку — місця в підвалі картки рівно на це, тому
+       лише іконка + число; підпис типу лишається в title. */
+    .card-stats {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        column-gap: 0.85rem;
+        row-gap: 0.25rem;
+        min-width: 0;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+    }
+
+    .card-stats .stat {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        white-space: nowrap;
+    }
+
+    .card-stats .stat i {
+        font-size: 1rem;
+        color: #A3BFFA;
+    }
+
+    /* Порожній тип не прибираємо, але приглушуємо — око одразу бачить, що в юніті є. */
+    .card-stats .stat--empty {
+        opacity: 0.35;
+    }
+
+    @@media (max-width: 380px) {
+        .card-stats {
+            column-gap: 0.6rem;
+            font-size: 0.8rem;
+        }
+
+        .card-stats .stat i {
+            font-size: 0.9rem;
+        }
+    }
+
     .card-progress {
         margin: 0.75rem 0;
     }

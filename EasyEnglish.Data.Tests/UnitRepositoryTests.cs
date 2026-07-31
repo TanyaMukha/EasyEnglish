@@ -9,7 +9,7 @@ public class UnitRepositoryTests : SqliteTestBase
     private UnitRepository CreateRepository() => new(Factory, UserContext);
 
     [Fact]
-    public async Task GetUnitCardsAsync_BucketsWordsAndIrregularFormsByDifficulty()
+    public async Task GetUnitCardsAsync_BucketsEveryContentKindByDifficulty()
     {
         await using (var ctx = CreateContext())
         {
@@ -28,6 +28,9 @@ public class UnitRepositoryTests : SqliteTestBase
                 UnitId = unit.Id,
                 Rate = 1.0f,
             });
+            ctx.StudyCards.Add(new StudyCardEntity { Title = "study", UnitId = unit.Id, Rate = 2.0f });
+            ctx.TestCards.Add(new TestCardEntity { Title = "test easy", UnitId = unit.Id, Rate = 0.5f });
+            ctx.TestCards.Add(new TestCardEntity { Title = "test hard", UnitId = unit.Id, Rate = 5.0f });
             await ctx.SaveChangesAsync();
         }
 
@@ -39,10 +42,40 @@ public class UnitRepositoryTests : SqliteTestBase
 
         var card = Assert.Single(cards);
         Assert.Equal("Unit 1", card.Title);
-        Assert.Equal(4, card.TotalCount);
-        Assert.Equal(2, card.EasyCount);
+
+        Assert.Equal(3, card.WordCount);
+        Assert.Equal(1, card.IrregularFormCount);
+        Assert.Equal(1, card.StudyCardCount);
+        Assert.Equal(2, card.TestCardCount);
+        Assert.Equal(7, card.TotalCount);
+
+        Assert.Equal(3, card.EasyCount);   // easyWord, irregular form, easy test card
+        Assert.Equal(2, card.MediumCount); // mediumWord, study card
+        Assert.Equal(2, card.HardCount);   // hardWord, hard test card
+        Assert.Equal(card.TotalCount, card.EasyCount + card.MediumCount + card.HardCount);
+    }
+
+    [Fact]
+    public async Task GetUnitCardsAsync_UnitWithOnlyTestCards_IsNotReportedAsEmpty()
+    {
+        await using (var ctx = CreateContext())
+        {
+            var unit = await TestDataHelpers.SeedUnitAsync(ctx, title: "Prepositions");
+            ctx.TestCards.Add(new TestCardEntity { Title = "card 1", UnitId = unit.Id, Rate = 3f });
+            ctx.TestCards.Add(new TestCardEntity { Title = "card 2", UnitId = unit.Id, Rate = 1f });
+            await ctx.SaveChangesAsync();
+        }
+
+        await using var readCtx = CreateContext();
+        var courseId = readCtx.Units.Single().CourseId;
+
+        var card = Assert.Single(await CreateRepository().GetUnitCardsAsync(courseId));
+
+        Assert.Equal(0, card.WordCount);
+        Assert.Equal(2, card.TestCardCount);
+        Assert.Equal(2, card.TotalCount);
+        Assert.Equal(1, card.EasyCount);
         Assert.Equal(1, card.MediumCount);
-        Assert.Equal(1, card.HardCount);
     }
 
     [Fact]

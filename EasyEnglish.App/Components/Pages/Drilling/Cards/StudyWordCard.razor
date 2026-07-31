@@ -9,6 +9,16 @@
         <p class="pronunciation-hint">[ @_vm.Transcription ]</p>
     }
 
+    @if (_revealed)
+    {
+        <div class="answer-reveal">
+            <span class="revealed-word">@_vm.Word</span>
+            <span class="audio-play-icon @(_vm.Pronunciation is { Length: > 0 } ? "stored" : "generated")" @onclick:stopPropagation="true" @onclick="PlayWord" title="Play pronunciation">
+                <i class="bi bi-volume-up-fill"></i>
+            </span>
+        </div>
+    }
+
     <div class="mic-record-row">
         <span class="mic-check-icon large @(_isChecking ? "listening" : "")" @onclick="CheckPronunciation" title="Скажіть слово">
             <i class="bi bi-mic-fill"></i>
@@ -21,16 +31,6 @@
             <i class="bi @GetFeedbackIcon()"></i>
             @GetFeedbackText()
         </p>
-    }
-
-    @if (_revealed)
-    {
-        <div class="answer-reveal">
-            <span class="revealed-word">@_vm.Word</span>
-            <span class="audio-play-icon @(_vm.Pronunciation is { Length: > 0 } ? "stored" : "generated")" @onclick:stopPropagation="true" @onclick="PlayWord" title="Play pronunciation">
-                <i class="bi bi-volume-up-fill"></i>
-            </span>
-        </div>
     }
 </div>
 
@@ -117,6 +117,11 @@
 }
 
 <style>
+    .DrillingReviewCardContent {
+        flex-direction: column;
+        gap: 0;
+    }
+
     .pronunciation-hint {
         font-size: 1.1rem;
         color: var(--text-secondary);
@@ -172,8 +177,8 @@
 
     .answer-reveal {
         display: flex;
-        flex-direction: column;
-        align-items: center;
+        flex-direction: row;
+        justify-content: center;
         gap: 0.5rem;
         margin-bottom: 1rem;
     }

@@ -13,11 +13,11 @@ visually, and [project-dependencies.mdpuml](../Diagrams/project-dependencies.mdp
   ("models"), repository/service interfaces, enums, AutoMapper profiles, rating/difficulty
   extensions. No EF Core, no MAUI — every other `EasyEnglish.*` project depends on this one, and it
   depends on nothing but `MukhaLab.Database` (for `AbstractEntity`/`IGuidRecord`/`IUserContext`).
-  50 tests in `EasyEnglish.Core.Tests`.
+  52 tests in `EasyEnglish.Core.Tests`.
 
 - **[EasyEnglish.Data](../../EasyEnglish.Data/README.md)** — EF Core/SQLite implementation of
   Core's repository interfaces, plus the `DbContext`, migrations, and learning-query filter/sort
-  extensions (`LearningPriority.New/Old/...`). 36 tests in `EasyEnglish.Data.Tests`, against a real
+  extensions (`LearningPriority.New/Old/...`). 37 tests in `EasyEnglish.Data.Tests`, against a real
   in-memory SQLite connection (not EF Core's `InMemory` provider — that doesn't catch LINQ-to-SQL
   translation bugs).
 

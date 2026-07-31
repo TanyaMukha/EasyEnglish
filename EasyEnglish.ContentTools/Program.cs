@@ -20,7 +20,7 @@ if (args.Length > 0 && args[0] == "verify")
     return;
 }
 
-var moduleKey = args.Length > 0 ? args[0] : "english-for-it-b2-unit1-reset-first10-ids";
+var moduleKey = args.Length > 0 ? args[0] : "english-for-it-b2-vocabulary8";
 
 switch (moduleKey)
 {
@@ -42,6 +42,10 @@ switch (moduleKey)
 
     case "english-for-it-b2-unit1-reset-first10-ids":
         EnglishForItB2Unit1ResetFirst10Ids.Run();
+        break;
+
+    case "english-for-it-b2-vocabulary8":
+        EnglishForItB2Vocabulary8.Run();
         break;
 
     default:
@@ -597,5 +601,142 @@ internal static class EnglishForItB2Unit1ResetFirst10Ids
         CourseZipEditor.SaveUnit(ZipPath, UnitFile, unit);
 
         Console.WriteLine($"[OK] Reset {reset} card(s) to clean/new state in {ZipPath}");
+    }
+}
+
+/// <summary>
+/// "Vocabulary #8" — a vocabulary-only module (no study/test cards) around failures and the review
+/// process: errors and exceptions, code review and branch protection, DB/cache/session problems,
+/// and rollback/restore. Like <see cref="EnglishForItB2PrepositionsOfPlace"/> this is a brand-new
+/// unit file, so <c>course.json</c> has to be patched too — the manifest is the sole source of
+/// truth for which module files an archive contains.
+///
+/// Words carry no <c>Pronunciation</c>: audio is recorded inside the app afterwards, which is why
+/// the manifest entry lists an empty <c>audioFiles</c> array.
+/// </summary>
+internal static class EnglishForItB2Vocabulary8
+{
+    private const string SourceZip = @"C:\Users\User\Downloads\english_for_it_b2_2026-07-27.zip";
+    private const string TargetZip = @"C:\Users\User\Downloads\english_for_it_b2_2026-07-28.zip";
+    private const string UnitFile = "units/unit_12.json";
+    private const string UnitTitle = "Vocabulary #8";
+
+    private static readonly (string Word, string Transcription, string Translation, string Note, string Sentence, string SentenceTranslation)[] Words =
+    [
+        // ── Errors and exceptions ──
+        ("to throw an error", "/θrəʊ ən ˈerə(r)/", "видавати помилку", "однаково в UK/US",
+            "TypeScript throws a compilation error.", "TypeScript видає помилку компіляції."),
+        ("unhandled exception", "/ʌnˈhændld ɪkˈsepʃn̩/", "необроблений виняток", "однаково в UK/US",
+            "The application crashes with an unhandled exception.", "Застосунок падає з необробленим винятком."),
+
+        // ── Code review and the issue lifecycle ──
+        ("to close an issue", "/kləʊz ən ˈɪʃuː/", "закрити задачу (issue)", "термін GitHub/Jira, однаково в UK/US",
+            "She closed the issue after the fix.", "Вона закрила задачу після виправлення."),
+        ("review goes", "/rɪˈvjuː ɡəʊz/", "рев'ю просувається", "колокація \"review + дієслово\"",
+            "The review goes faster without conflicts.", "Рев'ю проходить швидше без конфліктів."),
+        ("review passes", "/rɪˈvjuː ˈpɑːsɪz/", "рев'ю проходить", "в US вимова \"pass\" — /pæs/",
+            "The review passes without any comments.", "Рев'ю проходить без жодних коментарів."),
+        ("review moves", "/rɪˈvjuː muːvz/", "рев'ю рухається (просувається далі)", "однаково в UK/US",
+            "The review moves to the next stage.", "Рев'ю переходить на наступний етап."),
+        ("without approval", "/wɪðˈaʊt əˈpruːvl̩/", "без затвердження", "в US часто розмовно \"without sign-off\"",
+            "Don't merge without approval.", "Не мерж без затвердження."),
+        ("team lead", "/tiːm liːd/", "тімлід, керівник команди", "в US частіше \"tech lead\" для технічного лідера",
+            "The team lead reviewed the PR.", "Тімлід перевірив PR."),
+        ("to send somebody back for review", "/send ˈsʌmbədi bæk fɔːr rɪˈvjuː/", "відправити когось на доопрацювання", "формальніший варіант",
+            "The lead sent him back for review.", "Лід відправив його на доопрацювання."),
+        ("to bounce back", "/baʊns bæk/", "відхиляти й повертати на доопрацювання", "розмовніший варіант, поширений в US",
+            "The reviewer bounced the PR back with comments.", "Рев'юер відхилив PR назад з коментарями."),
+
+        // ── CI and the rules around a branch ──
+        ("to pass locally", "/pɑːs ˈləʊkəli/", "проходити локально (про тести)", "US вимова \"pass\" — /pæs/",
+            "The tests pass locally but fail in CI.", "Тести проходять локально, але падають в CI."),
+        ("still (= anyway)", "/stɪl/", "все одно, попри це", "однаково в UK/US",
+            "CI still runs the tests and fails.", "CI однаково запускає тести і падає."),
+        ("to violate the rules", "/ˈvaɪəleɪt ðə ruːlz/", "порушувати правила", "формальніший варіант",
+            "This commit violates the rules.", "Цей коміт порушує правила."),
+        ("to break the rules", "/breɪk ðə ruːlz/", "порушувати правила", "розмовніший варіант",
+            "This commit breaks the rules.", "Цей коміт порушує правила."),
+        ("branch protection rules", "/brɑːntʃ prəˈtekʃn̩ ruːlz/", "правила захисту гілки", "технічний термін GitHub, без відмінностей US/UK",
+            "Direct commits break branch protection rules.", "Прямі коміти порушують правила захисту гілки."),
+
+        // ── Load, queries, and performance ──
+        ("at once", "/ət wʌns/", "одночасно", "в US у формальному тексті частіше \"simultaneously\"",
+            "The server got too many requests at once.", "Сервер отримав забагато запитів одночасно."),
+        ("to reject a connection", "/rɪˈdʒekt ə kəˈnekʃn̩/", "відхиляти з'єднання", "однаково в UK/US",
+            "The server rejects new connections under load.", "Сервер відхиляє нові з'єднання під навантаженням."),
+        ("to execute a query", "/ˈeksɪkjuːt ə ˈkwɪəri/", "виконувати запит", "US вимова \"query\" — /ˈkwɪri/",
+            "The query executes slowly without an index.", "Запит виконується повільно без індексу."),
+        ("without an index", "/wɪðˈaʊt ən ˈɪndeks/", "без індексу", "однаково в UK/US",
+            "The query runs slowly without an index.", "Запит працює повільно без індексу."),
+        ("to run slowly", "/rʌn ˈsləʊli/", "працювати/виконуватись повільно", "однаково в UK/US",
+            "The page runs slowly on a weak connection.", "Сторінка працює повільно при слабкому з'єднанні."),
+        ("security vulnerability", "/sɪˈkjʊərəti ˌvʌlnərəˈbɪləti/", "вразливість безпеки", "в US розмовно скорочують до \"vuln\"",
+            "Outdated libraries cause security vulnerabilities.", "Застарілі бібліотеки спричиняють вразливості безпеки."),
+        ("cache", "/kæʃ/", "кеш, пам'ять", "не плутати з \"cash\" (готівка) — вимова майже однакова",
+            "The cache overflows when it gets full.", "Кеш переповнюється, коли заповнюється."),
+        ("to overflow", "/ˌəʊvəˈfləʊ/", "переповнюватися", "однаково в UK/US",
+            "If the cache overflows, the oldest records are removed.", "Якщо кеш переповнюється, найстаріші записи видаляються."),
+
+        // ── Recovery: revert, restore, roll back ──
+        ("to revert a change", "/rɪˈvɜːt ə tʃeɪndʒ/", "скасувати/відкотити зміну", "типовий git-термін",
+            "The changes will be automatically reverted.", "Зміни будуть автоматично скасовані."),
+        ("production database", "/prəˈdʌkʃn̩ ˈdeɪtəbeɪs/", "робоча/продакшн база даних", "однаково в UK/US",
+            "The team restored the production database from a backup.", "Команда відновила робочу базу даних з резервної копії."),
+        ("to restore from a backup", "/rɪˈstɔːr frəm ə ˈbækʌp/", "відновити з резервної копії", "\"backup\" як іменник — одне слово",
+            "They restored the data from a backup.", "Вони відновили дані з резервної копії."),
+        ("accidentally", "/ˌæksɪˈdentəli/", "випадково", "однаково в UK/US",
+            "He accidentally deleted the file.", "Він випадково видалив файл."),
+        ("to expire", "/ɪkˈspaɪə(r)/", "закінчуватися (про термін дії)", "про токен/сесію/пароль",
+            "The session expires after 30 minutes.", "Сесія закінчується через 30 хвилин."),
+        ("to log out of the system", "/lɒɡ aʊt əv ðə ˈsɪstəm/", "вийти із системи", "пасив: is logged out",
+            "The user is logged out of the system automatically.", "Користувача автоматично виводять із системи."),
+        ("to roll back (to a previous version)", "/rəʊl bæk/", "відкотити (до попередньої версії)", "дуже поширений термін для деплоїв/релізів",
+            "The release will be rolled back to the previous version.", "Реліз відкотять до попередньої версії."),
+    ];
+
+    public static void Run()
+    {
+        CourseZipEditor.CopyArchive(SourceZip, TargetZip);
+
+        var unit = new UnitModel
+        {
+            RecordGuid = Guid.NewGuid(),
+            Title      = UnitTitle,
+            Words      = new List<WordModel>(),
+        };
+
+        foreach (var (word, transcription, translation, note, sentence, sentenceTranslation) in Words)
+        {
+            unit.Words.Add(new WordModel
+            {
+                Word          = word,
+                Transcription = transcription,
+                Translation   = translation,
+                Note          = note,
+                Examples =
+                [
+                    new ExampleModel { Sentence = sentence, Translation = sentenceTranslation },
+                ],
+            });
+        }
+
+        CourseZipEditor.SaveUnit(TargetZip, UnitFile, unit);
+
+        var manifest = CourseZipEditor.LoadManifestNode(TargetZip);
+        var unitsArray = manifest["units"]!.AsArray();
+        unitsArray.Add(new JsonObject
+        {
+            ["unitGuid"]   = unit.RecordGuid.ToString(),
+            ["fileName"]   = UnitFile,
+            ["title"]      = UnitTitle,
+            ["wordCount"]  = unit.Words.Count,
+            ["audioFiles"] = new JsonArray(),
+            ["imageFiles"] = new JsonArray(),
+        });
+        CourseZipEditor.SaveManifestNode(TargetZip, manifest);
+
+        Console.WriteLine($"[OK] Written: {TargetZip}");
+        Console.WriteLine($"  new unit \"{UnitTitle}\": words={unit.Words.Count}");
+        Console.WriteLine($"  course.json units: {unitsArray.Count}");
     }
 }

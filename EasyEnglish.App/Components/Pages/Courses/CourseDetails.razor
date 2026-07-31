@@ -39,9 +39,13 @@
                              Title="@unit.Title"
                              Description="@unit.Description"
                              ItemsCount="@unit.TotalCount"
-                             GreenRateCount="@(unit.EasyCount/(unit.TotalCount > 0 ? unit.TotalCount : 1)*100)"
-                             YellowRateCount="@(unit.MediumCount/(unit.TotalCount > 0 ? unit.TotalCount : 1)*100)"
-                             RedRateCount="@(unit.HardCount/(unit.TotalCount > 0 ? unit.TotalCount : 1)*100)"
+                             WordCount="@unit.WordCount"
+                             IrregularFormCount="@unit.IrregularFormCount"
+                             StudyCardCount="@unit.StudyCardCount"
+                             TestCardCount="@unit.TestCardCount"
+                             GreenRateCount="@Percent(unit.EasyCount, unit.TotalCount)"
+                             YellowRateCount="@Percent(unit.MediumCount, unit.TotalCount)"
+                             RedRateCount="@Percent(unit.HardCount, unit.TotalCount)"
                              IsEditable="true"
                              GoToViewPage="@((id) => NavigateToPage($"/courses/{course.Id}/units/{id}"))"
                              GoToEditPage="@GoToEditPage"
@@ -57,6 +61,13 @@
 
 @code {
     [Parameter] public int Id { get; set; }
+
+    /// <summary>
+    /// Share of <paramref name="count"/> items within the unit, as a percentage for the progress bar.
+    /// Float division on purpose: <c>count / total</c> on two ints truncates to 0 for every mixed unit
+    /// and to 1 only when a single bucket holds everything, which made the bar either empty or full.
+    /// </summary>
+    private static float Percent(int count, int total) => total > 0 ? count * 100f / total : 0f;
 
     public CourseModel course { get; set; } = new();
     private List<UnitCardModel> AvailableUnits { get; set; } = new();
