@@ -5,8 +5,8 @@ using EasyEnglish.App.Components.Pages.Drilling.Models;
 namespace EasyEnglish.App.Components.Pages.Drilling.Definitions;
 
 /// <summary>
-/// Центральний реєстр усіх тестів.
-/// Щоб додати новий тест — тільки сюди + новий TestDefinition клас.
+/// Central registry of every test.
+/// To add a new test — only here, plus a new TestDefinition class.
 /// </summary>
 public static class TestRegistry
 {

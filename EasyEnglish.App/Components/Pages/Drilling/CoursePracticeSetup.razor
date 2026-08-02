@@ -1,9 +1,7 @@
 @page "/courses/{CourseId:int}/practice"
 @inject PracticeQueueService PracticeQueueService
 
-<div class="page-content">
-    <Breadcrumb Items="breadcrumbs" />
-    <PageHeader Title="Практика курсу" />
+<PageShell Title="Практика курсу" Breadcrumbs="breadcrumbs" Width="PageWidth.Medium">
 
     @if (isLoading)
     {
@@ -39,8 +37,13 @@
                             <ExerciseTypeGrid Options="@type.ExerciseOptions" @bind-SelectedKeys="type.SelectedTests" />
 
                             <details class="quick-filter-details" open>
-                                <summary>Налаштування вибірки (кількість / складність)</summary>
-                                <LearningFilterPanel Options="type.FilterOptions" MaxCount="200" ShowApplyButton="false" />
+                                <summary>
+                                    Налаштування вибірки
+                                    <span class="quick-filter-state">@LearningFilterPanel.Describe(type.FilterOptions)</span>
+                                </summary>
+                                @* The selection is resolved on start here, so OnApply is not passed —
+                                   the panel only edits the options, without queries or a counter. *@
+                                <LearningFilterPanel Options="type.FilterOptions" MaxCount="200" />
                             </details>
                         </div>
                     }
@@ -69,7 +72,7 @@
             </div>
         }
     }
-</div>
+</PageShell>
 
 @code {
     [Parameter] public int CourseId { get; set; }
@@ -210,7 +213,6 @@
 }
 
 <style>
-    .page-content { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem; }
 
     .select-all-row { margin-bottom: 1rem; }
 

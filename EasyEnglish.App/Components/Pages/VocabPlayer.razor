@@ -1,35 +1,36 @@
 @page "/vocab-player"
+@using EasyEnglish.App.Components.Shared
 @using EasyEnglish.App.Components.Shared.Breadcrumb
 
 @inject SpeechPlayer Player
 @implements IAsyncDisposable
 
-<Breadcrumb Items="breadcrumbs" />
-
-<div class="vocab-player">
-    <button @onclick="PlayExamples" disabled="@Player.IsPlaying">▶ Play</button>
-    <button @onclick="Player.StopAsync" disabled="@(!Player.IsPlaying)">■ Stop</button>
-</div>
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Narrow">
+    <div class="vocab-player">
+        <button @onclick="PlayExamples" disabled="@Player.IsPlaying">▶ Play</button>
+        <button @onclick="Player.StopAsync" disabled="@(!Player.IsPlaying)">■ Stop</button>
+    </div>
+</PageShell>
 
 @code {
     private List<Breadcrumb.BreadcrumbItem> breadcrumbs = BreadcrumbBuilder.Create().WithHome().WithActive("Програвач словника").Build();
 
-    // ── приклад: слово "schedule" + переклад
+    // ── example: the word "schedule" plus its translation
     private readonly List<SpeechSegment> _examples =
         [
-            // Британська основна + американська для вставок
+            // British as the base, American for the inserts
         new(
         "The word **schedule** is pronounced differently in British and American English.",
         SpeechLanguage.EnglishBritish,
         SpeechLanguage.EnglishAmerican
     ),
-        // Переклад українською
+        // Ukrainian translation
         new(
             "Слово **schedule** означає розклад або план.",
             SpeechLanguage.Ukrainian,
             SpeechLanguage.EnglishBritish
         ),
-        // Речення-приклад британською з українським поясненням
+        // Example sentence in British English with a Ukrainian explanation
         new(
             "What's your **розклад** for tomorrow? — Який у тебе план на завтра?",
             SpeechLanguage.EnglishBritish,

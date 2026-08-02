@@ -4,9 +4,8 @@
 @using EasyEnglish.App.Components.Shared
 @using EasyEnglish.App.Components.Shared.Breadcrumb
 
-<div class="page-content">
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Full">
     <div class="header-section">
-        <Breadcrumb Items="breadcrumbs" />
 
         <div class="title-section">
             <h1 class="page-title">
@@ -161,7 +160,7 @@
             </div>
         </EditForm>
     </div>
-</div>
+</PageShell>
 
 @code {
     [Parameter] public int CourseId { get; set; } = 0;
@@ -189,7 +188,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        // Перезавантажуємо дані тільки якщо WordId змінився (перехід між формами редагування)
+        // Reload data only when WordId changed (moving between edit forms)
         if (_loadedWordId == WordId)
             return;
 

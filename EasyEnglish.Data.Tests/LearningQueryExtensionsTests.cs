@@ -124,6 +124,41 @@ public class LearningQueryExtensionsTests : SqliteTestBase
     }
 
     [Fact]
+    public async Task Recent_ReturnsReviewedItemsNewestFirst_AndSkipsNeverReviewed()
+    {
+        // "Recent" — what the learner worked on last. Mirror of Old, but never-reviewed items
+        // are dropped entirely: they were never studied, so they can't be "studied before this".
+        await using var ctx = CreateContext();
+        var unit = await TestDataHelpers.SeedUnitAsync(ctx);
+        await TestDataHelpers.SeedWordAsync(ctx, unit.Id, "reviewedLongAgo",
+            lastReviewDate: new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        await TestDataHelpers.SeedWordAsync(ctx, unit.Id, "reviewedYesterday",
+            lastReviewDate: new DateTime(2024, 6, 1, 0, 0, 0, DateTimeKind.Utc));
+        var neverReviewed = await TestDataHelpers.SeedWordAsync(ctx, unit.Id, "neverReviewed");
+
+        var result = await ctx.Words.AsNoTracking().ApplyLearningSelectionAsync(
+            new LearningSelectionOptions { Priority = LearningPriority.Recent, WordCount = 0, IncludeLearnedWords = true });
+
+        Assert.DoesNotContain(result, w => w.Id == neverReviewed.Id);
+        Assert.Equal(["reviewedYesterday", "reviewedLongAgo"], result.Select(w => w.Word));
+    }
+
+    [Fact]
+    public async Task Recent_WordCountTakesTheMostRecentOnes()
+    {
+        await using var ctx = CreateContext();
+        var unit = await TestDataHelpers.SeedUnitAsync(ctx);
+        for (var i = 1; i <= 5; i++)
+            await TestDataHelpers.SeedWordAsync(ctx, unit.Id, $"day{i}",
+                lastReviewDate: new DateTime(2024, 1, i, 0, 0, 0, DateTimeKind.Utc));
+
+        var result = await ctx.Words.AsNoTracking().ApplyLearningSelectionAsync(
+            new LearningSelectionOptions { Priority = LearningPriority.Recent, WordCount = 2, IncludeLearnedWords = true });
+
+        Assert.Equal(["day5", "day4"], result.Select(w => w.Word));
+    }
+
+    [Fact]
     public async Task Old_SpansBothReviewedAndNeverReviewedItems_OrderedByLastTouchAscending()
     {
         // LearningPriority.Old is a broader "staleness" ranking than New (never-reviewed only) or

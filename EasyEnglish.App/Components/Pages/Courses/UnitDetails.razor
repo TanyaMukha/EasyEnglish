@@ -13,9 +13,8 @@
 @inject RecentActivityService RecentActivityService
 @using EasyEnglish.App.Components.Shared.Breadcrumb
 
-<div class="page-content">
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Full">
     <div class="header-section">
-        <Breadcrumb Items="breadcrumbs" />
 
         <div class="title-section">
             <h1 class="page-title">@Unit.Title</h1>
@@ -341,7 +340,7 @@
             </div>
         }
     </div>
-</div>
+</PageShell>
 
 @code {
     [Parameter] public int CourseId { get; set; }
@@ -419,7 +418,7 @@
                 Icon = "bi-patch-question",
                 Count = Unit.TestCards?.Count ?? 0
             }
-            // Легко додати нові типи тут:
+            // New kinds are easy to add here:
             // new TabInfo { Key = "phrases", Label = "Phrases", Icon = "bi-chat-quote", Count = Unit.Phrases?.Count ?? 0 },
         };
     }
@@ -428,10 +427,10 @@
     {
         var allTabs = GetAllPossibleTabs();
         
-        // Показуємо таби які мають контент або які користувач додав вручну
+        // Show tabs that have content, plus the ones the user added manually
         availableTabs = allTabs.Where(t => t.Count > 0 || manuallyAddedTabs.Contains(t.Key)).ToList();
 
-        // Якщо є таби, встановлюємо перший як активний
+        // If there are tabs, make the first one active
         if (availableTabs.Any() && !availableTabs.Any(t => t.Key == activeTab))
         {
             activeTab = availableTabs.First().Key;
@@ -556,7 +555,7 @@
     {
         await LoadData();
         
-        // Видаляємо з вручну доданих табів ті, які тепер мають контент
+        // Drop from the manually added tabs the ones that now have content
         var allTabs = GetAllPossibleTabs();
         manuallyAddedTabs = manuallyAddedTabs
             .Where(key => !allTabs.Any(t => t.Key == key && t.Count > 0))

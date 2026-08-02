@@ -3,9 +3,8 @@
 @using EasyEnglish.App.Components.Shared
 @using EasyEnglish.App.Components.Shared.Breadcrumb
 
-<div class="page-content">
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Full">
     <div class="header-section">
-        <Breadcrumb Items="breadcrumbs" />
 
         <div class="title-section">
             <h1 class="word-title">@IrregularForm.FirstForm</h1>
@@ -260,7 +259,7 @@
             }
         </div>
     </div>
-</div>
+</PageShell>
 
 @code {
     [Parameter] public int CourseId { get; set; }

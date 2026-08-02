@@ -6,9 +6,8 @@
 @inject NavigationManager NavigationManager
 @using EasyEnglish.App.Components.Shared.Breadcrumb
 
-<div class="page-content">
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Full">
     <div class="header-section">
-        <Breadcrumb Items="breadcrumbs" />
 
         <div class="title-section">
             <h1 class="page-title">
@@ -57,7 +56,7 @@
         <UnitShortForm CourseId="@course.Id"
         OnUnitCreated="@(async () => await LoadData())" />
     </div>
-</div>
+</PageShell>
 
 @code {
     [Parameter] public int Id { get; set; }

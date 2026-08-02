@@ -2,9 +2,7 @@
 @page "/courses/{CourseId:int}/examples/practice/session"
 @inject PracticeQueueService PracticeQueueService
 
-<div class="page-content">
-    <Breadcrumb Items="breadcrumbs" />
-    <PageHeader Title="Вивчення прикладів" />
+<PageShell Title="Вивчення прикладів" Breadcrumbs="breadcrumbs" Width="PageWidth.Narrow">
 
     <MultiTestHost TItem="ExampleTestModel"
     Definitions="@_definitions"
@@ -12,7 +10,7 @@
     IsLoading="@_isLoading"
     ErrorMessage="@_errorMessage"
     OnFinish="@FinishTest" />
-</div>
+</PageShell>
 
 @code {
     [Parameter] public int CourseId { get; set; }
@@ -118,5 +116,4 @@
 }
 
 <style>
-    .page-content { max-width: 800px; margin: 0 auto; padding: 2rem 1rem; }
 </style>

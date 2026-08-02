@@ -1,3 +1,6 @@
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
 @if (IsLoading)
 {
     <div class="loading-container">
@@ -86,34 +89,137 @@ else if (ShowStats)
 }
 else
 {
-    <ProgressBar totalCount="@TotalCount" completedCount="@CompletedCount" colorClass="pastel-blue"/>
-
-    <div class="test-card">
-        <div class="card-header-gradient">
-            <div class="header-info">
+    <div class="drill-shell" @ontouchstart="OnTouchStart" @ontouchend="OnTouchEnd">
+        <div class="drill-topbar">
+            <div class="drill-title">
                 <i class="@IconClass"></i>
-                @Title
+                <span>@Title</span>
             </div>
-            <div class="rate-display">
-                <i class="bi bi-star-fill"></i>
-                <span class="rate-value">@Rate.ToString("F1", CultureInfo.InvariantCulture)</span>
-            </div>    
+
+            <div class="drill-meta">
+                @if (IsBrowseMode && BrowseCards.Count > 1)
+                {
+                    <button class="drill-icon-btn" @onclick="OpenSheet" title="Список карток">
+                        <i class="bi bi-list-ul"></i>
+                    </button>
+                }
+
+                <span class="drill-rate">
+                    <i class="bi bi-star-fill"></i>
+                    @Rate.ToString("F1", CultureInfo.InvariantCulture)
+                </span>
+
+                <button class="drill-exit" @onclick="() => _confirmFinish = true" title="Завершити тест">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span class="drill-exit-label">Завершити</span>
+                </button>
+            </div>
         </div>
 
-        <div class="card-body">
+        <ProgressBar totalCount="@TotalCount" completedCount="@CompletedCount" colorClass="pastel-blue"/>
+
+        <div class="drill-content">
             @ChildContent
-            
-            @if (ShowNextButton)
-            {
-                <div class="navigation-buttons">
-                    <button class="btn-next" @onclick="() => OnNextCard.InvokeAsync()" disabled="@Disabled">
-                        <span>Далі</span>
-                        <i class="bi bi-arrow-right"></i>
-                    </button>
-                </div>
-            }
         </div>
     </div>
+
+    @if (IsBrowseMode || ShowNextButton)
+    {
+        @* The bar travels to the PageShell footer slot — positioning, safe area and the
+           keyboard offset come from the shell, only the set of buttons stays here. *@
+        <SectionContent SectionId="AppSections.PageFooter">
+        <div class="drill-actions">
+            @if (IsBrowseMode)
+            {
+                <button class="drill-btn drill-btn-ghost"
+                        @onclick="() => OnPrevCard.InvokeAsync()"
+                        title="Попередня картка">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Назад</span>
+                </button>
+
+                @if (HasTestsAhead)
+                {
+                    <button class="drill-btn drill-btn-secondary"
+                            @onclick="() => OnGoToTests.InvokeAsync()"
+                            title="Перейти до тестів">
+                        <i class="bi bi-play-circle"></i>
+                        <span>До тестів</span>
+                    </button>
+                }
+            }
+
+            @if (ShowNextButton)
+            {
+                <button class="drill-btn drill-btn-primary"
+                        @onclick="() => OnNextCard.InvokeAsync()"
+                        disabled="@Disabled">
+                    <span>Далі</span>
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+            }
+        </div>
+        </SectionContent>
+    }
+
+    @if (_sheetOpen)
+    {
+        <div class="drill-sheet-backdrop" @onclick="CloseSheet">
+            <div class="drill-sheet" @onclick:stopPropagation="true">
+                <div class="drill-sheet-header">
+                    <span class="drill-sheet-title">Картки</span>
+
+                    <div class="drill-sheet-pager">
+                        <button class="drill-icon-btn" @onclick="PrevPage" disabled="@(_sheetPage == 0)" title="Попередні">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <span class="drill-sheet-range">@(PageFirst + 1)–@PageLast / @BrowseCards.Count</span>
+                        <button class="drill-icon-btn" @onclick="NextPage" disabled="@(_sheetPage >= LastPage)" title="Наступні">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+
+                    <button class="drill-icon-btn" @onclick="CloseSheet" title="Закрити">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <ul class="drill-sheet-list">
+                    @foreach (var card in PageCards)
+                    {
+                        var index = card.Index;
+                        <li class="drill-sheet-item @(index == CurrentCardIndex ? "current" : "")"
+                            @onclick="() => JumpTo(index)">
+                            <span class="drill-sheet-dot @RatingClass(card.Rating)"></span>
+                            <span class="drill-sheet-label">@card.Label</span>
+                            @if (card.IsVisited)
+                            {
+                                <i class="bi bi-check2 drill-sheet-seen"></i>
+                            }
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    }
+
+    @if (_confirmFinish)
+    {
+        <div class="drill-modal-backdrop" @onclick="() => _confirmFinish = false">
+            <div class="drill-modal" @onclick:stopPropagation="true">
+                <h3 class="drill-modal-title">Завершити тест?</h3>
+                <p class="drill-modal-text">Результати, які ви вже набрали, буде збережено.</p>
+                <div class="drill-modal-actions">
+                    <button class="drill-btn drill-btn-ghost" @onclick="() => _confirmFinish = false">
+                        Продовжити
+                    </button>
+                    <button class="drill-btn drill-btn-primary" @onclick="ConfirmFinish">
+                        Завершити
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
 }
 
 @code {
@@ -133,10 +239,161 @@ else
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public bool ShowNextButton { get; set; } = false;
     [Parameter] public bool Disabled { get; set; } = false;
+
+    /// <summary>Browse mode: flipping cards back and forth instead of an answer queue.</summary>
+    [Parameter] public bool IsBrowseMode { get; set; } = false;
+
+    /// <summary>Whether any test follows the browsing — drives the "to tests" button.</summary>
+    [Parameter] public bool HasTestsAhead { get; set; } = false;
+
+    /// <summary>All browse cards — for the list that jumps to an arbitrary one.</summary>
+    [Parameter] public IReadOnlyList<BrowseCardInfo> BrowseCards { get; set; } = [];
+
+    [Parameter] public int CurrentCardIndex { get; set; }
+
+    [Parameter] public EventCallback<int> OnJumpToCard { get; set; }
     [Parameter] public EventCallback<string> OnNextCard { get; set; }
+    [Parameter] public EventCallback OnPrevCard { get; set; }
+    [Parameter] public EventCallback OnGoToTests { get; set; }
+    [Parameter] public EventCallback OnFinishEarly { get; set; }
     [Parameter] public EventCallback OnFinish { get; set; }
 
+    /// <summary>Cards per list page — keeps the controls from drifting out of reach.</summary>
+    private const int PageSize = 8;
+
+    /// <summary>Minimum horizontal finger travel that still counts as a swipe.</summary>
+    private const double SwipeThreshold = 60;
+
+    private bool _confirmFinish;
+    private bool _sheetOpen;
+    private int  _sheetPage;
+
+    private double _touchStartX;
+    private double _touchStartY;
+    private bool   _touchTracking;
+
+    private DotNetObjectReference<DrillingPageLayout>? _keysRef;
+
+    // ── Card list ─────────────────────────────────────────────────────────────
+
+    private int LastPage  => BrowseCards.Count == 0 ? 0 : (BrowseCards.Count - 1) / PageSize;
+    private int PageFirst => _sheetPage * PageSize;
+    private int PageLast  => Math.Min(PageFirst + PageSize, BrowseCards.Count);
+
+    private IEnumerable<BrowseCardInfo> PageCards => BrowseCards.Skip(PageFirst).Take(PageSize);
+
+    private void OpenSheet()
+    {
+        _sheetPage = BrowseCards.Count == 0 ? 0 : CurrentCardIndex / PageSize;
+        _sheetOpen = true;
+    }
+
+    private void CloseSheet() => _sheetOpen = false;
+
+    private void PrevPage() => _sheetPage = Math.Max(0, _sheetPage - 1);
+    private void NextPage() => _sheetPage = Math.Min(LastPage, _sheetPage + 1);
+
+    private async Task JumpTo(int index)
+    {
+        _sheetOpen = false;
+        await OnJumpToCard.InvokeAsync(index);
+    }
+
+    /// <summary>Dot colour in the list: 1 = easy (green) … 5 = hard (red).</summary>
+    private static string RatingClass(double? rating)
+    {
+        if (rating is null || rating <= 0) return "none";
+        return $"level-{Math.Clamp((int)Math.Round(rating.Value), 1, 5)}";
+    }
+
+    // ── Swipe ─────────────────────────────────────────────────────────────────
+
+    private void OnTouchStart(TouchEventArgs e)
+    {
+        _touchTracking = IsBrowseMode && e.ChangedTouches.Length == 1;
+        if (!_touchTracking) return;
+
+        _touchStartX = e.ChangedTouches[0].ClientX;
+        _touchStartY = e.ChangedTouches[0].ClientY;
+    }
+
+    private async Task OnTouchEnd(TouchEventArgs e)
+    {
+        if (!_touchTracking || !IsBrowseMode || e.ChangedTouches.Length == 0) return;
+        _touchTracking = false;
+
+        var dx = e.ChangedTouches[0].ClientX - _touchStartX;
+        var dy = e.ChangedTouches[0].ClientY - _touchStartY;
+
+        // The move must be long enough and clearly horizontal — otherwise it is page scrolling
+        if (Math.Abs(dx) < SwipeThreshold || Math.Abs(dx) < Math.Abs(dy) * 1.5) return;
+
+        if (dx < 0) await OnNextCard.InvokeAsync();
+        else        await OnPrevCard.InvokeAsync();
+    }
+
+    // ── Keyboard ──────────────────────────────────────────────────────────────
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        _keysRef = DotNetObjectReference.Create(this);
+        await JSRuntime.InvokeVoidAsync("drillKeys.register", _keysRef);
+    }
+
+    [JSInvokable]
+    public Task HandleKey(string action) => InvokeAsync(async () =>
+    {
+        if (_sheetOpen || _confirmFinish)
+        {
+            if (action == "close")
+            {
+                _sheetOpen     = false;
+                _confirmFinish = false;
+                StateHasChanged();
+            }
+            return;
+        }
+
+        switch (action)
+        {
+            case "prev" when IsBrowseMode:
+                await OnPrevCard.InvokeAsync();
+                break;
+
+            case "next" when ShowNextButton && !Disabled:
+                await OnNextCard.InvokeAsync();
+                break;
+        }
+    });
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("drillKeys.unregister");
+        }
+        catch (JSDisconnectedException)
+        {
+            // The WebView is already gone — nothing left to clean up
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+
+        _keysRef?.Dispose();
+    }
+
+    // ── Rest ──────────────────────────────────────────────────────────────────
+
     public string GetRateValue() => Rate.ToString("F1", CultureInfo.InvariantCulture);
+
+    private async Task ConfirmFinish()
+    {
+        _confirmFinish = false;
+        await OnFinishEarly.InvokeAsync();
+    }
 
     private double GetSuccessPercentage()
     {
@@ -185,21 +442,19 @@ else
         color: #A3BFFA;
     }
 
-    /* Test Card */
-    .test-card {
-        background: var(--surface);
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        animation: fadeIn 0.5s ease-in-out;
-        margin-top: 2rem;
+    /* ── Test frame without a card ───────────────────────────────────────── */
+    .drill-shell {
+        display: flex;
+        flex-direction: column;
+        animation: fadeIn 0.35s ease-in-out;
+        /* Vertical scrolling stays with the browser, the horizontal gesture is our swipe */
+        touch-action: pan-y;
     }
 
     @@keyframes fadeIn {
         from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(12px);
         }
         to {
             opacity: 1;
@@ -207,92 +462,339 @@ else
         }
     }
 
-    .test-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    /* Utility row: test title, card list, rating, exit */
+    .drill-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+        color: var(--text-secondary);
     }
 
-    /* Градієнтний хедер - як в мультитесті */
-    .card-header-gradient {
-        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
-        color: white;
-        padding: 1.25rem 1.5rem;
-        font-size: 1.25rem;
+    .drill-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
         font-weight: 600;
+        min-width: 0;
+    }
+
+    .drill-title span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .drill-meta {
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        flex-shrink: 0;
     }
 
-    .header-info {
-        font-size: 1.25rem;
-        font-weight: 500;
+    .drill-rate {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-    }
-
-    .rate-display {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 1.25rem;
-        font-weight: 600;
-    }
-
-    .rate-display i {
-        color: #FFD700;
-        font-size: 1.5rem;
-        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-    }
-
-    .rate-value {
-        font-size: 1.25rem;
+        gap: 0.35rem;
+        font-size: 0.95rem;
         font-weight: 700;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        color: var(--text-primary);
     }
 
-    .card-body {
-        padding: 2rem;
+    .drill-rate i {
+        color: #FFD700;
+    }
+
+    .drill-icon-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-secondary);
+        transition: all 0.2s;
+    }
+
+    .drill-icon-btn:hover:not(:disabled) {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    .drill-icon-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    .drill-exit {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.7rem;
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .drill-exit:hover {
+        border-color: var(--danger);
+        color: var(--danger);
+    }
+
+    .drill-content {
         display: flex;
         flex-direction: column;
         align-items: center;
-    }
-
-    /* Navigation Buttons */
-    .navigation-buttons {
-        margin-top: 2rem;
-        display: flex;
-        justify-content: flex-end;
         width: 100%;
     }
 
-    .btn-next {
-        padding: 0.75rem 2rem;
-        background: #A3BFFA;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
+    /* ── Bottom bar buttons ──────────────────────────────────────────────── */
+    /* Positioning belongs to PageShell (.page-shell__footer). Only the contents live here. */
+    .drill-actions {
         display: flex;
         align-items: center;
+        justify-content: flex-end;
         gap: 0.5rem;
+        width: 100%;
     }
 
-    .btn-next:hover:not(:disabled) {
-        background: #7B9FE8;
-        transform: translateX(4px);
+    .drill-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        min-height: 48px;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: all 0.2s;
     }
 
-    .btn-next:disabled {
+    .drill-btn-primary {
+        background: var(--accent);
+        color: white;
+    }
+
+    .drill-btn-primary:hover:not(:disabled) {
+        background: var(--accent-dark);
+    }
+
+    .drill-btn-primary:disabled {
         opacity: 0.6;
         cursor: not-allowed;
+    }
+
+    .drill-btn-secondary {
+        background: var(--surface-alt);
+        border-color: var(--border);
+        color: var(--text-primary);
+    }
+
+    .drill-btn-secondary:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    .drill-btn-ghost {
+        background: transparent;
+        border-color: var(--border);
+        color: var(--text-secondary);
+    }
+
+    .drill-btn-ghost:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    /* Phones and tablets: buttons spread out — back on the left, to-tests in the middle, next on the right */
+    @@media (max-width: 1024px) {
+        .drill-actions {
+            justify-content: space-between;
+        }
+
+        .drill-btn {
+            flex: 1 1 0;
+            min-width: 0;
+            padding: 0.75rem 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .drill-btn span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .drill-exit-label {
+            display: none;
+        }
+    }
+
+    /* ── Card list (bottom sheet) ────────────────────────────────────────── */
+    .drill-sheet-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: flex;
+        /* The list sits in the middle of the screen — horizontally and vertically */
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        z-index: 1050;
+    }
+
+    .drill-sheet {
+        width: 100%;
+        max-width: 560px;
+        background: var(--surface);
+        border-radius: 16px;
+        box-shadow: var(--shadow-lg);
+        padding: 0.75rem;
+        animation: sheetIn 0.18s ease-out;
+    }
+
+    @@keyframes sheetIn {
+        from {
+            opacity: 0;
+            transform: translateY(16px) scale(0.98);
+        }
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    /* Controls always on top — a long list never pushes them down */
+    .drill-sheet-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding-bottom: 0.6rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .drill-sheet-title {
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .drill-sheet-pager {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .drill-sheet-range {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        min-width: 5.5rem;
+        text-align: center;
+    }
+
+    .drill-sheet-list {
+        list-style: none;
+        margin: 0;
+        padding: 0.4rem 0 0 0;
+        /* Safety net for very short screens — a list page is short anyway */
+        max-height: 45vh;
+        overflow-y: auto;
+    }
+
+    .drill-sheet-item {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.6rem 0.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        color: var(--text-primary);
+    }
+
+    .drill-sheet-item:hover {
+        background: var(--surface-hover);
+    }
+
+    .drill-sheet-item.current {
+        background: var(--surface-alt);
+        font-weight: 700;
+    }
+
+    .drill-sheet-label {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .drill-sheet-seen {
+        color: var(--success);
+    }
+
+    .drill-sheet-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        background: var(--border-muted);
+    }
+
+    .drill-sheet-dot.level-1 { background: #22c55e; }
+    .drill-sheet-dot.level-2 { background: #84cc16; }
+    .drill-sheet-dot.level-3 { background: #facc15; }
+    .drill-sheet-dot.level-4 { background: #f97316; }
+    .drill-sheet-dot.level-5 { background: #ef4444; }
+
+    /* ── Early-finish confirmation ───────────────────────────────────────── */
+    .drill-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        z-index: 1100;
+    }
+
+    .drill-modal {
+        background: var(--surface);
+        border-radius: 16px;
+        padding: 1.5rem;
+        max-width: 360px;
+        width: 100%;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .drill-modal-title {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.15rem;
+        color: var(--text-primary);
+    }
+
+    .drill-modal-text {
+        margin: 0 0 1.25rem 0;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+
+    .drill-modal-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
     }
 
     /* Stats Container */

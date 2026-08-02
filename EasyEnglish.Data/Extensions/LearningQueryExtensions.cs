@@ -56,6 +56,12 @@ public static class LearningQueryExtensions
                 .OrderBy(w => EF.Property<DateTime?>(w, nameof(IReviewInfo.LastReviewDate))
                     ?? EF.Property<DateTime>(w, "CreatedAt")),
 
+            // "What I studied before this": reviewed items, newest review first. Never-reviewed
+            // items are excluded rather than sorted last — they were never "studied before".
+            LearningPriority.Recent => query
+                .Where(w => EF.Property<DateTime?>(w, nameof(IReviewInfo.LastReviewDate)) != null)
+                .OrderByDescending(w => EF.Property<DateTime?>(w, nameof(IReviewInfo.LastReviewDate))),
+
             _ => query
         };
 

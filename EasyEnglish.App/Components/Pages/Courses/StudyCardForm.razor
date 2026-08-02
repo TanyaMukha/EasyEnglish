@@ -6,9 +6,8 @@
 @using EasyEnglish.Core.Enums
 @using EasyEnglish.Core.Presets
 
-<div class="page-content" @key="StudyCardId">
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Full" @key="StudyCardId">
     <div class="header-section">
-        <Breadcrumb Items="breadcrumbs" />
 
         <div class="title-section">
             <h1 class="page-title">
@@ -131,7 +130,7 @@
             </div>
         </EditForm>
     </div>
-</div>
+</PageShell>
 
 @code {
     [Parameter] public int CourseId { get; set; }

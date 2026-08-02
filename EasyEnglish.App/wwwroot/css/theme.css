@@ -1,11 +1,11 @@
 /* ============================================================
-   theme.css — дизайн-токени, базовий reset, світла/темна теми.
-   Світла тема = значення, що раніше були захардкоджені на сторінках,
-   тому в light mode вигляд не змінюється.
+   theme.css — design tokens, base reset, light/dark themes.
+   The light theme keeps the values that used to be hardcoded on pages,
+   so light mode looks exactly as before.
    ============================================================ */
 
 :root {
-    /* Акцентна палітра (бренд, однакова в обох темах) */
+    /* Accent palette (brand, identical in both themes) */
     --accent: #A3BFFA;
     --accent-dark: #8FA9E8;
     --accent-green: #B5EAD7;
@@ -15,28 +15,31 @@
     --accent-shadow: rgba(163, 191, 250, 0.3);
     --accent-shadow-strong: rgba(163, 191, 250, 0.4);
 
-    /* Поверхні */
-    --bg-page: #f8f9fa;        /* фон застосунку */
-    --surface: #ffffff;        /* картки, панелі, сайдбар */
-    --surface-alt: #f8f9fa;    /* другорядні панелі, hover */
+    /* Surfaces */
+    --bg-page: #f8f9fa;        /* app background */
+    --surface: #ffffff;        /* cards, panels, sidebar */
+    --surface-alt: #f8f9fa;    /* secondary panels, hover */
     --surface-hover: #f1f3f5;
 
-    /* Межі */
+    /* Borders */
     --border: #e0e0e0;
     --border-muted: #dee2e6;
     --border-light: #f0f0f0;
 
-    /* Текст */
+    /* Text */
     --text-primary: #333333;
     --text-secondary: #666666;
     --text-muted: #999999;
 
-    /* Тіні */
+    /* Shadows */
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
     --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
 
-    /* Статуси */
+    /* On-screen keyboard height — set by js/keyboard-inset.js, 0px while it is hidden */
+    --keyboard-inset: 0px;
+
+    /* Statuses */
     --danger: #dc3545;
     --danger-bg: #fff5f5;
     --success: #28a745;
@@ -69,7 +72,7 @@
 }
 
 /* ============================================================
-   Базовий reset (раніше це робив bootstrap)
+   Base reset (bootstrap used to do this)
    ============================================================ */
 
 *,

@@ -16,7 +16,7 @@ namespace EasyEnglish.App.Components.Pages.Drilling.Definitions;
 
 file static class IrregularVm
 {
-    // FirstForm виступає як "Word" — всі картки слів працюють без змін
+    // FirstForm acts as "Word" — every word card works unchanged
     internal static WordCardViewModel From(IrregularFormModel f) => new(
         Word:          f.FirstForm             ?? "",
         Transcription: f.FirstFormTranscription,
@@ -50,12 +50,14 @@ public sealed class ReviewIrregularFormsDef : TestDefinition<IrregularFormTestMo
     public override string IconClass   => "bi-book";
 
     public override WordCardViewModel  BuildViewModel(IrregularFormTestModel item) => IrregularVm.From(item);
+    public override bool               IsBrowse                                     => true;
     public override bool               ShowNextButton(TestState s)                  => true;
     public override NextItemAction     GetNextAction(TestState s)                   => NextItemAction.Remove;
     public override Type               ComponentType                                 => typeof(ReviewWordCard);
 
-    public override void RecordRating(IrregularFormTestModel item, double rating) => item.Rate = (float)rating;
-    public override void OnItemCompleted(IrregularFormTestModel item)             => item.RecordReview();
+    public override void    RecordRating(IrregularFormTestModel item, double rating) => item.Rate = (float)rating;
+    public override double? GetRating(IrregularFormTestModel item)                   => item.Rate;
+    public override void    OnItemCompleted(IrregularFormTestModel item)             => item.RecordReview();
 }
 
 // ── Single-choice: Word → Translation ────────────────────────────────────────
@@ -155,13 +157,16 @@ public sealed class ReviewIrregularFormsCardDef : TestDefinition<IrregularFormTe
     public override string HeaderClass => "pastel-blue";
     public override string IconClass => "bi-card-list";
 
-    // RawItem-картка — BuildViewModel не потрібен
+    // RawItem card — BuildViewModel is not needed
+    public override bool IsBrowse => true;
     public override bool ShowNextButton(TestState s) => true;
     public override NextItemAction GetNextAction(TestState s) => NextItemAction.Remove;
     public override Type ComponentType => typeof(ReviewIrregularFormsCard);
 
-    public override void RecordRating(IrregularFormTestModel item, double rating) => item.Rate = (float)rating;
-    public override void OnItemCompleted(IrregularFormTestModel item)             => item.RecordReview();
+    public override void    RecordRating(IrregularFormTestModel item, double rating) => item.Rate = (float)rating;
+    public override double? GetRating(IrregularFormTestModel item)                   => item.Rate;
+    public override string  GetLabel(IrregularFormTestModel item)                    => item.FirstForm ?? "";
+    public override void    OnItemCompleted(IrregularFormTestModel item)             => item.RecordReview();
 }
 
 public sealed class InputIrregularFormsDef : TestDefinition<IrregularFormTestModel>
@@ -171,13 +176,13 @@ public sealed class InputIrregularFormsDef : TestDefinition<IrregularFormTestMod
     public override string HeaderClass => "pastel-green";
     public override string IconClass => "bi-keyboard";
 
-    // RawItem-картка — BuildViewModel не потрібен
+    // RawItem card — BuildViewModel is not needed
     public override bool ShowNextButton(TestState s) => s.IsAnswerSubmitted;
     public override NextItemAction GetNextAction(TestState s) =>
         s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
     public override Type ComponentType => typeof(InputIrregularFormsCard);
 
-    // Питання — перша форма (Word), відповідь — введення форм вручну
+    // Question is the first form (Word), the answer is typing the forms by hand
     public override void RecordAnswer(IrregularFormTestModel item, bool isCorrect) =>
         item.RecordTestAnswer(CardDirection.WordToTranslation, CardType.ManualInput, isCorrect);
 }
@@ -193,8 +198,8 @@ public sealed class IrregularFormsPronunciationDef : TestDefinition<IrregularFor
     public override bool CanApplyTo(IrregularFormTestModel item) =>
         !string.IsNullOrEmpty(item.FirstFormTranslation);
 
-    // RawItem-картка — BuildViewModel не потрібен
-    // Користувач сам вирішує, коли перейти далі — кнопка Next доступна одразу
+    // RawItem card — BuildViewModel is not needed
+    // The learner decides when to move on — Next is available right away
     public override bool           ShowNextButton(TestState s) => true;
     public override NextItemAction GetNextAction(TestState s)  => s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
     public override Type           ComponentType                => typeof(StudyIrregularFormsCard);

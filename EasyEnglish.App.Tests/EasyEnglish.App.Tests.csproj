@@ -51,6 +51,15 @@
 
     <!-- SpeechRecognition/: only PronunciationTextNormalizer has real logic to test. -->
     <Compile Include="..\EasyEnglish.App\Services\SpeechRecognition\PronunciationTextNormalizer.cs" Link="Sources\SpeechRecognition\PronunciationTextNormalizer.cs" />
+
+    <!-- Drilling/Models: движок мульті-тесту і типи, на яких він стоїть.
+         Жоден із цих файлів не тягне Blazor — TestCallbacks.cs (EventCallback) свідомо не тут. -->
+    <Compile Include="..\EasyEnglish.App\Components\Pages\Drilling\Models\MultiTestEngine.cs" Link="Sources\Drilling\MultiTestEngine.cs" />
+    <Compile Include="..\EasyEnglish.App\Components\Pages\Drilling\Models\TestDefinition.cs" Link="Sources\Drilling\TestDefinition.cs" />
+    <Compile Include="..\EasyEnglish.App\Components\Pages\Drilling\Models\TestState.cs" Link="Sources\Drilling\TestState.cs" />
+    <Compile Include="..\EasyEnglish.App\Components\Pages\Drilling\Models\WordCardViewModel.cs" Link="Sources\Drilling\WordCardViewModel.cs" />
+    <Compile Include="..\EasyEnglish.App\Components\Pages\Drilling\Models\BrowseCardInfo.cs" Link="Sources\Drilling\BrowseCardInfo.cs" />
+    <Compile Include="..\EasyEnglish.App\Components\Pages\Drilling\Models\NextItemAction.cs" Link="Sources\Drilling\NextItemAction.cs" />
   </ItemGroup>
 
 </Project>

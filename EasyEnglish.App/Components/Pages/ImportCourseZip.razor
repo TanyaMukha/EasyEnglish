@@ -15,11 +15,7 @@
 
 <PageTitle>Імпорт курсу</PageTitle>
 
-<div class="page-wrapper">
-    <div class="scroll-area">
-        <div class="edit-page">
-
-            <Breadcrumb Items="breadcrumbs" />
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Medium" Fill="true">
 
             <!-- ═══════════ HEADER ═══════════ -->
             <div class="header-section">
@@ -325,10 +321,7 @@
                 }
 
             </div>
-            <div class="keyboard-spacer"></div>
-        </div>
-    </div>
-</div>
+</PageShell>
 
 @code {
     private List<Breadcrumb.BreadcrumbItem> breadcrumbs = BreadcrumbBuilder.Create().WithHome().WithActive("Імпорт курсу").Build();
@@ -421,13 +414,13 @@
         existingUnitGuids = [];
         importMode        = ImportMode.CreateNew;
 
-        // Завантажуємо всі курси для злиття
+        // Load every course for merging
         availableCourses = (await CourseService.GetAllAsync()).ToList();
 
         if (existingCourse != null)
         {
-            // Оновлення доступне для будь-якого архіву: збіг шукається за GUID, а не за Id.
-            // Часткові архіви оновлюють лише те, що містять (див. UnitMergeOptions).
+            // An update works for any archive: matching goes by GUID, not by Id.
+            // Partial archives update only what they contain (see UnitMergeOptions).
             importMode = ImportMode.Update;
 
             var guids = manifest.Units.Select(u => u.UnitGuid).ToList();
@@ -456,7 +449,7 @@
 
         try
         {
-            // Завантажуємо дані модулів прямо тут
+            // Load the unit data right here
             using var msLoad = new MemoryStream(zipBytes);
             importResult = await ZipBackupService.ImportFromZipAsync(msLoad, manifest);
             // 1. Resolve or create course.
@@ -494,7 +487,7 @@
             int updated = 0;
 
             // 2. Build mapping options once — same for all units in this import.
-            // MergeInto завжди генерує нові Guid — модулі незалежні від оригіналу.
+            // MergeInto always generates new Guids — units stay independent of the original.
             var mappingOptions = importMode == ImportMode.MergeInto
                 ? importOptions.ToMappingOptions(isCopy: true)
                 : importOptions.ToMappingOptions(isCopy);
@@ -574,31 +567,6 @@
 }
 
 <style>
-    .page-wrapper {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        height: 100dvh;
-        overflow: hidden;
-        border-top: 1px solid var(--border);
-        border-bottom: 1px solid var(--border);
-    }
-
-    .scroll-area {
-        flex: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .keyboard-spacer { height: 0; }
-
-    .edit-page {
-        max-width: 1000px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
-    }
-
 .page-title {
         font-size: 2rem;
         font-weight: 700;
@@ -816,6 +784,5 @@
 
         .info-row { flex-direction: column; gap: 0.1rem; }
         .btn-submit, .btn-file-picker { width: 100%; justify-content: center; }
-        .keyboard-spacer { height: 350px; }
     }
 </style>

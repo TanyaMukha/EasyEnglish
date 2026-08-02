@@ -1,0 +1,53 @@
+@*
+    Кнопка відкриття бокового меню. Нічого не знає про сторінки і про те, коли її видно —
+    це вирішує MainLayout, який її й рендерить.
+*@
+
+<button class="sidebar-toggle" @onclick="() => OnToggle.InvokeAsync()" title="Меню" aria-label="Відкрити меню">
+    <span class="sidebar-toggle-line"></span>
+    <span class="sidebar-toggle-line"></span>
+    <span class="sidebar-toggle-line"></span>
+</button>
+
+@code {
+    /// <summary>Opens/closes the sidebar — the state lives in MainLayout.</summary>
+    [Parameter] public EventCallback OnToggle { get; set; }
+}
+
+<style>
+    /* The button is only needed where the sidebar is off-canvas. That is knowledge about the
+       app, not about a page, so it lives here — whoever renders the button. */
+    .sidebar-toggle {
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 4px;
+        width: var(--chrome-btn-size, 36px);
+        height: var(--chrome-btn-size, 36px);
+        flex-shrink: 0;
+        padding: 0;
+        border: none;
+        border-radius: 10px;
+        background: var(--accent-gradient);
+        box-shadow: 0 2px 6px var(--accent-shadow);
+        transition: all 0.2s ease;
+    }
+
+    .sidebar-toggle:active {
+        transform: scale(0.94);
+    }
+
+    .sidebar-toggle-line {
+        width: 16px;
+        height: 2px;
+        border-radius: 2px;
+        background: #fff;
+    }
+
+    @@media (max-width: 768px), (max-width: 1024px) and (orientation: portrait) {
+        .sidebar-toggle {
+            display: flex;
+        }
+    }
+</style>

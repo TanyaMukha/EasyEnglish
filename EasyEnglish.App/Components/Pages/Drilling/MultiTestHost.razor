@@ -1,28 +1,41 @@
+@*
+    Thin wrapper around MultiTestEngine: every decision (queue, phases, ratings, statistics)
+    is made by the engine, what is left here is rendering and forwarding events.
+*@
+
 @typeparam TItem
 
 <DrillingPageLayout
-    Title="@(_currentDef?.Title ?? DefaultTitle)"
-    HeaderClass="@(_currentDef?.HeaderClass ?? "pastel-blue")"
-    IconClass="@(_currentDef?.IconClass ?? "bi-collection")"
-    Rate="@Rate"
-    TotalCount="@_totalItems"
-    CompletedCount="@_completed"
+    Title="@(_engine?.CurrentDefinition?.Title ?? DefaultTitle)"
+    HeaderClass="@(_engine?.CurrentDefinition?.HeaderClass ?? "pastel-blue")"
+    IconClass="@(_engine?.CurrentDefinition?.IconClass ?? "bi-collection")"
+    Rate="@CurrentRate"
+    TotalCount="@(_engine?.DisplayTotal ?? 0)"
+    CompletedCount="@(_engine?.ProgressCompleted ?? 0)"
     IsLoading="@IsLoading"
     ErrorMessage="@ErrorMessage"
-    ShowStats="@_showStats"
-    CompletedWords="@_completed"
-    TotalAttempts="@_totalAttempts"
-    CorrectAnswers="@_correctAnswers"
-    IncorrectAnswers="@_incorrectAnswers"
-    ShowNextButton="@(_currentDef?.ShowNextButton(_state) ?? false)"
-    OnNextCard="@OnNextAsync"
+    ShowStats="@(_engine?.ShowStats ?? false)"
+    CompletedWords="@(_engine?.CompletedCount ?? 0)"
+    TotalAttempts="@(_engine?.TotalAttempts ?? 0)"
+    CorrectAnswers="@(_engine?.CorrectAnswers ?? 0)"
+    IncorrectAnswers="@(_engine?.IncorrectAnswers ?? 0)"
+    ShowNextButton="@(_engine?.ShowNextButton ?? false)"
+    IsBrowseMode="@(_engine?.InBrowsePhase ?? false)"
+    HasTestsAhead="@(_engine?.HasTestsAhead ?? false)"
+    BrowseCards="@(_engine?.BrowseCards ?? [])"
+    CurrentCardIndex="@(_engine?.BrowseIndex ?? 0)"
+    OnJumpToCard="@OnJumpToCard"
+    OnPrevCard="@OnPrev"
+    OnGoToTests="@OnGoToTests"
+    OnFinishEarly="@OnFinishEarly"
+    OnNextCard="@OnNext"
     OnFinish="@OnFinish">
 
     <ChildContent>
-        @if (_currentDef is not null && _cardParams.Count > 0)
+        @if (_engine?.CurrentDefinition is not null && _cardParams.Count > 0)
         {
             <DynamicComponent
-            Type="@_currentDef.ComponentType"
+            Type="@_engine.CurrentDefinition.ComponentType"
             Parameters="@_cardParams" />
         }
     </ChildContent>
@@ -45,71 +58,28 @@
     [Parameter] public string? ErrorMessage  { get; set; }
     [Parameter] public float   Rate          { get; set; }
 
-    // ── Private state ─────────────────────────────────────────────────────────
+    // ── State ─────────────────────────────────────────────────────────────────
 
-    private readonly TestState _state = new();
-    private readonly Random    _rng   = new();
-
-    private List<(TItem item, TestDefinition<TItem> def)> _pending = [];
-    private int                         _currentIndex;
-    private TItem?                      _currentItem;
-    private WordCardViewModel?          _currentViewModel;
-    private TestDefinition<TItem>?      _currentDef;
+    private MultiTestEngine<TItem>?     _engine;
     private Dictionary<string, object?> _cardParams = [];
 
-    private int  _totalItems;
-    private int  _completed       => _totalItems - _pending.Count;
-    private int  _correctAnswers;
-    private int  _incorrectAnswers;
-    private int  _totalAttempts;
-    private bool _showStats;
+    /// <summary>Rating of the card on screen, falling back to the session value from the page.</summary>
+    private float CurrentRate => _engine?.CurrentRating is { } rate ? (float)rate : Rate;
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     protected override void OnParametersSet()
     {
-        if (_totalItems == 0 && Items.Count > 0 && Definitions.Count > 0)
-            BuildQueue();
-    }
-
-    private void BuildQueue()
-    {
-        _pending = Definitions
-            .SelectMany(def => Items
-                .Where(def.CanApplyTo)
-                .OrderBy(_ => _rng.NextDouble())   // слова перемішані всередині типу
-                .Select(item => (item, def)))
-            .ToList();                              // типи йдуть у порядку Definitions
-
-        _totalItems = _pending.Count;
-
-        if (_pending.Count > 0)
-            LoadCurrent();
-    }
-
-    private void LoadCurrent()
-    {
-        if (_pending.Count == 0) return;
-
-        var (item, def) = _pending[_currentIndex];
-        _currentItem = item;
-        _currentDef  = def;
-
-        _state.Reset();
-
-        _currentViewModel = def.BuildViewModel(item);
-
-        _state.CorrectAnswer  = def.GetCorrectAnswer(_currentViewModel);
-        _state.WordIsQuestion = def.WordIsQuestion;
-
-        def.PrepareState(_currentViewModel, Items, def.BuildViewModel, _state);
-
-        RebuildCardParams();
+        if (_engine is null && Items.Count > 0 && Definitions.Count > 0)
+        {
+            _engine = new MultiTestEngine<TItem>(Definitions, Items);
+            RebuildCardParams();
+        }
     }
 
     private void RebuildCardParams()
     {
-        if (_currentDef is null || _currentViewModel is null) return;
+        if (_engine?.CurrentDefinition is null || _engine.CurrentViewModel is null) return;
 
         var callbacks = new TestCallbacks(
             OnCheckAnswer: EventCallback.Factory.Create<bool>(this, HandleCheckAnswer),
@@ -119,86 +89,35 @@
 
         var context = new TestCardContext
         {
-            ViewModel = _currentViewModel,
-            RawItem   = _currentItem as object,
-            State     = _state,
+            ViewModel = _engine.CurrentViewModel,
+            RawItem   = _engine.CurrentItem as object,
+            State     = _engine.State,
             Callbacks = callbacks,
         };
 
         _cardParams = new Dictionary<string, object?> { ["Context"] = context };
     }
 
-    // ── Callbacks ─────────────────────────────────────────────────────────────
+    // ── Card events ───────────────────────────────────────────────────────────
 
-    private void HandleCheckAnswer(bool isCorrect)
-    {
-        _state.IsAnswerSubmitted = true;
-        _state.IsCorrect         = isCorrect;
-        _totalAttempts++;
-
-        if (isCorrect) _correctAnswers++;
-        else           _incorrectAnswers++;
-
-        if (_currentItem is not null)
-            _currentDef?.RecordAnswer(_currentItem, isCorrect);
-
-        RebuildCardParams();
-        StateHasChanged();
-    }
-
-    private void HandleReveal()
-    {
-        _state.IsRevealed = true;
-        _totalAttempts++;
-        RebuildCardParams();
-        StateHasChanged();
-    }
-
-    private void HandleRate(double rating)
-    {
-        _state.LastRatedValue = rating;
-        _state.IsRated        = true;
-
-        if (_currentItem is not null)
-            _currentDef?.RecordRating(_currentItem, rating);
-
-        RebuildCardParams();
-        StateHasChanged();
-    }
+    private void HandleCheckAnswer(bool isCorrect) => Apply(() => _engine!.RecordAnswer(isCorrect));
+    private void HandleReveal()                    => Apply(() => _engine!.Reveal());
+    private void HandleRate(double rating)         => Apply(() => _engine!.Rate(rating));
 
     // ── Navigation ────────────────────────────────────────────────────────────
 
-    private Task OnNextAsync()
+    private Task OnNext()             { Apply(() => _engine!.Next());        return Task.CompletedTask; }
+    private Task OnPrev()             { Apply(() => _engine!.Previous());    return Task.CompletedTask; }
+    private Task OnGoToTests()        { Apply(() => _engine!.GoToTests());   return Task.CompletedTask; }
+    private Task OnJumpToCard(int i)  { Apply(() => _engine!.JumpTo(i));     return Task.CompletedTask; }
+    private void OnFinishEarly()      => Apply(() => _engine!.FinishEarly());
+
+    private void Apply(Action change)
     {
-        if (_currentDef is null) return Task.CompletedTask;
+        if (_engine is null) return;
 
-        if (_currentDef.GetNextAction(_state) == NextItemAction.Remove)
-        {
-            if (_currentItem is not null)
-                _currentDef.OnItemCompleted(_currentItem);
-
-            _pending.RemoveAt(_currentIndex);
-        }
-        else
-        {
-            var entry    = _pending[_currentIndex];
-            var offset   = _rng.Next(2, 5);
-            var insertAt = Math.Min(_currentIndex + offset, _pending.Count - 1);
-            _pending.RemoveAt(_currentIndex);
-            _pending.Insert(insertAt, entry);
-        }
-
-        if (_pending.Count > 0)
-        {
-            _currentIndex %= _pending.Count;
-            LoadCurrent();
-        }
-        else
-        {
-            _showStats = true;
-        }
-
+        change();
+        RebuildCardParams();
         StateHasChanged();
-        return Task.CompletedTask;
     }
 }

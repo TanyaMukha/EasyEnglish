@@ -1,12 +1,12 @@
 /* ============================================================
-   shared.css — спільні патерни сторінок і компонентів.
-   Сюди винесені стилі, що раніше дублювалися в <style> блоках
-   сторінок. Локальний <style> сторінки рендериться пізніше і має
-   пріоритет, тож сторінка може перекрити будь-яке з цих правил.
-   Також містить вміст колишніх custom.css, page.css, drilling.css.
+   shared.css — shared page and component patterns.
+   Styles that used to be duplicated across page <style> blocks live here.
+   A page <style> block renders later and therefore wins, so a page can
+   still override any of these rules.
+   Also holds what used to be custom.css, page.css and drilling.css.
    ============================================================ */
 
-/* ---------- Заголовок застосунку (колишній custom.css) ---------- */
+/* ---------- App heading (formerly custom.css) ---------- */
 
 .main-title {
     display: flex;
@@ -24,7 +24,7 @@
     color: green;
 }
 
-/* ---------- Пастельна палітра ---------- */
+/* ---------- Pastel palette ---------- */
 
 .pastel-blue { background-color: #A3BFFA !important; }
 .pastel-light-blue { background-color: #BBDEFB !important; }
@@ -40,8 +40,8 @@
 .pastel-lemon { background-color: #FFFACD !important; }
 .pastel-rose { background-color: #FFC9DE !important; }
 
-/* ---------- Кнопки відтворення вимови ---------- */
-/* .stored — записаний у БД аудіофайл; .generated — синтез мовлення (TTS) */
+/* ---------- Pronunciation playback buttons ---------- */
+/* .stored — audio file kept in the database; .generated — speech synthesis (TTS) */
 
 .audio-play-icon {
     cursor: pointer;
@@ -70,7 +70,7 @@
     color: #9B7FCB;
 }
 
-/* ---------- Плитка-прев'ю картки (StudyCard/TestCard) ---------- */
+/* ---------- Card preview tile (StudyCard/TestCard) ---------- */
 
 .card-tile {
     background: var(--surface);
@@ -165,7 +165,7 @@
     color: #A3BFFA;
 }
 
-/* ---------- Циклічна навігація prev/next (сторінки деталей) ---------- */
+/* ---------- Cyclic prev/next navigation (detail pages) ---------- */
 
 .navigation-section {
     display: flex;
@@ -213,12 +213,28 @@
     cursor: not-allowed;
 }
 
-/* ---------- Каркас сторінки (колишній page.css) ---------- */
+/* ---------- Page frame (formerly page.css) ---------- */
 
-.page-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
+/* Chrome button size (the menu button). It also sets the minimum height of the page
+   top row so breadcrumbs are centred against the button. */
+       page top row so breadcrumbs are centred against the button. */
+    --chrome-btn-size: 36px;
+}
+
+/* The page frame is the PageShell component (Components/Shared/PageShell.razor).
+   Width, padding and the top row are described there, so they are not here. */
+
+/* State of the quick filter next to the heading of a collapsed panel:
+/* State of the quick filter next to the heading of a collapsed panel:
+   shows what is selected without expanding it */
+    margin-left: 0.5rem;
+    padding: 0.1rem 0.55rem;
+    border-radius: 999px;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 500;
 }
 
 .edit-form-container {
@@ -247,7 +263,7 @@
     color: var(--accent);
 }
 
-/* Уніфікований заголовок секції (сторінки деталей, списки, index-сторінки) */
+/* Unified section heading (detail pages, lists, index pages) */
 .section-title {
     font-size: 1.5rem;
     font-weight: 600;
@@ -262,7 +278,7 @@
     color: var(--accent);
 }
 
-/* Варіант для форм: трохи менший, з підкресленням секції */
+/* Variant for forms: slightly smaller, with a section underline */
 .form-section .section-title {
     font-size: 1.25rem;
     margin: 0 0 1rem 0;
@@ -270,12 +286,12 @@
     border-bottom: 2px solid var(--border-light);
 }
 
-/* Усередині .section-header відступ дає сам header */
+/* Inside .section-header the header itself provides the spacing */
 .section-header .section-title {
     margin: 0;
 }
 
-/* ---------- Форми ---------- */
+/* ---------- Forms ---------- */
 
 .form-container {
     background: var(--surface);
@@ -359,7 +375,7 @@
     transform: translateY(0);
 }
 
-/* ---------- Стани: завантаження / порожньо / помилка ---------- */
+/* ---------- States: loading / empty / error ---------- */
 
 .loading-container {
     display: flex;
@@ -462,7 +478,7 @@
     text-align: center;
 }
 
-/* ---------- Сторінки вибору тестів (drilling test index) ---------- */
+/* ---------- Test selection pages (drilling test index) ---------- */
 
 .exercises-grid {
     display: grid;
@@ -532,7 +548,7 @@
 .btn-multi-test:hover  { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
 .btn-multi-test:active { transform: translateY(0); }
 
-/* ---------- Сторінки деталей (Word / Unit / IrregularForm / Course) ---------- */
+/* ---------- Detail pages (Word / Unit / IrregularForm / Course) ---------- */
 
 .title-section {
     display: flex;
@@ -594,7 +610,7 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Інформаційні картки */
+/* Info cards */
 
 .content-grid {
     display: grid;
@@ -652,7 +668,7 @@
     word-wrap: break-word;
 }
 
-/* Статистика */
+/* Statistics */
 
 .stats-section {
     margin-top: 2rem;
@@ -712,7 +728,7 @@
     color: var(--text-primary);
 }
 
-/* ---------- Drilling (колишній drilling.css) ---------- */
+/* ---------- Drilling (formerly drilling.css) ---------- */
 
 .WordInfoSection {
     display: flex;
@@ -742,13 +758,9 @@
     width: 100%;
 }
 
-/* ---------- Адаптивність спільних патернів ---------- */
+/* ---------- Responsiveness of the shared patterns ---------- */
 
 @media (max-width: 768px) {
-    .edit-page {
-        padding: 1.5rem 1rem;
-    }
-
     .form-container {
         padding: 1.5rem;
     }
@@ -767,7 +779,6 @@
         justify-content: center;
     }
 
-    .page-content       { padding: 1.5rem 1rem; }
     .exercises-grid     { grid-template-columns: 1fr; gap: 1rem; }
     .multi-test-card    { flex-direction: column; text-align: center; padding: 1.5rem; }
     .btn-multi-test     { width: 100%; justify-content: center; }

@@ -28,5 +28,12 @@ public enum LearningPriority
     /// <summary>
     /// Oldest items (not reviewed for the longest time).
     /// </summary>
-    Old = 4
+    Old = 4,
+
+    /// <summary>
+    /// Most recently reviewed items — what the learner worked on last, newest first.
+    /// The mirror image of <see cref="Old"/>; never-reviewed items are excluded, since
+    /// "what I studied before this" only makes sense for items with a review history.
+    /// </summary>
+    Recent = 5
 }

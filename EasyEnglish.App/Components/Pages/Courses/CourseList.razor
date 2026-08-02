@@ -8,9 +8,7 @@
 @using MukhaLab.Database
 @inject ILogger<Index> Logger
 
-<div class="page-content">
-    <Breadcrumb Items="breadcrumbs" />
-    <PageHeader Title="Курси" />
+<PageShell Title="Курси" Breadcrumbs="breadcrumbs" Width="PageWidth.Full">
 
     <div class="courses-grid">
         @foreach (var course in AvailableCourses)
@@ -34,7 +32,7 @@
 
         <CourseShortForm OnCourseCreated="@(async () => await LoadData())" />
     </div>
-</div>
+</PageShell>
 
 @code {
     private IEnumerable<CourseModel>? AvailableCourses = [];

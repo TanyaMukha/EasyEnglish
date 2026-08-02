@@ -1,33 +1,33 @@
 ﻿/* 
- * ОПТИМІЗАЦІЯ ДЛЯ ПЛАНШЕТІВ В АЛЬБОМНІЙ ОРІЄНТАЦІЇ
+ * OPTIMISATION FOR TABLETS IN LANDSCAPE
  * ===================================================
- * Базовано на аналізі екрану:
- * - Розмір екрану: 1400×840px
- * - Доступна висота: ~768px
- * - Поточна висота картки: ~766px (НЕ поміщається!)
- * - Після оптимізації: ~616px (економія ~150px) ✅
+ * Based on a screen analysis:
+ * - screen size: 1400×840px
+ * - available height: ~768px
+ * - card height at the time: ~766px (did NOT fit!)
+ * - after the optimisation: ~616px (~150px saved)
  * 
- * Версія 2.1 - Точно розраховано
+ * Version 2.1 - measured precisely
  */
 
 /* ========================================
-   ПЛАНШЕТИ В АЛЬБОМНІЙ ОРІЄНТАЦІЇ
-   768-1024px ширина
+   TABLETS IN LANDSCAPE
+   768-1024px wide
    ======================================== */
 @media screen and (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
     
     /* ========================================
-       ЗАГАЛЬНІ НАЛАШТУВАННЯ СТОРІНКИ
+       GENERAL PAGE SETTINGS
        ======================================== */
-    .page-content {
+    .page-shell {
         padding: 0.5rem 1rem !important;
         max-width: 700px !important;
     }
 
     /* ========================================
        PROGRESS BAR
-       Поточна: ~32px → Нова: ~20px
-       Економія: 12px
+       was: ~32px → now: ~20px
+       saved: 12px
        ======================================== */
     .progress {
         height: 20px !important;
@@ -40,61 +40,58 @@
     }
 
     /* ========================================
-       TEST CARD - Основна картка тесту
+       DRILLING - test utility row
        ======================================== */
-    .test-card {
-        margin-top: 0.75rem !important;
+    .drill-topbar {
+        margin-bottom: 0.5rem !important;
     }
 
-    /* Card Header
-       Поточна: ~50px → Нова: ~42px
-       Економія: 8px */
-    .card-header-gradient {
-        padding: 0.65rem 1rem !important;
-        font-size: 0.95rem !important;
-        gap: 0.4rem !important;
+    .drill-title,
+    .drill-rate {
+        font-size: 0.85rem !important;
     }
 
-    .card-header-gradient i {
-        font-size: 0.9rem !important;
+    .drill-exit {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.75rem !important;
     }
 
     /* Card Body Padding
-       Поточна: 32px top + 32px bottom = 64px
-       Нова: 12px top + 12px bottom = 24px
-       Економія: 40px */
+       was: 32px top + 32px bottom = 64px
+       now: 12px top + 12px bottom = 24px
+       saved: 40px */
     .card-body {
         padding: 0.75rem 1rem !important;
     }
 
     /* ========================================
-       WORD SECTION - Секція зі словом
-       Поточна: ~52px слово + ~32px транскрипція = 84px
-       Нова: ~40px + ~24px = 64px
-       Економія: 20px
+       WORD SECTION
+       was: ~52px word + ~32px transcription = 84px
+       now: ~40px + ~24px = 64px
+       saved: 20px
        ======================================== */
     .word-section {
         margin-bottom: 0.75rem !important;
     }
 
-    /* Заголовок слова
-       Поточна: 2rem (32px) → Нова: 1.4rem (~22px) */
+    /* Word heading
+       was: 2rem (32px) → now: 1.4rem (~22px) */
     .word-title {
         font-size: 1.4rem !important;
         margin-bottom: 0.35rem !important;
         line-height: 1.2 !important;
     }
 
-    /* Транскрипція
-       Поточна: 1.25rem (20px) → Нова: 0.9rem (~14px) */
+    /* Transcription
+       was: 1.25rem (20px) → now: 0.9rem (~14px) */
     .transcription {
         font-size: 0.9rem !important;
         line-height: 1.3 !important;
     }
 
     /* ========================================
-       QUESTION SECTION - Секція з питанням
-       Економія: ~8px
+       QUESTION SECTION
+       saved: ~8px
        ======================================== */
     .question-section {
         margin-bottom: 0.65rem !important;
@@ -106,18 +103,18 @@
     }
 
     /* ========================================
-       ANSWER OPTIONS - Варіанти відповідей
-       Поточна: 4×62px + 3×16px gaps = 296px
-       Нова: 4×48px + 3×10px gaps = 222px
-       Економія: 74px (!!!)
+       ANSWER OPTIONS
+       was: 4×62px + 3×16px gaps = 296px
+       now: 4×48px + 3×10px gaps = 222px
+       saved: 74px (!!!)
        ======================================== */
     .options-grid {
         gap: 0.625rem !important; /* 10px */
         margin-top: 0.75rem !important;
     }
 
-    /* Кнопки відповідей
-       Поточна: 62px → Нова: 48px */
+    /* Answer buttons
+       was: 62px → now: 48px */
     .option-button {
         padding: 0.65rem 0.9rem !important;
         font-size: 0.9rem !important;
@@ -128,8 +125,8 @@
     }
 
     /* ========================================
-       ANSWER INPUT - Поле введення
-       Економія: ~15px
+       ANSWER INPUT - the text field
+       saved: ~15px
        ======================================== */
     .input-section {
         margin-top: 0.75rem !important;
@@ -167,8 +164,8 @@
     }
 
     /* Feedback
-       Поточна: ~62px → Нова: ~50px
-       Економія: 12px */
+       was: ~62px → now: ~50px
+       saved: 12px */
     .feedback {
         margin-top: 0.75rem !important;
         padding: 0.65rem 0.9rem !important;
@@ -182,8 +179,8 @@
     }
 
     /* ========================================
-       KNOW OR NOT - Кнопки "Знаю/Не знаю"
-       Економія: ~12px
+       KNOW OR NOT - the "know / do not know" buttons
+       saved: ~12px
        ======================================== */
     .self-assess-section,
     .verify-section {
@@ -223,15 +220,11 @@
     }
 
     /* ========================================
-       NAVIGATION BUTTONS - Кнопка "Далі"
-       Поточна: ~52px → Нова: ~44px
-       Економія: 8px
+       NAVIGATION BUTTONS - the action bar (back, to tests, next)
+       was: ~52px → now: ~44px
+       saved: 8px
        ======================================== */
-    .navigation-buttons {
-        margin-top: 0.75rem !important;
-    }
-
-    .btn-next {
+    .drill-btn {
         padding: 0.6rem 1.25rem !important;
         font-size: 0.85rem !important;
         border-radius: 6px !important;
@@ -239,7 +232,7 @@
     }
 
     /* ========================================
-       STATS CONTAINER - Статистика
+       STATS CONTAINER
        ======================================== */
     .stats-container {
         margin-top: 0.75rem !important;
@@ -356,7 +349,7 @@
     }
 
     /* ========================================
-       LEARNING CARD LIST - Картки на головній
+       LEARNING CARD LIST - cards on the main page
        ======================================== */
     .learning-card .card-header {
         font-size: 0.95rem !important;
@@ -388,11 +381,11 @@
 }
 
 /* ========================================
-   ДУЖЕ МАЛА ВИСОТА (з клавіатурою)
-   ЕКСТРЕМАЛЬНЕ ЗМЕНШЕННЯ для <600px висоти
+   VERY SHORT SCREENS (keyboard open)
+   EXTREME REDUCTION for heights below 600px
    ======================================== */
 @media screen and (min-width: 768px) and (max-height: 600px) and (orientation: landscape) {
-    .page-content {
+    .page-shell {
         padding: 0.35rem 0.85rem !important;
     }
 
@@ -406,13 +399,13 @@
         font-size: 0.7rem !important;
     }
 
-    .test-card {
-        margin-top: 0.5rem !important;
+    .drill-topbar {
+        margin-bottom: 0.4rem !important;
     }
 
-    .card-header-gradient {
-        padding: 0.5rem 0.85rem !important;
-        font-size: 0.85rem !important;
+    .drill-title,
+    .drill-rate {
+        font-size: 0.8rem !important;
     }
 
     .card-body {
@@ -478,11 +471,7 @@
         min-height: 38px !important;
     }
 
-    .navigation-buttons {
-        margin-top: 0.5rem !important;
-    }
-
-    .btn-next {
+    .drill-btn {
         padding: 0.5rem 1rem !important;
         font-size: 0.75rem !important;
         min-height: 38px !important;
@@ -536,17 +525,17 @@
 }
 
 /* ========================================
-   СЕРЕДНЯ ВИСОТА (601-768px)
-   Трохи більше простору
+   MEDIUM HEIGHT (601-768px)
+   A little more room
    ======================================== */
 @media screen and (min-width: 768px) and (max-width: 1024px) and (min-height: 601px) and (max-height: 768px) and (orientation: landscape) {
-    /* Використовує основні правила вище */
-    /* Додаткові налаштування не потрібні */
+    /* Uses the main rules above */
+    /* No extra settings needed */
 }
 
 /* ========================================
-   ВЕЛИКА ВИСОТА (769px+)
-   Більше простору, менш агресивна оптимізація
+   TALL SCREENS (769px+)
+   More room, less aggressive optimisation
    ======================================== */
 @media screen and (min-width: 768px) and (max-width: 1024px) and (min-height: 769px) and (orientation: landscape) {
     .word-title {

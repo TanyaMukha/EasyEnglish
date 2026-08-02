@@ -2,8 +2,7 @@
 @using EasyEnglish.App.Components.Shared.Breadcrumb
 @inject IJSRuntime JS
 
-<div class="page-content">
-    <Breadcrumb Items="breadcrumbs" />
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Medium">
 
     <div class="header-section">
         <h1 class="page-title">
@@ -53,7 +52,7 @@
             <p>@message</p>
         </div>
     }
-</div>
+</PageShell>
 
 @code {
     private List<Breadcrumb.BreadcrumbItem> breadcrumbs = BreadcrumbBuilder.Create().WithHome().WithActive("База даних").Build();
@@ -107,7 +106,7 @@
 
         try
         {
-            // Видаляємо у правильному порядку (спочатку залежні записи)
+            // Delete in the right order (dependent rows first)
             DbContext.Examples.RemoveRange(DbContext.Examples);
             DbContext.IrregularForms.RemoveRange(DbContext.IrregularForms);
             DbContext.Words.RemoveRange(DbContext.Words);
@@ -131,7 +130,6 @@
 }
 
 <style>
-    .page-content { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem; }
 
     .header-section { margin-bottom: 2rem; }
 

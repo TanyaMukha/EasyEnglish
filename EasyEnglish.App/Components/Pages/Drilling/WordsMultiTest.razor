@@ -2,9 +2,7 @@
 @page "/courses/{CourseId:int}/words/practice/session"
 @inject PracticeQueueService PracticeQueueService
 
-<div class="page-content">
-    <Breadcrumb Items="breadcrumbs" />
-    <PageHeader Title="Вивчення слів" />
+<PageShell Title="Вивчення слів" Breadcrumbs="breadcrumbs" Width="PageWidth.Narrow">
 
     <MultiTestHost TItem="WordTestModel"
         Definitions="@_definitions"
@@ -13,7 +11,7 @@
         IsLoading="@_isLoading"
         ErrorMessage="@_errorMessage"
         OnFinish="@FinishTest" />
-</div>
+</PageShell>
 
 @code {
     [Parameter] public int CourseId { get; set; }
@@ -108,5 +106,4 @@
 }
 
 <style>
-    .page-content { max-width: 800px; margin: 0 auto; padding: 2rem 1rem; }
 </style>

@@ -2,10 +2,7 @@
 @using EasyEnglish.App.Components.Shared
 @using EasyEnglish.App.Components.Shared.Breadcrumb
 
-<div class="page-content">
-    <Breadcrumb Items="breadcrumbs" />
-    <PageHeader Title="Предмети" />
-
+<PageShell Title="Предмети" Breadcrumbs="breadcrumbs" Width="PageWidth.Full">
     <div class="subjects-grid">
         @foreach (var subject in subjects)
         {
@@ -27,7 +24,7 @@
             <span>Створити предмет</span>
         </a>
     </div>
-</div>
+</PageShell>
 
 @code {
     private List<SubjectModel> subjects = [];
@@ -64,8 +61,6 @@
 }
 
 <style>
-    .page-content { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
-
     .subjects-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

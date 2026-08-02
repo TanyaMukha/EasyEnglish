@@ -2,7 +2,7 @@ using EasyEnglish.Core.Models;
 using EasyEnglish.App.Models;
 using EasyEnglish.App.Services;
 using EasyEnglish.App.Components.Pages.Drilling.Models;
-// Картки прикладів — повні назви класів Blazor-компонентів:
+// Example cards — full Blazor component class names:
 using ReviewExamplesCard        = EasyEnglish.App.Components.Pages.Drilling.Cards.ReviewExamplesCard;
 using ReviewExamplesBlurredCard = EasyEnglish.App.Components.Pages.Drilling.Cards.ReviewExamplesBlurredCard;
 using InputExamplesCard         = EasyEnglish.App.Components.Pages.Drilling.Cards.InputExamplesCard;
@@ -18,17 +18,23 @@ public sealed class ReviewExamplesTestDef : TestDefinition<ExampleTestModel>
     public override string HeaderClass => "pastel-blue";
     public override string IconClass   => "bi-eye";
 
-    // BuildViewModel не потрібен — ReviewExamplesCard використовує Context.GetRawItem<ExampleModel>()
+    // BuildViewModel is not needed — ReviewExamplesCard uses Context.GetRawItem<ExampleModel>()
+    public override bool           IsBrowse                    => true;
     public override bool           ShowNextButton(TestState s) => true;
     public override NextItemAction GetNextAction(TestState s)  => NextItemAction.Remove;
     public override Type           ComponentType               => typeof(ReviewExamplesCard);
 
-    // Оцінка складності прикладу застосовується до слова, якому він належить
+    // An example rating is applied to the word the example belongs to
     public override void RecordRating(ExampleTestModel item, double rating)
     {
         if (item.TestWord is not null)
             item.TestWord.Rate = (float)rating;
     }
+
+    public override double? GetRating(ExampleTestModel item) => item.TestWord?.Rate;
+
+    public override string GetLabel(ExampleTestModel item) =>
+        ExampleMarkdownService.StripMarkdown(item.Sentence ?? "");
 
     public override void OnItemCompleted(ExampleTestModel item) => item.TestWord?.RecordReview();
 }
@@ -67,7 +73,7 @@ public sealed class InputExamplesTestDef : TestDefinition<ExampleTestModel>
         s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
     public override Type           ComponentType               => typeof(InputExamplesCard);
 
-    // Введення прихованого слова в реченні — зараховується слову як manual input
+    // Typing the hidden word of a sentence counts as manual input for that word
     public override void RecordAnswer(ExampleTestModel item, bool isCorrect) =>
         item.TestWord?.RecordTestAnswer(CardDirection.TranslationToWord, CardType.ManualInput, isCorrect);
 }

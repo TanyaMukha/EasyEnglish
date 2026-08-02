@@ -1,17 +1,11 @@
 @inherits LayoutComponentBase
+@using EasyEnglish.App.Components.Shared
 @inject NavigationManager NavigationManagerNavigation
 @inject IJSRuntime JSRuntime
 @inject StorageMaintenanceService StorageMaintenanceService
 @implements IDisposable
 
 <div class="app-layout">
-    <!-- Burger button (mobile) -->
-    <button class="burger-button @(isSidebarOpen ? "active" : "")" @onclick="ToggleSidebar">
-        <span class="burger-line"></span>
-        <span class="burger-line"></span>
-        <span class="burger-line"></span>
-    </button>
-
     <!-- Overlay -->
     @if (isSidebarOpen && isMobile)
     {
@@ -178,11 +172,13 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="app-content @(isSidebarCollapsed && !isMobile ? "collapsed" : "")">
-        <div class="content-wrapper">
-            @Body
-        </div>
-    </main>
+    <CascadingValue Value="@chromeStart" Name="ChromeStart" IsFixed="true">
+        <main class="app-content @(isSidebarCollapsed && !isMobile ? "collapsed" : "")">
+            <div class="content-wrapper">
+                @Body
+            </div>
+        </main>
+    </CascadingValue>
 </div>
 
 <script>
@@ -193,7 +189,7 @@
         initialize: function (dotNetReference) {
             this.dotNetRef = dotNetReference;
             
-            // Додаємо обробник resize з debounce
+            // Resize handler with debounce
             window.addEventListener('resize', () => {
                 clearTimeout(this.resizeTimeout);
                 this.resizeTimeout = setTimeout(() => {
@@ -204,7 +200,7 @@
                 }, 100);
             });
 
-            // Додаємо обробник зміни орієнтації
+            // Orientation-change handler
             window.addEventListener('orientationchange', () => {
                 clearTimeout(this.resizeTimeout);
                 this.resizeTimeout = setTimeout(() => {
@@ -228,12 +224,23 @@
 
 @code {
     private bool isSidebarOpen = false;
-    private bool isSidebarCollapsed = true; // Початковий стан - згорнуте
+    private bool isSidebarCollapsed = true; // Starts collapsed
     private bool isMobile = false;
     private string currentTheme = "light";
     private int windowWidth = 0;
     private int windowHeight = 0;
     private DotNetObjectReference<MainLayout>? dotNetRef;
+
+    /// <summary>
+    /// App chrome that PageShell embeds into its top row.
+    /// The layout decides what the buttons are; the shell decides where they sit.
+    /// </summary>
+    private readonly RenderFragment chromeStart;
+
+    public MainLayout()
+    {
+        chromeStart = @<SidebarToggleButton OnToggle="ToggleSidebar" />;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -248,10 +255,10 @@
         {
             await CheckIsMobile();
             
-            // Створюємо reference для JavaScript
+            // Create a reference for JavaScript
             dotNetRef = DotNetObjectReference.Create(this);
             
-            // Ініціалізуємо JavaScript helper
+            // Initialize the JavaScript helper
             await JSRuntime.InvokeVoidAsync("mainLayoutHelper.initialize", dotNetRef);
 
             currentTheme = await JSRuntime.InvokeAsync<string>("themeHelper.get");
@@ -283,12 +290,12 @@
             windowWidth = await JSRuntime.InvokeAsync<int>("eval", "window.innerWidth");
             windowHeight = await JSRuntime.InvokeAsync<int>("eval", "window.innerHeight");
             
-            // Логіка визначення мобільного режиму:
-            // 1. Якщо ширина <= 768px - завжди мобільний
-            // 2. Якщо ширина > 768px і <= 1024px (планшет):
-            //    - У portrait (висота > ширини) - мобільний
-            //    - У landscape (ширина >= висоти) - десктопний
-            // 3. Якщо ширина > 1024px - десктопний
+            // How mobile mode is decided:
+            // 1. Width <= 768px - always mobile
+            // 2. Width > 768px and <= 1024px (tablet):
+            //    - portrait (height > width) - mobile
+            //    - landscape (width >= height) - desktop
+            // 3. Width > 1024px - desktop
             
             if (windowWidth <= 768)
             {
@@ -296,7 +303,7 @@
             }
             else if (windowWidth <= 1024)
             {
-                // Планшет: перевіряємо орієнтацію
+                // Tablet: decide by orientation
                 isMobile = windowHeight > windowWidth; // portrait = mobile, landscape = desktop
             }
             else
@@ -329,7 +336,7 @@
 
     private void ToggleCollapse()
     {
-        // На мобільних не дозволяємо згортати
+        // Collapsing is not allowed on mobile
         if (isMobile)
         {
             Console.WriteLine("ToggleCollapse ignored on mobile");
@@ -400,54 +407,9 @@
     .content-wrapper {
         background-color: var(--surface);
         min-height: 100vh;
-    }
-
-    /* ===== BURGER BUTTON (Mobile) ===== */
-    .burger-button {
-        position: fixed;
-        top: 16px;
-        right: 16px;
-        z-index: 1001;
-        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
-        border: none;
-        border-radius: 12px;
-        padding: 12px;
-        cursor: pointer;
-        display: none;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        width: 48px;
-        height: 48px;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.3);
-    }
-
-    .burger-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(163, 191, 250, 0.4);
-    }
-
-    .burger-line {
-        width: 24px;
-        height: 3px;
-        background: var(--surface);
-        border-radius: 2px;
-        margin: 3px 0;
-        transition: all 0.3s ease;
-        transform-origin: center;
-    }
-
-    .burger-button.active .burger-line:nth-child(1) {
-        transform: rotate(45deg) translate(7px, 7px);
-    }
-
-    .burger-button.active .burger-line:nth-child(2) {
-        opacity: 0;
-    }
-
-    .burger-button.active .burger-line:nth-child(3) {
-        transform: rotate(-45deg) translate(7px, -7px);
+        /* Inset equal to the on-screen keyboard height — it must not cover fields and buttons */
+        padding-bottom: var(--keyboard-inset, 0px);
+        transition: padding-bottom 0.15s ease;
     }
 
     /* ===== OVERLAY ===== */
@@ -707,22 +669,18 @@
     }
 
     /* ===== RESPONSIVE ===== */
-    /* Мобільні телефони і планшети в portrait */
+    /* Phones and tablets in portrait */
     @@media (max-width: 768px), (max-width: 1024px) and (orientation: portrait) {
-        .burger-button {
-            display: flex;
-        }
-
         .close-button {
             display: flex;
         }
 
-        /* Видаляємо відступ на мобільних */
+        /* Drop the sidebar offset on mobile */
         .app-content {
             margin-left: 0 !important;
         }
 
-        /* Сайдбар на мобільних */
+        /* Sidebar on mobile */
         .app-sidebar {
             z-index: 1000;
             transform: translateX(-100%);
@@ -730,17 +688,17 @@
             width: 280px;
         }
 
-        /* Відкритий сайдбар */
+        /* Open sidebar */
         .app-sidebar.open {
             transform: translateX(0);
         }
 
-        /* На мобільних завжди показуємо повну версію (не collapsed) */
+        /* On mobile always show the full version (never collapsed) */
         .app-sidebar.collapsed {
             width: 280px;
         }
 
-        /* Показуємо всі елементи на мобільних */
+        /* Show every element on mobile */
         .app-sidebar .nav-section-title,
         .app-sidebar .nav-label,
         .app-sidebar .logo-text {
@@ -756,10 +714,8 @@
             padding: 1rem 1.5rem !important;
         }
 
-        /* Додаємо відступ зверху під бургер меню */
-        .content-wrapper {
-            padding-top: 4rem;
-        }
+        /* No empty strip at the top is needed any more: the menu button sits in the
+           breadcrumb row instead of floating above the content. */
     }
 
     @@media (max-width: 480px) {
@@ -772,24 +728,10 @@
             width: 85vw;
             max-width: 320px;
         }
-
-        .burger-button {
-            width: 44px;
-            height: 44px;
-            padding: 10px;
-        }
-
-        .burger-line {
-            width: 20px;
-        }
     }
 
-    /* Планшети в landscape і десктопи */
+    /* Tablets in landscape and desktops */
     @@media (min-width: 769px) and (orientation: landscape), (min-width: 1025px) {
-        .burger-button {
-            display: none;
-        }
-
         .close-button {
             display: none;
         }

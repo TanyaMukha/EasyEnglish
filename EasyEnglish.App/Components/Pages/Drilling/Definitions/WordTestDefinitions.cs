@@ -49,12 +49,14 @@ public sealed class ReviewWordsDef : TestDefinition<WordTestModel>
     public override string IconClass   => "bi-book";
 
     public override WordCardViewModel  BuildViewModel(WordTestModel item) => WordVm.From(item);
+    public override bool               IsBrowse                            => true;
     public override bool               ShowNextButton(TestState s)        => true;
     public override NextItemAction     GetNextAction(TestState s)         => NextItemAction.Remove;
     public override Type               ComponentType                       => typeof(ReviewWordCard);
 
-    public override void RecordRating(WordTestModel item, double rating) => item.Rate = (float)rating;
-    public override void OnItemCompleted(WordTestModel item)             => item.RecordReview();
+    public override void    RecordRating(WordTestModel item, double rating) => item.Rate = (float)rating;
+    public override double? GetRating(WordTestModel item)                   => item.Rate;
+    public override void    OnItemCompleted(WordTestModel item)             => item.RecordReview();
 }
 
 // ── Single-choice: Word → Translation ────────────────────────────────────────
@@ -128,7 +130,7 @@ public sealed class WordToTranslationKnowOrNotDef : TestDefinition<WordTestModel
     public override string IconClass   => "bi-eye";
 
     public override WordCardViewModel  BuildViewModel(WordTestModel item) => WordVm.From(item);
-    // Картка сама викликає OnCheckAnswer — показуємо Next після отримання результату
+    // The card calls OnCheckAnswer itself — show Next once the result arrives
     public override bool               ShowNextButton(TestState s)        => s.IsAnswerSubmitted;
     public override NextItemAction     GetNextAction(TestState s)         => s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
     public override Type               ComponentType                       => typeof(KnowOrNotCard);
@@ -148,7 +150,7 @@ public sealed class TranslationToWordKnowOrNotDef : TestDefinition<WordTestModel
     public override bool   WordIsQuestion => false;
 
     public override WordCardViewModel  BuildViewModel(WordTestModel item) => WordVm.From(item);
-    // Картка сама викликає OnCheckAnswer — показуємо Next після отримання результату
+    // The card calls OnCheckAnswer itself — show Next once the result arrives
     public override bool               ShowNextButton(TestState s)        => s.IsAnswerSubmitted;
     public override NextItemAction     GetNextAction(TestState s)         => s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
     public override Type               ComponentType                       => typeof(KnowOrNotCard);
@@ -188,7 +190,7 @@ public sealed class TranslationToWordPronunciationDef : TestDefinition<WordTestM
     public override bool   WordIsQuestion => false;
 
     public override WordCardViewModel  BuildViewModel(WordTestModel item) => WordVm.From(item);
-    // Користувач сам вирішує, коли перейти далі — кнопка Next доступна одразу
+    // The learner decides when to move on — Next is available right away
     public override bool               ShowNextButton(TestState s)        => true;
     public override NextItemAction     GetNextAction(TestState s)         => s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
     public override Type               ComponentType                       => typeof(StudyWordCard);

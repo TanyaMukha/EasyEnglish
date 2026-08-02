@@ -2,122 +2,115 @@
 @using EasyEnglish.Core.Enums
 @using EasyEnglish.Core.Options
 
+@*
+    Quick selection of items for a session.
+
+    The filter applies immediately — there is no "Apply" button: it forced the learner to guess
+    whether the latest change was taken into account. Priority is a mutually exclusive choice,
+    hence a chip row rather than a set of checkboxes; options that make no sense with the chosen
+    priority are disabled with an explanation instead of being silently ignored.
+*@
+
 <div class="learning-filter-panel">
-    <div class="form-field">
-        <label class="field-label">
-            <i class="bi bi-123"></i>
-            Кількість елементів
-            <span class="field-value">@Options.WordCount</span>
-        </label>
-        <div class="slider-container">
-            <input type="range"
-                   class="field-slider"
-                   min="0"
-                   max="@MaxCount"
-                   step="5"
-                   @bind="Options.WordCount"
-                   @bind:event="oninput" />
-            <div class="slider-labels">
-                <span>0</span>
-                <span>@(MaxCount / 4)</span>
-                <span>@(MaxCount / 2)</span>
-                <span>@(MaxCount * 3 / 4)</span>
-                <span>@MaxCount</span>
-            </div>
+    <div class="filter-row">
+        <span class="filter-label"><i class="bi bi-sort-down"></i> Що вибрати</span>
+
+        <div class="chip-row" role="group">
+            @foreach (var option in Priorities)
+            {
+                var priority = option.Value;
+                <button type="button"
+                        class="chip @(Options.Priority == priority ? "active" : "")"
+                        title="@option.Hint"
+                        @onclick="() => SetPriorityAsync(priority)">
+                    <i class="bi @option.Icon"></i>
+                    <span>@option.Title</span>
+                </button>
+            }
         </div>
-        <span class="field-hint">0 означає "без обмеження за кількістю"</span>
+        <span class="filter-hint">@CurrentPriorityHint</span>
     </div>
 
-    <div class="form-field">
-        <label class="field-label">
-            <i class="bi bi-sort-down"></i>
-            Пріоритет вибору
-        </label>
-        <div class="radio-group">
-            <label class="radio-option @(Options.Priority == LearningPriority.Random ? "active" : "")">
-                <input type="radio" name="@_groupName" value="@LearningPriority.Random"
-                       checked="@(Options.Priority == LearningPriority.Random)"
-                       @onchange="@(() => SetPriority(LearningPriority.Random))" />
-                <div class="radio-content">
-                    <i class="bi bi-shuffle"></i>
-                    <div class="radio-text">
-                        <span class="radio-title">Випадкові</span>
-                        <span class="radio-desc">Будь-які елементи з набору</span>
-                    </div>
-                </div>
+    <div class="filter-row">
+        <span class="filter-label">
+            <i class="bi bi-123"></i> Скільки
+            <span class="filter-value">@(_count > 0 ? _count.ToString() : "усі")</span>
+        </span>
+
+        @* Step of exactly 1: a slider with step 5 could not reach the right edge when the
+           item count is not divisible by 5 (23 items → 20 was the maximum). *@
+        <input type="range"
+               class="field-slider"
+               min="0"
+               max="@MaxCount"
+               step="1"
+               value="@_count"
+               @oninput="OnCountInput"
+               @onchange="OnCountCommitAsync" />
+        <div class="slider-labels">
+            <span>усі</span>
+            <span>@(MaxCount / 2)</span>
+            <span>@MaxCount</span>
+        </div>
+
+        @* Round numbers without aiming with the slider — and "all" in a single tap *@
+        <div class="preset-row">
+            <button type="button"
+                    class="preset @(_count == 0 ? "active" : "")"
+                    @onclick="() => SetCountAsync(0)">усі</button>
+
+            @foreach (var preset in CountPresets)
+            {
+                var value = preset;
+                <button type="button"
+                        class="preset @(_count == value ? "active" : "")"
+                        @onclick="() => SetCountAsync(value)">@value</button>
+            }
+        </div>
+    </div>
+
+    <div class="filter-row">
+        <div class="switch-list">
+            <label class="switch @(IsLearnedToggleDisabled ? "disabled" : "")"
+                   title="@(IsLearnedToggleDisabled ? "Нові елементи ще ніхто не вивчав — опція тут ні на що не впливає" : "")">
+                <input type="checkbox"
+                       checked="@Options.IncludeLearnedWords"
+                       disabled="@IsLearnedToggleDisabled"
+                       @onchange="OnIncludeLearnedChangedAsync" />
+                <span>Включати вивчені</span>
             </label>
 
-            <label class="radio-option @(Options.Priority == LearningPriority.Difficult ? "active" : "")">
-                <input type="radio" name="@_groupName" value="@LearningPriority.Difficult"
-                       checked="@(Options.Priority == LearningPriority.Difficult)"
-                       @onchange="@(() => SetPriority(LearningPriority.Difficult))" />
-                <div class="radio-content">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    <div class="radio-text">
-                        <span class="radio-title">Складні</span>
-                        <span class="radio-desc">З найбільшою кількістю помилок</span>
-                    </div>
-                </div>
-            </label>
-
-            <label class="radio-option @(Options.Priority == LearningPriority.New ? "active" : "")">
-                <input type="radio" name="@_groupName" value="@LearningPriority.New"
-                       checked="@(Options.Priority == LearningPriority.New)"
-                       @onchange="@(() => SetPriority(LearningPriority.New))" />
-                <div class="radio-content">
-                    <i class="bi bi-star"></i>
-                    <div class="radio-text">
-                        <span class="radio-title">Нові</span>
-                        <span class="radio-desc">Ще не вивчені</span>
-                    </div>
-                </div>
-            </label>
-
-            <label class="radio-option @(Options.Priority == LearningPriority.Review ? "active" : "")">
-                <input type="radio" name="@_groupName" value="@LearningPriority.Review"
-                       checked="@(Options.Priority == LearningPriority.Review)"
-                       @onchange="@(() => SetPriority(LearningPriority.Review))" />
-                <div class="radio-content">
-                    <i class="bi bi-arrow-repeat"></i>
-                    <div class="radio-text">
-                        <span class="radio-title">Повторення</span>
-                        <span class="radio-desc">Потребують закріплення</span>
-                    </div>
-                </div>
-            </label>
-
-            <label class="radio-option @(Options.Priority == LearningPriority.Old ? "active" : "")">
-                <input type="radio" name="@_groupName" value="@LearningPriority.Old"
-                       checked="@(Options.Priority == LearningPriority.Old)"
-                       @onchange="@(() => SetPriority(LearningPriority.Old))" />
-                <div class="radio-content">
-                    <i class="bi bi-clock"></i>
-                    <div class="radio-text">
-                        <span class="radio-title">Найстаріші</span>
-                        <span class="radio-desc">Давно не повторювались</span>
-                    </div>
-                </div>
+            <label class="switch">
+                <input type="checkbox"
+                       checked="@Options.ShuffleWords"
+                       @onchange="OnShuffleChangedAsync" />
+                <span>Перемішати</span>
             </label>
         </div>
     </div>
 
-    <div class="form-field">
-        <label class="field-label">
-            <i class="bi bi-gear"></i>
-            Додаткові опції
-        </label>
-        <div class="checkbox-group">
-            <InputCheckboxField Label="Включити вивчені елементи" @bind-Value="Options.IncludeLearnedWords" />
-            <InputCheckboxField Label="Перемішати" @bind-Value="Options.ShuffleWords" />
-        </div>
-    </div>
-
-    @if (ShowApplyButton)
+    @if (OnApply.HasDelegate)
     {
-        <button type="button" class="btn-apply-filter" @onclick="ApplyClicked">
-            <i class="bi bi-magic"></i>
-            Застосувати фільтр
-        </button>
+        <div class="filter-footer">
+            <span class="filter-result">
+                @if (ResultCount is { } count)
+                {
+                    <text>Обрано <strong>@count</strong> із @TotalCount</text>
+                }
+                else
+                {
+                    <text>Обрано @TotalCount із @TotalCount</text>
+                }
+            </span>
+
+            @if (OnReset.HasDelegate)
+            {
+                <button type="button" class="btn-reset" @onclick="() => OnReset.InvokeAsync()">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                    Скинути
+                </button>
+            }
+        </div>
     }
 </div>
 
@@ -125,64 +118,196 @@
     [Parameter, EditorRequired] public LearningSelectionOptions Options { get; set; } = new();
     [Parameter] public int MaxCount { get; set; } = 100;
 
-    /// <summary>Whether to show the "Apply filter" button. false — when the selection is resolved later (e.g. course-level practice).</summary>
-    [Parameter] public bool ShowApplyButton { get; set; } = true;
+    /// <summary>How many items exist in total — for the result line.</summary>
+    [Parameter] public int TotalCount { get; set; }
 
-    /// <summary>Raised when "Apply filter" is clicked — the parent page re-runs the selection.</summary>
+    /// <summary>How many the last application picked; null — the filter has not run yet.</summary>
+    [Parameter] public int? ResultCount { get; set; }
+
+    /// <summary>
+    /// Raised after every filter change. When not set, the panel only edits the options
+    /// (that is how course practice setup works, where the selection is resolved later).
+    /// </summary>
     [Parameter] public EventCallback OnApply { get; set; }
 
-    private readonly string _groupName = $"priority-{Guid.NewGuid():N}";
+    /// <summary>Back to manual selection (all items).</summary>
+    [Parameter] public EventCallback OnReset { get; set; }
 
-    private void SetPriority(LearningPriority priority) => Options.Priority = priority;
+    private int _count;
 
-    private Task ApplyClicked() => OnApply.InvokeAsync();
+    /// <summary>
+    /// Round values worth offering: only those below the available count, plus the count
+    /// itself — so "everything down to the last one" is a single tap.
+    /// </summary>
+    private IEnumerable<int> CountPresets =>
+        new[] { 5, 10, 20, 50, 100 }
+            .Where(v => v < MaxCount)
+            .Append(MaxCount)
+            .Distinct();
+
+    private sealed record PriorityOption(LearningPriority Value, string Title, string Icon, string Hint);
+
+    private static readonly PriorityOption[] Priorities =
+    [
+        new(LearningPriority.Random,    "Випадкові",  "bi-shuffle",              "Будь-які елементи з набору"),
+        new(LearningPriority.Recent,    "Попередні",  "bi-clock-history",        "Ті, що вивчалися останніми"),
+        new(LearningPriority.Old,       "Найстаріші", "bi-hourglass-bottom",     "Давно не повторювались"),
+        new(LearningPriority.Difficult, "Складні",    "bi-exclamation-triangle", "З найбільшою складністю"),
+        new(LearningPriority.New,       "Нові",       "bi-star",                 "Ще жодного разу не вивчені"),
+        new(LearningPriority.Review,    "Повторення", "bi-arrow-repeat",         "Уже вивчені — час закріпити"),
+    ];
+
+    /// <summary>"New" items have no learning history, so the learned toggle is meaningless.</summary>
+    private bool IsLearnedToggleDisabled => Options.Priority == LearningPriority.New;
+
+    private string CurrentPriorityHint =>
+        Priorities.FirstOrDefault(p => p.Value == Options.Priority)?.Hint ?? "";
+
+    /// <summary>Short description of the filter state — pages show it while the panel is collapsed.</summary>
+    public static string Describe(LearningSelectionOptions options)
+    {
+        var priority = Priorities.FirstOrDefault(p => p.Value == options.Priority)?.Title ?? "Випадкові";
+        var count    = options.WordCount > 0 ? options.WordCount.ToString() : "усі";
+        return $"{priority} · {count}";
+    }
+
+    protected override void OnParametersSet() => _count = Options.WordCount;
+
+    private Task SetPriorityAsync(LearningPriority priority)
+    {
+        Options.Priority = priority;
+
+        // "New" items are never learned — do not leave an enabled option that lies.
+        if (priority == LearningPriority.New)
+            Options.IncludeLearnedWords = false;
+
+        return NotifyAsync();
+    }
+
+    private void OnCountInput(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value))
+            _count = value;   // the slider moves live, the query runs only on release
+    }
+
+    private Task OnCountCommitAsync(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value))
+        {
+            _count = value;
+            Options.WordCount = value;
+        }
+
+        return NotifyAsync();
+    }
+
+    private Task SetCountAsync(int value)
+    {
+        _count = value;
+        Options.WordCount = value;
+        return NotifyAsync();
+    }
+
+    private Task OnIncludeLearnedChangedAsync(ChangeEventArgs e)
+    {
+        Options.IncludeLearnedWords = (bool)(e.Value ?? false);
+        return NotifyAsync();
+    }
+
+    private Task OnShuffleChangedAsync(ChangeEventArgs e)
+    {
+        Options.ShuffleWords = (bool)(e.Value ?? false);
+        return NotifyAsync();
+    }
+
+    private Task NotifyAsync() => OnApply.HasDelegate ? OnApply.InvokeAsync() : Task.CompletedTask;
 }
 
 <style>
     .learning-filter-panel {
         display: flex;
         flex-direction: column;
-        gap: 1.5rem;
+        gap: 1.25rem;
     }
 
-    .form-field {
-        margin: 0;
+    .filter-row {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
     }
 
-    .field-label {
+    .filter-label {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        font-size: 1rem;
+        font-size: 0.95rem;
         font-weight: 600;
         color: var(--text-primary);
-        margin-bottom: 0.75rem;
     }
 
-    .field-label i {
-        color: #A3BFFA;
-        font-size: 1.1rem;
+    .filter-label i {
+        color: var(--accent);
     }
 
-    .field-value {
+    .filter-value {
         margin-left: auto;
-        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        background: var(--accent-gradient);
         color: white;
-        padding: 0.25rem 0.75rem;
+        padding: 0.15rem 0.6rem;
         border-radius: 8px;
         font-weight: 700;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
     }
 
-    .slider-container {
-        margin-top: 0.5rem;
+    .filter-hint {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-style: italic;
+    }
+
+    /* A mutually exclusive choice looks like one switch, not a set of independent buttons */
+    .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+
+    .chip {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem 0.8rem;
+        min-height: 38px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--surface);
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.15s ease;
+    }
+
+    .chip i {
+        font-size: 0.95rem;
+    }
+
+    .chip:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    .chip.active {
+        background: var(--accent-gradient);
+        border-color: transparent;
+        color: white;
+        font-weight: 600;
     }
 
     .field-slider {
         width: 100%;
         height: 8px;
         border-radius: 4px;
-        background: #e9ecef;
+        background: var(--surface-hover);
         outline: none;
         -webkit-appearance: none;
         appearance: none;
@@ -210,97 +335,101 @@
     .slider-labels {
         display: flex;
         justify-content: space-between;
-        margin-top: 0.5rem;
-        font-size: 0.85rem;
-        color: #868e96;
-        font-weight: 500;
-    }
-
-    .field-hint {
-        display: block;
-        margin-top: 0.5rem;
-        font-size: 0.85rem;
-        color: #868e96;
-        font-style: italic;
-    }
-
-    .radio-group {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 0.75rem;
-    }
-
-    .radio-option {
-        display: block;
-        cursor: pointer;
-    }
-
-    .radio-option input[type="radio"] {
-        display: none;
-    }
-
-    .radio-content {
-        background: var(--surface-alt);
-        border: 2px solid #e0e3e7;
-        border-radius: 12px;
-        padding: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        transition: all 0.2s ease;
-    }
-
-    .radio-option:hover .radio-content {
-        border-color: #cbd0d8;
-    }
-
-    .radio-option.active .radio-content {
-        background: var(--surface);
-        border-color: #A3BFFA;
-        box-shadow: 0 2px 12px rgba(163, 191, 250, 0.2);
-    }
-
-    .radio-content i {
-        font-size: 1.35rem;
-        color: #A3BFFA;
-    }
-
-    .radio-title {
-        display: block;
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: var(--text-primary);
-    }
-
-    .radio-desc {
-        display: block;
         font-size: 0.8rem;
-        color: #6c757d;
+        color: var(--text-muted);
     }
 
-    .checkbox-group {
+    .preset-row {
         display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin-top: 0.25rem;
     }
 
-    .btn-apply-filter {
-        align-self: flex-start;
-        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+    .preset {
+        min-width: 44px;
+        min-height: 32px;
+        padding: 0.25rem 0.6rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.15s ease;
+    }
+
+    .preset:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    .preset.active {
+        background: var(--accent);
+        border-color: transparent;
         color: white;
-        border: none;
-        border-radius: 10px;
-        padding: 0.75rem 1.5rem;
         font-weight: 600;
-        cursor: pointer;
+    }
+
+    .switch-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.5rem;
+    }
+
+    .switch {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        transition: all 0.2s;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        cursor: pointer;
     }
 
-    .btn-apply-filter:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.3);
+    .switch input {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--accent);
+    }
+
+    .switch.disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+    .filter-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border-light);
+    }
+
+    .filter-result {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+
+    .filter-result strong {
+        color: var(--text-primary);
+    }
+
+    .btn-reset {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.4rem 0.8rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        transition: all 0.15s ease;
+    }
+
+    .btn-reset:hover {
+        border-color: var(--accent);
+        color: var(--accent);
     }
 </style>

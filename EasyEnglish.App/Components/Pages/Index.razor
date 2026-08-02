@@ -1,10 +1,12 @@
 @page "/"
 @using EasyEnglish.App.Services
+@using EasyEnglish.App.Components.Shared
 @inject StreakService StreakService
 @inject HomeStatsService HomeStatsService
 @inject RecentActivityService RecentActivityService
 
-<div class="home-page">
+@* The home page has no breadcrumbs and no PageHeader — it brings its own hero, but the same frame *@
+<PageShell Width="PageWidth.Full">
     <!-- Hero Section -->
     <div class="hero-section">
         <div class="hero-content">
@@ -185,7 +187,7 @@
             </a>
         </div>
     </div>
-</div>
+</PageShell>
 
 @code {
     private TodayReviewStats todayStats = new();
@@ -228,11 +230,8 @@
 }
 
 <style>
-    .home-page {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
-    }
+    /* Frame size and padding live in shared.css together with .page-shell, so the home page
+       never drifts apart from the rest */
 
     /* Hero Section */
     .hero-section {
@@ -585,10 +584,6 @@
 
     /* Responsive */
     @@media (max-width: 768px) {
-        .home-page {
-            padding: 1.5rem 1rem;
-        }
-
         .hero-title {
             font-size: 2rem;
         }

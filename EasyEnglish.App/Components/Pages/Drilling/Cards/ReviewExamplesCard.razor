@@ -1,22 +1,24 @@
 <div class="DrillingReviewCardContent">
     <div class="example-container">
-
-        <div class="sentence-text">
-            @((MarkupString)ExampleMarkdownService.RenderMarkdown(_item.Sentence))
-        </div>
-
-        @if (!string.IsNullOrEmpty(_item.Translation))
-        {
+        @* Sentence and its translation — one block, centred in the card *@
+        <div class="example-block">
             <div class="sentence-text">
-                @((MarkupString)ExampleMarkdownService.RenderMarkdown(_item.Translation))
+                @((MarkupString)ExampleMarkdownService.RenderMarkdown(_item.Sentence))
             </div>
-        }
 
+            @if (!string.IsNullOrEmpty(_item.Translation))
+            {
+                <div class="sentence-translation">
+                    @((MarkupString)ExampleMarkdownService.RenderMarkdown(_item.Translation))
+                </div>
+            }
+        </div>
     </div>
 
     <DifficultyRatingSection
         OnRate="@Context.Callbacks.OnRate"
         IsRating="@Context.State.IsRating"
+        IsRated="@Context.State.IsRated"
         LastRatedValue="@Context.State.LastRatedValue" />
 </div>
 
@@ -29,11 +31,36 @@
 
 <style>
     .example-container {
+        flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 1.5rem;
+        justify-content: center;
+        align-items: center;
         margin-bottom: 2rem;
     }
+
+    /* Shared container for the sentence and its translation */
+    .example-block {
+        width: 100%;
+        max-width: 34rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1.5rem;
+        background: var(--surface-alt);
+        border-radius: 12px;
+        text-align: center;
+    }
+
+    .sentence-translation {
+        font-size: 1.05rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        font-style: italic;
+    }
+
+    .sentence-translation :deep(strong) { color: #1976D2; font-weight: 700; }
+    .sentence-translation :deep(em)     { color: #7B1FA2; font-style: italic; }
 
     .sentence-section {
         border-radius: 8px;

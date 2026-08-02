@@ -1,8 +1,6 @@
 @page "/courses/{CourseId:int}/units/{UnitId:int}/study-cards/practice/setup"
 
-<div class="page-content">
-    <Breadcrumb Items="breadcrumbs" />
-    <PageHeader Title="Вивчення навчальних карток" />
+<PageShell Title="Вивчення навчальних карток" Breadcrumbs="breadcrumbs" Width="PageWidth.Wide">
 
     @if (isLoading)
     {
@@ -28,10 +26,16 @@
                                 EmptyText="У цьому модулі немає навчальних карток." />
 
                 <details class="quick-filter-details">
-                    <summary>Швидкий фільтр (кількість / складність)</summary>
+                    <summary>
+                        Швидкий вибір
+                        <span class="quick-filter-state">@LearningFilterPanel.Describe(filterOptions)</span>
+                    </summary>
                     <LearningFilterPanel Options="filterOptions"
                                          MaxCount="@(Math.Max(cardOptions.Count, 20))"
-                                         OnApply="ApplyQuickFilter" />
+                                         TotalCount="@cardOptions.Count"
+                                         ResultCount="@filterResultCount"
+                                         OnApply="ApplyQuickFilter"
+                                         OnReset="ResetSelection" />
                 </details>
             </div>
 
@@ -62,7 +66,7 @@
             </div>
         }
     }
-</div>
+</PageShell>
 
 @code {
     [Parameter] public int CourseId { get; set; }
@@ -72,6 +76,7 @@
     private HashSet<int> selectedCardIds = new();
     private HashSet<string> selectedTestKeys = new();
     private LearningSelectionOptions filterOptions = new();
+    private int? filterResultCount;
     private bool isLoading = true;
     private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
 
@@ -109,6 +114,13 @@
     {
         var result = await StudyCardService.GetForLearningAsync(CourseId, UnitId, filterOptions);
         selectedCardIds = result.Select(c => c.Id).ToHashSet();
+        filterResultCount = selectedCardIds.Count;
+    }
+
+    private void ResetSelection()
+    {
+        selectedCardIds   = cardOptions.Select(o => o.Id).ToHashSet();
+        filterResultCount = null;
     }
 
     private void StartPractice()
@@ -120,7 +132,6 @@
 }
 
 <style>
-    .page-content { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
 
     .setup-grid {
         display: grid;

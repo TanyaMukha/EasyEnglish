@@ -4,9 +4,8 @@
 @using EasyEnglish.App.Components.Shared
 @using EasyEnglish.App.Components.Shared.Breadcrumb
 
-<div class="page-content">
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Full">
     <div class="header-section">
-        <Breadcrumb Items="breadcrumbs" />
 
         <h1 class="page-title">
             <i class="bi @(IsEditMode ? "bi-pencil" : "bi-plus-circle")"></i>
@@ -46,7 +45,7 @@
             </div>
         </EditForm>
     </div>
-</div>
+</PageShell>
 
 @code {
     [Parameter] public int Id { get; set; } = 0;

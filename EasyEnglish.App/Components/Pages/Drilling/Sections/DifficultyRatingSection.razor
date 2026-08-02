@@ -1,71 +1,58 @@
-@* DifficultyRatingSection.razor - Кнопки оцінки складності (5 рівнів) *@
+@* DifficultyRatingSection.razor - difficulty rating buttons (5 levels).
+   Clicking the selected level again clears the rating — the decision is made by MultiTestEngine,
+   this section only reports which level was pressed. *@
 
 <div class="difficulty-section">
     <div class="difficulty-buttons">
-        <button class="btn-difficulty level-5"
-                @onclick="() => OnRate.InvokeAsync(5.0)"
-                disabled="@IsRating"
-                title="Дуже складно">
-            @if (IsRating && LastRatedValue == 5.0)
-            {
-                <span class="spinner-border spinner-border-sm"></span>
-            }
-        </button>
+        @foreach (var (value, title) in Levels)
+        {
+            var level      = value;
+            var isSelected = IsRated && Math.Abs(LastRatedValue - level) < 0.001;
 
-        <button class="btn-difficulty level-4"
-                @onclick="() => OnRate.InvokeAsync(4.0)"
-                disabled="@IsRating"
-                title="Складно">
-            @if (IsRating && LastRatedValue == 4.0)
-            {
-                <span class="spinner-border spinner-border-sm"></span>
-            }
-        </button>
-
-        <button class="btn-difficulty level-3"
-                @onclick="() => OnRate.InvokeAsync(3.0)"
-                disabled="@IsRating"
-                title="Середньо">
-            @if (IsRating && LastRatedValue == 3.0)
-            {
-                <span class="spinner-border spinner-border-sm"></span>
-            }
-        </button>
-
-        <button class="btn-difficulty level-2"
-                @onclick="() => OnRate.InvokeAsync(2.0)"
-                disabled="@IsRating"
-                title="Легко">
-            @if (IsRating && LastRatedValue == 2.0)
-            {
-                <span class="spinner-border spinner-border-sm"></span>
-            }
-        </button>
-
-        <button class="btn-difficulty level-1"
-                @onclick="() => OnRate.InvokeAsync(1.0)"
-                disabled="@IsRating"
-                title="Дуже легко">
-            @if (IsRating && LastRatedValue == 1.0)
-            {
-                <span class="spinner-border spinner-border-sm"></span>
-            }
-        </button>
+            <button class="btn-difficulty level-@((int)level) @(isSelected ? "selected" : "")"
+                    @onclick="() => OnRate.InvokeAsync(level)"
+                    disabled="@IsRating"
+                    title="@(isSelected ? $"{title} — натисніть ще раз, щоб зняти" : title)">
+                @if (IsRating && Math.Abs(LastRatedValue - level) < 0.001)
+                {
+                    <span class="spinner-border spinner-border-sm"></span>
+                }
+                else if (isSelected)
+                {
+                    <i class="bi bi-check-lg"></i>
+                }
+            </button>
+        }
     </div>
 </div>
 
 @code {
     [Parameter] public EventCallback<double> OnRate { get; set; }
     [Parameter] public bool IsRating { get; set; } = false;
+
+    /// <summary>Whether a manual rating is set right now — drives the selected-level mark.</summary>
+    [Parameter] public bool IsRated { get; set; } = false;
+
     [Parameter] public double LastRatedValue { get; set; } = 0;
+
+    private static readonly (double Value, string Title)[] Levels =
+    [
+        (5.0, "Дуже складно"),
+        (4.0, "Складно"),
+        (3.0, "Середньо"),
+        (2.0, "Легко"),
+        (1.0, "Дуже легко"),
+    ];
 }
 
 <style>
+    /* On a wide screen the rating column sits beside the card — pin it to the top */
     .difficulty-section {
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-start;
+        padding-top: 0.75rem;
     }
 
     .difficulty-buttons {
@@ -80,7 +67,7 @@
         height: 32px;
         border: none;
         border-radius: 8px;
-        font-size: 1.5rem;
+        font-size: 1rem;
         font-weight: 700;
         cursor: pointer;
         transition: all 0.3s ease;
@@ -118,7 +105,31 @@
         transform: translateX(-3px) scale(1.04);
     }
 
-    /* Градієнт від зеленого до червоного */
+    /* No dark frames at all: neither the system focus ring nor an outline */
+    .btn-difficulty:focus {
+        outline: none;
+    }
+
+    .btn-difficulty:focus-visible {
+        box-shadow: 0 0 0 3px var(--accent);
+    }
+
+    /* Selected level: light inner ring + check mark; clicking again clears it */
+    .btn-difficulty.selected {
+        transform: scale(1.12);
+        box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.95), 0 6px 14px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-difficulty.selected:hover:not(:disabled) {
+        transform: translateX(-6px) scale(1.12);
+    }
+
+    /* Unselected levels dim once a rating is set */
+    .difficulty-buttons:has(.selected) .btn-difficulty:not(.selected) {
+        opacity: 0.45;
+    }
+
+    /* Gradient from green to red */
     .btn-difficulty.level-1 {
         background: linear-gradient(135deg, #22c55e, #16a34a);
     }
@@ -153,20 +164,18 @@
             justify-content: center;
         }
 
+        /* For touch — never below 32px, otherwise it is hard to hit */
         .btn-difficulty {
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
         }
 
         .btn-difficulty:hover:not(:disabled) {
             transform: translateY(-4px) scale(1.05);
         }
-    }
 
-    @@media (max-width: 480px) {
-        .btn-difficulty {
-            width: 24px;
-            height: 24px;
+        .btn-difficulty.selected:hover:not(:disabled) {
+            transform: translateY(-4px) scale(1.12);
         }
     }
 </style>

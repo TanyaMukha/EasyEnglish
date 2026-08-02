@@ -12,11 +12,7 @@
 
 <PageTitle>Експорт курсу</PageTitle>
 
-<div class="page-wrapper">
-    <div class="scroll-area">
-        <div class="edit-page">
-
-            <Breadcrumb Items="breadcrumbs" />
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Medium" Fill="true">
 
             <div class="header-section">
                 <h1 class="page-title">
@@ -154,10 +150,7 @@
                 </div>
 
             </div>
-            <div class="keyboard-spacer"></div>
-        </div>
-    </div>
-</div>
+</PageShell>
 
 @code {
     private List<Breadcrumb.BreadcrumbItem> breadcrumbs = BreadcrumbBuilder.Create().WithHome().WithActive("Експорт курсу").Build();
@@ -276,31 +269,6 @@
 }
 
 <style>
-    .page-wrapper {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        height: 100dvh;
-        overflow: hidden;
-        border-top: 1px solid var(--border);
-        border-bottom: 1px solid var(--border);
-    }
-
-    .scroll-area {
-        flex: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .keyboard-spacer { height: 0; }
-
-    .edit-page {
-        max-width: 1000px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
-    }
-
 .page-title {
         font-size: 2rem;
         font-weight: 700;
@@ -449,8 +417,7 @@
 
         .form-container { padding: 1.25rem; }
 
-        .info-row { flex-direction: column; gap: 0.1rem; }
+        .info-row { gap: 0.1rem; }
         .btn-submit { width: 100%; justify-content: center; }
-        .keyboard-spacer { height: 350px; }
     }
 </style>

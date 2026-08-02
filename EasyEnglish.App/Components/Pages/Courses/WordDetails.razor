@@ -4,9 +4,8 @@
 @using EasyEnglish.App.Components.Shared.Breadcrumb
 @inject SpeechPlayer Player
 
-<div class="page-content" @key="WordId">
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Full" @key="WordId">
     <div class="header-section">
-        <Breadcrumb Items="breadcrumbs" />
 
         <div class="title-section">
             <div class="title-wrapper">
@@ -76,7 +75,7 @@
         }
     </div>
 
-    <!-- Решта коду без змін -->
+    <!-- The rest of the markup is unchanged -->
     <div class="content-grid">
         @if (!string.IsNullOrEmpty(Word.Translation))
         {
@@ -179,7 +178,7 @@
             }
         </div>
     </div>
-</div>
+</PageShell>
 
 @code {
     [Parameter] public int CourseId { get; set; }
@@ -195,11 +194,11 @@
     private bool IsPlaying = false;
 
     private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
-    private int _previousWordId = -1; // Для відстеження змін
+    private int _previousWordId = -1; // Tracks changes
 
     protected override async Task OnParametersSetAsync()
     {
-        // Завантажуємо дані тільки якщо WordId змінився
+        // Reload data only when WordId actually changed
         if (_previousWordId != WordId)
         {
             _previousWordId = WordId;

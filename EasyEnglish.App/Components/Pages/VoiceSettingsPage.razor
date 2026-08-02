@@ -5,8 +5,7 @@
 @inject VoiceAvailabilityService Availability
 @implements IAsyncDisposable
 
-<div class="page-content">
-    <Breadcrumb Items="breadcrumbs" />
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Narrow">
 
     <div class="header-section">
         <h1 class="page-title">
@@ -103,7 +102,7 @@
             Оновити список
         </button>
     }
-</div>
+</PageShell>
 
 @code {
     private List<Breadcrumb.BreadcrumbItem> breadcrumbs = BreadcrumbBuilder.Create().WithHome().WithActive("Налаштування голосів").Build();
@@ -155,7 +154,6 @@
 }
 
 <style>
-    .page-content { max-width: 800px; margin: 0 auto; padding: 2rem 1rem; }
 
     .header-section { margin-bottom: 2rem; }
 

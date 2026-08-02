@@ -1,8 +1,6 @@
 @page "/courses/{CourseId:int}/units/{UnitId:int}/words/practice"
 
-<div class="page-content">
-    <Breadcrumb Items="breadcrumbs" />
-    <PageHeader Title="Вивчення слів" />
+<PageShell Title="Вивчення слів" Breadcrumbs="breadcrumbs" Width="PageWidth.Wide">
 
     @if (isLoading)
     {
@@ -28,10 +26,16 @@
                                 EmptyText="У цьому модулі немає слів." />
 
                 <details class="quick-filter-details">
-                    <summary>Швидкий фільтр (кількість / складність)</summary>
+                    <summary>
+                        Швидкий вибір
+                        <span class="quick-filter-state">@LearningFilterPanel.Describe(filterOptions)</span>
+                    </summary>
                     <LearningFilterPanel Options="filterOptions"
                                          MaxCount="@(Math.Max(allWords.Count, 20))"
-                                         OnApply="ApplyQuickFilter" />
+                                         TotalCount="@allWords.Count"
+                                         ResultCount="@filterResultCount"
+                                         OnApply="ApplyQuickFilter"
+                                         OnReset="ResetSelection" />
                 </details>
             </div>
 
@@ -62,7 +66,7 @@
             </div>
         }
     }
-</div>
+</PageShell>
 
 @code {
     [Parameter] public int CourseId { get; set; }
@@ -73,6 +77,7 @@
     private HashSet<int> selectedWordIds = new();
     private HashSet<string> selectedTestKeys = new();
     private LearningSelectionOptions filterOptions = new();
+    private int? filterResultCount;
     private bool isLoading = true;
     private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
 
@@ -110,6 +115,13 @@
     {
         var result = await WordService.GetForLearningAsync(CourseId, UnitId, filterOptions);
         selectedWordIds = result.Select(w => w.Id).ToHashSet();
+        filterResultCount = selectedWordIds.Count;
+    }
+
+    private void ResetSelection()
+    {
+        selectedWordIds   = wordOptions.Select(o => o.Id).ToHashSet();
+        filterResultCount = null;
     }
 
     private void StartPractice()
@@ -121,7 +133,6 @@
 }
 
 <style>
-    .page-content { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
 
     .setup-grid {
         display: grid;

@@ -4,9 +4,7 @@
 @using EasyEnglish.Core.Presets
 @inject PracticeQueueService PracticeQueueService
 
-<div class="page-content">
-    <Breadcrumb Items="breadcrumbs" />
-    <PageHeader Title="Практика навчальних карток" />
+<PageShell Title="Практика навчальних карток" Breadcrumbs="breadcrumbs" Width="PageWidth.Narrow">
 
     <MultiTestHost TItem="StudyCardTestModel"
         Definitions="@_definitions"
@@ -14,7 +12,7 @@
         IsLoading="@_isLoading"
         ErrorMessage="@_errorMessage"
         OnFinish="@FinishTest" />
-</div>
+</PageShell>
 
 @code {
     [Parameter] public int CourseId { get; set; }
@@ -113,5 +111,4 @@
 }
 
 <style>
-    .page-content { max-width: 800px; margin: 0 auto; padding: 2rem 1rem; }
 </style>
