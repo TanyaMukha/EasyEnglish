@@ -32,6 +32,7 @@ library's (differently-named) service namespace.
 | `StorageMaintenanceService.cs` | Removes storage keys left behind by retired features; run once at startup, idempotent. |
 | `StreakService.cs` | Tracks the daily-visit streak (consecutive calendar days visited). |
 | `TextBracketsRemoverService.cs` | Strips `[bracketed annotations]` from example/definition text. |
+| `AnswerMatcher.cs` | Decides whether a typed answer matches the expected word/phrase: optional articles, a leading infinitive `to`, any number of `[optional]` groups, sb/sth placeholder spellings, and `/` for equivalent wordings (spaced — whole alternatives; glued — a choice for one position). Omitting optional parts is allowed; adding words the entry does not have is not. `{literal}` marks a segment that must be typed verbatim. |
 | `WordRatingCalculator.cs` | Spaced-repetition rating: `UpdateWordAfterSession` applies a post-session rate change; `CalculateCurrentRate` estimates a read-only "decayed" rate via a forgetting-curve model. Also defines `CardType`/`CardDirection`. |
 
 ### `Services/Speech/` — text-to-speech
@@ -148,14 +149,16 @@ silently mis-schedules review for every word in the app.
 
 ### What's covered, per file
 
-- **`WordRatingCalculatorTests.cs`** (24 tests) — `GetAvailableDirections` for every mapped
+- **`WordRatingCalculatorTests.cs`** (26 tests) — `GetAvailableDirections` for every mapped
   `CardType` plus the unmapped-returns-empty case; `CalculateCurrentRate`: never-reviewed and
   reviewed-today are no-ops, an unreviewed-for-days item's rate increases, the exact result is
   checked against the documented forgetting-curve formula (`maxPenalty * (1 - e^(...))`) as a
   characterization test, a higher review count + success rate decays slower than a low one, and the
   result clamps at `MAX_RATE`; `UpdateWordAfterSession`: null `Tests` and zero-attempts are no-ops, a
   perfect `ManualInput`/`TranslationToWord` result decreases the rate by the exact weighted amount
-  (`-0.45 * 0.85`), an all-wrong session increases it, attempts across multiple direction×type
+  (`-0.585 * 1.5 * 1.05` — base change × card-type impact × attempt modifier), typed and spoken
+  answers move the rate further than single choice and further still than self-assessment, a mixed
+  session stays between the single-type extremes, an all-wrong session increases it, attempts across multiple direction×type
   combinations sum correctly while `ReviewCount` still only increments once, and the rate clamps at
   both `MIN_RATE`/`MAX_RATE`; a baseline test confirms a real `CardType` still processes correctly
   through the `TrackableCardTypes` allowlist (**Known Issue #2**, now fixed — the allowlist used to

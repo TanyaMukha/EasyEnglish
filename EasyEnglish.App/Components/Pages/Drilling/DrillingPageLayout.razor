@@ -618,6 +618,13 @@ else
 
     /* Phones and tablets: buttons spread out — back on the left, to-tests in the middle, next on the right */
     @@media (max-width: 1024px) {
+        /* The corner flower is fixed, so it adds no height of its own — reserve the room it
+           covers, otherwise the last lines of a card end up underneath the petals.
+           One rule for every card: whichever renders a cluster gets the space. */
+        .drill-shell:has(.corner-cluster) .drill-content {
+            padding-bottom: 210px;
+        }
+
         .drill-actions {
             justify-content: space-between;
         }

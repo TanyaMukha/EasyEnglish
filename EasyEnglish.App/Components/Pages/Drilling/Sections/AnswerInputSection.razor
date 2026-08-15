@@ -5,12 +5,18 @@
 @if (!isAnswerSubmitted)
 {
     <div class="input-section">
+        @* enterkeyhint puts "Готово" on the on-screen keyboard; Enter submits either way *@
         <input type="text"
                class="input-field"
                placeholder="Введіть англійське слово"
+               @ref="_inputRef"
                @bind="userInput"
+               @bind:event="oninput"
                @onkeyup="@(async e => { if (e.Key == "Enter") await CheckAnswer(); })"
-               autofocus />
+               enterkeyhint="done"
+               autocomplete="off"
+               autocapitalize="none"
+               spellcheck="false" />
         <button class="btn-submit" @onclick="CheckAnswer">
             <i class="bi bi-check-lg"></i>
             Перевірити
@@ -42,13 +48,44 @@
     private string? feedbackMessage;
     private string  alertClass = "warning";
 
+    private ElementReference _inputRef;
+    private bool             _focusPending = true;
+
+    /// <summary>Which card the field was focused for — a new expected answer means a new card.</summary>
+    private string? _focusedFor;
+
+    /// <summary>
+    /// The field takes focus as soon as a card appears, so the on-screen keyboard is already up —
+    /// the learner types straight away instead of tapping the field first.
+    /// </summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_focusPending || isAnswerSubmitted)
+            return;
+
+        _focusPending = false;
+        await _inputRef.FocusAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        // Only when the card actually changed — re-focusing on every render would fight the caret.
+        if (isAnswerSubmitted || _focusedFor == CorrectAnswer)
+            return;
+
+        _focusedFor   = CorrectAnswer;
+        _focusPending = true;
+    }
+
     private async Task CheckAnswer()
     {
         var trimmedInput = userInput?.Trim();
 
+        // AnswerMatcher, not string equality: articles, a leading "to", bracketed parts and
+        // sb/sth spellings are all optional for the learner (see AnswerMatcher for the rules).
         var isCorrect = AcceptableAnswers is { Count: > 0 }
-            ? AcceptableAnswers.Any(a => string.Equals(a.Trim(), trimmedInput, StringComparison.OrdinalIgnoreCase))
-            : string.Equals(CorrectAnswer, trimmedInput, StringComparison.OrdinalIgnoreCase);
+            ? AcceptableAnswers.Any(a => AnswerMatcher.Matches(a, trimmedInput))
+            : AnswerMatcher.Matches(CorrectAnswer, trimmedInput);
 
         feedbackMessage = isCorrect
             ? "Правильно! Чудова робота!"

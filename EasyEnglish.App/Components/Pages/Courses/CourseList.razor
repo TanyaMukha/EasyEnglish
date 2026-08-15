@@ -44,11 +44,18 @@
         await LoadData();
     }
 
+    /// <summary>
+    /// Newest first — the course you added last is the one you are most likely to open.
+    /// Id breaks ties, since courses imported together share a creation timestamp.
+    /// </summary>
+    private static IEnumerable<CourseModel> Newest(IEnumerable<CourseModel> courses) =>
+        courses.OrderByDescending(c => c.CreatedAt).ThenByDescending(c => c.Id).ToList();
+
     private async Task LoadData()
     {
         try
         {
-            AvailableCourses = await CourseService.GetAllAsync(CourseIncludes.Full);
+            AvailableCourses = Newest(await CourseService.GetAllAsync(CourseIncludes.Full));
             BrowserConsole.LogInfoAsync($"Loaded {AvailableCourses?.Count() ?? 0} courses");
         }
         catch (Exception ex)
@@ -72,7 +79,7 @@
         try
         {
             await CourseService.DeleteAsync(id);
-            AvailableCourses = await CourseService.GetAllAsync();
+            AvailableCourses = Newest(await CourseService.GetAllAsync());
             StateHasChanged();
         }
         catch (Exception ex)

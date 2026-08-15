@@ -42,28 +42,50 @@ public static class WordRatingCalculator
     private const float MIN_RATE = 0.0f;
     private const float MAX_RATE = 5.0f;
 
-    // Tuned by hand for a smooth, not-too-jumpy difficulty response; scaled x1.5 from earlier
-    // values for faster reaction to recent performance. See EasyEnglish.App/Services/README.md
-    // for the tuning history captured in git blame if these ever need revisiting.
-    private const float PERFECT_ANSWER_DECREASE = 0.45f;  // 95-100% correct
-    private const float GOOD_ANSWER_DECREASE = 0.3f;      // 75-94% correct
-    private const float AVERAGE_ANSWER_DECREASE = 0.15f;  // 65-74% correct
-    private const float POOR_ANSWER_INCREASE = 0.225f;    // 50-64% correct
-    private const float BAD_ANSWER_INCREASE = 0.375f;     // 25-49% correct
-    private const float FAILED_ANSWER_INCREASE = 0.6f;    // 0-24% correct
+    // Tuned by hand for a smooth, not-too-jumpy difficulty response; scaled x1.3 from the previous
+    // values (themselves x1.5 from the originals) because a whole session still moved the rate too
+    // little to matter. See EasyEnglish.App/Services/README.md for the tuning history in git blame.
+    private const float PERFECT_ANSWER_DECREASE = 0.585f; // 95-100% correct
+    private const float GOOD_ANSWER_DECREASE = 0.39f;     // 75-94% correct
+    private const float AVERAGE_ANSWER_DECREASE = 0.195f; // 65-74% correct
+    private const float POOR_ANSWER_INCREASE = 0.29f;     // 50-64% correct
+    private const float BAD_ANSWER_INCREASE = 0.49f;      // 25-49% correct
+    private const float FAILED_ANSWER_INCREASE = 0.78f;   // 0-24% correct
 
     private const float EASY_WORD_MULTIPLIER = 0.7f;
     private const float HARD_WORD_MULTIPLIER = 1.5f;
 
     private const float FORGETTING_CURVE_COEFFICIENT = 0.05f;
 
-    /// <summary>How much each card type counts toward the session's overall rate change — free-text/spoken recall counts fullest, passive self-assessment counts least.</summary>
+    /// <summary>
+    /// How much each card type counts toward the session's overall rate change — free-text/spoken
+    /// recall counts fullest, passive self-assessment counts least.
+    /// These are averaging weights only: they decide whose opinion dominates when a session mixes
+    /// card types, and cancel out entirely when a session uses just one type. How far the rate
+    /// actually moves is <see cref="_cardTypeImpact"/>.
+    /// </summary>
     private static readonly Dictionary<CardType, float> _cardTypeWeights = new()
     {
         { CardType.SingleChoice, 0.5f },
         { CardType.KnowOrNot, 0.3f },
         { CardType.ManualInput, 1.0f },
         { CardType.Pronunciation, 1.0f }
+    };
+
+    /// <summary>
+    /// How strongly each card type moves the rate. Unlike <see cref="_cardTypeWeights"/> this is a
+    /// magnitude, not a share: producing the word from memory (typing it, saying it) is real
+    /// evidence about whether the learner knows it, so it shifts the rate far more than recognising
+    /// the right option out of four, and much more than self-reported "I knew this one".
+    /// </summary>
+    private static readonly Dictionary<CardType, float> _cardTypeImpact = new()
+    {
+        { CardType.KnowOrNot, 0.7f },
+        { CardType.SingleChoice, 0.9f },
+        { CardType.MultipleChoice, 1.0f },
+        { CardType.Matching, 1.0f },
+        { CardType.ManualInput, 1.5f },
+        { CardType.Pronunciation, 1.5f }
     };
 
     /// <summary>How much each direction counts toward the session's overall rate change — recalling the word from its translation counts more than the reverse.</summary>
@@ -120,11 +142,10 @@ public static class WordRatingCalculator
     }
 
     /// <summary>
-    /// Base rate delta for a single card's success rate, before card-type/direction weighting is
+    /// Base rate delta for a single card's success rate, before card-type impact and weighting are
     /// applied. Negative = gets easier (rate decreases); positive = gets harder (rate increases).
-    /// <paramref name="weight"/> is currently unused — the caller applies weighting separately.
     /// </summary>
-    private static float CalculateRateChange(float successRate, float weight)
+    private static float CalculateRateChange(float successRate)
     {
         float baseChange = successRate switch
         {
@@ -246,7 +267,12 @@ public static class WordRatingCalculator
                 float directionWeight = _directionWeights.GetValueOrDefault(direction, 1.0f);
                 float weight = cardWeight * directionWeight;
 
-                weightedRateChange += CalculateRateChange(successRate, weight) * weight;
+                // Impact scales the change itself, weight only decides this card's share of the
+                // average — so a session made entirely of typed answers still moves the rate more
+                // than one made entirely of multiple choice.
+                float impact = _cardTypeImpact.GetValueOrDefault(cardType, 1.0f);
+
+                weightedRateChange += CalculateRateChange(successRate) * impact * weight;
                 totalWeight += weight;
             }
         }
@@ -258,7 +284,9 @@ public static class WordRatingCalculator
 
             // Moderate scaling by attempt count, capped so a single big session can't swing the
             // rate too far at once (tuning history: see git blame for prior constants).
-            float attemptModifier = 0.6f + Math.Min(totalAttempts / 12.0f, 0.25f);
+            // Raised from 0.6 + max 0.25: the old ceiling of 0.85 meant even a long, flawless
+            // session was damped below its own base change, which made progress feel invisible.
+            float attemptModifier = 0.7f + Math.Min(totalAttempts / 12.0f, 0.35f);
             float finalRateChange = averageRateChange * attemptModifier;
 
             word.Rate = Math.Clamp(word.Rate + finalRateChange, MIN_RATE, MAX_RATE);

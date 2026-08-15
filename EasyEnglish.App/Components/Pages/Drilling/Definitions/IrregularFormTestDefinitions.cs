@@ -141,7 +141,9 @@ public sealed class IrregularTranslationToWordManualInputDef : TestDefinition<Ir
         !string.IsNullOrEmpty(item.FirstFormTranslation);
 
     public override WordCardViewModel  BuildViewModel(IrregularFormTestModel item) => IrregularVm.From(item);
-    public override string?            GetCorrectAnswer(WordCardViewModel vm)       => PronunciationTextNormalizer.PrepareExpectedText(vm.Word);
+
+    // The raw form, markers and all: AnswerMatcher needs them to know what is optional.
+    public override string?            GetCorrectAnswer(WordCardViewModel vm)       => vm.Word;
     public override bool               ShowNextButton(TestState s)                  => s.IsAnswerSubmitted;
     public override NextItemAction     GetNextAction(TestState s)                   => s.IsCorrect ? NextItemAction.Remove : NextItemAction.Requeue;
     public override Type               ComponentType                                 => typeof(ManualInputCard);

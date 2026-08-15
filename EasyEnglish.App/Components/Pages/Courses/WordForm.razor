@@ -73,7 +73,8 @@
                 </InputSelectField>
                 <ValidationMessage For="() => Word.UnitId" />
 
-                <InputTextField @bind-Value="Word.Word" Label="Word or Phrase *" />
+                <InputTextField @bind-Value="Word.Word" Label="Word or Phrase *"
+                                Hint="[частину] можна не вводити · {частину} — тільки дослівно · слово / слово — рівнозначні варіанти · «to» й артикль на початку необов’язкові" />
 
                 <InputTranscriptionField @bind-Value="Word.Transcription" Label="Transcription" />
 

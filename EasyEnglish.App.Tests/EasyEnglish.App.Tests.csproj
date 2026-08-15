@@ -38,6 +38,8 @@
     <!-- Services/ root: pure logic, no MAUI dependency. -->
     <Compile Include="..\EasyEnglish.App\Services\WordRatingCalculator.cs" Link="Sources\WordRatingCalculator.cs" />
     <Compile Include="..\EasyEnglish.App\Services\ExampleMarkdownService.cs" Link="Sources\ExampleMarkdownService.cs" />
+    <Compile Include="..\EasyEnglish.App\Services\AnswerMatcher.cs" Link="Sources\AnswerMatcher.cs" />
+    <Compile Include="..\EasyEnglish.App\Services\EntryTextRenderer.cs" Link="Sources\EntryTextRenderer.cs" />
     <Compile Include="..\EasyEnglish.App\Services\TextBracketsRemoverService.cs" Link="Sources\TextBracketsRemoverService.cs" />
     <Compile Include="..\EasyEnglish.App\Services\LanguageFlagHelper.cs" Link="Sources\LanguageFlagHelper.cs" />
     <Compile Include="..\EasyEnglish.App\Services\ImageDataUriHelper.cs" Link="Sources\ImageDataUriHelper.cs" />

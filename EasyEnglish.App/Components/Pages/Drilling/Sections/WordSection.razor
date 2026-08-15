@@ -1,9 +1,9 @@
-@* WordSection.razor - Компонент для відображення слова та транскрипції *@
+@* WordSection.razor - shows the word and its transcription *@
 
 @if (!Hidden)
 {
     <div class="word-section">
-        <h2 class="word-title">@Word</h2>
+        <h2 class="word-title"><EntryText Value="@Word" /></h2>
         @if (!string.IsNullOrEmpty(Transcription))
         {
             <p class="transcription">[ @Transcription ]</p>

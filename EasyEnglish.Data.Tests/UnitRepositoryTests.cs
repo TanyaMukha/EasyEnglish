@@ -56,6 +56,61 @@ public class UnitRepositoryTests : SqliteTestBase
     }
 
     [Fact]
+    public async Task GetUnitCardsAsync_ReturnsNewestUnitsFirst()
+    {
+        // The course page lists what you added last at the top, so the query has to order that way.
+        int courseId;
+
+        await using (var ctx = CreateContext())
+        {
+            var course = await TestDataHelpers.SeedCourseAsync(ctx);
+            courseId = course.Id;
+
+            var oldest = await TestDataHelpers.SeedUnitAsync(ctx, courseId, "Unit 1");
+            var middle = await TestDataHelpers.SeedUnitAsync(ctx, courseId, "Unit 2");
+            var newest = await TestDataHelpers.SeedUnitAsync(ctx, courseId, "Unit 3");
+
+            await TestDataHelpers.SetUnitCreatedAtAsync(ctx, oldest.Id, new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+            await TestDataHelpers.SetUnitCreatedAtAsync(ctx, middle.Id, new DateTime(2024, 6, 1, 0, 0, 0, DateTimeKind.Utc));
+            await TestDataHelpers.SetUnitCreatedAtAsync(ctx, newest.Id, new DateTime(2025, 3, 1, 0, 0, 0, DateTimeKind.Utc));
+        }
+
+        await using var readCtx = CreateContext();
+        var repository = CreateRepository();
+
+        var cards = await repository.GetUnitCardsAsync(courseId);
+
+        Assert.Equal(["Unit 3", "Unit 2", "Unit 1"], cards.Select(c => c.Title));
+    }
+
+    [Fact]
+    public async Task GetUnitCardsAsync_SameCreationTime_PutsTheLaterRowFirst()
+    {
+        // A whole course arrives in one import, so every unit shares a timestamp — without the
+        // Id tie-break the order would be arbitrary.
+        int courseId;
+
+        await using (var ctx = CreateContext())
+        {
+            var course = await TestDataHelpers.SeedCourseAsync(ctx);
+            courseId = course.Id;
+
+            var first  = await TestDataHelpers.SeedUnitAsync(ctx, courseId, "Imported 1");
+            var second = await TestDataHelpers.SeedUnitAsync(ctx, courseId, "Imported 2");
+
+            var sameMoment = new DateTime(2025, 5, 5, 12, 0, 0, DateTimeKind.Utc);
+            await TestDataHelpers.SetUnitCreatedAtAsync(ctx, first.Id, sameMoment);
+            await TestDataHelpers.SetUnitCreatedAtAsync(ctx, second.Id, sameMoment);
+        }
+
+        var repository = CreateRepository();
+
+        var cards = await repository.GetUnitCardsAsync(courseId);
+
+        Assert.Equal(["Imported 2", "Imported 1"], cards.Select(c => c.Title));
+    }
+
+    [Fact]
     public async Task GetUnitCardsAsync_UnitWithOnlyTestCards_IsNotReportedAsEmpty()
     {
         await using (var ctx = CreateContext())

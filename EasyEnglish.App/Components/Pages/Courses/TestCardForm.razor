@@ -191,7 +191,8 @@
                         var index = i;
                         <div class="row align-items-center">
                             <div class="col">
-                                <InputTextField Value="@_shortAnswers[index]" ValueChanged="@(v => _shortAnswers[index] = v ?? "")" Label="@($"Варіант {index + 1}")" />
+                                <InputTextField Value="@_shortAnswers[index]" ValueChanged="@(v => _shortAnswers[index] = v ?? "")" Label="@($"Варіант {index + 1}")"
+                                                Hint="@(index == 0 ? "[частину] можна не вводити · {частину} — тільки дослівно · слово / слово — рівнозначні варіанти" : null)" />
                             </div>
                             @if (_shortAnswers.Count > 1)
                             {

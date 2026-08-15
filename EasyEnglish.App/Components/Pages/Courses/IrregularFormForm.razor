@@ -47,7 +47,8 @@
                     @GetFormLabel(1)
                 </h2>
 
-                <InputTextField @bind-Value="IrregularForm.FirstForm" Label="@GetFormLabel(1)" />
+                <InputTextField @bind-Value="IrregularForm.FirstForm" Label="@GetFormLabel(1)"
+                                Hint="[частину] можна не вводити · {частину} — тільки дослівно · слово / слово — рівнозначні варіанти · «to» й артикль на початку необов’язкові" />
 
                 <InputTranscriptionField @bind-Value="IrregularForm.FirstFormTranscription" Label="Transcription" />
 

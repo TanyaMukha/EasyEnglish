@@ -11,11 +11,16 @@
                    @onfocus="@(() => isFocused = true)"
                    @onblur="@(() => isFocused = false)"
                    id="@inputId" />
-        <label for="@inputId" 
+        <label for="@inputId"
                class="@GetLabelClass()">
             @Label
         </label>
     </div>
+
+    @if (!string.IsNullOrWhiteSpace(Hint))
+    {
+        <span class="input-hint">@Hint</span>
+    }
 
     @* <ContextMenu IsVisible="@showContextMenu" *@
     @*              X="@contextMenuX" *@
@@ -29,6 +34,9 @@
     [Parameter] public string? Value { get; set; }
     [Parameter] public EventCallback<string?> ValueChanged { get; set; }
     [Parameter] public string Label { get; set; } = string.Empty;
+
+    /// <summary>Optional note under the field — e.g. the authoring conventions for an answer.</summary>
+    [Parameter] public string? Hint { get; set; }
 
     private bool isFocused = false;
     private bool showContextMenu = false;
@@ -84,6 +92,12 @@
 
     .input-wrapper {
         position: relative;
+    }
+
+    .input-hint {
+        font-size: 0.8rem;
+        line-height: 1.4;
+        color: var(--text-muted);
     }
 
     .inline-input {

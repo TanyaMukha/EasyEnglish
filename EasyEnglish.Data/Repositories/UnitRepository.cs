@@ -42,7 +42,10 @@ public class UnitRepository : BaseWithGuidRepository<UnitEntity, EasyEnglishDbCo
         return await ctx.Set<UnitEntity>()
             .AsNoTracking()
             .Where(u => u.CourseId == courseId)
-            .OrderBy(u => u.Id)
+            // Newest first. Imported units often share a creation timestamp, so Id breaks the tie
+            // — within one import the later row is still the later unit.
+            .OrderByDescending(u => u.CreatedAt)
+            .ThenByDescending(u => u.Id)
             .Select(u => new UnitCardModel
             {
                 Id = u.Id,

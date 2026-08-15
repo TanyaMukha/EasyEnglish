@@ -1,4 +1,11 @@
-@* AnswerKnowOrNotSection.razor - Компонент для самооцінки знань *@
+@*
+    Self-assessment, two steps: first "do you know it?", then — once the answer is revealed —
+    "were you right?".
+
+    On a phone or tablet both steps use the same two-petal flower in the corner, with the positive
+    answer always on the lower petal: the thumb learns one position instead of two. The hub is
+    inert, it only closes the shape. On desktop the buttons stay as they were.
+*@
 
 @if (!isSelfAssessed)
 {
@@ -33,12 +40,49 @@ else if (isKnown && !isVerified)
     </div>
 }
 
+@if (ShowCluster)
+{
+    <CornerCluster Items="@Petals"
+                   Shape="CornerCluster.ClusterShape.Petal"
+                   OnItemClick="@PetalClicked"
+                   ShowCore="true"
+                   WideLabels="true" />
+}
+
 @code {
     [Parameter] public bool isSelfAssessed { get; set; } = false;
     [Parameter] public bool isKnown { get; set; } = false;
     [Parameter] public bool isVerified { get; set; } = false;
     [Parameter] public EventCallback<bool> OnSelfAssess { get; set; }
     [Parameter] public EventCallback<bool> OnVerifyAssessment { get; set; }
+
+    /// <summary>Shown while there is still something to answer — the same two steps as above.</summary>
+    private bool ShowCluster => !isSelfAssessed || (isKnown && !isVerified);
+
+    /// <summary>
+    /// Index 0 is the lower petal (the fan starts pointing left, at the bottom edge), so the
+    /// positive answer sits under the thumb in both steps.
+    /// </summary>
+    private IReadOnlyList<CornerCluster.ClusterItem> Petals => !isSelfAssessed
+        ?
+        [
+            new("Знаю",    "Знаю цю відповідь",        "positive"),
+            new("Не знаю", "Не знаю цю відповідь",     "neutral"),
+        ]
+        :
+        [
+            new("Так", "Моя відповідь була правильна", "positive"),
+            new("Ні",  "Моя відповідь була хибна",     "negative"),
+        ];
+
+    private Task PetalClicked(int index)
+    {
+        var isPositive = index == 0;
+
+        return isSelfAssessed
+            ? VerifyAndContinue(isPositive)
+            : SelfAssess(isPositive);
+    }
 
     private async Task SelfAssess(bool isKnow)
     {
@@ -54,6 +98,14 @@ else if (isKnown && !isVerified)
 }
 
 <style>
+    /* On touch the flower is the way to answer — the wide buttons would only duplicate it */
+    @@media (max-width: 1024px) {
+        .self-assess-section .self-assess-buttons,
+        .verify-section .action-buttons {
+            display: none;
+        }
+    }
+
     .self-assess-section,
     .verify-section {
         margin-top: 2rem;

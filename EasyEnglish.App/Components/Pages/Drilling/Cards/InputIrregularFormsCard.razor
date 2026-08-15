@@ -149,21 +149,13 @@
     {
         if (!_canSubmit) return;
 
-        _isFirstFormCorrect = string.Equals(
-            _userFirstForm.Trim(),
-            TextBracketsRemoverService.RemoveBracketsText(_item.FirstForm).Trim(),
-            StringComparison.OrdinalIgnoreCase);
+        // Raw forms go to AnswerMatcher — it decides what the learner may leave out
+        // (brackets, articles, a leading "to") instead of us stripping it up front.
+        _isFirstFormCorrect  = AnswerMatcher.Matches(_item.FirstForm, _userFirstForm);
+        _isSecondFormCorrect = AnswerMatcher.Matches(_item.SecondForm, _userSecondForm);
 
-        _isSecondFormCorrect = string.Equals(
-            _userSecondForm.Trim(),
-            TextBracketsRemoverService.RemoveBracketsText(_item.SecondForm).Trim(),
-            StringComparison.OrdinalIgnoreCase);
-
-        _isThirdFormCorrect = string.IsNullOrEmpty(_item.ThirdForm) ||
-            string.Equals(
-                _userThirdForm.Trim(),
-                TextBracketsRemoverService.RemoveBracketsText(_item.ThirdForm).Trim(),
-                StringComparison.OrdinalIgnoreCase);
+        _isThirdFormCorrect = string.IsNullOrEmpty(_item.ThirdForm)
+            || AnswerMatcher.Matches(_item.ThirdForm, _userThirdForm);
 
         var allCorrect = _isFirstFormCorrect && _isSecondFormCorrect && _isThirdFormCorrect;
 

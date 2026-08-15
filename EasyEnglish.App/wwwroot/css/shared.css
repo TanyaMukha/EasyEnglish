@@ -224,9 +224,12 @@
 /* The page frame is the PageShell component (Components/Shared/PageShell.razor).
    Width, padding and the top row are described there, so they are not here. */
 
-/* State of the quick filter next to the heading of a collapsed panel:
+/* Dimming of optional parts and placeholders lives with the markup, in EntryText.razor —
+   a stylesheet here would not reach a hot-reloaded WebView. */
+
 /* State of the quick filter next to the heading of a collapsed panel:
    shows what is selected without expanding it */
+.quick-filter-state {
     margin-left: 0.5rem;
     padding: 0.1rem 0.55rem;
     border-radius: 999px;

@@ -72,4 +72,7 @@ public static class TestDataHelpers
     /// </summary>
     public static Task SetWordCreatedAtAsync(EasyEnglishDbContext ctx, int wordId, DateTime createdAt) =>
         ctx.Database.ExecuteSqlInterpolatedAsync($"UPDATE words SET created_at = {createdAt} WHERE id = {wordId}");
+
+    public static Task SetUnitCreatedAtAsync(EasyEnglishDbContext ctx, int unitId, DateTime createdAt) =>
+        ctx.Database.ExecuteSqlInterpolatedAsync($"UPDATE units SET created_at = {createdAt} WHERE id = {unitId}");
 }

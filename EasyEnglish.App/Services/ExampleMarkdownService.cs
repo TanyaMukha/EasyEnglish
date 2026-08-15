@@ -193,14 +193,13 @@ public static class ExampleMarkdownService
         return match.Success ? match.Groups[1].Value : "";
     }
 
-    /// <summary>Compares a learner's manual-input answer against the correct one, ignoring case and leading/trailing whitespace.</summary>
-    public static bool CheckAnswer(string userAnswer, string correctAnswer)
-    {
-        var userClean = userAnswer.Trim().ToLowerInvariant();
-        var correctClean = correctAnswer.Trim().ToLowerInvariant();
-
-        return userClean == correctClean;
-    }
+    /// <summary>
+    /// Compares a learner's manual-input answer against the correct one. Delegates to
+    /// <see cref="AnswerMatcher"/>, so the hidden word in an example accepts the same variations as
+    /// any other typed answer (optional articles, bracketed parts, sb/sth spellings).
+    /// </summary>
+    public static bool CheckAnswer(string userAnswer, string correctAnswer) =>
+        AnswerMatcher.Matches(correctAnswer, userAnswer);
 
     /// <summary>
     /// Splits <paramref name="sentence"/> into an ordered sequence of plain-text and hidden

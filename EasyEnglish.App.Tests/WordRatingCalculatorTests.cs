@@ -147,14 +147,63 @@ public class WordRatingCalculatorTests
 
         var result = WordRatingCalculator.UpdateWordAfterSession(word);
 
-        // baseChange = -0.45 (>=95% correct); weight = cardWeight(1.0) * directionWeight(1.0) = 1.0
-        // attemptModifier = 0.6 + min(10/12, 0.25) = 0.85; finalRateChange = -0.45 * 0.85 = -0.3825
-        Assert.Equal(3.0f - 0.3825f, result.Rate, precision: 4);
+        // baseChange = -0.585 (>=95% correct); impact(ManualInput) = 1.5;
+        // weight = cardWeight(1.0) * directionWeight(1.0) = 1.0, so the weighted average keeps the
+        // impact-scaled change as is; attemptModifier = 0.7 + min(10/12, 0.35) = 1.05
+        // finalRateChange = -0.585 * 1.5 * 1.05 = -0.921375
+        Assert.Equal(3.0f - 0.921375f, result.Rate, precision: 4);
         Assert.Equal(10, result.LastTotalAttempts);
         Assert.Equal(0, result.LastIncorrectAttempts);
         Assert.Equal(1, result.ReviewCount);
         Assert.NotNull(result.LastReviewDate);
         Assert.NotNull(result.UpdatedAt);
+    }
+
+    [Fact]
+    public void UpdateWordAfterSession_TypedAnswersMoveTheRateMoreThanRecognition()
+    {
+        // The point of the card-type impact factors: the same success rate over the same number of
+        // attempts must count for more when the learner produced the word from memory than when
+        // they picked it out of a list or just claimed to know it.
+        static float DropFor(CardType type)
+        {
+            var word = NewWord(rate: 4.0f);
+            word.Tests[CardDirection.TranslationToWord][type] =
+                new TestResult { TotalAttempts = 6, CorrectAnswers = 6 };
+
+            return 4.0f - WordRatingCalculator.UpdateWordAfterSession(word).Rate;
+        }
+
+        var typed       = DropFor(CardType.ManualInput);
+        var spoken      = DropFor(CardType.Pronunciation);
+        var recognised  = DropFor(CardType.SingleChoice);
+        var selfClaimed = DropFor(CardType.KnowOrNot);
+
+        Assert.Equal(typed, spoken, precision: 4);
+        Assert.True(typed > recognised);
+        Assert.True(recognised > selfClaimed);
+    }
+
+    [Fact]
+    public void UpdateWordAfterSession_MixedSession_LandsBetweenTheSingleTypeExtremes()
+    {
+        // A mixed session is a weighted average, so it cannot move the rate further than a session
+        // made only of the strongest card type in it.
+        static float DropFor(params (CardType Type, int Total, int Correct)[] results)
+        {
+            var word = NewWord(rate: 4.0f);
+            foreach (var (type, total, correct) in results)
+                word.Tests[CardDirection.TranslationToWord][type] =
+                    new TestResult { TotalAttempts = total, CorrectAnswers = correct };
+
+            return 4.0f - WordRatingCalculator.UpdateWordAfterSession(word).Rate;
+        }
+
+        var typedOnly = DropFor((CardType.ManualInput, 6, 6));
+        var mixed     = DropFor((CardType.ManualInput, 6, 6), (CardType.KnowOrNot, 6, 6));
+
+        Assert.True(mixed < typedOnly);
+        Assert.True(mixed > 0);
     }
 
     [Fact]

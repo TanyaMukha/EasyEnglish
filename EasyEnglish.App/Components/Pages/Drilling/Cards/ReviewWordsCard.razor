@@ -1,4 +1,12 @@
-<div class="DrillingReviewCardContent">
+@*
+    Review card. On a phone or tablet the controls move into the bottom-right corner:
+    the round core plays the word, the five petals set its difficulty. On desktop the
+    familiar layout stays — the audio icon by the word and the rating column beside it.
+*@
+
+@inject SpeechPlayer Player
+
+<div class="DrillingReviewCardContent review-card">
     <WordInfoSection
         Word="@_vm.Word"
         Transcription="@_vm.Transcription"
@@ -14,10 +22,70 @@
         LastRatedValue="@Context.State.LastRatedValue" />
 </div>
 
+<CornerCluster Items="@RatingPetals"
+               Shape="CornerCluster.ClusterShape.Petal"
+               OnItemClick="@RatePetal"
+               CoreIcon="bi-volume-up-fill"
+               CoreTitle="Прослухати"
+               CoreCssClass="@(_isSpeaking ? "speaking" : "")"
+               OnCore="@PlayWord" />
 
 @code {
     [Parameter, EditorRequired]
     public TestCardContext Context { get; set; } = null!;
 
     private WordCardViewModel _vm => Context.ViewModel;
+
+    private bool _isSpeaking;
+
+    /// <summary>Hardest first, so the petal nearest the thumb (bottom) is "easy".</summary>
+    private static readonly (double Value, string Title)[] Levels =
+    [
+        (5.0, "Дуже складно"),
+        (4.0, "Складно"),
+        (3.0, "Середньо"),
+        (2.0, "Легко"),
+        (1.0, "Дуже легко"),
+    ];
+
+    private IReadOnlyList<CornerCluster.ClusterItem> RatingPetals => Levels
+        .Select(level => new CornerCluster.ClusterItem(
+            Title:    level.Title,
+            CssClass: $"level-{(int)level.Value}",
+            IsActive: Context.State.IsRated && Math.Abs(Context.State.LastRatedValue - level.Value) < 0.001))
+        .ToList();
+
+    private Task RatePetal(int index) => Context.Callbacks.OnRate.InvokeAsync(Levels[index].Value);
+
+    private async Task PlayWord()
+    {
+        if (_isSpeaking) return;
+
+        _isSpeaking = true;
+
+        try
+        {
+            if (_vm.Pronunciation is { Length: > 0 })
+                await AudioService.PlayAsync(_vm.Pronunciation);
+            else
+                await Player.PlayTextAsync(
+                    TextBracketsRemoverService.RemoveBracketsText(_vm.Word),
+                    SpeechLanguage.EnglishBritish);
+        }
+        finally
+        {
+            _isSpeaking = false;
+        }
+    }
 }
+
+<style>
+    /* On phones and tablets the corner cluster replaces both the rating column and the
+       audio/mic row next to the word — two places to tap the same things would be worse. */
+    @@media (max-width: 1024px) {
+        .review-card .difficulty-section,
+        .review-card .word-controls-row {
+            display: none;
+        }
+    }
+</style>
