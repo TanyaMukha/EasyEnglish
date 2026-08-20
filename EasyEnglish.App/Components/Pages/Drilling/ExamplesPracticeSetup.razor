@@ -18,30 +18,29 @@
     {
         <div class="setup-grid">
             <div class="setup-column">
-                <h2 class="section-title"><i class="bi bi-list-check"></i> Приклади яких слів вивчати</h2>
-
                 <ItemPickerList Items="@wordOptions"
                                 @bind-SelectedIds="selectedWordIds"
+                                Title="Приклади яких слів вивчати"
                                 SelectAllLabel="Вибрати всі"
                                 EmptyText="Немає слів із прикладами." />
 
-                <details class="quick-filter-details">
-                    <summary>
-                        Швидкий вибір
-                        <span class="quick-filter-state">@LearningFilterPanel.Describe(filterOptions)</span>
-                    </summary>
+                <QuickFilterBlock Description="@LearningFilterPanel.Describe(filterOptions)"
+                                  Applied="@(filteredIds is not null)"
+                                  Changed="@FilterChangedByHand"
+                                  SelectedCount="@selectedWordIds.Count"
+                                  TotalCount="@wordOptions.Count"
+                                  OnReset="ResetSelection">
                     <LearningFilterPanel Options="filterOptions"
-                                         MaxCount="@(Math.Max(wordOptions.Count, 20))"
+                                         MaxCount="@wordOptions.Count"
                                          TotalCount="@wordOptions.Count"
-                                         ResultCount="@filterResultCount"
+                                         ResultCount="@(filteredIds?.Count)"
                                          OnApply="ApplyQuickFilter"
                                          OnReset="ResetSelection" />
-                </details>
+                </QuickFilterBlock>
             </div>
 
             <div class="setup-column">
-                <h2 class="section-title"><i class="bi bi-joystick"></i> Типи вправ</h2>
-                <ExerciseTypeGrid Options="@exerciseOptions" @bind-SelectedKeys="selectedTestKeys" />
+                <ExerciseTypeList Options="@exerciseOptions" @bind-SelectedKeys="selectedTestKeys" />
             </div>
         </div>
 
@@ -76,8 +75,16 @@
     private List<OptionDefinition> wordOptions = new();
     private HashSet<int> selectedWordIds = new();
     private HashSet<string> selectedTestKeys = new();
-    private LearningSelectionOptions filterOptions = new();
-    private int? filterResultCount;
+    // The page opens with everything selected, so the panel has to say "усі" too — the default
+    // WordCount of 15 would describe a selection that has not happened.
+    private LearningSelectionOptions filterOptions = new() { WordCount = 0 };
+
+    /// <summary>What the last quick-filter run selected; null — the filter has not run.</summary>
+    private HashSet<int>? filteredIds;
+
+    /// <summary>The filter ran, but the learner has ticked items by hand since — so it no longer describes the selection.</summary>
+    private bool FilterChangedByHand => filteredIds is not null && !selectedWordIds.SetEquals(filteredIds);
+
     private bool isLoading = true;
     private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
 
@@ -117,13 +124,13 @@
         var result = await WordService.GetForLearningAsync(CourseId, UnitId, filterOptions);
         var withExamplesIds = wordsWithExamples.Select(w => w.Id).ToHashSet();
         selectedWordIds = result.Where(w => withExamplesIds.Contains(w.Id)).Select(w => w.Id).ToHashSet();
-        filterResultCount = selectedWordIds.Count;
+        filteredIds     = new HashSet<int>(selectedWordIds);
     }
 
     private void ResetSelection()
     {
-        selectedWordIds   = wordOptions.Select(o => o.Id).ToHashSet();
-        filterResultCount = null;
+        selectedWordIds = wordOptions.Select(o => o.Id).ToHashSet();
+        filteredIds     = null;
     }
 
     private void StartPractice()
@@ -142,36 +149,6 @@
         gap: 2rem;
         align-items: start;
         margin-top: 1.5rem;
-    }
-
-    .section-title {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 1.15rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin: 0 0 1rem 0;
-    }
-
-    .quick-filter-details {
-        margin-top: 1rem;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 0.75rem 1.25rem;
-    }
-
-    .quick-filter-details summary {
-        cursor: pointer;
-        font-weight: 600;
-        color: var(--text-secondary);
-        padding: 0.5rem 0;
-    }
-
-    .quick-filter-details[open] summary {
-        margin-bottom: 0.75rem;
-        border-bottom: 1px solid var(--border-light);
     }
 
     .loading-container, .empty-container {

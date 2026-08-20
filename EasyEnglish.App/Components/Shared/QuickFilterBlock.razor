@@ -1,0 +1,159 @@
+@namespace EasyEnglish.App.Components.Shared
+
+@*
+    Collapsed frame around <see cref="LearningFilterPanel"/>.
+
+    The block used to show the filter settings while collapsed, which read as "this is what is
+    selected right now" even when the filter had never run. So the header states the state first:
+    whether the filter is on, and how many items it left. Turning it off does not require opening
+    the block either — the reset button sits in the header.
+*@
+
+<details class="quick-filter-details @(IsOn ? "is-on" : "")">
+    <summary>
+        <i class="bi bi-chevron-right block-chevron"></i>
+
+        <span class="qf-title">
+            <i class="bi @(IsOn ? "bi-funnel-fill" : "bi-funnel")"></i>
+            @Title
+        </span>
+
+        <span class="qf-state @(IsOn ? "on" : "off")">@StateText</span>
+
+        @if (IsOn && OnReset.HasDelegate)
+        {
+            @* Inside a summary a click opens the block — that is not what this button is for. *@
+            <button type="button"
+                    class="qf-reset"
+                    title="Повернути ручний вибір усіх елементів"
+                    @onclick="() => OnReset.InvokeAsync()"
+                    @onclick:stopPropagation="true"
+                    @onclick:preventDefault="true">
+                <i class="bi bi-x-lg"></i>
+                Скинути
+            </button>
+        }
+    </summary>
+
+    @ChildContent
+</details>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [Parameter] public string Title { get; set; } = "Швидкий вибір";
+
+    /// <summary>Short description of the filter settings — <see cref="LearningFilterPanel.Describe"/>.</summary>
+    [Parameter] public string Description { get; set; } = "";
+
+    /// <summary>The filter has run at least once and its result is the current selection.</summary>
+    [Parameter] public bool Applied { get; set; }
+
+    /// <summary>The filter has run, but the learner has edited the selection by hand since.</summary>
+    [Parameter] public bool Changed { get; set; }
+
+    /// <summary>
+    /// The filter is always in effect (course practice: the selection is resolved at start),
+    /// so there is nothing to apply or reset — only to describe.
+    /// </summary>
+    [Parameter] public bool AlwaysOn { get; set; }
+
+    [Parameter] public int SelectedCount { get; set; }
+    [Parameter] public int TotalCount { get; set; }
+
+    [Parameter] public EventCallback OnReset { get; set; }
+
+    private bool IsOn => AlwaysOn || (Applied && !Changed);
+
+    private string StateText => this switch
+    {
+        { AlwaysOn: true }              => $"{Description} · буде обрано на старті",
+        { Applied: false }              => $"не застосовано · усі {TotalCount}",
+        { Changed: true }               => $"змінено вручну · {SelectedCount} із {TotalCount}",
+        _                               => $"{Description} · {SelectedCount} із {TotalCount}"
+    };
+}
+
+<style>
+    .quick-filter-details {
+        margin-top: 1rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 0.5rem 1rem;
+    }
+
+    .quick-filter-details.is-on {
+        border-color: var(--accent);
+    }
+
+    .quick-filter-details summary {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        padding: 0.5rem 0;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .quick-filter-details summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .quick-filter-details[open] summary {
+        margin-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .qf-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        white-space: nowrap;
+    }
+
+    .quick-filter-details.is-on .qf-title i {
+        color: var(--accent);
+    }
+
+    .qf-state {
+        margin-left: auto;
+        padding: 0.1rem 0.55rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-align: right;
+    }
+
+    .qf-state.off {
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+    }
+
+    .qf-state.on {
+        background: var(--accent-gradient);
+        border: 1px solid transparent;
+        color: white;
+    }
+
+    .qf-reset {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.2rem 0.5rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        white-space: nowrap;
+        transition: all 0.15s ease;
+    }
+
+    .qf-reset:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+</style>

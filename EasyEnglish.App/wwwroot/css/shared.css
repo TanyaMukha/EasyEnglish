@@ -227,18 +227,7 @@
 /* Dimming of optional parts and placeholders lives with the markup, in EntryText.razor —
    a stylesheet here would not reach a hot-reloaded WebView. */
 
-/* State of the quick filter next to the heading of a collapsed panel:
-   shows what is selected without expanding it */
-.quick-filter-state {
-    margin-left: 0.5rem;
-    padding: 0.1rem 0.55rem;
-    border-radius: 999px;
-    background: var(--surface-alt);
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    font-size: 0.8rem;
-    font-weight: 500;
-}
+/* The quick-filter state chip lives with its block, in QuickFilterBlock.razor. */
 
 .edit-form-container {
     background: var(--surface);

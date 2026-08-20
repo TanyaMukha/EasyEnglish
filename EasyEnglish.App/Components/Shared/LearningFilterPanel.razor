@@ -34,38 +34,40 @@
     <div class="filter-row">
         <span class="filter-label">
             <i class="bi bi-123"></i> Скільки
-            <span class="filter-value">@(_count > 0 ? _count.ToString() : "усі")</span>
+            <span class="filter-value">@(IsAll ? AllLabel : _count.ToString())</span>
         </span>
 
         @* Step of exactly 1: a slider with step 5 could not reach the right edge when the
-           item count is not divisible by 5 (23 items → 20 was the maximum). *@
+           item count is not divisible by 5 (23 items → 20 was the maximum).
+           "All" is the right edge, not zero: a header saying "усі 31" and a slider lying on the
+           left edge described the same thing in two contradictory ways. *@
         <input type="range"
                class="field-slider"
-               min="0"
-               max="@MaxCount"
+               min="1"
+               max="@Limit"
                step="1"
                value="@_count"
                @oninput="OnCountInput"
                @onchange="OnCountCommitAsync" />
         <div class="slider-labels">
-            <span>усі</span>
-            <span>@(MaxCount / 2)</span>
-            <span>@MaxCount</span>
+            <span>1</span>
+            <span>@(Limit / 2)</span>
+            <span>@AllLabel</span>
         </div>
 
         @* Round numbers without aiming with the slider — and "all" in a single tap *@
         <div class="preset-row">
-            <button type="button"
-                    class="preset @(_count == 0 ? "active" : "")"
-                    @onclick="() => SetCountAsync(0)">усі</button>
-
             @foreach (var preset in CountPresets)
             {
                 var value = preset;
                 <button type="button"
-                        class="preset @(_count == value ? "active" : "")"
+                        class="preset @(!IsAll && _count == value ? "active" : "")"
                         @onclick="() => SetCountAsync(value)">@value</button>
             }
+
+            <button type="button"
+                    class="preset @(IsAll ? "active" : "")"
+                    @onclick="() => SetCountAsync(Limit)">усі</button>
         </div>
     </div>
 
@@ -135,15 +137,18 @@
 
     private int _count;
 
-    /// <summary>
-    /// Round values worth offering: only those below the available count, plus the count
-    /// itself — so "everything down to the last one" is a single tap.
-    /// </summary>
+    /// <summary>Right edge of the slider — "all there is". Never zero, so the control stays usable.</summary>
+    private int Limit => Math.Max(MaxCount, 1);
+
+    /// <summary>No limit: the whole set. Stored as WordCount = 0, shown as the right edge.</summary>
+    private bool IsAll => _count >= Limit;
+
+    /// <summary>Course practice does not know the total yet — then "усі" stands without a number.</summary>
+    private string AllLabel => TotalCount > 0 ? $"усі {Limit}" : "усі";
+
+    /// <summary>Round values worth offering: only those below the available count.</summary>
     private IEnumerable<int> CountPresets =>
-        new[] { 5, 10, 20, 50, 100 }
-            .Where(v => v < MaxCount)
-            .Append(MaxCount)
-            .Distinct();
+        new[] { 5, 10, 20, 50, 100 }.Where(v => v < Limit);
 
     private sealed record PriorityOption(LearningPriority Value, string Title, string Icon, string Hint);
 
@@ -171,7 +176,9 @@
         return $"{priority} · {count}";
     }
 
-    protected override void OnParametersSet() => _count = Options.WordCount;
+    // WordCount = 0 means "no limit"; on the slider that is the right edge, not the left one.
+    protected override void OnParametersSet() =>
+        _count = Options.WordCount > 0 ? Math.Min(Options.WordCount, Limit) : Limit;
 
     private Task SetPriorityAsync(LearningPriority priority)
     {
@@ -193,18 +200,18 @@
     private Task OnCountCommitAsync(ChangeEventArgs e)
     {
         if (int.TryParse(e.Value?.ToString(), out var value))
-        {
-            _count = value;
-            Options.WordCount = value;
-        }
+            return SetCountAsync(value);
 
         return NotifyAsync();
     }
 
     private Task SetCountAsync(int value)
     {
-        _count = value;
-        Options.WordCount = value;
+        _count = Math.Clamp(value, 1, Limit);
+
+        // The right edge is "everything", and everything is stored as no limit at all.
+        Options.WordCount = _count >= Limit ? 0 : _count;
+
         return NotifyAsync();
     }
 

@@ -34,17 +34,15 @@
                     @if (type.Enabled)
                     {
                         <div class="type-body">
-                            <ExerciseTypeGrid Options="@type.ExerciseOptions" @bind-SelectedKeys="type.SelectedTests" />
+                            <ExerciseTypeList Options="@type.ExerciseOptions" @bind-SelectedKeys="type.SelectedTests" />
 
-                            <details class="quick-filter-details" open>
-                                <summary>
-                                    Налаштування вибірки
-                                    <span class="quick-filter-state">@LearningFilterPanel.Describe(type.FilterOptions)</span>
-                                </summary>
+                            <QuickFilterBlock Title="Налаштування вибірки"
+                                              Description="@LearningFilterPanel.Describe(type.FilterOptions)"
+                                              AlwaysOn="true">
                                 @* The selection is resolved on start here, so OnApply is not passed —
                                    the panel only edits the options, without queries or a counter. *@
                                 <LearningFilterPanel Options="type.FilterOptions" MaxCount="200" />
-                            </details>
+                            </QuickFilterBlock>
                         </div>
                     }
                 </div>
@@ -264,25 +262,6 @@
         display: flex;
         flex-direction: column;
         gap: 1rem;
-    }
-
-    .quick-filter-details {
-        background: var(--surface-alt);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 0.75rem 1.25rem;
-    }
-
-    .quick-filter-details summary {
-        cursor: pointer;
-        font-weight: 600;
-        color: var(--text-secondary);
-        padding: 0.5rem 0;
-    }
-
-    .quick-filter-details[open] summary {
-        margin-bottom: 0.75rem;
-        border-bottom: 1px solid var(--border-light);
     }
 
     .multi-test-section { margin-top: 2rem; }

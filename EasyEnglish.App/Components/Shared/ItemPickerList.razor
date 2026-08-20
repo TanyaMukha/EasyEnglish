@@ -1,11 +1,20 @@
 @namespace EasyEnglish.App.Components.Shared
 @using EasyEnglish.App.Models
 
-<div class="item-picker">
-    <div class="item-picker-header">
-        <InputCheckboxField Label="@SelectAllLabel" Value="@IsAllSelected" ValueChanged="@ToggleAll" />
-        <span class="item-picker-count">@SelectedIds.Count / @Items.Count</span>
-    </div>
+@*
+    Picker for the individual items of a session (words, forms, cards).
+
+    Collapsed by default, like the exercise picker: everything is selected anyway, so the whole
+    list only gets in the way of the learner who just wants to press "Почати". The summary keeps
+    the count visible, so it is clear what will be practised without opening the block.
+*@
+
+<details class="item-picker">
+    <summary>
+        <i class="bi bi-chevron-right block-chevron"></i>
+        <span class="item-picker-title">@Title</span>
+        <span class="item-picker-count">@SelectedIds.Count із @Items.Count</span>
+    </summary>
 
     @if (Items.Count == 0)
     {
@@ -13,6 +22,10 @@
     }
     else
     {
+        <div class="item-picker-header">
+            <InputCheckboxField Label="@SelectAllLabel" Value="@IsAllSelected" ValueChanged="@ToggleAll" />
+        </div>
+
         <div class="item-picker-list">
             @foreach (var item in Items)
             {
@@ -25,12 +38,13 @@
             }
         </div>
     }
-</div>
+</details>
 
 @code {
     [Parameter, EditorRequired] public List<OptionDefinition> Items { get; set; } = new();
     [Parameter] public HashSet<int> SelectedIds { get; set; } = new();
     [Parameter] public EventCallback<HashSet<int>> SelectedIdsChanged { get; set; }
+    [Parameter] public string Title { get; set; } = "Що вивчати";
     [Parameter] public string SelectAllLabel { get; set; } = "Вибрати всі";
     [Parameter] public string EmptyText { get; set; } = "Немає елементів для відображення.";
 
@@ -58,24 +72,44 @@
         background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 1rem 1.25rem;
+        padding: 0.5rem 1rem;
     }
 
-    .item-picker-header {
+    .item-picker summary {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        border-bottom: 1px solid var(--border-light);
-        padding-bottom: 0.5rem;
+        gap: 0.75rem;
+        cursor: pointer;
+        padding: 0.5rem 0;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .item-picker summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .item-picker[open] summary {
         margin-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border-light);
     }
 
     .item-picker-count {
-        font-size: 0.85rem;
-        color: var(--text-secondary);
-        font-weight: 600;
+        margin-left: auto;
+        padding: 0.1rem 0.55rem;
+        border-radius: 999px;
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        font-weight: 500;
         white-space: nowrap;
+    }
+
+    .item-picker-header {
+        border-bottom: 1px solid var(--border-light);
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.5rem;
     }
 
     .item-picker-list {
