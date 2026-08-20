@@ -76,6 +76,12 @@
 
     private async Task RemoveCourse(int id)
     {
+        var course = AvailableCourses?.FirstOrDefault(c => c.Id == id);
+
+        if (!await Confirmation.ConfirmDeleteAsync("курс", course?.Title,
+                "Разом із курсом зникнуть усі його модулі та їхній вміст."))
+            return;
+
         try
         {
             await CourseService.DeleteAsync(id);

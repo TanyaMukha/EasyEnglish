@@ -497,6 +497,12 @@
 
     private async Task RemoveWord(int id)
     {
+        var word = Unit.Words?.FirstOrDefault(w => w.Id == id);
+
+        if (!await Confirmation.ConfirmDeleteAsync("слово", word?.Word,
+                "Приклади цього слова зникнуть разом із ним."))
+            return;
+
         try
         {
             await WordService.DeleteAsync(id);
@@ -511,6 +517,11 @@
 
     private async Task RemoveIrregularForm(int id)
     {
+        var form = Unit.IrregularForms?.FirstOrDefault(f => f.Id == id);
+
+        if (!await Confirmation.ConfirmDeleteAsync("неправильну форму", form?.FirstForm))
+            return;
+
         try
         {
             await IrregularFormService.DeleteAsync(id);
@@ -525,6 +536,11 @@
 
     private async Task RemoveStudyCard(int id)
     {
+        var card = Unit.StudyCards?.FirstOrDefault(c => c.Id == id);
+
+        if (!await Confirmation.ConfirmDeleteAsync("навчальну картку", card?.Title))
+            return;
+
         try
         {
             await StudyCardService.DeleteAsync(id);
@@ -539,6 +555,11 @@
 
     private async Task RemoveTestCard(int id)
     {
+        var card = Unit.TestCards?.FirstOrDefault(c => c.Id == id);
+
+        if (!await Confirmation.ConfirmDeleteAsync("тестову картку", card?.Title ?? card?.Question))
+            return;
+
         try
         {
             await TestCardService.DeleteAsync(id);

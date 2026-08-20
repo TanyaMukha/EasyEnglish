@@ -443,6 +443,21 @@
             return;
         }
 
+        // The only import path that removes anything: everything the archive does not contain goes.
+        if (importMode == ImportMode.Update && deleteMissingItems)
+        {
+            var confirmed = await Confirmation.ConfirmAsync(new ConfirmRequest
+            {
+                Title       = "Видалити елементи, яких немає в архіві?",
+                Message     = $"Оновлення курсу «{existingCourse?.Title ?? manifest.CourseTitle}» видалить з його модулів усе, "
+                            + "чого немає в архіві. Цю дію не можна скасувати.",
+                ConfirmText = "Оновити та видалити",
+            });
+
+            if (!confirmed)
+                return;
+        }
+
         isProcessing  = true;
         importError   = null;
         importSuccess = null;

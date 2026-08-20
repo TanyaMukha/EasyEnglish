@@ -151,6 +151,12 @@
 
     private async Task RemoveUnit(int id)
     {
+        var unit = AvailableUnits.FirstOrDefault(u => u.Id == id);
+
+        if (!await Confirmation.ConfirmDeleteAsync("модуль", unit?.Title,
+                "Разом із модулем зникнуть усі його слова та картки."))
+            return;
+
         try
         {
             await UnitService.DeleteAsync(id);

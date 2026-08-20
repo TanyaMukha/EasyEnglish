@@ -43,6 +43,7 @@
     <Compile Include="..\EasyEnglish.App\Services\TextBracketsRemoverService.cs" Link="Sources\TextBracketsRemoverService.cs" />
     <Compile Include="..\EasyEnglish.App\Services\LanguageFlagHelper.cs" Link="Sources\LanguageFlagHelper.cs" />
     <Compile Include="..\EasyEnglish.App\Services\ImageDataUriHelper.cs" Link="Sources\ImageDataUriHelper.cs" />
+    <Compile Include="..\EasyEnglish.App\Services\ConfirmationService.cs" Link="Sources\ConfirmationService.cs" />
 
     <!-- Models: ITestSessionItem/TestModel/etc. that WordRatingCalculator operates on. -->
     <Compile Include="..\EasyEnglish.App\Models\Models.cs" Link="Sources\Models.cs" />

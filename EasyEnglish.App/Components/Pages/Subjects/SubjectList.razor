@@ -47,6 +47,12 @@
 
     private async Task RemoveSubject(int id)
     {
+        var subject = subjects.FirstOrDefault(s => s.Id == id);
+
+        if (!await Confirmation.ConfirmDeleteAsync("предмет", subject?.Title,
+                "Курси залишаться, але втратять прив'язку до предмета."))
+            return;
+
         try
         {
             await SubjectService.DeleteAsync(id);

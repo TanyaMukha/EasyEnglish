@@ -1,6 +1,6 @@
 @page "/database-info"
+@using EasyEnglish.App.Components.Shared
 @using EasyEnglish.App.Components.Shared.Breadcrumb
-@inject IJSRuntime JS
 
 <PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Medium">
 
@@ -100,7 +100,14 @@
 
     private async Task ClearAllData()
     {
-        var confirmed = await JS.InvokeAsync<bool>("confirm", "Ви справді хочете видалити ВСІ дані з бази? Цю дію не можна скасувати.");
+        var confirmed = await Confirmation.ConfirmAsync(new ConfirmRequest
+        {
+            Title       = "Видалити всі дані?",
+            Message     = "З бази зникнуть усі курси, модулі, слова та картки разом із прогресом вивчення. "
+                        + "Цю дію не можна скасувати.",
+            ConfirmText = "Видалити все",
+        });
+
         if (!confirmed)
             return;
 
