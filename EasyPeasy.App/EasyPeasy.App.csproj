@@ -65,8 +65,10 @@
 	-->
 
     <ItemGroup>
-        <!-- App Icon -->
-        <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+        <!-- App Icon: the teal square from appicon.svg with the owl drawn on top. The owl carries
+             its own padding, so it survives the circular mask Android launchers apply to adaptive
+             icons; appicon-source.jpg is the original artwork it was cut out of. -->
+        <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.png" Color="#81C9C6" />
 
         <!-- Splash Screen -->
         <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
