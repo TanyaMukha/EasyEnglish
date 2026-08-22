@@ -40,7 +40,7 @@ public class EntryTextRendererTests
     [Fact]
     public void Literal_braces_disappear_without_a_trace()
     {
-        Assert.Equal("to date", EntryTextRenderer.ToHtml("{to} date"));
+        Assert.Equal("to and fro", EntryTextRenderer.ToHtml("{to} and fro"));
     }
 
     [Fact]

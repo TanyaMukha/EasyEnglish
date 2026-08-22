@@ -23,11 +23,21 @@ was never in the entry.
 
 | Written | Also accepted | Why |
 |---|---|---|
-| `a book`, `an hour` | `book`, `hour` | `a` / `an` are optional wherever they stand |
+| `a book`, `an hour` | `book`, `hour` | `a` / `an` are optional wherever they stand — see below |
 | `to look at sb` | `look at sb` | a leading `to` reads as the infinitive marker |
 | `the same` | `same` | a leading `the` follows the same logic |
 | `go to school` | — | `to` here is not leading, so it stays required |
 | `in the end` | — | same for `the` — not the first word, not optional |
+
+`a` / `an` are the only ones optional in any position, and that is deliberate: an indefinite
+article is rarely a fixed part of the phrase. Put the phrase in a sentence and a possessive
+usually takes the article's place — *make up your mind* for `make up a mind`, *do your best* for
+`do a best`. An entry that demanded the article would be demanding a word the language itself
+drops, so the app never requires it.
+
+`the` and `to` are different: they are droppable only as the first word, where they act as a
+grammatical marker for the entry as a whole. Further along they carry meaning — *go to school*,
+*in the end* — and stay required.
 
 ## `{}` — the particle is part of the entry
 
@@ -35,18 +45,19 @@ Sometimes `a` / `an` / `the` / `to` at the start is not a grammatical marker but
 part of the expression itself. Wrap it in braces and it becomes required:
 
 ```
-{to} date          → "to date" is correct, "date" is not
-{a} priori         → "a priori" is correct, "priori" is not
-{the} Hague        → "the Hague" is correct, "Hague" is not
+{a} few             → "a few" is several; "few" is hardly any — the article carries the meaning
+{to} and fro        → this "to" is part of the idiom, it can never be an infinitive marker
+{the} other day     → a fixed idiom; "other day" on its own is not the phrase
+{the} Netherlands   → the article belongs to the name
 ```
 
-Without the braces the app would happily accept *date* for `to date`, because it would read that
-`to` as an infinitive marker.
+Without the braces the app would accept *few* for `a few`, and *and fro* for `to and fro`: it
+reads a leading article or `to` as a droppable marker, which is exactly the wrong call here.
 
 Braces are the escape hatch, so use them only for that case: for an ordinary verb (`to look at
 sb`) leave the `to` bare, so that both typings pass.
 
-The braces are **not shown to the learner** — the entry appears as plain *to date*. They only tell
+The braces are **not shown to the learner** — the entry appears as plain *a few*. They only tell
 the matcher not to treat the first word as droppable.
 
 ## `[]` — this part is optional

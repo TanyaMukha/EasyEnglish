@@ -36,7 +36,7 @@ back a few positions later.
 `[bracketed]` part may be omitted, `/` separates equivalent variants, and `sb`/`somebody`,
 `sth`/`something` are interchangeable — but typing something the entry never contained is still
 wrong. When the leading `a`/`an`/`the`/`to` belongs to the expression itself, braces keep it
-required: `{to} date`, `{a} priori`. The full notation is in
+required: `{a} few` — which is not the word *few* — or `{to} and fro`. The full notation is in
 [EasyPeasy.Docs/Guides/entry-notation.md](EasyPeasy.Docs/Guides/entry-notation.md).
 
 **Speaks and listens.** Text-to-speech with a per-language voice picker, playback of the recorded

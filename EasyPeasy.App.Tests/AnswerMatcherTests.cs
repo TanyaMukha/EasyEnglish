@@ -95,9 +95,11 @@ public class AnswerMatcherTests
     [Fact]
     public void Braces_keep_a_leading_word_required()
     {
-        // The escape hatch for a "to" that is not an infinitive marker.
-        Assert.True(AnswerMatcher.Matches("{to} date", "to date"));
-        Assert.False(AnswerMatcher.Matches("{to} date", "date"));
+        // The escape hatch for a leading word that belongs to the entry: this "to" is part of
+        // the idiom, and "a few" is not the word "few".
+        Assert.True(AnswerMatcher.Matches("{to} and fro", "to and fro"));
+        Assert.False(AnswerMatcher.Matches("{to} and fro", "and fro"));
+        Assert.False(AnswerMatcher.Matches("{a} few", "few"));
     }
 
     // ── Bracketed parts ───────────────────────────────────────────────────────
@@ -230,7 +232,7 @@ public class AnswerMatcherTests
 
     [Theory]
     [InlineData("to look [at] sb", "to look at sb")]
-    [InlineData("{to} date", "to date")]
+    [InlineData("{to} and fro", "to and fro")]
     [InlineData("  take  [good]  care ", "take good care")]
     [InlineData(null, "")]
     public void Display_form_drops_markers_and_tidies_spacing(string? expected, string display)
@@ -239,9 +241,9 @@ public class AnswerMatcherTests
     }
 
     [Theory]
-    [InlineData("{to} date", "to date")]
+    [InlineData("{to} and fro", "to and fro")]
     [InlineData("look [at] sb", "look [at] sb")]        // brackets stay: they inform the learner
-    [InlineData("{a} priori [rule]", "a priori [rule]")]
+    [InlineData("{a} few [more]", "a few [more]")]
     [InlineData(null, "")]
     public void Stripping_literal_markers_keeps_the_optional_ones(string? expected, string display)
     {

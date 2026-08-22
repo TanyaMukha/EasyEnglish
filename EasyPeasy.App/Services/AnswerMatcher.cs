@@ -30,8 +30,8 @@ namespace EasyPeasy.App.Services;
 /// <list type="bullet">
 ///   <item><c>[...]</c> — the whole group is optional: <c>look [at] sb</c>.</item>
 ///   <item><c>{...}</c> — literal: nothing inside is treated as optional. This is the escape hatch
-///         for a "to" that is not an infinitive marker (<c>{to} date</c>) or an article that is
-///         genuinely part of the entry (<c>{a} priori</c>).</item>
+///         for a leading word that belongs to the entry instead of being a grammatical marker:
+///         <c>{to} and fro</c>, or <c>{a} few</c> — which is not the word <c>few</c>.</item>
 ///   <item><c>/</c> — equivalent wordings. A slash with a space next to it separates whole
 ///         alternatives (<c>configuration / config</c>, <c>to configure / to set up</c>); a slash
 ///         glued between two words is an alternative for that position only
@@ -50,7 +50,12 @@ public static class AnswerMatcher
         ["oneself", "yourself"],
     ];
 
-    /// <summary>Articles that stay optional wherever they appear.</summary>
+    /// <summary>
+    /// Articles that stay optional wherever they appear. An indefinite article is rarely a fixed
+    /// part of a phrase: put the phrase in a sentence and a possessive usually takes the article's
+    /// place ("make up your mind" for "make up a mind"). Requiring it would reject an answer the
+    /// language itself would write without it.
+    /// </summary>
     private static readonly string[] OptionalAnywhere = ["a", "an"];
 
     /// <summary>
