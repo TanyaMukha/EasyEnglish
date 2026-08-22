@@ -32,7 +32,7 @@ library's (differently-named) service namespace.
 | `StorageMaintenanceService.cs` | Removes storage keys left behind by retired features; run once at startup, idempotent. |
 | `StreakService.cs` | Tracks the daily-visit streak (consecutive calendar days visited). |
 | `TextBracketsRemoverService.cs` | Strips `[bracketed annotations]` from example/definition text. |
-| `AnswerMatcher.cs` | Decides whether a typed answer matches the expected word/phrase: optional articles, a leading infinitive `to`, any number of `[optional]` groups, sb/sth placeholder spellings, and `/` for equivalent wordings (spaced — whole alternatives; glued — a choice for one position). Omitting optional parts is allowed; adding words the entry does not have is not. `{literal}` marks a segment that must be typed verbatim. |
+| `AnswerMatcher.cs` | Decides whether a typed answer matches the expected word/phrase: optional articles, a leading infinitive `to`, any number of `[optional]` groups, sb/sth placeholder spellings, and `/` for equivalent wordings (spaced — whole alternatives; glued — a choice for one position). Omitting optional parts is allowed; adding words the entry does not have is not. `{literal}` switches that leniency off inside the braces — the way a leading `a`/`an`/`the`/`to` that belongs to the entry is kept required (`{to} date`). Full notation: [entry-notation.md](../../EasyPeasy.Docs/Guides/entry-notation.md). |
 | `WordRatingCalculator.cs` | Spaced-repetition rating: `UpdateWordAfterSession` applies a post-session rate change; `CalculateCurrentRate` estimates a read-only "decayed" rate via a forgetting-curve model. Also defines `CardType`/`CardDirection`. |
 
 ### `Services/Speech/` — text-to-speech

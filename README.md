@@ -32,9 +32,12 @@ The session itself has two phases: browsing the cards (freely back and forth, wi
 jump-to), then a queue of tests where a correct answer removes the card and a wrong one puts it
 back a few positions later.
 
-**Checks typed answers tolerantly, but in one direction only.** Articles, `to` and parts in
-`[brackets]` may be omitted, `/` separates equivalent variants, and `sb`/`somebody`, `sth`/
-`something` are interchangeable — but typing something the entry never contained is still wrong.
+**Checks typed answers tolerantly, but in one direction only.** A leading article or `to` and any
+`[bracketed]` part may be omitted, `/` separates equivalent variants, and `sb`/`somebody`,
+`sth`/`something` are interchangeable — but typing something the entry never contained is still
+wrong. When the leading `a`/`an`/`the`/`to` belongs to the expression itself, braces keep it
+required: `{to} date`, `{a} priori`. The full notation is in
+[EasyPeasy.Docs/Guides/entry-notation.md](EasyPeasy.Docs/Guides/entry-notation.md).
 
 **Speaks and listens.** Text-to-speech with a per-language voice picker, playback of the recorded
 pronunciation, and — where the platform supports it — checking the learner's own pronunciation
