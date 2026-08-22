@@ -5,8 +5,12 @@ It is not a course with ready-made content and not a client for someone else's s
 everything lives in a local SQLite database on the device, with no account, no sign-up and
 no network.
 
-.NET 9 MAUI Blazor Hybrid, one code base for **Android, iOS, macCatalyst and Windows**.
-The interface language is Ukrainian.
+.NET 9 MAUI Blazor Hybrid, with Ukrainian as the interface language.
+
+It is built and used on **Windows and Android** — those are the two platforms every feature is
+tried on. The project also carries the `net9.0-ios` and `net9.0-maccatalyst` targets that come
+with any MAUI project, but nothing has ever been built or run there and that is not planned:
+treat them as untested, not as supported platforms.
 
 ## What it does
 

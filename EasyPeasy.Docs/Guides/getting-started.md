@@ -16,6 +16,9 @@ project does, see [solution-structure.md](solution-structure.md) instead.
   Studio's ".NET Multi-platform App UI development" component. Only the Windows target is
   practical to build/run/debug locally without a Mac (for iOS/MacCatalyst) or an Android
   emulator/device.
+
+  In practice the app is developed and tested on **Windows and Android only**. The iOS and
+  macCatalyst targets have never been built or run, and there is no plan to.
 - **PlantUML rendering** (optional, for viewing/editing the `.mdpuml` diagrams in
   [Diagrams/](../Diagrams/)): if using the Visual Studio "PlantUML Editor" extension, set
   Tools → Options → PlantUML → Advanced → Render Type = **Local** — the default hits a dead Azure
