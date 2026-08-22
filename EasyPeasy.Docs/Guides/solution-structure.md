@@ -17,7 +17,7 @@ visually, and [project-dependencies.mdpuml](../Diagrams/project-dependencies.mdp
 
 - **[EasyPeasy.Data](../../EasyPeasy.Data/README.md)** — EF Core/SQLite implementation of
   Core's repository interfaces, plus the `DbContext`, migrations, and learning-query filter/sort
-  extensions (`LearningPriority.New/Old/...`). 37 tests in `EasyPeasy.Data.Tests`, against a real
+  extensions (`LearningPriority.New/Old/...`). 41 tests in `EasyPeasy.Data.Tests`, against a real
   in-memory SQLite connection (not EF Core's `InMemory` provider — that doesn't catch LINQ-to-SQL
   translation bugs).
 
@@ -37,7 +37,7 @@ visually, and [project-dependencies.mdpuml](../Diagrams/project-dependencies.mdp
   and `EasyPeasy.Business`, wiring the former's concrete repositories to the latter's interfaces
   via DI in `MauiProgram.cs`. The linked README covers `Services/` (the app-local, non-Razor
   service layer — MAUI platform glue, TTS, pronunciation checking, markdown rendering, spaced
-  repetition rating); the Razor components/pages themselves aren't documented yet. 103 tests in
+  repetition rating); the Razor components/pages themselves aren't documented yet. 224 tests in
   `EasyPeasy.App.Tests` cover the pure-logic subset of `Services/` (see that README's Testing
   section for why the test project is structured unusually).
 

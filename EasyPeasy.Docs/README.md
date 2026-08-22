@@ -4,6 +4,9 @@ Solution-wide documentation: architecture diagrams, developer guides, and the lo
 architectural decisions. Audience is **developers** working on or extending this solution — not
 end users of the EasyPeasy app itself.
 
+For what the app actually does — the content model, the practice session, the languages it is not
+limited to — start from the [root README](../README.md); this project does not repeat it.
+
 Per-project documentation (file-by-file breakdown, Known Issues, Testing sections) lives in each
 project's own `README.md` and is linked from here rather than duplicated — this project is the map
 and the "why," not a copy of the per-project detail.
@@ -44,16 +47,17 @@ dead demo server and diagrams silently fail to render. See
 | [getting-started.md](Guides/getting-started.md) | Prerequisites, build, run, test — onboarding. |
 | [solution-structure.md](Guides/solution-structure.md) | Every project, one paragraph each, linking to its own README. |
 | [conventions.md](Guides/conventions.md) | Naming, language (code vs. UI text), exceptions, DI, testing, documentation conventions — and the gotchas that don't follow from reading any single file. |
-| [testing-strategy.md](Guides/testing-strategy.md) | The risk-based framework used to decide what to test in every project, plus a coverage summary (400 tests across 9 `.Tests` projects as of the last full run). |
+| [testing-strategy.md](Guides/testing-strategy.md) | The risk-based framework used to decide what to test in every project, plus a coverage summary (525 tests across 9 `.Tests` projects as of the last full run). |
 
 ## Decisions
 
-[Decisions/key-decisions.md](Decisions/key-decisions.md) — a lightweight ADR log. Ten entries
+[Decisions/key-decisions.md](Decisions/key-decisions.md) — a lightweight ADR log. Thirteen entries
 covering, among others: why `EasyPeasy.Business` has no project reference to `EasyPeasy.Data`;
 why project names avoid `DAL`/`BLL`-style acronyms; what qualifies code for extraction into a
 `MukhaLab.*` library; the DI captive-dependency fix pattern; the `EntityNotFoundException`
 convention; how `null` is handled during reconcile operations; the `LearningPriority.Old` semantics
-decision; and why `EasyPeasy.App.Tests` can't `ProjectReference` the MAUI app project.
+decision; why `EasyPeasy.App.Tests` can't `ProjectReference` the MAUI app project; and what the
+EasyEnglish → EasyPeasy rename deliberately left alone.
 
 ## Per-project READMEs (not duplicated here)
 

@@ -64,8 +64,9 @@ dotnet build EasyPeasy.App/EasyPeasy.App.csproj -t:Run -f net9.0-windows10.0.190
 ```
 
 No manual database setup is needed — `appsettings.json` has `Database:AutoMigrate` and
-`Database:SeedInitialData` both `true`, so the SQLite file (`{AppDataPath}/EasyPeasy.db`) is
-created and migrated automatically on first run.
+`Database:SeedInitialData` both `true`, so the SQLite file is created and migrated automatically
+on first run. That file is `{AppDataPath}/EasyEnglish.db` — it kept its pre-rename name on
+purpose, see [key-decisions.md #13](../Decisions/key-decisions.md).
 
 ## Test
 

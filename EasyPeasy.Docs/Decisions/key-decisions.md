@@ -240,3 +240,30 @@ history. When the archive doesn't carry progress at all, the stored values are s
 timestamps beyond what the models already track. The cost is that it's per item rather than per
 course — two devices that each studied a *different* subset merge to the union, which is the
 desirable outcome here but would surprise anyone expecting whole-course "last write wins".
+
+---
+
+## 13. The EasyEnglish → EasyPeasy rename stopped at identity
+
+**Context**: The solution was renamed from `EasyEnglish` to `EasyPeasy` — projects, namespaces,
+assemblies, file names, documents. Two names, however, are not labels: they are how the platform
+and the file system find data that already exists.
+
+**Decision**: Keep both under their old name, and say why in the code:
+
+- **`EasyEnglish.db`** — the SQLite file in `Environment.SpecialFolder.LocalApplicationData`
+  (`appsettings.json`, and the fallback in `MauiProgram.GetConnectionString`). A renamed file is
+  not found, EF Core creates an empty one, and the learner's courses appear to be gone while the
+  old file sits untouched next to it.
+- **`com.companyname.easyenglish.app`** — the `ApplicationId`. On Android and Windows it *is* the
+  package identity; a new id installs beside the old app with its own empty sandbox.
+
+**Consequences**: `grep EasyEnglish` still returns hits, which looks like an unfinished rename and
+is exactly why this entry exists. Renaming either one is a data migration with its own steps —
+moving the database file together with its `-wal`/`-shm` companions on first start, or exporting
+and re-importing content as course ZIP archives — and should be done deliberately, not as part of
+a find-and-replace.
+
+The repository folder is likewise still `EasyEnglish`; nothing in the build depends on it, since
+the two absolute paths Visual Studio had baked into `EasyPeasy.App.csproj` were made relative
+during the rename.
