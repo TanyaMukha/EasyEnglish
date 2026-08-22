@@ -12,8 +12,8 @@ message into the browser console:
 - **Target framework:** `net9.0`
 - **Namespace:** `MukhaLab.BrowserConsoleLogger`
 - **Dependencies:** `Microsoft.Extensions.Logging`, `Microsoft.JSInterop` (9.0.8)
-- **Used by:** [`EasyEnglish.App`](../EasyEnglish.App) (MAUI Blazor Hybrid) — see
-  [Real usage in EasyEnglish.App](#real-usage-in-easyenglishapp).
+- **Used by:** [`EasyPeasy.App`](../EasyPeasy.App) (MAUI Blazor Hybrid) — see
+  [Real usage in EasyPeasy.App](#real-usage-in-easyenglishapp).
 
 ## Table of contents
 
@@ -21,7 +21,7 @@ message into the browser console:
 - [Installation](#installation)
 - [Path 1 — `ILoggerProvider` (`AddBrowserConsole`)](#path-1--iloggerprovider-addbrowserconsole)
 - [Path 2 — `IBrowserConsoleService`](#path-2--ibrowserconsoleservice)
-- [Real usage in EasyEnglish.App](#real-usage-in-easyenglishapp)
+- [Real usage in EasyPeasy.App](#real-usage-in-easyenglishapp)
 - [Known limitations & gotchas](#known-limitations--gotchas)
 - [Troubleshooting](#troubleshooting)
 
@@ -143,9 +143,9 @@ Register it with the matching extension method (mirrors `AddBrowserConsole()`):
 builder.Services.AddBrowserConsoleService();
 ```
 
-## Real usage in EasyEnglish.App
+## Real usage in EasyPeasy.App
 
-[`MauiProgram.cs`](../EasyEnglish.App/MauiProgram.cs) wires up both paths:
+[`MauiProgram.cs`](../EasyPeasy.App/MauiProgram.cs) wires up both paths:
 
 ```csharp
 // Registered unconditionally (both DEBUG and Release):
@@ -171,7 +171,7 @@ builder.Logging.AddFilter("Microsoft", LogLevel.Warning);
 pipeline.
 
 `IBrowserConsoleService` is injected globally via
-[`Components/_Imports.razor`](../EasyEnglish.App/Components/_Imports.razor)
+[`Components/_Imports.razor`](../EasyPeasy.App/Components/_Imports.razor)
 (`@inject IBrowserConsoleService BrowserConsole`), so every page/component can call
 `BrowserConsole.LogInfoAsync(...)` / `LogErrorAsync(...)` without injecting it individually. It is
 used extensively across `Components/Pages/Courses/*.razor` and `Components/Pages/Drilling/**/*.razor`

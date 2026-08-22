@@ -1,0 +1,180 @@
+@using EasyPeasy.Core.Enums
+
+<div class="DrillingReviewCardContent">
+    @if (Item.Kind == StudyCardKind.Term)
+    {
+        <div class="study-card-block">
+            <h2 class="study-card-term">@Item.Title</h2>
+            <p class="study-card-text">@Item.Body</p>
+        </div>
+    }
+    else if (Item.Kind == StudyCardKind.Text)
+    {
+        <div class="study-card-block">
+            @if (!string.IsNullOrEmpty(Item.Title))
+            {
+                <h2 class="study-card-term">@Item.Title</h2>
+            }
+            @if (!string.IsNullOrEmpty(Item.Body))
+            {
+                <p class="study-card-text">@Item.Body</p>
+            }
+            @if (!string.IsNullOrEmpty(Item.CodeBlock))
+            {
+                <pre class="study-card-code">@Item.CodeBlock</pre>
+            }
+            @if (!string.IsNullOrEmpty(Item.Dialogue))
+            {
+                <p class="study-card-dialogue">@Item.Dialogue</p>
+            }
+        </div>
+    }
+    else if (Item.Kind == StudyCardKind.BlurredText)
+    {
+        <div class="study-card-block">
+            <p class="study-card-text">
+                @for (var i = 0; i < _segments.Count; i++)
+                {
+                    var index = i;
+                    var segment = _segments[index];
+                    if (segment.IsHidden)
+                    {
+                        <span class="hidden-word @(_revealed.Contains(index) ? "revealed" : "blurred")"
+                              @onclick="() => Reveal(index)">
+                            @segment.Text
+                        </span>
+                    }
+                    else
+                    {
+                        @segment.Text
+                    }
+                }
+            </p>
+        </div>
+    }
+
+    <DifficultyRatingSection
+        OnRate="@Context.Callbacks.OnRate"
+        IsRating="@Context.State.IsRating"
+        IsRated="@Context.State.IsRated"
+        LastRatedValue="@Context.State.LastRatedValue" />
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public TestCardContext Context { get; set; } = null!;
+
+    private StudyCardTestModel Item => Context.GetRawItem<StudyCardTestModel>();
+
+    private List<(bool IsHidden, string Text)> _segments = new();
+    private readonly HashSet<int> _revealed = new();
+    private int _loadedItemId = -1;
+
+    protected override void OnParametersSet()
+    {
+        if (_loadedItemId == Item.Id)
+            return;
+
+        _loadedItemId = Item.Id;
+        _revealed.Clear();
+        _segments = Item.Kind == StudyCardKind.BlurredText
+            ? ExampleMarkdownService.ParseSegments(Item.Body ?? "")
+            : new();
+    }
+
+    private void Reveal(int index)
+    {
+        if (Item.RevealMode == BlurRevealMode.Grouped)
+        {
+            for (var i = 0; i < _segments.Count; i++)
+            {
+                if (_segments[i].IsHidden)
+                    _revealed.Add(i);
+            }
+        }
+        else
+        {
+            _revealed.Add(index);
+        }
+    }
+}
+
+<style>
+    .study-card-block {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .study-card-term {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .study-card-text {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .study-card-code {
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 0.95rem;
+        white-space: pre-wrap;
+        margin: 0;
+    }
+
+    .study-card-dialogue {
+        font-style: italic;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .hidden-word {
+        display: inline-block;
+        padding: 0.125rem 0.5rem;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .hidden-word.blurred {
+        background: #E9ECEF;
+        color: transparent;
+        text-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+        user-select: none;
+    }
+
+    .hidden-word.blurred:hover {
+        background: var(--border-muted);
+        transform: scale(1.05);
+    }
+
+    .hidden-word.blurred::before {
+        content: "?";
+        position: absolute;
+        left: 50%; top: 50%;
+        transform: translate(-50%, -50%);
+        color: #6C757D;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .hidden-word.revealed {
+        background: #FFF3CD;
+        color: #856404;
+        font-weight: 700;
+        border: 1px solid #FFEEBA;
+        text-shadow: none;
+    }
+</style>

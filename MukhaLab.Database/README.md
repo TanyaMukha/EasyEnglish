@@ -9,7 +9,7 @@ entity in the app.
 - **Target framework:** `net9.0`
 - **Namespace:** `MukhaLab.Database`
 - **Dependencies:** `AutoMapper` (15.1.3), `Microsoft.EntityFrameworkCore` (9.0.7), project reference to [`MukhaLab.SelectQueryParameters`](../MukhaLab.SelectQueryParameters)
-- **Used by:** every repository in [`EasyEnglish.Data/Repositories`](../EasyEnglish.Data/Repositories) and every service in [`EasyEnglish.Business/Services`](../EasyEnglish.Business/Services)
+- **Used by:** every repository in [`EasyPeasy.Data/Repositories`](../EasyPeasy.Data/Repositories) and every service in [`EasyPeasy.Business/Services`](../EasyPeasy.Business/Services)
 
 ## Table of contents
 
@@ -21,7 +21,7 @@ entity in the app.
 - [Error handling](#error-handling)
 - [Transactions](#transactions)
 - [GUID identity (`BaseWithGuidRepository`/`BaseWithGuidService`)](#guid-identity-basewithguidrepositorybasewithguidservice)
-- [Real usage in EasyEnglish](#real-usage-in-easyenglish)
+- [Real usage in EasyPeasy](#real-usage-in-easyenglish)
 - [Known issues & risks](#known-issues--risks)
 - [Suggested improvements](#suggested-improvements)
 - [Troubleshooting](#troubleshooting)
@@ -92,9 +92,9 @@ public interface IWordRepository : IBaseRepository<WordEntity>
     Task<List<WordEntity>> GetByUnitAsync(int unitId, string[]? includes = null);
 }
 
-public class WordRepository : BaseRepository<WordEntity, EasyEnglishDbContext>, IWordRepository
+public class WordRepository : BaseRepository<WordEntity, EasyPeasyDbContext>, IWordRepository
 {
-    public WordRepository(IDbContextFactory<EasyEnglishDbContext> contextFactory, IUserContext? userContext = null)
+    public WordRepository(IDbContextFactory<EasyPeasyDbContext> contextFactory, IUserContext? userContext = null)
         : base(contextFactory, userContext) { }
 
     // Custom queries use contextFactory directly, same pattern as the base class:
@@ -217,8 +217,8 @@ not enough:
 > reports `Guid.Empty` as "the current user" — if you also call `ConfigureUserIdField`, every query
 > gets scoped to rows literally owned by `Guid.Empty`. To genuinely disable per-user scoping, either
 > don't call `ConfigureUserIdField` at all, or construct the repository with `userContext: null`.
-> EasyEnglish.App registers `AnonymousUserContext` but never calls `ConfigureUserIdField` anywhere,
-> so scoping is effectively inactive there today — see [Real usage in EasyEnglish](#real-usage-in-easyenglish).
+> EasyPeasy.App registers `AnonymousUserContext` but never calls `ConfigureUserIdField` anywhere,
+> so scoping is effectively inactive there today — see [Real usage in EasyPeasy](#real-usage-in-easyenglish).
 
 ## Error handling
 
@@ -272,7 +272,7 @@ A derived repository can reuse the base class's single-entity mutation logic aga
 `ctx` via three `protected` helpers, instead of duplicating `ctx.Set<T>().Add/Update/Remove(...)`:
 
 ```csharp
-protected class WordRepository : BaseRepository<WordEntity, EasyEnglishDbContext>, IWordRepository
+protected class WordRepository : BaseRepository<WordEntity, EasyPeasyDbContext>, IWordRepository
 {
     public async Task ImportWordWithExamplesAsync(WordEntity word, IEnumerable<ExampleEntity> examples)
     {
@@ -307,9 +307,9 @@ public class CourseEntity : AbstractEntity, IGuidRecord
 
 public interface ICourseRepository : IBaseWithGuidRepository<CourseEntity> { }
 
-public class CourseRepository : BaseWithGuidRepository<CourseEntity, EasyEnglishDbContext>, ICourseRepository
+public class CourseRepository : BaseWithGuidRepository<CourseEntity, EasyPeasyDbContext>, ICourseRepository
 {
-    public CourseRepository(IDbContextFactory<EasyEnglishDbContext> contextFactory, IUserContext? userContext = null)
+    public CourseRepository(IDbContextFactory<EasyPeasyDbContext> contextFactory, IUserContext? userContext = null)
         : base(contextFactory, userContext) { }
 }
 ```
@@ -318,13 +318,13 @@ This adds `FindAsync(Guid, ...)` and `CheckExistingGuidsAsync(IEnumerable<Guid>,
 everything `IBaseRepository<T>` already provides — useful for "does this record already exist"
 checks during import without relying on the (re-import-unstable) `int Id`.
 
-## Real usage in EasyEnglish
+## Real usage in EasyPeasy
 
-- [`WordRepository`](../EasyEnglish.Data/Repositories/WordRepository.cs) : `BaseRepository<WordEntity, EasyEnglishDbContext>` — adds entity-specific queries (`GetByUnitAsync`, `GetForLearningAsync`, ...) alongside the inherited CRUD surface.
-- [`CourseRepository`](../EasyEnglish.Data/Repositories/CourseRepository.cs) : `BaseWithGuidRepository<CourseEntity, EasyEnglishDbContext>` — a minimal repository with no extra methods, relying entirely on the base classes.
-- [`WordService`](../EasyEnglish.Business/Services/WordService.cs) : `BaseService<WordEntity, WordModel>` — adds domain methods (`GetForLearningAsync`, `UpdateWordRateAsync`, ...) on top of the inherited CRUD surface; follows the base class's try/catch-log-rethrow pattern in its own methods too.
-- [`AddEasyEnglishRepositories`](../EasyEnglish.Data/Extensions/ServiceCollectionExtensions.cs) registers every repository as `Scoped`.
-- [`MauiProgram.cs`](../EasyEnglish.App/MauiProgram.cs) registers `services.AddScoped<IUserContext, AnonymousUserContext>();` — no repository in this app currently calls `ConfigureUserIdField`, so per-user scoping is registered but inactive (EasyEnglish is a single-user, on-device app).
+- [`WordRepository`](../EasyPeasy.Data/Repositories/WordRepository.cs) : `BaseRepository<WordEntity, EasyPeasyDbContext>` — adds entity-specific queries (`GetByUnitAsync`, `GetForLearningAsync`, ...) alongside the inherited CRUD surface.
+- [`CourseRepository`](../EasyPeasy.Data/Repositories/CourseRepository.cs) : `BaseWithGuidRepository<CourseEntity, EasyPeasyDbContext>` — a minimal repository with no extra methods, relying entirely on the base classes.
+- [`WordService`](../EasyPeasy.Business/Services/WordService.cs) : `BaseService<WordEntity, WordModel>` — adds domain methods (`GetForLearningAsync`, `UpdateWordRateAsync`, ...) on top of the inherited CRUD surface; follows the base class's try/catch-log-rethrow pattern in its own methods too.
+- [`AddEasyPeasyRepositories`](../EasyPeasy.Data/Extensions/ServiceCollectionExtensions.cs) registers every repository as `Scoped`.
+- [`MauiProgram.cs`](../EasyPeasy.App/MauiProgram.cs) registers `services.AddScoped<IUserContext, AnonymousUserContext>();` — no repository in this app currently calls `ConfigureUserIdField`, so per-user scoping is registered but inactive (EasyPeasy is a single-user, on-device app).
 
 ## Known issues & risks
 

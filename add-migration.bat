@@ -17,10 +17,10 @@ echo 🔧 Створення міграції "%migration_name%"...
 echo.
 
 :: Спроба 1: З папки Data проекту (найнадійніший спосіб)
-echo 🚀 Спроба 1: Створення з папки EasyEnglish.Data...
-pushd EasyEnglish.Data
+echo 🚀 Спроба 1: Створення з папки EasyPeasy.Data...
+pushd EasyPeasy.Data
 
-dotnet ef migrations add "%migration_name%" --context "EasyEnglishDbContext" --verbose
+dotnet ef migrations add "%migration_name%" --context "EasyPeasyDbContext" --verbose
 
 if %errorlevel% equ 0 (
     popd
@@ -36,9 +36,9 @@ echo.
 :: Спроба 2: З кореневої папки без startup-project
 echo 🚀 Спроба 2: Створення з кореневої папки...
 dotnet ef migrations add "%migration_name%" ^
-    --project "EasyEnglish.Data" ^
+    --project "EasyPeasy.Data" ^
     --output-dir "Migrations" ^
-    --context "EasyEnglishDbContext" ^
+    --context "EasyPeasyDbContext" ^
     --verbose
 
 if %errorlevel% equ 0 (
@@ -53,9 +53,9 @@ echo.
 :: Спроба 3: З --no-build прапором
 echo 🚀 Спроба 3: Створення з --no-build...
 dotnet ef migrations add "%migration_name%" ^
-    --project "EasyEnglish.Data" ^
+    --project "EasyPeasy.Data" ^
     --output-dir "Migrations" ^
-    --context "EasyEnglishDbContext" ^
+    --context "EasyPeasyDbContext" ^
     --no-build ^
     --verbose
 
@@ -70,7 +70,7 @@ echo.
 echo ❌ Всі спроби створення міграції не вдалися!
 echo.
 echo 💡 Спробуйте вручну:
-echo    1. cd EasyEnglish.Data
+echo    1. cd EasyPeasy.Data
 echo    2. dotnet ef migrations add %migration_name%
 echo    3. cd ..
 echo.
@@ -80,7 +80,7 @@ exit /b 1
 :success
 echo.
 echo 📁 Перевіряємо створені файли:
-dir "EasyEnglish.Data\Migrations\*%migration_name%*" /b 2>nul
+dir "EasyPeasy.Data\Migrations\*%migration_name%*" /b 2>nul
 echo.
 echo 🎉 Готово!
 pause

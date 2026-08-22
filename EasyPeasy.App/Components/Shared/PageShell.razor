@@ -1,0 +1,183 @@
+@*
+    Page frame: the column, the top chrome row, the body and the sticky bottom bar.
+
+    Division of roles:
+      MainLayout — sidebar, theme, chrome buttons; knows nothing about pages;
+      PageShell  — page geometry and where chrome goes; knows nothing about a specific page;
+      the page   — title, breadcrumbs, content; knows nothing about geometry or chrome.
+
+    The menu button arrives from MainLayout as a ready-made fragment, so the shell does not
+    depend on what exactly the layout considers its chrome.
+*@
+
+@* The alias is needed because the ...Shared.Breadcrumb namespace shadows the Breadcrumb component *@
+@using EasyPeasy.App.Components.Shared.Breadcrumb
+@using BreadcrumbItem = EasyPeasy.App.Components.Shared.Breadcrumb.Breadcrumb.BreadcrumbItem
+
+<div class="page-shell page-shell--@Width.ToCssModifier() @(Fill ? "page-shell--fill" : "")">
+    <header class="page-shell__top">
+        @ChromeStart
+
+        @if (Breadcrumbs is { Count: > 0 })
+        {
+            <Breadcrumb Items="Breadcrumbs" />
+        }
+
+        @* Page actions: either through the Actions parameter, or through a section — when they
+           are added by a nested component that cannot reach the shell parameter. *@
+        <div class="page-shell__actions">
+            @Actions
+            <SectionOutlet SectionId="AppSections.PageActions" />
+        </div>
+    </header>
+
+    @if (!string.IsNullOrEmpty(Title))
+    {
+        <PageHeader Title="@Title" Description="@(Description ?? "")" />
+    }
+
+    <div class="page-shell__body">
+        @ChildContent
+    </div>
+
+    @* Bottom bar: either through the Footer parameter, or through a section — from deep inside the page *@
+    <div class="page-shell__footer">
+        @Footer
+        <SectionOutlet SectionId="AppSections.PageFooter" />
+    </div>
+</div>
+
+@code {
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Description { get; set; }
+
+    [Parameter] public List<BreadcrumbItem>? Breadcrumbs { get; set; }
+
+    [Parameter] public PageWidth Width { get; set; } = PageWidth.Full;
+
+    /// <summary>
+    /// true — the page takes exactly the screen height and scrolls its own body
+    /// (long import/export forms). The shell computes that height including chrome and
+    /// the keyboard, so the page does not have to know anything.
+    /// </summary>
+    [Parameter] public bool Fill { get; set; }
+
+    /// <summary>Page actions on the right of the top row.</summary>
+    [Parameter] public RenderFragment? Actions { get; set; }
+
+    /// <summary>Sticky bar at the bottom of the screen (drilling navigation buttons and the like).</summary>
+    [Parameter] public RenderFragment? Footer { get; set; }
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>App chrome (the menu button) — provided by MainLayout.</summary>
+    [CascadingParameter(Name = "ChromeStart")]
+    public RenderFragment? ChromeStart { get; set; }
+}
+
+<style>
+    .page-shell {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .page-shell--narrow { max-width: 800px; }
+    .page-shell--medium { max-width: 1000px; }
+    .page-shell--wide   { max-width: 1100px; }
+    .page-shell--full   { max-width: 1200px; }
+
+    /* Top row: chrome, breadcrumbs and actions share a line by construction,
+       not through an interaction between floats and formatting contexts. */
+    .page-shell__top {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-height: var(--chrome-btn-size, 36px);
+        margin-bottom: 1.5rem;
+    }
+
+    /* A row without breadcrumbs and without actions takes no space: on desktop the chrome is
+       hidden, and an empty strip would be left behind */
+    .page-shell__top:not(:has(.breadcrumb-nav)):not(:has(.page-shell__actions > *)) {
+        min-height: 0;
+        margin-bottom: 0;
+    }
+
+    /* Breadcrumbs inside the row do not add their own bottom margin */
+    .page-shell__top .breadcrumb-nav {
+        margin-bottom: 0;
+        min-height: 0;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .page-shell__actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-left: auto;
+        flex-shrink: 0;
+    }
+
+    /* ── Full-height page with its own scrolling ─────────────────────────── */
+    .page-shell--fill {
+        display: flex;
+        flex-direction: column;
+        height: 100dvh;
+        padding-bottom: 0;
+    }
+
+    .page-shell--fill .page-shell__body {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        /* The keyboard must not cover fields — the inset comes from js/keyboard-inset.js */
+        padding-bottom: var(--keyboard-inset, 0px);
+    }
+
+    /* ── Sticky bottom bar ───────────────────────────────────────────────── */
+    .page-shell__footer {
+        position: fixed;
+        left: 280px;
+        right: 0;
+        bottom: var(--keyboard-inset, 0px);
+        z-index: 900;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom));
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+        transition: bottom 0.15s ease, left 0.3s ease;
+    }
+
+    .app-content.collapsed .page-shell__footer {
+        left: 80px;
+    }
+
+    /* An empty bar does not exist visually: no background, no border, no space reserved.
+       This rule must stay here — after .page-shell__footer — because specificity is equal
+       and the later rule wins. */
+    .page-shell__footer:not(:has(> *)) {
+        display: none;
+    }
+
+    /* Room for the bar so it never covers the end of the page */
+    .page-shell:has(> .page-shell__footer > *) {
+        padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+    }
+
+    @@media (max-width: 768px), (max-width: 1024px) and (orientation: portrait) {
+        .page-shell {
+            padding: 1.5rem 1rem;
+        }
+
+        .page-shell__footer,
+        .app-content.collapsed .page-shell__footer {
+            left: 0;
+        }
+    }
+</style>

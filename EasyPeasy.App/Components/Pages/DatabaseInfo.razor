@@ -1,0 +1,279 @@
+@page "/database-info"
+@using EasyPeasy.App.Components.Shared
+@using EasyPeasy.App.Components.Shared.Breadcrumb
+
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Medium">
+
+    <div class="header-section">
+        <h1 class="page-title">
+            <i class="bi bi-database"></i>
+            База даних
+        </h1>
+        <p class="page-description">Статистика вмісту локальної бази даних застосунку.</p>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-container">
+            <div class="spinner-border" role="status"></div>
+        </div>
+    }
+    else
+    {
+        <div class="stats-grid">
+            @foreach (var stat in stats)
+            {
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="bi @stat.Icon"></i></div>
+                    <div class="stat-content">
+                        <div class="stat-value">@stat.Count</div>
+                        <div class="stat-label">@stat.Label</div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="danger-zone">
+            <div class="danger-zone-info">
+                <h3><i class="bi bi-exclamation-triangle"></i> Небезпечна зона</h3>
+                <p>Видаляє повністю всі курси, модулі, слова та картки з бази даних. Цю дію не можна скасувати.</p>
+            </div>
+            <button class="btn-danger-action" @onclick="ClearAllData">
+                <i class="bi bi-trash3"></i>
+                Видалити всі дані
+            </button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <div class="alert @(isError ? "alert-error" : "alert-success")">
+            <i class="bi @(isError ? "bi-exclamation-triangle" : "bi-check-circle")"></i>
+            <p>@message</p>
+        </div>
+    }
+</PageShell>
+
+@code {
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = BreadcrumbBuilder.Create().WithHome().WithActive("База даних").Build();
+
+    private record StatItem(string Icon, string Label, int Count);
+
+    private List<StatItem> stats = new();
+    private bool isLoading = true;
+    private string? message;
+    private bool isError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            isLoading = true;
+
+            stats = new List<StatItem>
+            {
+                new("bi-journals", "Курси", await CourseService.CountAsync()),
+                new("bi-tags", "Предмети", await SubjectService.CountAsync()),
+                new("bi-collection", "Модулі", await UnitService.CountAsync()),
+                new("bi-card-text", "Слова", await WordService.CountAsync()),
+                new("bi-arrow-repeat", "Приклади", await ExampleService.CountAsync()),
+                new("bi-layers", "Неправильні форми", await IrregularFormService.CountAsync()),
+                new("bi-journal-text", "Навчальні картки", await StudyCardService.CountAsync()),
+                new("bi-patch-question", "Тестові картки", await TestCardService.CountAsync()),
+            };
+        }
+        catch (Exception ex)
+        {
+            message = $"Помилка завантаження: {ex.Message}";
+            isError = true;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task ClearAllData()
+    {
+        var confirmed = await Confirmation.ConfirmAsync(new ConfirmRequest
+        {
+            Title       = "Видалити всі дані?",
+            Message     = "З бази зникнуть усі курси, модулі, слова та картки разом із прогресом вивчення. "
+                        + "Цю дію не можна скасувати.",
+            ConfirmText = "Видалити все",
+        });
+
+        if (!confirmed)
+            return;
+
+        try
+        {
+            // Delete in the right order (dependent rows first)
+            DbContext.Examples.RemoveRange(DbContext.Examples);
+            DbContext.IrregularForms.RemoveRange(DbContext.IrregularForms);
+            DbContext.Words.RemoveRange(DbContext.Words);
+            DbContext.TestCards.RemoveRange(DbContext.TestCards);
+            DbContext.StudyCards.RemoveRange(DbContext.StudyCards);
+            DbContext.Units.RemoveRange(DbContext.Units);
+            DbContext.Courses.RemoveRange(DbContext.Courses);
+
+            await DbContext.SaveChangesAsync();
+
+            message = "Усі дані видалено.";
+            isError = false;
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            message = $"Помилка: {ex.Message}";
+            isError = true;
+        }
+    }
+}
+
+<style>
+
+    .header-section { margin-bottom: 2rem; }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .page-description { color: var(--text-secondary); font-size: 1rem; margin: 0; }
+
+    .loading-container { text-align: center; padding: 3rem 1rem; }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        background: linear-gradient(135deg, #A3BFFA, #7B9FE8);
+        color: white;
+    }
+
+    .stat-content { min-width: 0; }
+
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+
+    .danger-zone {
+        background: rgba(220, 53, 69, 0.05);
+        border: 1px solid rgba(220, 53, 69, 0.3);
+        border-radius: 16px;
+        padding: 1.5rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .danger-zone-info h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #dc3545;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .danger-zone-info p {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    .btn-danger-action {
+        background: linear-gradient(135deg, #ef5350, #dc3545);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.875rem 1.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .btn-danger-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(220, 53, 69, 0.35);
+    }
+
+    .alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        border-radius: 10px;
+        border: 1px solid;
+        margin-top: 1.5rem;
+    }
+
+    .alert i { font-size: 1.25rem; flex-shrink: 0; margin-top: 0.125rem; }
+    .alert p { margin: 0; }
+
+    .alert-success { background: rgba(181, 234, 215, 0.15); color: #155724; border-color: rgba(181, 234, 215, 0.5); }
+    .alert-success i { color: #28a745; }
+
+    .alert-error { background: rgba(220, 53, 69, 0.1); color: #721c24; border-color: rgba(220, 53, 69, 0.3); }
+    .alert-error i { color: #dc3545; }
+
+    @@media (max-width: 768px) {
+        .danger-zone { flex-direction: column; align-items: stretch; text-align: center; }
+        .btn-danger-action { justify-content: center; }
+    }
+</style>

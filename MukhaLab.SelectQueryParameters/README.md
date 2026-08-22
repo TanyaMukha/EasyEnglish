@@ -46,7 +46,7 @@ MukhaLab.SelectQueryParameters/
 
 ## Installation
 
-The library is a plain project reference inside the EasyEnglish solution — there is no separate
+The library is a plain project reference inside the EasyPeasy solution — there is no separate
 NuGet package. Add a `ProjectReference` to `MukhaLab.SelectQueryParameters.csproj` and import the
 two namespaces:
 
@@ -318,9 +318,9 @@ private IQueryable<T> BuildSelectQuery(TContext ctx, QueryParameters parameters,
 `TotalCount`/`TotalPages` for the same filtered set. Consuming a repository:
 
 ```csharp
-public class WordRepository : BaseRepository<WordEntity, EasyEnglishDbContext>, IWordRepository
+public class WordRepository : BaseRepository<WordEntity, EasyPeasyDbContext>, IWordRepository
 {
-    public WordRepository(IDbContextFactory<EasyEnglishDbContext> contextFactory, IUserContext? userContext = null)
+    public WordRepository(IDbContextFactory<EasyPeasyDbContext> contextFactory, IUserContext? userContext = null)
         : base(contextFactory, userContext) { }
 }
 

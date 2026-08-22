@@ -1,0 +1,428 @@
+@page "/courses/{CourseId:int}/units/{UnitId:int}/irregular-forms/{IrregularFormId:int}"
+
+@using EasyPeasy.App.Components.Shared
+@using EasyPeasy.App.Components.Shared.Breadcrumb
+
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Full">
+    <div class="header-section">
+
+        <div class="title-section">
+            <h1 class="word-title">@IrregularForm.FirstForm</h1>
+            <a href="/courses/@CourseId/units/@UnitId/irregular-forms/@IrregularFormId/edit" class="btn-edit" title="Edit">
+                <i class="bi bi-pencil"></i>
+            </a>
+        </div>
+
+        @if (!string.IsNullOrEmpty(IrregularForm.PartOfSpeech))
+        {
+            <div class="meta-tags">
+                <span class="tag tag-speech">@GetPartOfSpeechLabel()</span>
+            </div>
+        }
+    </div>
+
+    <!-- First Form Section -->
+    <div class="form-section">
+        <h2 class="section-title">
+            <i class="bi bi-1-circle"></i> @GetFormLabel(1)
+        </h2>
+        <div class="content-grid">
+            <div class="info-card">
+                <div class="card-icon">
+                    <i class="bi bi-card-text"></i>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Word</h3>
+                    <SelectableText>
+                        <p class="card-text">@IrregularForm.FirstForm</p>
+                    </SelectableText>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(IrregularForm.FirstFormTranscription))
+            {
+                <div class="info-card">
+                    <div class="card-icon">
+                        <i class="bi bi-chat-square-quote"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Transcription</h3>
+                        <SelectableText>
+                            <p class="card-text transcription-text">[ @IrregularForm.FirstFormTranscription ]</p>
+                        </SelectableText>
+                    </div>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(IrregularForm.FirstFormTranslation))
+            {
+                <div class="info-card">
+                    <div class="card-icon">
+                        <i class="bi bi-translate"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Translation</h3>
+                        <SelectableText>
+                            <p class="card-text">@IrregularForm.FirstFormTranslation</p>
+                        </SelectableText>
+                    </div>
+                </div>
+            }
+
+            @if (IrregularForm.FirstFormPronunciation?.Length > 0)
+            {
+                <div class="info-card">
+                    <div class="card-icon">
+                        <i class="bi bi-volume-up"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Pronunciation</h3>
+                        <button type="button" class="btn-play" @onclick="() => PlayAudio(1)">
+                            <i class="bi bi-play-fill"></i> Play Audio
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Second Form Section -->
+    <div class="form-section">
+        <h2 class="section-title">
+            <i class="bi bi-2-circle"></i> @GetFormLabel(2)
+        </h2>
+        <div class="content-grid">
+            <div class="info-card">
+                <div class="card-icon">
+                    <i class="bi bi-card-text"></i>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Word</h3>
+                    <SelectableText>
+                        <p class="card-text">@IrregularForm.SecondForm</p>
+                    </SelectableText>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(IrregularForm.SecondFormTranscription))
+            {
+                <div class="info-card">
+                    <div class="card-icon">
+                        <i class="bi bi-chat-square-quote"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Transcription</h3>
+                        <SelectableText>
+                            <p class="card-text transcription-text">[ @IrregularForm.SecondFormTranscription ]</p>
+                        </SelectableText>
+                    </div>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(IrregularForm.SecondFormTranslation))
+            {
+                <div class="info-card">
+                    <div class="card-icon">
+                        <i class="bi bi-translate"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Translation</h3>
+                        <SelectableText>
+                            <p class="card-text">@IrregularForm.SecondFormTranslation</p>
+                        </SelectableText>
+                    </div>
+                </div>
+            }
+
+            @if (IrregularForm.SecondFormPronunciation?.Length > 0)
+            {
+                <div class="info-card">
+                    <div class="card-icon">
+                        <i class="bi bi-volume-up"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Pronunciation</h3>
+                        <button type="button" class="btn-play" @onclick="() => PlayAudio(2)">
+                            <i class="bi bi-play-fill"></i> Play Audio
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Third Form Section -->
+    @if (!string.IsNullOrEmpty(IrregularForm.ThirdForm))
+    {
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="bi bi-3-circle"></i> @GetFormLabel(3)
+            </h2>
+            <div class="content-grid">
+                <div class="info-card">
+                    <div class="card-icon">
+                        <i class="bi bi-card-text"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Word</h3>
+                        <SelectableText>
+                            <p class="card-text">@IrregularForm.ThirdForm</p>
+                        </SelectableText>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(IrregularForm.ThirdFormTranscription))
+                {
+                    <div class="info-card">
+                        <div class="card-icon">
+                            <i class="bi bi-chat-square-quote"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">Transcription</h3>
+                            <SelectableText>
+                                <p class="card-text transcription-text">[ @IrregularForm.ThirdFormTranscription ]</p>
+                            </SelectableText>
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(IrregularForm.ThirdFormTranslation))
+                {
+                    <div class="info-card">
+                        <div class="card-icon">
+                            <i class="bi bi-translate"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">Translation</h3>
+                            <SelectableText>
+                                <p class="card-text">@IrregularForm.ThirdFormTranslation</p>
+                            </SelectableText>
+                        </div>
+                    </div>
+                }
+
+                @if (IrregularForm.ThirdFormPronunciation?.Length > 0)
+                {
+                    <div class="info-card">
+                        <div class="card-icon">
+                            <i class="bi bi-volume-up"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">Pronunciation</h3>
+                            <button type="button" class="btn-play" @onclick="() => PlayAudio(3)">
+                                <i class="bi bi-play-fill"></i> Play Audio
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Learning Progress Section -->
+    <div class="stats-section">
+        <h2 class="section-title">
+            <i class="bi bi-bar-chart"></i> Learning Progress
+        </h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-star"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Rating</div>
+                    <div class="stat-value">@IrregularForm.Rate.ToString("F1") / 5</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-arrow-repeat"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Reviews</div>
+                    <div class="stat-value">@IrregularForm.ReviewCount</div>
+                </div>
+            </div>
+
+            @if (IrregularForm.LastReviewDate.HasValue)
+            {
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Last Review</div>
+                        <div class="stat-value">@IrregularForm.LastReviewDate.Value.ToString("dd MMM yyyy")</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</PageShell>
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+    [Parameter] public int UnitId { get; set; }
+    [Parameter] public int IrregularFormId { get; set; }
+    
+    public IrregularFormModel IrregularForm { get; set; } = new();
+
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        IrregularForm = await IrregularFormService.GetByIdAsync(IrregularFormId) ?? new IrregularFormModel();
+        BrowserConsole.LogInfoAsync($"✅ IrregularForm : {JsonSerializer.Serialize(IrregularForm)}");
+
+        breadcrumbs = BreadcrumbBuilder.Create()
+            .WithHome()
+            .WithLink("Курси", "/courses")
+            .WithLink(IrregularForm.Unit?.Course?.Title ?? "Курс", $"/courses/{CourseId}")
+            .WithLink(IrregularForm.Unit?.Title ?? "Unit", $"/courses/{CourseId}/units/{UnitId}")
+            .WithActive(IrregularForm.FirstForm)
+            .Build();
+    }
+
+    private string GetPartOfSpeechLabel()
+    {
+        return IrregularForm.PartOfSpeech?.ToLower() switch
+        {
+            "verb" => "Verb (Дієслово)",
+            "noun" => "Noun (Іменник)",
+            "adjective" => "Adjective (Прикметник)",
+            "adverb" => "Adverb (Прислівник)",
+            _ => IrregularForm.PartOfSpeech ?? "Unknown"
+        };
+    }
+
+    private string GetFormLabel(int formNumber)
+    {
+        if (string.IsNullOrEmpty(IrregularForm.PartOfSpeech))
+        {
+            return formNumber switch
+            {
+                1 => "First Form (Base Form)",
+                2 => "Second Form",
+                3 => "Third Form",
+                _ => "Form"
+            };
+        }
+
+        return IrregularForm.PartOfSpeech.ToLower() switch
+        {
+            "verb" => formNumber switch
+            {
+                1 => "Infinitive (Base Form)",
+                2 => "Past Simple",
+                3 => "Past Participle",
+                _ => "Form"
+            },
+            "noun" => formNumber switch
+            {
+                1 => "Singular",
+                2 => "Plural",
+                3 => "Alternative Plural",
+                _ => "Form"
+            },
+            "adjective" => formNumber switch
+            {
+                1 => "Positive",
+                2 => "Comparative",
+                3 => "Superlative",
+                _ => "Form"
+            },
+            "adverb" => formNumber switch
+            {
+                1 => "Positive",
+                2 => "Comparative",
+                3 => "Superlative",
+                _ => "Form"
+            },
+            _ => formNumber switch
+            {
+                1 => "First Form",
+                2 => "Second Form",
+                3 => "Third Form",
+                _ => "Form"
+            }
+        };
+    }
+
+    private async Task PlayAudio(int formNumber)
+    {
+        var pronunciation = formNumber switch
+        {
+            1 => IrregularForm.FirstFormPronunciation,
+            2 => IrregularForm.SecondFormPronunciation,
+            _ => IrregularForm.ThirdFormPronunciation
+        };
+
+        if (pronunciation is { Length: > 0 })
+        {
+            await AudioService.PlayAsync(pronunciation);
+        }
+    }
+}
+
+<style>
+
+.meta-tags {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .tag {
+        padding: 0.375rem 0.875rem;
+        border-radius: 12px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .tag-speech {
+        background: #E3F2FD;
+        color: #1976D2;
+    }
+
+    .form-section {
+        margin-bottom: 2.5rem;
+    }
+
+.transcription-text {
+        font-style: italic;
+        color: var(--text-secondary);
+    }
+
+    .btn-play {
+        background: var(--accent-gradient);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-play:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px var(--accent-shadow);
+    }
+
+    .btn-play i {
+        font-size: 1.1rem;
+    }
+
+@@media (max-width: 768px) {
+        .irregular-form-details-page {
+            padding: 1.5rem 1rem;
+        }
+
+}
+</style>

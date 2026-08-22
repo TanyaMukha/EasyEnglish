@@ -1,0 +1,96 @@
+﻿using EasyPeasy.Core.Entities;
+using EasyPeasy.Core.Interfaces.Repositories;
+using EasyPeasy.Core.Options;
+using EasyPeasy.Data.Extensions;
+using Microsoft.EntityFrameworkCore;
+using MukhaLab.Database;
+
+namespace EasyPeasy.Data.Repositories;
+
+/// <summary>EF Core-backed <see cref="IWordRepository"/>.</summary>
+public class WordRepository : BaseRepository<WordEntity, EasyPeasyDbContext>, IWordRepository
+{
+    public WordRepository(
+        IDbContextFactory<EasyPeasyDbContext> contextFactory,
+        IUserContext? userContext = null)
+        : base(contextFactory, userContext)
+    {
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Loads every word id in the unit and does the position/neighbor math in memory rather than in
+    /// SQL — simplest way to express cyclic wraparound (last → first, first → last). Fine at this
+    /// app's scale (a unit's word count), not written to scale to very large units.
+    /// </remarks>
+    public async Task<(int? PreviousId, int? NextId, int Position, int Total)> GetNavigationIdsAsync(int unitId, int currentWordId)
+    {
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+
+        return await ctx.Words
+            .Where(w => w.UnitId == unitId)
+            .OrderBy(w => w.Id)
+            .Select(w => w.Id)
+            .GetCyclicNavigationAsync(currentWordId);
+    }
+
+    /// <inheritdoc/>
+    public async Task<List<WordEntity>> GetNextWordsAsync(int count)
+    {
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+
+        return await ctx.Words
+            .AsNoTracking()
+            .OrderBy(w => w.LastReviewDate)
+            .Take(count)
+            .ToListAsync();
+    }
+
+    /// <inheritdoc/>
+    public async Task<List<WordEntity>> GetHardWordsAsync(int count)
+    {
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+
+        return await ctx.Words
+            .AsNoTracking()
+            .OrderByDescending(w => w.Rate)
+            .Take(count)
+            .ToListAsync();
+    }
+
+    /// <inheritdoc/>
+    public async Task<List<WordEntity>> GetByUnitAsync(int unitId, string[]? includes = null)
+    {
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+
+        IQueryable<WordEntity> query = ctx.Words.Where(w => w.UnitId == unitId);
+
+        if (includes is not null)
+            foreach (var include in includes)
+                query = query.Include(include);
+
+        return await query.AsNoTracking().ToListAsync();
+    }
+
+    /// <inheritdoc/>
+    public async Task<List<WordEntity>> GetForLearningAsync(int courseId, int? unitId, LearningSelectionOptions options)
+    {
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+
+        IQueryable<WordEntity> query = ctx.Words
+            .Where(w => w.Unit!.CourseId == courseId);
+
+        if (unitId is not null)
+            query = query.Where(w => w.UnitId == unitId);
+
+        return await query.AsNoTracking().ApplyLearningSelectionAsync(options);
+    }
+
+    /// <inheritdoc/>
+    public async Task<int> CountReviewedSinceAsync(DateTime since)
+    {
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+
+        return await ctx.Words.CountAsync(w => w.LastReviewDate >= since);
+    }
+}

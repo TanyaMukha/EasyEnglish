@@ -1,0 +1,308 @@
+@namespace EasyPeasy.App.Components.Shared
+@using System.Globalization
+
+<div class="irregular-form-card" @onclick="@(() => NavigationManager.NavigateTo($"/courses/{irregularForm.Unit.CourseId}/units/{irregularForm.UnitId}/irregular-forms/{irregularForm.Id}"))">
+    <div class="card-header p-0">
+        <div class="forms-list">
+            <div class="form-item">
+                <span class="form-word">@irregularForm.FirstForm</span>
+                @if (!string.IsNullOrEmpty(irregularForm.FirstFormTranscription))
+                {
+                    <span class="form-transcription">[@irregularForm.FirstFormTranscription]</span>
+                }
+                @if (irregularForm.FirstFormPronunciation is { Length: > 0 })
+                {
+                    <span class="audio-play-icon stored" @onclick:stopPropagation="true" @onclick="() => PlayAudio(irregularForm.FirstFormPronunciation)" title="Play">
+                        <i class="bi bi-volume-up-fill"></i>
+                    </span>
+                }
+            </div>
+            <div class="form-item">
+                <span class="form-word">@irregularForm.SecondForm</span>
+                @if (!string.IsNullOrEmpty(irregularForm.SecondFormTranscription))
+                {
+                    <span class="form-transcription">[@irregularForm.SecondFormTranscription]</span>
+                }
+                @if (irregularForm.SecondFormPronunciation is { Length: > 0 })
+                {
+                    <span class="audio-play-icon stored" @onclick:stopPropagation="true" @onclick="() => PlayAudio(irregularForm.SecondFormPronunciation)" title="Play">
+                        <i class="bi bi-volume-up-fill"></i>
+                    </span>
+                }
+            </div>
+            @if (!string.IsNullOrEmpty(irregularForm.ThirdForm))
+            {
+                <div class="form-item">
+                    <span class="form-word">@irregularForm.ThirdForm</span>
+                    @if (!string.IsNullOrEmpty(irregularForm.ThirdFormTranscription))
+                    {
+                        <span class="form-transcription">[@irregularForm.ThirdFormTranscription]</span>
+                    }
+                    @if (irregularForm.ThirdFormPronunciation is { Length: > 0 })
+                    {
+                        <span class="audio-play-icon stored" @onclick:stopPropagation="true" @onclick="() => PlayAudio(irregularForm.ThirdFormPronunciation)" title="Play">
+                            <i class="bi bi-volume-up-fill"></i>
+                        </span>
+                    }
+                </div>
+            }
+        </div>
+        <div class="form-actions" @onclick:stopPropagation="true">
+            <a href="/courses/@irregularForm.Unit.CourseId/units/@irregularForm.UnitId/irregular-forms/@irregularForm.Id/edit"
+               class="action-btn"
+               title="Редагувати">
+                <i class="bi bi-pencil"></i>
+            </a>
+            <button class="action-btn action-btn-danger" @onclick="@(async () => await OnDelete.InvokeAsync(irregularForm.Id))" title="Видалити">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="card-body p-0">
+        @if (!string.IsNullOrEmpty(irregularForm.FirstFormTranslation))
+        {
+            <div class="form-info">
+                <i class="bi bi-translate info-icon"></i>
+                <span class="info-text">@irregularForm.FirstFormTranslation</span>
+            </div>
+        }
+    </div>
+
+    <div class="card-footer p-0">
+        <div class="form-badges">
+            @if (!string.IsNullOrEmpty(irregularForm.PartOfSpeech))
+            {
+                <span class="badge badge-speech">@GetPartOfSpeechLabel()</span>
+            }
+        </div>
+        <div class="form-stats">
+            <span class="stat-item">
+                <i class="bi bi-star-fill"></i>
+                @irregularForm.Rate.ToString("F1", CultureInfo.InvariantCulture)
+            </span>
+            <span class="stat-item">
+                <i class="bi bi-arrow-repeat"></i>
+                @irregularForm.ReviewCount
+            </span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public IrregularFormModel irregularForm { get; set; }
+
+    [Parameter] public EventCallback<int> OnDelete { get; set; }
+
+    private async Task PlayAudio(byte[]? audio)
+    {
+        if (audio is { Length: > 0 })
+        {
+            await AudioService.PlayAsync(audio);
+        }
+    }
+
+    private string GetPartOfSpeechLabel()
+    {
+        return irregularForm.PartOfSpeech?.ToLower() switch
+        {
+            "verb" => "Verb",
+            "noun" => "Noun",
+            "adjective" => "Adjective",
+            "adverb" => "Adverb",
+            _ => irregularForm.PartOfSpeech ?? ""
+        };
+    }
+}
+
+<style>
+    .irregular-form-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            background: transparent;
+            border: none;
+        }
+
+        .forms-list {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+
+        .form-item .audio-play-icon {
+            font-size: 1rem;
+        }
+
+        .form-item {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .form-word {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        .form-transcription {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+            flex-shrink: 0;
+            border: none;
+            background: transparent;
+            margin-top: 0;
+            padding-top: 0;
+        }
+
+        .action-btn {
+            background: var(--surface-alt);
+            border: 1px solid var(--border-muted);
+            border-radius: 8px;
+            padding: 0.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+        }
+
+        .action-btn:hover {
+            background: var(--surface);
+            border-color: #A3BFFA;
+            color: #A3BFFA;
+            transform: scale(1.1);
+        }
+
+        .action-btn-danger:hover {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .card-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            flex: 1;
+            background: transparent;
+            border: none;
+        }
+
+        .form-info {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .info-icon {
+            color: #A3BFFA;
+            font-size: 1.1rem;
+            margin-top: 0.125rem;
+            flex-shrink: 0;
+        }
+
+        .info-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            padding-top: 0.75rem !important;
+            border-top: 1px solid var(--border-light);
+            background: transparent;
+        }
+
+        .form-badges {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 0.25rem 0.625rem;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-speech {
+            background: #E3F2FD;
+            color: #1976D2;
+        }
+
+        .form-stats {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .stat-item i {
+            font-size: 0.9rem;
+            color: #A3BFFA;
+        }
+    }
+
+    .irregular-form-card:hover {
+        border-color: #A3BFFA;
+        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .irregular-form-card:hover .form-actions {
+        opacity: 1;
+    }
+
+    /* На тач-пристроях немає hover — кнопки дій завжди видимі */
+    @@media (hover: none), (pointer: coarse) {
+        .form-actions {
+            opacity: 1;
+        }
+    }
+</style>

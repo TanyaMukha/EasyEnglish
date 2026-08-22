@@ -1,0 +1,520 @@
+@using EasyPeasy.App.Models
+@inject NavigationManager NavigationManager
+
+<div class="info-card @ColorClass @(!string.IsNullOrWhiteSpace(Link) ? "clickable" : "")" @onclick="@HandleClick">
+    @if (!string.IsNullOrWhiteSpace(IconClass))
+    {
+        <i class="bi @IconClass"></i>
+    }
+    <div class="info-content">
+        <div class="title-edit-group">
+            @if (isEditingTitle)
+            {
+                <input type="text"
+                class="editable-input title-input"
+                @bind="editTitle"
+                @bind:event="oninput"
+                @onkeydown="HandleTitleKeyDown"
+                @ref="titleInputRef" />
+                <button class="icon-btn-small" @onclick="SaveTitle" title="Зберегти">
+                    <i class="bi bi-check-lg"></i>
+                </button>
+                <button class="icon-btn-small cancel" @onclick="CancelEditTitle" title="Скасувати">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            }
+            else if (OptionList is not null && OptionList.Count > 1)
+            {
+                <div class="d-flex gap-4">
+                    <select class="word-list-select"
+                    @bind="@ElementId"
+                    @bind:after="@SelectedOptionChanged">
+                        @foreach (var item in OptionList)
+                        {
+                            <option value="@item.Id">@item.Title</option>
+                        }
+                    </select>
+                    @if (IsEditable ?? false)
+                    {
+                        <button class="icon-btn-small" @onclick="StartEditingTitle" title="Редагувати">
+                            <i class="bi bi-pencil"></i>
+                        </button>                        
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="info-title">@Title</div>
+                @if (IsEditable ?? false)
+                {
+                    <button class="icon-btn-small" @onclick="StartEditingTitle" title="Редагувати">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                }
+            }
+        </div>
+
+        <div class="description-edit-group">
+            @if (isEditingDescription)
+            {
+                <input type="text"
+                class="editable-input description-input"
+                @bind="editDescription"
+                @bind:event="oninput"
+                @onkeydown="HandleDescriptionKeyDown"
+                @ref="descriptionInputRef"
+                placeholder="Додайте короткий опис..." />
+                <button class="icon-btn-small" @onclick="SaveDescription" title="Зберегти">
+                    <i class="bi bi-check-lg"></i>
+                </button>
+                <button class="icon-btn-small cancel" @onclick="CancelEditDescription" title="Скасувати">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            }
+            else
+            {
+                @if (IsEditable ?? false)
+                {
+                    <div class="info-description editable-field" @onclick="StartEditingDescription">
+                        @(string.IsNullOrWhiteSpace(Description) ? "Додайте короткий опис..." : Description)
+                        <i class="bi bi-pencil edit-icon"></i>
+                    </div>
+                }
+                else
+                {
+                    <div class="info-description">
+                        @Description
+                    </div>
+                }
+            }
+        </div>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(EditLink))
+    {
+        <button class="icon-btn" @onclick="@(() => NavigateToPage(EditLink))" title="Повна форма редагування">
+            <i class="bi bi-box-arrow-up-right"></i>
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; }
+    [Parameter] public string? Description { get; set; } = "";
+    [Parameter] public bool? IsEditable { get; set; } = false;
+    [Parameter] public List<OptionDefinition>? OptionList { get; set; }
+    [Parameter] public EventCallback<string> OnUpdateTitle { get; set; }
+    [Parameter] public EventCallback<string> OnUpdateDescription { get; set; }
+    [Parameter] public EventCallback<int> OnSelectedOptionChanged { get; set; }
+    [Parameter] public string? Link { get; set; }
+    [Parameter] public string? EditLink { get; set; }
+    [Parameter] public string? ColorClass { get; set; }
+    [Parameter] public string? IconClass { get; set; }
+
+    private int ElementId { get; set; } = 0;
+    private bool isEditingTitle = false;
+    private bool isEditingDescription = false;
+    private string editTitle = string.Empty;
+    private string editDescription = string.Empty;
+
+    private ElementReference titleInputRef;
+    private ElementReference descriptionInputRef;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ElementId = OptionList != null && OptionList.Count > 0 ? OptionList[0].Id : 0;
+    }
+
+    private async Task HandleClick()
+    {
+        if (!string.IsNullOrWhiteSpace(Link))
+        {
+            NavigateToPage(Link);
+        }
+    }
+
+    private async Task SelectedOptionChanged()
+    {
+        await OnSelectedOptionChanged.InvokeAsync(ElementId);
+    }
+
+    private void StartEditingTitle()
+    {
+        editTitle = Title;
+        isEditingTitle = true;
+        StateHasChanged();
+        _ = FocusElementAsync(titleInputRef);
+    }
+
+    private void StartEditingDescription()
+    {
+        editDescription = Description ?? string.Empty;
+        isEditingDescription = true;
+        StateHasChanged();
+        _ = FocusElementAsync(descriptionInputRef);
+    }
+
+    private async Task HandleTitleBlur()
+    {
+        await Task.Delay(100);
+        await SaveTitle();
+    }
+
+    private async Task HandleDescriptionBlur()
+    {
+        await Task.Delay(100);
+        await SaveDescription();
+    }
+
+    private async Task SaveTitle()
+    {
+        if (!string.IsNullOrWhiteSpace(editTitle) && editTitle != Title)
+        {
+            await OnUpdateTitle.InvokeAsync(editTitle);
+        }
+        isEditingTitle = false;
+    }
+
+    private async Task SaveDescription()
+    {
+        if (editDescription != Description)
+        {
+            await OnUpdateDescription.InvokeAsync(editDescription);
+        }
+        isEditingDescription = false;
+    }
+
+    private async Task HandleTitleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SaveTitle();
+        }
+        else if (e.Key == "Escape")
+        {
+            isEditingTitle = false;
+        }
+    }
+
+    private async Task HandleDescriptionKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SaveDescription();
+        }
+        else if (e.Key == "Escape")
+        {
+            isEditingDescription = false;
+        }
+    }
+
+    private async Task FocusElementAsync(ElementReference element)
+    {
+        await Task.Delay(10);
+        await element.FocusAsync();
+    }
+
+    private void CancelEditTitle()
+    {
+        isEditingTitle = false;
+    }
+
+    private void CancelEditDescription()
+    {
+        isEditingDescription = false;
+    }
+
+    private void NavigateToPage(string page)
+    {
+        NavigationManager.NavigateTo(page);
+    }
+}
+
+<style>
+    .header-section {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    }
+
+    .info-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+    }
+
+    .info-card.clickable {
+    cursor: pointer;
+    }
+
+    .info-card.clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .info-card > i {
+    font-size: 1.5rem;
+    opacity: 0.7;
+    }
+
+    .info-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    }
+
+    .title-edit-group,
+    .description-edit-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    }
+
+    .word-list-select {
+    border: none;
+    background: transparent;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    outline: none;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    margin: -0.25rem -0.5rem;
+    border-radius: 4px;
+    transition: background 0.2s;
+    }
+
+    .word-list-select:hover {
+    background: rgba(255, 255, 255, 0.5);
+    }
+
+    .word-list-select:focus {
+    background: rgba(255, 255, 255, 0.7);
+    }
+
+    .editable-field {
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    margin: -0.25rem -0.5rem;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    }
+
+    .editable-field:hover {
+    background: rgba(255, 255, 255, 0.5);
+    }
+
+    .editable-field .edit-icon {
+    opacity: 0;
+    font-size: 0.75rem;
+    transition: opacity 0.2s;
+    color: var(--text-secondary);
+    }
+
+    .editable-field:hover .edit-icon {
+    opacity: 1;
+    }
+
+    /* На тач-пристроях немає hover — іконка редагування завжди видима */
+    @@media (hover: none), (pointer: coarse) {
+        .editable-field .edit-icon {
+            opacity: 1;
+        }
+    }
+
+    .info-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    }
+
+    .info-description {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    }
+
+    .editable-input {
+    border: 2px solid #A3BFFA;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    outline: none;
+    background: var(--surface);
+    transition: border-color 0.2s;
+    }
+
+    .editable-input:focus {
+    border-color: #6B8EE8;
+    }
+
+    .title-input {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 200px;
+    }
+
+    .description-input {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    min-width: 250px;
+    }
+
+    .icon-btn-small {
+    background: rgba(255, 255, 255, 0.7);
+    border: none;
+    border-radius: 6px;
+    padding: 0.25rem 0.4rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    }
+
+    .icon-btn-small:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: scale(1.05);
+    }
+
+    .icon-btn-small.cancel {
+    color: var(--text-muted);
+    }
+
+    .icon-btn-small.cancel:hover {
+    color: #dc3545;
+    }
+
+    .icon-btn-small i {
+    font-size: 0.9rem;
+    }
+
+    .icon-btn {
+    background: rgba(255, 255, 255, 0.5);
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #555;
+    }
+
+    .icon-btn:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: scale(1.1);
+    }
+
+    .quick-add-section {
+    background: #fafafa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    }
+
+    .quick-add-section h5 {
+    color: #555;
+    font-weight: 600;
+    }
+
+    .word-input-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--surface);
+    border-radius: 8px;
+    transition: box-shadow 0.2s;
+    }
+
+    .word-input-row:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .word-number {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    min-width: 1.5rem;
+    text-align: center;
+    font-weight: 500;
+    }
+
+    .input-group {
+    flex: 1;
+    min-width: 0;
+    }
+
+    .minimal-input {
+    width: 100%;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.5rem 0.25rem;
+    background: transparent;
+    outline: none;
+    transition: border-color 0.2s;
+    font-size: 1rem;
+    color: var(--text-primary);
+    }
+
+    .minimal-input::placeholder {
+    color: #bbb;
+    font-size: 0.875rem;
+    }
+
+    .minimal-input:focus {
+    border-bottom-color: #A3BFFA;
+    }
+
+    .minimal-input:hover:not(:focus) {
+    border-bottom-color: var(--border);
+    }
+
+    .btn-icon {
+    background: none;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    transition: all 0.2s;
+    border-radius: 4px;
+    }
+
+    .btn-icon:hover {
+    color: #FBB4B9;
+    background: rgba(251, 180, 185, 0.1);
+    }
+
+    .btn-action {
+    border: none;
+    border-radius: 8px;
+    padding: 0.625rem 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-action:active {
+    transform: translateY(0);
+    }
+
+    .validation-message {
+    color: #FBB4B9;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    }
+</style>

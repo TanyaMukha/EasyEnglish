@@ -1,0 +1,50 @@
+@using System.Net.Http
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Sections
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.JSInterop
+@using EasyPeasy.App
+@using EasyPeasy.App.Components
+@using EasyPeasy.App.Models
+@using EasyPeasy.Core.Models
+@using EasyPeasy.Core.Interfaces.Services
+@using EasyPeasy.Services
+@using EasyPeasy.Data
+@using EasyPeasy.Core.Entities
+@using EasyPeasy.Core.Enums
+@using EasyPeasy.Core.Options
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Logging
+@using MukhaLab.BrowserConsoleLogger
+@using MukhaLab.LoggerExtensionDelegate
+@using EasyPeasy.App.Services
+@using AutoMapper
+@using EasyPeasy.App.Interfaces
+@using EasyPeasy.App.Services.Speech
+@using EasyPeasy.App.Services.SpeechRecognition
+@using EasyPeasy.Core.Presets
+
+@inject NavigationManager NavigationManager
+
+@inject ICourseService CourseService
+@inject ISubjectService SubjectService
+@inject IWordService WordService
+@inject IExampleService ExampleService
+@inject IUnitService UnitService
+@inject IIrregularFormService IrregularFormService
+@inject IStudyCardService StudyCardService
+@inject ITestCardService TestCardService
+@inject EasyPeasyDbContext DbContext
+@inject IAudioService AudioService
+@inject ConfirmationService Confirmation
+
+@inject IMapper mapper
+
+@using System.Text.Json
+@inject IBrowserConsoleService BrowserConsole
+
+@* @inject IJSRuntime JSRuntime *@
+@* @rendermode InteractiveServer *@

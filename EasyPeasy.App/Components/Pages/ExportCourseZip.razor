@@ -1,0 +1,423 @@
+@page "/export-course-zip"
+@using EasyPeasy.App.Components.Shared
+@using EasyPeasy.App.Components.Shared.Breadcrumb
+@using EasyPeasy.App.Interfaces
+@using EasyPeasy.Core.Models
+@using EasyPeasy.Services
+@inject CourseZipBackupService ZipBackupService
+@inject IFileService FileService
+@inject ICourseService CourseService
+@inject IUnitService UnitService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Експорт курсу</PageTitle>
+
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Medium" Fill="true">
+
+            <div class="header-section">
+                <h1 class="page-title">
+                    <i class="bi bi-box-arrow-up"></i>
+                    Експорт курсу
+                </h1>
+                <p class="page-description">
+                    Збережіть курс у ZIP-архів. Архів містить усі обрані модулі та аудіофайли.
+                </p>
+            </div>
+
+            <div class="form-container">
+
+                <!-- ═══════════ COURSE SELECTION ═══════════ -->
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <i class="bi bi-book"></i>
+                        Курс
+                    </h2>
+
+                    <InputSelectField @bind-Value="selectedCourseId"
+                                      @bind-Value:after="OnCourseChanged"
+                                      Label="Курс для експорту"
+                                      EmptyOption="Виберіть курс">
+                        @foreach (var c in availableCourses)
+                        {
+                            <option value="@c.Id">@c.Title</option>
+                        }
+                    </InputSelectField>
+
+                    @if (selectedCourse != null)
+                    {
+                        <div class="info-card">
+                            <div class="info-row">
+                                <span class="info-label">GUID курсу</span>
+                                <span class="info-value info-value--mono">@selectedCourse.RecordGuid</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Модулів</span>
+                                <span class="info-value">@availableUnits.Count</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- ═══════════ UNIT SELECTION ═══════════ -->
+                @if (availableUnits.Count > 0)
+                {
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <i class="bi bi-journal-text"></i>
+                            Модулі
+                        </h2>
+
+                        <div class="units-list">
+                            @foreach (var unit in availableUnits)
+                            {
+                                var selected = selectedUnitIds.Contains(unit.Id);
+                                <div class="unit-item @(selected ? "unit-item--selected" : "")"
+                                     @onclick="@(() => ToggleUnit(unit.Id))">
+                                    <i class="bi @(selected ? "bi-check-square-fill" : "bi-square") unit-check"></i>
+                                    <div class="unit-item__body">
+                                        <span class="unit-item__title">@unit.Title</span>
+                                        <span class="unit-item__meta">@(unit.Words?.Count ?? 0) слів</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="select-row">
+                            <button class="btn-link" @onclick="SelectAll">Вибрати всі</button>
+                            <span class="select-row__sep">·</span>
+                            <button class="btn-link" @onclick="ClearAll">Зняти всі</button>
+                            <span class="select-row__count">Обрано: @selectedUnitIds.Count</span>
+                        </div>
+                    </div>
+                }
+
+                <!-- ═══════════ OPTIONS ═══════════ -->
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <i class="bi bi-sliders"></i>
+                        Параметри
+                    </h2>
+
+                    <InputTextWithSuffix @bind-Value="exportFileName"
+                                         Label="Ім'я файлу"
+                                         Suffix=".zip"
+                                         Placeholder="my_course" />
+
+                    <div class="checkbox-group">
+                        <InputCheckboxField @bind-Value="options.IncludeExamples"
+                            Label="Приклади використання"
+                            Icon="bi-file-text" />
+                        <InputCheckboxField @bind-Value="options.IncludeLearningProgress"
+                            Label="Прогрес вивчення"
+                            Icon="bi-tags" />
+                    </div>
+
+                    @if (exportError != null)
+                    {
+                        <div class="alert alert-error">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <div>
+                                <strong>Помилка:</strong>
+                                <p>@exportError</p>
+                            </div>
+                        </div>
+                    }
+
+                    @if (exportSuccess != null)
+                    {
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle"></i>
+                            <div><p>@exportSuccess</p></div>
+                        </div>
+                    }
+
+                    <div class="form-actions">
+                        <button class="btn-submit"
+                                @onclick="ExportToZip"
+                                disabled="@(selectedUnitIds.Count == 0 || isProcessing)">
+                            @if (isProcessing)
+                            {
+                                <span class="spinner"></span>
+                                <text>Пакування...</text>
+                            }
+                            else
+                            {
+                                <i class="bi bi-download"></i>
+                                <text>Експортувати ZIP (@selectedUnitIds.Count)</text>
+                            }
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+</PageShell>
+
+@code {
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = BreadcrumbBuilder.Create().WithHome().WithActive("Експорт курсу").Build();
+
+    private List<CourseModel> availableCourses = [];
+    private List<UnitModel>   availableUnits   = [];
+    private HashSet<int>      selectedUnitIds  = [];
+    private CourseModel?      selectedCourse;
+
+    private int    selectedCourseId = 0;
+    private string exportFileName   = $"course_export_{DateTime.Now:yyyy-MM-dd}";
+
+    private readonly UnitBackupOptions options = new();
+
+    private bool    isProcessing = false;
+    private string? exportError;
+    private string? exportSuccess;
+
+    protected override async Task OnInitializedAsync()
+    {
+        availableCourses = (await CourseService.GetAllAsync()).ToList();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            (function() {
+                document.addEventListener('focusin', function(e) {
+                    const el = e.target;
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
+                        setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+                    }
+                });
+            })();
+        ");
+    }
+
+    private async Task OnCourseChanged()
+    {
+        selectedCourse  = null;
+        availableUnits  = [];
+        selectedUnitIds = [];
+        exportError     = null;
+        exportSuccess   = null;
+
+        if (selectedCourseId == 0) return;
+
+        selectedCourse = availableCourses.FirstOrDefault(c => c.Id == selectedCourseId);
+        availableUnits = (await CourseService.GetUnitsAsync(selectedCourseId)).ToList();
+        selectedUnitIds = availableUnits.Select(u => u.Id).ToHashSet();
+
+        if (selectedCourse != null)
+            exportFileName = CourseZipBackupService.SanitizeFileName(selectedCourse.Title)
+                             + $"_{DateTime.Now:yyyy-MM-dd}";
+
+        StateHasChanged();
+    }
+
+    private void ToggleUnit(int id)
+    {
+        if (!selectedUnitIds.Remove(id))
+            selectedUnitIds.Add(id);
+    }
+
+    private void SelectAll() => selectedUnitIds = availableUnits.Select(u => u.Id).ToHashSet();
+    private void ClearAll()  => selectedUnitIds.Clear();
+
+    private async Task ExportToZip()
+    {
+        if (selectedCourse is null || selectedUnitIds.Count == 0) return;
+
+        isProcessing  = true;
+        exportError   = null;
+        exportSuccess = null;
+
+        try
+        {
+            var orderedIds    = availableUnits.Where(u => selectedUnitIds.Contains(u.Id)).Select(u => u.Id);
+            var unitsToExport = new List<UnitModel>();
+
+            foreach (var id in orderedIds)
+                unitsToExport.Add(await UnitService.GetByIdAsync(id, UnitIncludes.Full));
+
+            var zipBytes = await ZipBackupService.ExportCourseToZipAsync(
+                selectedCourse, unitsToExport, options);
+
+            var fileName = $"{exportFileName}.zip";
+            var success  = await FileService.SaveFileBytesAsync(fileName, zipBytes, "application/zip");
+
+            if (success)
+            {
+                int totalWords = unitsToExport.Sum(u => u.Words?.Count ?? 0);
+                int totalAudio = unitsToExport.Sum(u => u.Words?.Count(w => w.Pronunciation != null) ?? 0);
+                exportSuccess  = $"Збережено «{fileName}»: {unitsToExport.Count} модулів, "
+                                 + $"{totalWords} слів, {totalAudio} аудіофайлів.";
+            }
+            else
+            {
+                exportError = "Не вдалося зберегти файл. Спробуйте ще раз.";
+            }
+        }
+        catch (Exception ex)
+        {
+            // AutoMapper wraps the real cause in an "Error mapping types" exception, so the outer
+            // message says which member failed but never why -- show the innermost message instead.
+            exportError = $"Помилка експорту: {ex.GetBaseException().Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+}
+
+<style>
+.page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .page-description { color: var(--text-secondary); font-size: 1rem; margin: 0; }
+
+.form-section { display: flex; flex-direction: column; gap: 0.75rem; }
+    .form-section:not(:last-child) { margin-bottom: 2rem; }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+.info-card {
+        background: var(--surface-alt);
+        border: 1px solid #e8eaed;
+        border-radius: 10px;
+        padding: 0.875rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .info-row { display: flex; gap: 1rem; font-size: 0.9rem; align-items: baseline; }
+    .info-label { flex: 0 0 100px; color: var(--text-secondary); font-weight: 500; }
+    .info-value { color: var(--text-primary); }
+    .info-value--mono { font-family: monospace; font-size: 0.78rem; color: #555; word-break: break-all; }
+
+    .units-list { display: flex; flex-direction: column; gap: 0.4rem; }
+
+    .unit-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.7rem 1rem;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: border-color 0.15s, background 0.15s;
+        user-select: none;
+    }
+
+    .unit-item:hover { background: rgba(163,191,250,0.05); border-color: #c5d4f8; }
+    .unit-item--selected { border-color: #A3BFFA; background: rgba(163,191,250,0.08); }
+
+    .unit-check { font-size: 1.1rem; color: #ccc; flex-shrink: 0; transition: color 0.15s; }
+    .unit-item--selected .unit-check { color: #5a7fb8; }
+
+    .unit-item__body { flex: 1; display: flex; flex-direction: column; gap: 0.15rem; }
+    .unit-item__title { font-weight: 600; color: var(--text-primary); font-size: 0.95rem; }
+    .unit-item__meta  { font-size: 0.8rem; color: #888; }
+
+    .select-row {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.85rem;
+        color: #888;
+        padding-top: 0.1rem;
+    }
+
+    .select-row__sep { color: #ccc; }
+    .select-row__count { margin-left: auto; }
+
+    .btn-link {
+        background: none;
+        border: none;
+        padding: 0;
+        color: #5a7fb8;
+        font-size: 0.85rem;
+        cursor: pointer;
+        text-decoration: underline;
+    }
+
+    .btn-link:hover { color: #3558a8; }
+
+    .checkbox-group { display: flex; flex-direction: column; gap: 0; }
+
+    .form-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem; }
+
+    .btn-submit {
+        padding: 0.875rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: none;
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        color: white;
+        box-shadow: 0 4px 12px rgba(163,191,250,0.3);
+        transition: all 0.2s;
+    }
+
+    .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(163,191,250,0.4); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,0.5);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s linear infinite;
+        flex-shrink: 0;
+    }
+
+    @@keyframes spin { to { transform: rotate(360deg); } }
+
+    .alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        border-radius: 10px;
+        border: 1px solid;
+    }
+
+    .alert i { font-size: 1.25rem; flex-shrink: 0; margin-top: 0.125rem; }
+    .alert div { flex: 1; }
+    .alert strong { display: block; margin-bottom: 0.25rem; }
+    .alert p { margin: 0; }
+
+    .alert-success { background: rgba(181,234,215,0.15); color: #155724; border-color: rgba(181,234,215,0.5); }
+    .alert-success i { color: #28a745; }
+
+    .alert-error { background: rgba(220,53,69,0.1); color: #721c24; border-color: rgba(220,53,69,0.3); }
+    .alert-error i { color: #dc3545; }
+
+    @@media (max-width: 768px) {
+
+        .form-container { padding: 1.25rem; }
+
+        .info-row { gap: 0.1rem; }
+        .btn-submit { width: 100%; justify-content: center; }
+    }
+</style>

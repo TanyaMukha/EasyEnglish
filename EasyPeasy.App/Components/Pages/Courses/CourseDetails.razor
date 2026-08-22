@@ -1,0 +1,225 @@
+@page "/courses/{id:int}"
+
+@using EasyPeasy.App.Components.Shared
+@using EasyPeasy.App.Models
+@using EasyPeasy.App.Services
+@inject NavigationManager NavigationManager
+@using EasyPeasy.App.Components.Shared.Breadcrumb
+
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Full">
+    <div class="header-section">
+
+        <div class="title-section">
+            <h1 class="page-title">
+                <img class="course-flag" src="@LanguageFlagHelper.GetFlagIconPath(course.LanguageCode)" title="@course.LanguageCode" alt="@course.LanguageCode" />
+                @course.Title
+            </h1>
+            <div class="title-actions">
+                <a href="/courses/@course.Id/practice" class="btn-cancel" title="Практикувати курс">
+                    <i class="bi bi-play-fill"></i>
+                    Практикувати курс
+                </a>
+                <a href="/courses/@course.Id/edit" class="btn-edit" title="Редагувати">
+                    <i class="bi bi-pencil"></i>
+                </a>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(course.Description))
+        {
+            <p class="page-description">@course.Description</p>
+        }
+    </div>
+
+    <div class="units-grid">
+        @foreach (var unit in AvailableUnits)
+        {
+            <UnitPreviewCard Id="@unit.Id"
+                             Title="@unit.Title"
+                             Description="@unit.Description"
+                             ItemsCount="@unit.TotalCount"
+                             WordCount="@unit.WordCount"
+                             IrregularFormCount="@unit.IrregularFormCount"
+                             StudyCardCount="@unit.StudyCardCount"
+                             TestCardCount="@unit.TestCardCount"
+                             GreenRateCount="@Percent(unit.EasyCount, unit.TotalCount)"
+                             YellowRateCount="@Percent(unit.MediumCount, unit.TotalCount)"
+                             RedRateCount="@Percent(unit.HardCount, unit.TotalCount)"
+                             IsEditable="true"
+                             GoToViewPage="@((id) => NavigateToPage($"/courses/{course.Id}/units/{id}"))"
+                             GoToEditPage="@GoToEditPage"
+                             RemoveItem="@RemoveUnit"
+                             GoToLearningPage="GoToLearningPage" />
+        }
+    </div>
+    <div class="units-grid">
+        <UnitShortForm CourseId="@course.Id"
+        OnUnitCreated="@(async () => await LoadData())" />
+    </div>
+</PageShell>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    /// <summary>
+    /// Share of <paramref name="count"/> items within the unit, as a percentage for the progress bar.
+    /// Float division on purpose: <c>count / total</c> on two ints truncates to 0 for every mixed unit
+    /// and to 1 only when a single bucket holds everything, which made the bar either empty or full.
+    /// </summary>
+    private static float Percent(int count, int total) => total > 0 ? count * 100f / total : 0f;
+
+    public CourseModel course { get; set; } = new();
+    private List<UnitCardModel> AvailableUnits { get; set; } = new();
+    private string Level { get; set; } = string.Empty;
+    private UnitModel newUnit { get; set; } = new();
+
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        course = await CourseService.GetByIdAsync(Id) ?? new CourseModel();
+        AvailableUnits = (await UnitService.GetUnitCardsAsync(Id)).ToList();
+        ResetNewUnit();
+
+        breadcrumbs = BreadcrumbBuilder.Create()
+            .WithHome()
+            .WithLink("Курси", "/courses")
+            .WithActive(course.Title)
+            .Build();
+    }
+
+    private async Task LoadData()
+    {
+        AvailableUnits = (await UnitService.GetUnitCardsAsync(Id)).ToList();
+        StateHasChanged();
+    }
+
+    private void ResetNewUnit()
+    {
+        newUnit = new UnitModel
+        {
+            CourseId = Id
+        };
+    }
+
+    private async Task HandleCreateUnit()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(newUnit.Title))
+            {
+                return;
+            }
+
+            await UnitService.CreateAsync(newUnit);
+            await LoadData();
+            ResetNewUnit();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating word list: {ex.Message}");
+        }
+    }
+
+    private async Task UpdateTitle(string newTitle)
+    {
+        if (course.Title != newTitle)
+        {
+            course.Title = newTitle;
+            await CourseService.UpdateAsync(course.Id, course);
+        }
+    }
+
+    private async Task UpdateDescription(string newDescription)
+    {
+        if (course.Description != newDescription)
+        {
+            course.Description = newDescription;
+            await CourseService.UpdateAsync(course.Id, course);
+        }
+    }
+
+    private void GoToEditPage(int id)
+    {
+        NavigateToPage($"/courses/{course.Id}/units/{id}/edit");
+    }
+
+    private void GoToLearningPage(int id)
+    {
+        NavigateToPage($"/courses/{course.Id}/units/{id}/words/practice");
+    }
+
+    private async Task RemoveUnit(int id)
+    {
+        var unit = AvailableUnits.FirstOrDefault(u => u.Id == id);
+
+        if (!await Confirmation.ConfirmDeleteAsync("модуль", unit?.Title,
+                "Разом із модулем зникнуть усі його слова та картки."))
+            return;
+
+        try
+        {
+            await UnitService.DeleteAsync(id);
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting word list: {ex.Message}");
+        }
+    }
+
+    private void AutoResizeTextarea(ChangeEventArgs e)
+    {
+        StateHasChanged();
+    }
+
+    private void NavigateToPage(string url)
+    {
+        NavigationManager.NavigateTo(url);
+    }
+}
+
+<style>
+    .header-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .course-flag {
+        width: 40px;
+        height: 30px;
+        object-fit: cover;
+        border-radius: 4px;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .title-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-shrink: 0;
+    }
+
+    .units-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    @@media (max-width: 768px) {
+        .units-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (min-width: 769px) and (max-width: 1200px) {
+        .units-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>

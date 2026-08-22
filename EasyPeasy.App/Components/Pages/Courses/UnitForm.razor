@@ -1,0 +1,127 @@
+@page "/courses/{CourseId:int}/units/{UnitId:int}/edit"
+@page "/courses/{CourseId:int}/units/create"
+@using System.Dynamic
+@using EasyPeasy.App.Components.Shared
+@using EasyPeasy.App.Components.Shared.Breadcrumb
+
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Full">
+    <div class="header-section">
+
+        <h1 class="page-title">
+            <i class="bi @(IsEditMode ? "bi-pencil" : "bi-plus-circle")"></i>
+            @(IsEditMode ? "Edit" : "Create") Unit
+        </h1>
+    </div>
+
+    <div class="form-container">
+        <EditForm Model="unit" OnValidSubmit="HandleValidSubmit" class="edit-form">
+            <DataAnnotationsValidator />
+
+            <div class="form-section">
+                <h2 class="section-title">
+                    <i class="bi bi-info-circle"></i>
+                    Основна інформація
+                </h2>
+
+                <InputSelectField @bind-Value="unit.CourseId"
+                                  Label="Course">
+                    @foreach (CourseModel course in Courses)
+                    {
+                            <option value="@course.Id">@course.Title</option>
+                    }
+                </InputSelectField>
+                <ValidationMessage For="() => unit.CourseId" class="validation-message" />
+
+                <InputTextField @bind-Value="unit.Title"
+                                Label="Назва модулю" />
+                <ValidationMessage For="@(() => unit.Title)" class="validation-message" />
+
+                <InputMultilineField @bind-Value="unit.Description"
+                                     Label="Опис"
+                                     Rows="2" />
+                <ValidationMessage For="@(() => unit.Description)" class="validation-message" />
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title">
+                    <i class="bi bi-file-text"></i>
+                    Контент (HTML)
+                </h2>
+
+                <HtmlEditor @bind-Value="unit.Content"
+                                Placeholder="Введіть контент модуля у форматі HTML..." />
+                <ValidationMessage For="@(() => unit.Content)" class="validation-message" />
+            </div>
+
+            <div class="form-actions">
+                <a href="@("/courses" + (CourseId > 0 ? "/" + CourseId : ""))" class="btn-cancel">
+                    <i class="bi bi-x-lg"></i>
+                    Скасувати
+                </a>
+                <button type="submit" class="btn-submit">
+                    <i class="bi @(IsEditMode ? "bi-check-lg" : "bi-plus-lg")"></i>
+                    @(IsEditMode ? "Оновити" : "Створити")
+                </button>
+            </div>
+        </EditForm>
+    </div>
+</PageShell>
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+    [Parameter] public int UnitId { get; set; } = 0;
+
+    public UnitModel unit { get; set; } = new();
+    public List<CourseModel> Courses { get; set; } = new();
+
+    private readonly List<(string, string)> levels = LanguageLevels.GetAll().ToList();
+    private bool IsEditMode => UnitId > 0;
+
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsEditMode)
+        {
+            unit = await UnitService.GetByIdAsync(UnitId, ["Course"])
+                ?? new UnitModel { CourseId = CourseId };
+            BrowserConsole.LogInfoAsync($"✅ Unit : {JsonSerializer.Serialize(unit)}");
+        }
+        else
+        {
+            unit = new UnitModel { CourseId = CourseId };
+        }
+
+        Courses = (await CourseService.GetAllAsync()).ToList();
+
+        breadcrumbs = BreadcrumbBuilder.Create()
+            .WithHome()
+            .WithLink("Курси", "/courses")
+            .WithLink(unit.Course.Title, $"/courses/{CourseId}")
+            .WithLink(unit.Title, $"/courses/{CourseId}/units/{unit.Id}")
+            .Build();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            if (IsEditMode)
+            {
+                BrowserConsole.LogInfoAsync($"✅ Unit : {JsonSerializer.Serialize(unit)}");
+                await UnitService.UpdateAsync(unit.Id, unit);
+            }
+            else
+            {
+                Console.WriteLine($"New Word List: {unit}");
+                await UnitService.CreateAsync(unit);
+            }
+
+            NavigationManager.NavigateTo($"/courses/{unit.CourseId}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving word list: {ex.Message}");
+        }
+    }
+}

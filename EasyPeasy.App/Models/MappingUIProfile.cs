@@ -1,0 +1,53 @@
+﻿using AutoMapper;
+using EasyPeasy.Core.Interfaces.Services;
+using EasyPeasy.Core.Models;
+
+namespace EasyPeasy.App.Models;
+
+/// <summary>
+/// AutoMapper profile configuration for mapping between entities and models.
+/// </summary>
+public class MappingUIProfile : Profile
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MappingUIProfile"/> class
+    /// and configures entity-model mappings.
+    /// </summary>
+    public MappingUIProfile()
+    {
+        //CreateMap<UnitModel, UnitTestModel>()
+        //    .ForMember(dest => dest.WordCount,
+        //        opt => opt.MapFrom(src => src.Words != null ? src.Words.Count : 0))
+        //    .ForMember(dest => dest.CourseName,
+        //        opt => opt.MapFrom(src => src.Course != null ? src.Course.Title : null));
+
+        CreateMap<WordModel, WordTestModel>()
+            .ForMember(dest => dest.CourseId,
+                opt => opt.MapFrom(src => src.Unit != null ? src.Unit.CourseId : 0))
+            .ForMember(dest => dest.Examples, opt => opt.MapFrom(src => src.Examples))
+            .ForMember(dest => dest.Unit, opt => opt.Ignore())
+            // Явно скидаємо AfterMap який міг успадкуватись з WordModel→WordModel
+            .AfterMap((src, dest, ctx) => { });
+
+        CreateMap<WordTestModel, UpdateWordRateRequest>();
+
+        CreateMap<IrregularFormModel, IrregularFormTestModel>()
+            // Явно скидаємо AfterMap який міг успадкуватись з IrregularFormModel→IrregularFormModel
+            .AfterMap((src, dest, ctx) => { });
+
+        CreateMap<IrregularFormTestModel, UpdateWordRateRequest>();
+
+        CreateMap<ExampleModel, ExampleTestModel>()
+            .ForMember(dest => dest.TestWord, opt => opt.Ignore());
+
+        CreateMap<StudyCardModel, StudyCardTestModel>()
+            .ForMember(dest => dest.Unit, opt => opt.Ignore());
+
+        CreateMap<StudyCardTestModel, UpdateWordRateRequest>();
+
+        CreateMap<TestCardModel, TestCardTestModel>()
+            .ForMember(dest => dest.Unit, opt => opt.Ignore());
+
+        CreateMap<TestCardTestModel, UpdateWordRateRequest>();
+    }
+}

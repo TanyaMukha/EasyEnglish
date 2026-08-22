@@ -1,0 +1,345 @@
+﻿@namespace EasyPeasy.App.Components.Shared
+
+@using Microsoft.JSInterop
+
+<div class="form-field-inline">
+    <div class="input-wrapper">
+        <InputText @ref="inputRef"
+                   Value="@Value"
+                   ValueChanged="@HandleValueChanged"
+                   ValueExpression="@(() => Value)"
+                   class="inline-input with-button"
+                   @onfocus="@HandleFocus"
+                   @onblur="@HandleBlur"
+                   id="@inputId" />
+        <label for="@inputId"
+               class="@GetLabelClass()">
+            @Label
+        </label>
+        <button type="button"
+                class="keyboard-button"
+                @onclick="ToggleKeyboard"
+                tabindex="-1">
+            <i class="bi bi-keyboard me-2"></i>
+        </button>
+    </div>
+
+    @if (showKeyboard)
+    {
+        <div class="ipa-keyboard">
+            <div class="keyboard-header">
+                <span>IPA Symbols</span>
+                <button type="button" class="close-button" @onclick="CloseKeyboard">✕</button>
+            </div>
+            <div class="keyboard-content">
+                @foreach (var group in ipaSymbols)
+                {
+                    <div class="symbol-group">
+                        <div class="group-title">@group.Key</div>
+                        <div class="symbols">
+                            @foreach (var symbol in group.Value)
+                            {
+                                <button type="button"
+                                        class="symbol-button"
+                                        @onclick="() => InsertSymbol(symbol)">
+                                    @symbol
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @* <ValidationMessage For="@(() => Value)" class="validation-message" /> *@
+</div>
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    [Parameter] public string Label { get; set; } = string.Empty;
+
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+
+    private InputText? inputRef;
+    private bool isFocused = false;
+    private bool showKeyboard = false;
+    private string inputId = $"input-{Guid.NewGuid():N}";
+    private string? currentValue;
+
+    // IPA символи для англійської мови
+    private Dictionary<string, string[]> ipaSymbols = new()
+        {
+            ["Vowels"] = new[] { "iː", "ɪ", "e", "æ", "ɑː", "ɒ", "ɔː", "ʊ", "uː", "ʌ", "ɜː", "ə" },
+            ["Diphthongs"] = new[] { "eɪ", "aɪ", "ɔɪ", "aʊ", "əʊ", "ɪə", "eə", "ʊə" },
+            ["Consonants"] = new[] { "p", "b", "t", "d", "k", "ɡ", "f", "v", "θ", "ð", "s", "z", "ʃ", "ʒ", "h" },
+            ["Other"] = new[] { "tʃ", "dʒ", "m", "n", "ŋ", "l", "r", "j", "w", "ˈ", "ˌ" }
+        };
+
+    protected override void OnParametersSet()
+    {
+        currentValue = Value;
+    }
+
+    private bool HasValue => !string.IsNullOrWhiteSpace(currentValue);
+
+    private string GetLabelClass()
+    {
+        return (isFocused || HasValue || showKeyboard) ? "floating-label active" : "floating-label";
+    }
+
+    private void HandleFocus()
+    {
+        isFocused = true;
+    }
+
+    private void HandleBlur()
+    {
+        isFocused = false;
+    }
+
+    private void ToggleKeyboard()
+    {
+        showKeyboard = !showKeyboard;
+    }
+
+    private void CloseKeyboard()
+    {
+        showKeyboard = false;
+    }
+
+    private async Task InsertSymbol(string symbol)
+    {
+        var newValue = (currentValue ?? "") + symbol;
+        currentValue = newValue;
+        await ValueChanged.InvokeAsync(newValue);
+
+        // Фокус на input після вставки
+        if (inputRef?.Element != null)
+        {
+            await JSRuntime.InvokeVoidAsync("eval", $"document.getElementById('{inputId}').focus()");
+        }
+    }
+
+    private async Task HandleValueChanged(string? newValue)
+    {
+        currentValue = newValue;
+        await ValueChanged.InvokeAsync(newValue);
+    }
+}
+
+<style>
+    .form-field-inline {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .inline-input {
+        width: 100%;
+        border: none;
+        border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+        padding: 1.5rem 0.5rem 0.5rem 0.5rem;
+        background: transparent;
+        outline: none;
+        transition: border-color 0.2s;
+        font-size: 1rem;
+        color: var(--text-primary);
+        font-family: inherit;
+        box-shadow: none;
+    }
+
+    .inline-input.with-button {
+        padding-right: 2.5rem;
+    }
+
+    .inline-input:focus {
+        border-bottom-color: #A3BFFA;
+        box-shadow: none;
+    }
+
+    .inline-input:hover:not(:focus) {
+        border-bottom-color: rgba(0, 0, 0, 0.2);
+    }
+
+    .floating-label {
+        position: absolute;
+        left: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 1rem;
+        pointer-events: none;
+        transition: all 0.2s ease-out;
+        background: transparent;
+    }
+
+    .floating-label.active {
+        top: 0.5rem;
+        transform: translateY(0);
+        font-size: 0.75rem;
+        color: #A3BFFA;
+    }
+
+    .inline-input:focus ~ .floating-label {
+        color: #A3BFFA;
+    }
+
+    .keyboard-button {
+        position: absolute;
+        right: 0;
+        bottom: 0.5rem;
+        background: transparent;
+        border: none;
+        font-size: 1.25rem;
+        cursor: pointer;
+        padding: 0.25rem 0.5rem;
+        color: var(--text-secondary);
+        transition: color 0.2s;
+    }
+
+    .keyboard-button:hover {
+        color: #A3BFFA;
+    }
+
+    .keyboard-button:active {
+        transform: scale(0.95);
+    }
+
+    .ipa-keyboard {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        margin-top: 0.5rem;
+        background: var(--surface);
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        /* max-height: 400px; */
+        overflow-y: auto;
+    }
+
+    .keyboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #eee;
+        background: var(--surface-alt);
+        border-radius: 8px 8px 0 0;
+        font-weight: 600;
+    }
+
+    .close-button {
+        background: transparent;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--text-secondary);
+        padding: 0;
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+    }
+
+    .close-button:hover {
+        background: #e9ecef;
+        color: var(--text-primary);
+    }
+
+    .keyboard-content {
+        padding: 1rem;
+    }
+
+    .symbol-group {
+        margin-bottom: 1rem;
+    }
+
+    .symbol-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .group-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .symbols {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .symbol-button {
+        min-width: 2.5rem;
+        height: 2.5rem;
+        padding: 0.5rem;
+        background: var(--surface-alt);
+        border: 1px solid var(--border-muted);
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1.1rem;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .symbol-button:hover {
+        background: #e9ecef;
+        border-color: #A3BFFA;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .symbol-button:active {
+        transform: translateY(0);
+        box-shadow: none;
+    }
+
+    .validation-message {
+        color: #e53e3e;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    /* Мобільні стилі */
+    @@media (max-width: 768px) {
+        .ipa-keyboard {
+            position: fixed;
+            top: auto;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            margin: 0;
+            border-radius: 16px 16px 0 0;
+            max-height: 60vh;
+        }
+
+        .keyboard-header {
+            border-radius: 16px 16px 0 0;
+        }
+
+        .symbol-button {
+            min-width: 3rem;
+            height: 3rem;
+            font-size: 1.2rem;
+        }
+    }
+</style>

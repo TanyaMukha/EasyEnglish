@@ -1,0 +1,136 @@
+@page "/courses"
+@using System.Dynamic
+@using EasyPeasy.Core.Presets
+@using System.Collections.Generic
+@using EasyPeasy.App.Components.Shared
+@using EasyPeasy.App.Components.Shared.Breadcrumb
+@using Microsoft.Extensions.Logging
+@using MukhaLab.Database
+@inject ILogger<Index> Logger
+
+<PageShell Title="Курси" Breadcrumbs="breadcrumbs" Width="PageWidth.Full">
+
+    <div class="courses-grid">
+        @foreach (var course in AvailableCourses)
+        {
+            <PreviewCard
+                Id="@course.Id"
+                Title="@course.Title"
+                Description="@course.Description"
+                ItemsCount="@course.Units.Count"
+                IsEditable="true"
+                BadgeText="@course.Subject?.Title"
+                         GoToViewPage="@((id) => NavigationManager.NavigateTo($"/courses/{id}"))"
+                GoToEditPage="GoToEditPage"
+                RemoveItem="RemoveCourse"
+            >
+                <AdditionalMainContent>
+                    <img class="course-flag" src="@LanguageFlagHelper.GetFlagIconPath(course.LanguageCode)" title="@course.LanguageCode" alt="@course.LanguageCode" />
+                </AdditionalMainContent>
+            </PreviewCard>
+        }
+
+        <CourseShortForm OnCourseCreated="@(async () => await LoadData())" />
+    </div>
+</PageShell>
+
+@code {
+    private IEnumerable<CourseModel>? AvailableCourses = [];
+    private string? errorMessage;
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = BreadcrumbBuilder.Create().WithHome().WithActive("Курси").Build();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    /// <summary>
+    /// Newest first — the course you added last is the one you are most likely to open.
+    /// Id breaks ties, since courses imported together share a creation timestamp.
+    /// </summary>
+    private static IEnumerable<CourseModel> Newest(IEnumerable<CourseModel> courses) =>
+        courses.OrderByDescending(c => c.CreatedAt).ThenByDescending(c => c.Id).ToList();
+
+    private async Task LoadData()
+    {
+        try
+        {
+            AvailableCourses = Newest(await CourseService.GetAllAsync(CourseIncludes.Full));
+            BrowserConsole.LogInfoAsync($"Loaded {AvailableCourses?.Count() ?? 0} courses");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading courses: {ex.Message}";
+            BrowserConsole.LogErrorAsync("Failed to load courses", ex);
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    private void GoToEditPage(int id)
+    {
+        NavigationManager.NavigateTo($"/courses/{id}/edit");
+    }
+
+    private async Task RemoveCourse(int id)
+    {
+        var course = AvailableCourses?.FirstOrDefault(c => c.Id == id);
+
+        if (!await Confirmation.ConfirmDeleteAsync("курс", course?.Title,
+                "Разом із курсом зникнуть усі його модулі та їхній вміст."))
+            return;
+
+        try
+        {
+            await CourseService.DeleteAsync(id);
+            AvailableCourses = Newest(await CourseService.GetAllAsync());
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting word list: {ex.Message}");
+        }
+    }
+
+    private async Task RefreshCourses()
+    {
+        await LoadData();
+    }
+}
+
+<style>
+    .course-flag {
+        width: 28px;
+        height: 21px;
+        object-fit: cover;
+        border-radius: 3px;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .courses-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+    }
+
+    @@media (max-width: 768px) {
+        .courses-page {
+            padding: 1.5rem 1rem;
+        }
+
+        .courses-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+    }
+
+    @@media (min-width: 769px) and (max-width: 1024px) {
+        .courses-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>

@@ -1,0 +1,183 @@
+@* AnswerInputSection.razor - Компонент для введення відповіді вручну *@
+
+@using EasyPeasy.App.Components.Shared
+
+@if (!isAnswerSubmitted)
+{
+    <div class="input-section">
+        @* enterkeyhint puts "Готово" on the on-screen keyboard; Enter submits either way *@
+        <input type="text"
+               class="input-field"
+               placeholder="Введіть англійське слово"
+               @ref="_inputRef"
+               @bind="userInput"
+               @bind:event="oninput"
+               @onkeyup="@(async e => { if (e.Key == "Enter") await CheckAnswer(); })"
+               enterkeyhint="done"
+               autocomplete="off"
+               autocapitalize="none"
+               spellcheck="false" />
+        <button class="btn-submit" @onclick="CheckAnswer">
+            <i class="bi bi-check-lg"></i>
+            Перевірити
+        </button>
+    </div>
+}
+
+@if (isAnswerSubmitted)
+{
+    <div class="feedback @alertClass">
+        <i class="bi @(alertClass == "success" ? "bi-check-circle" : "bi-x-circle")"></i>
+        @((MarkupString)ExampleMarkdownService.RenderMarkdown(feedbackMessage ?? ""))
+    </div>
+}
+
+@code {
+    [Parameter] public bool                isAnswerSubmitted { get; set; }
+    [Parameter] public string              CorrectAnswer     { get; set; } = "";
+
+    /// <summary>
+    /// Необов'язковий список прийнятних варіантів відповіді. Якщо заданий і не порожній,
+    /// перевірка йде по належності до цього списку замість порівняння з CorrectAnswer.
+    /// </summary>
+    [Parameter] public IReadOnlyList<string>? AcceptableAnswers { get; set; }
+
+    [Parameter] public EventCallback<bool> OnAnswerSubmitted { get; set; }
+
+    private string? userInput;
+    private string? feedbackMessage;
+    private string  alertClass = "warning";
+
+    private ElementReference _inputRef;
+    private bool             _focusPending = true;
+
+    /// <summary>Which card the field was focused for — a new expected answer means a new card.</summary>
+    private string? _focusedFor;
+
+    /// <summary>
+    /// The field takes focus as soon as a card appears, so the on-screen keyboard is already up —
+    /// the learner types straight away instead of tapping the field first.
+    /// </summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_focusPending || isAnswerSubmitted)
+            return;
+
+        _focusPending = false;
+        await _inputRef.FocusAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        // Only when the card actually changed — re-focusing on every render would fight the caret.
+        if (isAnswerSubmitted || _focusedFor == CorrectAnswer)
+            return;
+
+        _focusedFor   = CorrectAnswer;
+        _focusPending = true;
+    }
+
+    private async Task CheckAnswer()
+    {
+        var trimmedInput = userInput?.Trim();
+
+        // AnswerMatcher, not string equality: articles, a leading "to", bracketed parts and
+        // sb/sth spellings are all optional for the learner (see AnswerMatcher for the rules).
+        var isCorrect = AcceptableAnswers is { Count: > 0 }
+            ? AcceptableAnswers.Any(a => AnswerMatcher.Matches(a, trimmedInput))
+            : AnswerMatcher.Matches(CorrectAnswer, trimmedInput);
+
+        feedbackMessage = isCorrect
+            ? "Правильно! Чудова робота!"
+            : (userInput?.Length > 0
+                ? $"Неправильно. Ваша відповідь: **{userInput}**"
+                : "Неправильно. Ви не ввели відповідь");
+        alertClass = isCorrect ? "success" : "error";
+        userInput  = "";
+
+        await OnAnswerSubmitted.InvokeAsync(isCorrect);
+        StateHasChanged();
+    }
+}
+
+<style>
+    .input-section {
+        margin-top: 2rem;
+        width: 100%;
+    }
+
+    .input-field {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.1rem;
+        border: 2px solid var(--border-muted);
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        transition: border-color 0.2s;
+    }
+
+    .input-field:focus {
+        outline: none;
+        border-color: #A3BFFA;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 1rem;
+        background: #A3BFFA;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-submit:hover {
+        background: #7B9FE8;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(123, 159, 232, 0.3);
+    }
+
+    .btn-submit:active {
+        transform: translateY(0);
+    }
+
+    .feedback {
+        margin-top: 1.5rem;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 500;
+        width: 100%;
+    }
+
+    .feedback.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .feedback.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .feedback.warning {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+    }
+
+    .feedback i {
+        font-size: 1.25rem;
+    }
+</style>

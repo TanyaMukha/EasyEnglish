@@ -1,0 +1,68 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    EasyPeasy.App is a MAUI head project (UseMaui=true, MauiIcon/MauiSplashScreen/MauiImage
+    resizetizer items, StaticWebAssets compression for its Windows RID) — referencing it directly
+    from a plain test project isn't supported by the MAUI SDK tooling (confirmed: both the
+    StaticWebAssets compression step and the Resizetizer's duplicate-icon check fail when the head
+    project is pulled in as a ProjectReference rather than built standalone). Instead, this project
+    compiles the pure-logic source files directly (no MAUI/Blazor dependency in any of them) via
+    <Compile Include>, so it never touches the MAUI toolchain. Each linked file is the single
+    production source, not a copy — edits to the real file are automatically reflected here.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>EasyPeasy.App.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EasyPeasy.Core\EasyPeasy.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Services/ root: pure logic, no MAUI dependency. -->
+    <Compile Include="..\EasyPeasy.App\Services\WordRatingCalculator.cs" Link="Sources\WordRatingCalculator.cs" />
+    <Compile Include="..\EasyPeasy.App\Services\ExampleMarkdownService.cs" Link="Sources\ExampleMarkdownService.cs" />
+    <Compile Include="..\EasyPeasy.App\Services\AnswerMatcher.cs" Link="Sources\AnswerMatcher.cs" />
+    <Compile Include="..\EasyPeasy.App\Services\EntryTextRenderer.cs" Link="Sources\EntryTextRenderer.cs" />
+    <Compile Include="..\EasyPeasy.App\Services\TextBracketsRemoverService.cs" Link="Sources\TextBracketsRemoverService.cs" />
+    <Compile Include="..\EasyPeasy.App\Services\LanguageFlagHelper.cs" Link="Sources\LanguageFlagHelper.cs" />
+    <Compile Include="..\EasyPeasy.App\Services\ImageDataUriHelper.cs" Link="Sources\ImageDataUriHelper.cs" />
+    <Compile Include="..\EasyPeasy.App\Services\ConfirmationService.cs" Link="Sources\ConfirmationService.cs" />
+
+    <!-- Models: ITestSessionItem/TestModel/etc. that WordRatingCalculator operates on. -->
+    <Compile Include="..\EasyPeasy.App\Models\Models.cs" Link="Sources\Models.cs" />
+
+    <!-- Speech/: only the two files with zero MAUI dependency (TextChunkParser + the enum it needs). -->
+    <Compile Include="..\EasyPeasy.App\Services\Speech\SpeechLanguage.cs" Link="Sources\Speech\SpeechLanguage.cs" />
+    <Compile Include="..\EasyPeasy.App\Services\Speech\TextChunkParser.cs" Link="Sources\Speech\TextChunkParser.cs" />
+
+    <!-- SpeechRecognition/: only PronunciationTextNormalizer has real logic to test. -->
+    <Compile Include="..\EasyPeasy.App\Services\SpeechRecognition\PronunciationTextNormalizer.cs" Link="Sources\SpeechRecognition\PronunciationTextNormalizer.cs" />
+
+    <!-- Drilling/Models: движок мульті-тесту і типи, на яких він стоїть.
+         Жоден із цих файлів не тягне Blazor — TestCallbacks.cs (EventCallback) свідомо не тут. -->
+    <Compile Include="..\EasyPeasy.App\Components\Pages\Drilling\Models\MultiTestEngine.cs" Link="Sources\Drilling\MultiTestEngine.cs" />
+    <Compile Include="..\EasyPeasy.App\Components\Pages\Drilling\Models\TestDefinition.cs" Link="Sources\Drilling\TestDefinition.cs" />
+    <Compile Include="..\EasyPeasy.App\Components\Pages\Drilling\Models\TestState.cs" Link="Sources\Drilling\TestState.cs" />
+    <Compile Include="..\EasyPeasy.App\Components\Pages\Drilling\Models\WordCardViewModel.cs" Link="Sources\Drilling\WordCardViewModel.cs" />
+    <Compile Include="..\EasyPeasy.App\Components\Pages\Drilling\Models\BrowseCardInfo.cs" Link="Sources\Drilling\BrowseCardInfo.cs" />
+    <Compile Include="..\EasyPeasy.App\Components\Pages\Drilling\Models\NextItemAction.cs" Link="Sources\Drilling\NextItemAction.cs" />
+  </ItemGroup>
+
+</Project>

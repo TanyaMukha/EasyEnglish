@@ -1,0 +1,446 @@
+@page "/courses/{CourseId:int}/units/{UnitId:int}/irregular-forms/{IrregularFormId:int}/edit"
+@page "/courses/{CourseId:int}/units/{UnitId:int}/irregular-forms/create"
+@using System.Dynamic
+@using EasyPeasy.App.Components.Shared
+@using EasyPeasy.App.Components.Shared.Breadcrumb
+
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Full">
+    <div class="header-section">
+
+        <h1 class="page-title">
+            <i class="bi @(IsEditMode ? "bi-pencil" : "bi-plus-circle")"></i>
+            @(IsEditMode ? "Edit" : "Create") Irregular Form
+        </h1>
+    </div>
+
+    <div class="form-container">
+        <EditForm Model="IrregularForm" OnValidSubmit="HandleValidSubmit" class="edit-form">
+            <DataAnnotationsValidator />
+        
+            <div class="form-section">
+                <h2 class="section-title">
+                    <i class="bi bi-info-circle"></i>
+                    Основна інформація
+                </h2>
+
+                <InputSelectField @bind-Value="IrregularForm.UnitId" Label="Word List">
+                    @foreach(UnitModel wordList in Units)
+                    {
+                        <option value="@wordList.Id">@wordList.Title</option>
+                    }
+                </InputSelectField>
+                <ValidationMessage For="() => IrregularForm.UnitId" />
+
+                <InputSelectField @bind-Value="IrregularForm.PartOfSpeech" Label="Part of Speech">
+                    <option value="">Select Part of Speech</option>
+                    <option value="verb">Verb (Дієслово)</option>
+                    <option value="noun">Noun (Іменник)</option>
+                    <option value="adjective">Adjective (Прикметник)</option>
+                    <option value="adverb">Adverb (Прислівник)</option>
+                </InputSelectField>
+            </div>
+
+            <!-- First Form Section -->
+            <div class="form-section">
+                <h2 class="section-title">
+                    <i class="bi bi-1-circle"></i>
+                    @GetFormLabel(1)
+                </h2>
+
+                <InputTextField @bind-Value="IrregularForm.FirstForm" Label="@GetFormLabel(1)"
+                                Hint="[частину] можна не вводити · {частину} — тільки дослівно · слово / слово — рівнозначні варіанти · «to» й артикль на початку необов’язкові" />
+
+                <InputTranscriptionField @bind-Value="IrregularForm.FirstFormTranscription" Label="Transcription" />
+
+                <InputTextField @bind-Value="IrregularForm.FirstFormTranslation" Label="Translation" />
+
+                <!-- First Form Pronunciation Audio -->
+                <label for="firstFormPronunciation" class="form-label">Pronunciation Audio</label>
+                <div class="input-group">
+                    <InputFile id="firstFormPronunciation" OnChange="HandleFirstFormPronunciationFile" class="form-control" accept="audio/*" />
+                    @if (HasFirstFormAudio)
+                    {
+                        <button type="button" class="btn btn-outline-secondary" @onclick="() => PlayAudio(1)">
+                            <i class="bi bi-play-fill"></i>
+                            Play
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" @onclick="RemoveFirstFormAudio">
+                            <i class="bi bi-trash"></i>
+                            Remove
+                        </button>
+                    }
+                </div>
+                <small class="text-muted">Upload MP3, WAV, or other audio file for pronunciation</small>
+                @if (FirstFormAudioMessage != null)
+                {
+                    <div class="alert alert-info mt-2">@FirstFormAudioMessage</div>
+                }
+            </div>
+
+            <!-- Second Form Section -->
+            <div class="form-section">
+                <h2 class="section-title">
+                    <i class="bi bi-2-circle"></i>
+                    @GetFormLabel(2)
+                </h2>
+
+                <InputTextField @bind-Value="IrregularForm.SecondForm" Label="@GetFormLabel(2)" />
+
+                <InputTranscriptionField @bind-Value="IrregularForm.SecondFormTranscription" Label="Transcription" />
+
+                <InputTextField @bind-Value="IrregularForm.SecondFormTranslation" Label="Translation" />
+
+                <!-- Second Form Pronunciation Audio -->
+                <label for="secondFormPronunciation" class="form-label">Pronunciation Audio</label>
+                <div class="input-group">
+                    <InputFile id="secondFormPronunciation" OnChange="HandleSecondFormPronunciationFile" class="form-control" accept="audio/*" />
+                    @if (HasSecondFormAudio)
+                    {
+                        <button type="button" class="btn btn-outline-secondary" @onclick="() => PlayAudio(2)">
+                            <i class="bi bi-play-fill"></i>
+                            Play
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" @onclick="RemoveSecondFormAudio">
+                            <i class="bi bi-trash"></i>
+                            Remove
+                        </button>
+                    }
+                </div>
+                <small class="text-muted">Upload MP3, WAV, or other audio file for pronunciation</small>
+                @if (SecondFormAudioMessage != null)
+                {
+                    <div class="alert alert-info mt-2">@SecondFormAudioMessage</div>
+                }
+            </div>
+
+            <!-- Third Form Section -->
+            <div class="form-section">
+                <h2 class="section-title">
+                    <i class="bi bi-3-circle"></i>
+                    @GetFormLabel(3)
+                </h2>
+
+                <InputTextField @bind-Value="IrregularForm.ThirdForm" Label="@GetFormLabel(3)" />
+
+                <InputTranscriptionField @bind-Value="IrregularForm.ThirdFormTranscription" Label="Transcription" />
+
+                <InputTextField @bind-Value="IrregularForm.ThirdFormTranslation" Label="Translation" />
+
+                <!-- Third Form Pronunciation Audio -->
+                <label for="thirdFormPronunciation" class="form-label">Pronunciation Audio</label>
+                <div class="input-group">
+                    <InputFile id="thirdFormPronunciation" OnChange="HandleThirdFormPronunciationFile" class="form-control" accept="audio/*" />
+                    @if (HasThirdFormAudio)
+                    {
+                        <button type="button" class="btn btn-outline-secondary" @onclick="() => PlayAudio(3)">
+                            <i class="bi bi-play-fill"></i>
+                            Play
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" @onclick="RemoveThirdFormAudio">
+                            <i class="bi bi-trash"></i>
+                            Remove
+                        </button>
+                    }
+                </div>
+                <small class="text-muted">Upload MP3, WAV, or other audio file for pronunciation</small>
+                @if (ThirdFormAudioMessage != null)
+                {
+                    <div class="alert alert-info mt-2">@ThirdFormAudioMessage</div>
+                }
+            </div>
+                
+            <div class="form-actions">
+                <a href="@($"/courses/{CourseId}/units/{UnitId}")" class="btn-cancel">
+                    <i class="bi bi-x-lg"></i>
+                    Скасувати
+                </a>
+                <button type="submit" class="btn-submit">
+                    <i class="bi @(IsEditMode ? "bi-check-lg" : "bi-plus-lg")"></i>
+                    @(IsEditMode ? "Оновити" : "Створити")
+                </button>
+            </div>
+        </EditForm>
+    </div>
+</PageShell>
+
+@code {
+    [Parameter] public int CourseId { get; set; } = 0;
+    [Parameter] public int UnitId { get; set; } = 0;
+    [Parameter] public int IrregularFormId { get; set; } = 0;
+
+    public IrregularFormModel IrregularForm { get; set; } = new();
+
+    public List<UnitModel> Units { get; set; } = new();
+
+    private bool IsEditMode => IrregularFormId > 0;
+
+    private bool HasFirstFormAudio => IrregularForm.FirstFormPronunciation?.Length > 0;
+    private bool HasSecondFormAudio => IrregularForm.SecondFormPronunciation?.Length > 0;
+    private bool HasThirdFormAudio => IrregularForm.ThirdFormPronunciation?.Length > 0;
+
+    private string? FirstFormAudioMessage;
+    private string? SecondFormAudioMessage;
+    private string? ThirdFormAudioMessage;
+
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsEditMode)
+        {
+            // Loading existing irregular form for editing
+            IrregularForm = await IrregularFormService.GetByIdAsync(IrregularFormId)
+                ?? new IrregularFormModel();
+            BrowserConsole.LogInfoAsync($"✅ IrregularForm : {JsonSerializer.Serialize(IrregularForm)}");
+        }
+        else
+        {
+            IrregularForm = new IrregularFormModel();
+            IrregularForm.UnitId = UnitId;
+        }
+        
+        Units = (await UnitService.GetAllAsync()).ToList();
+
+        breadcrumbs = BreadcrumbBuilder.Create()
+            .WithHome()
+            .WithLink("Курси", "/courses")
+            .WithLink(IrregularForm.Unit?.Course?.Title ?? "Курс", $"/courses/{CourseId}")
+            .WithLink(IrregularForm.Unit?.Title ?? "Unit", $"/courses/{CourseId}/units/{UnitId}")
+            .WithActive(IrregularForm.FirstForm ?? "New Irregular Form")
+            .Build();
+    }
+
+    private string GetFormLabel(int formNumber)
+    {
+        if (string.IsNullOrEmpty(IrregularForm.PartOfSpeech))
+        {
+            return formNumber switch
+            {
+                1 => "First Form (Base Form)",
+                2 => "Second Form",
+                3 => "Third Form",
+                _ => "Form"
+            };
+        }
+
+        return IrregularForm.PartOfSpeech.ToLower() switch
+        {
+            "verb" => formNumber switch
+            {
+                1 => "Infinitive (Base Form)",
+                2 => "Past Simple",
+                3 => "Past Participle",
+                _ => "Form"
+            },
+            "noun" => formNumber switch
+            {
+                1 => "Singular",
+                2 => "Plural",
+                3 => "Alternative Plural",
+                _ => "Form"
+            },
+            "adjective" => formNumber switch
+            {
+                1 => "Positive",
+                2 => "Comparative",
+                3 => "Superlative",
+                _ => "Form"
+            },
+            "adverb" => formNumber switch
+            {
+                1 => "Positive",
+                2 => "Comparative",
+                3 => "Superlative",
+                _ => "Form"
+            },
+            _ => formNumber switch
+            {
+                1 => "First Form",
+                2 => "Second Form",
+                3 => "Third Form",
+                _ => "Form"
+            }
+        };
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            if (IsEditMode)
+            {
+                BrowserConsole.LogInfoAsync($"✅ IrregularForm : {JsonSerializer.Serialize(IrregularForm)}");
+                await IrregularFormService.UpdateAsync(IrregularForm.Id, IrregularForm);
+            }
+            else
+            {
+                Console.WriteLine($"New Irregular Form: {IrregularForm}");
+                await IrregularFormService.CreateAsync(IrregularForm);
+            }
+
+            NavigationManager.NavigateTo($"/courses/{CourseId}/units/{UnitId}");
+        }
+        catch (Exception ex)
+        {
+            // Handle error - you might want to show a toast or error message
+            Console.WriteLine($"Error saving irregular form: {ex.Message}");
+        }
+    }
+
+    private async Task HandleFirstFormPronunciationFile(InputFileChangeEventArgs e)
+    {
+        await HandlePronunciationFile(e, 1);
+    }
+
+    private async Task HandleSecondFormPronunciationFile(InputFileChangeEventArgs e)
+    {
+        await HandlePronunciationFile(e, 2);
+    }
+
+    private async Task HandleThirdFormPronunciationFile(InputFileChangeEventArgs e)
+    {
+        await HandlePronunciationFile(e, 3);
+    }
+
+    private async Task HandlePronunciationFile(InputFileChangeEventArgs e, int formNumber)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            try
+            {
+                // Limit file size to 5MB
+                var maxSize = 5 * 1024 * 1024;
+                if (file.Size > maxSize)
+                {
+                    SetAudioMessage(formNumber, "File size must be less than 5MB");
+                    return;
+                }
+
+                // Read file to byte array
+                using var stream = file.OpenReadStream(maxSize);
+                using var memoryStream = new MemoryStream();
+                await stream.CopyToAsync(memoryStream);
+                
+                byte[] audioData = memoryStream.ToArray();
+
+                switch (formNumber)
+                {
+                    case 1:
+                        IrregularForm.FirstFormPronunciation = audioData;
+                        break;
+                    case 2:
+                        IrregularForm.SecondFormPronunciation = audioData;
+                        break;
+                    case 3:
+                        IrregularForm.ThirdFormPronunciation = audioData;
+                        break;
+                }
+
+                SetAudioMessage(formNumber, $"Audio file '{file.Name}' uploaded successfully");
+            }
+            catch (Exception ex)
+            {
+                SetAudioMessage(formNumber, $"Error uploading file: {ex.Message}");
+            }
+        }
+    }
+
+    private void SetAudioMessage(int formNumber, string message)
+    {
+        switch (formNumber)
+        {
+            case 1:
+                FirstFormAudioMessage = message;
+                break;
+            case 2:
+                SecondFormAudioMessage = message;
+                break;
+            case 3:
+                ThirdFormAudioMessage = message;
+                break;
+        }
+    }
+
+    private async Task PlayAudio(int formNumber)
+    {
+        try
+        {
+            switch (formNumber)
+            {
+                case 1:
+                    await AudioService.PlayAsync(IrregularForm.FirstFormPronunciation);
+                    break;
+                case 2:
+                    await AudioService.PlayAsync(IrregularForm.SecondFormPronunciation);
+                    break;
+                case 3:
+                    await AudioService.PlayAsync(IrregularForm.ThirdFormPronunciation);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            SetAudioMessage(formNumber, $"Error playing audio: {ex.Message}");
+            BrowserConsole.LogErrorAsync("Failed to play pronunciation audio", ex);
+        }
+    }
+
+    private void RemoveFirstFormAudio()
+    {
+        StopAudioSafely();
+        IrregularForm.FirstFormPronunciation = null;
+        FirstFormAudioMessage = "Audio file removed";
+    }
+
+    private void RemoveSecondFormAudio()
+    {
+        StopAudioSafely();
+        IrregularForm.SecondFormPronunciation = null;
+        SecondFormAudioMessage = "Audio file removed";
+    }
+
+    private void RemoveThirdFormAudio()
+    {
+        StopAudioSafely();
+        IrregularForm.ThirdFormPronunciation = null;
+        ThirdFormAudioMessage = "Audio file removed";
+    }
+
+    private void StopAudioSafely()
+    {
+        try
+        {
+            AudioService.Stop();
+        }
+        catch (Exception ex)
+        {
+            BrowserConsole.LogErrorAsync("Failed to stop audio playback", ex);
+        }
+    }
+}
+
+
+<style>
+
+.input-group {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .input-group .form-control {
+        flex: 1;
+    }
+
+    .input-group .btn {
+        flex-shrink: 0;
+    }
+
+    @@media (max-width: 768px) {
+
+.input-group {
+            flex-wrap: wrap;
+        }
+    }
+</style>

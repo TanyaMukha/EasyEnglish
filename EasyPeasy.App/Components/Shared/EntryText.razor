@@ -1,0 +1,25 @@
+@namespace EasyPeasy.App.Components.Shared
+@using EasyPeasy.App.Services
+
+@*
+    A dictionary entry as the learner sees it: authoring markers gone, optional parts and
+    placeholders dimmed.
+
+    The styling ships with the markup on purpose. Living in shared.css it depended on the WebView
+    picking up a new stylesheet, which hot reload does not do — the component updated, the CSS did
+    not, and the dimming silently stopped working.
+*@
+
+<span class="entry-text">@((MarkupString)EntryTextRenderer.ToHtml(Value))</span>
+
+@code {
+    [Parameter] public string? Value { get; set; }
+}
+
+<style>
+    .entry-text .entry-optional,
+    .entry-text .entry-placeholder {
+        color: var(--text-muted);
+        font-weight: inherit;
+    }
+</style>

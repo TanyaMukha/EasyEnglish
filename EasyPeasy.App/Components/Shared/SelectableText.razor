@@ -1,0 +1,138 @@
+@namespace EasyPeasy.App.Components.Shared
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<div id="@elementId" @ref="containerElement">
+    @ChildContent
+</div>
+
+@if (showSelectionMenu)
+{
+    <div class="text-selection-menu"
+         style="top: @(menuY)px; left: @(menuX)px;"
+         @onclick:stopPropagation="true">
+        <button type="button" class="selection-menu-item" @onclick="CopySelection">
+            <i class="bi bi-clipboard"></i> Скопіювати
+        </button>
+        @if (AdditionalMenuItems != null)
+        {
+            @AdditionalMenuItems
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? AdditionalMenuItems { get; set; }
+    [Parameter] public EventCallback<string> OnTextSelected { get; set; }
+
+    private ElementReference containerElement;
+    private bool showSelectionMenu = false;
+    private double menuX = 0;
+    private double menuY = 0;
+    private string elementId = $"selectable-{Guid.NewGuid():N}";
+    private DotNetObjectReference<SelectableText>? dotNetRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            dotNetRef = DotNetObjectReference.Create(this);
+            // await JSRuntime.InvokeVoidAsync("initSelectableText", elementId, dotNetRef);
+        }
+    }
+
+    [JSInvokable]
+    public void ShowMenu(double x, double y)
+    {
+        menuX = x;
+        menuY = y;
+        showSelectionMenu = true;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void HideMenu()
+    {
+        showSelectionMenu = false;
+        StateHasChanged();
+    }
+
+    private async Task CopySelection()
+    {
+        var selectedText = await JSRuntime.InvokeAsync<string>("copySelectedText");
+        if (OnTextSelected.HasDelegate)
+        {
+            await OnTextSelected.InvokeAsync(selectedText);
+        }
+        showSelectionMenu = false;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (dotNetRef != null)
+        {
+            // await JSRuntime.InvokeVoidAsync("disposeSelectableText", elementId);
+            dotNetRef.Dispose();
+        }
+    }
+}
+
+<style>
+    .text-selection-menu {
+        position: fixed;
+        background: var(--surface);
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 10000;
+        padding: 0.25rem 0;
+    }
+
+    .selection-menu-item {
+        width: 100%;
+        padding: 0.625rem 1rem;
+        border: none;
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.95rem;
+        color: var(--text-primary);
+        transition: background-color 0.2s;
+        white-space: nowrap;
+    }
+
+        .selection-menu-item:hover {
+            background: #f5f5f5;
+        }
+
+        .selection-menu-item i {
+            font-size: 1rem;
+            width: 1.25rem;
+        }
+
+    .context-menu-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 0.5rem 0;
+    }
+</style>
+
+@* <SelectableText> *@
+@*     <AdditionalMenuItems> *@
+@*         <div class="context-menu-divider"></div> *@
+@*         <button type="button" class="selection-menu-item" @onclick="SearchInDictionary"> *@
+@*             <i class="bi bi-search"></i> Знайти в словнику *@
+@*         </button> *@
+@*         <button type="button" class="selection-menu-item" @onclick="Translate"> *@
+@*             <i class="bi bi-translate"></i> Перекласти *@
+@*         </button> *@
+@*     </AdditionalMenuItems> *@
+    
+@*     <div class="alert alert-info mt-3 w-100" role="alert"> *@
+@*         @((MarkupString)ExampleMarkdownService.RenderMarkdown(feedbackMessage ?? "")) *@
+@*     </div> *@
+@* </SelectableText> *@

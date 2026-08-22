@@ -1,0 +1,403 @@
+@namespace EasyPeasy.App.Components.Shared
+
+<ShortForm @ref="shortForm"
+           Title="Швидке додавання неправильних форм"
+           FullFormUrl="@($"/courses/{CourseId}/units/{UnitId}/irregular-forms/create")"
+           OnFormClosed="ResetForm">
+
+    <EditForm Model="IrregularForms" OnValidSubmit="HandleValidSubmit" class="create-form">
+        <DataAnnotationsValidator />
+
+        <div class="forms-list">
+            @for (var index = 0; index < IrregularForms.Count; index++)
+            {
+                var currentIndex = index;
+                var form = IrregularForms[index];
+
+                <div class="form-row">
+                    <span class="form-number">@(index + 1)</span>
+
+                    <div class="form-inputs">
+                        <div class="input-group">
+                            <InputSelectField @bind-Value="form.PartOfSpeech" Label="Тип">
+                                <option value="">Оберіть</option>
+                                <option value="verb">Verb</option>
+                                <option value="noun">Noun</option>
+                                <option value="adjective">Adjective</option>
+                                <option value="adverb">Adverb</option>
+                            </InputSelectField>
+                            <ValidationMessage For="@(() => form.PartOfSpeech)" class="validation-message" />
+                        </div>
+
+                        <div class="input-group">
+                            <InputTextField @bind-Value="form.FirstForm" Label="@GetFormLabel(form.PartOfSpeech, 1)" />
+                            <ValidationMessage For="@(() => form.FirstForm)" class="validation-message" />
+                        </div>
+
+                        <div class="input-group">
+                            <InputTextField @bind-Value="form.SecondForm" Label="@GetFormLabel(form.PartOfSpeech, 2)" />
+                            <ValidationMessage For="@(() => form.SecondForm)" class="validation-message" />
+                        </div>
+
+                        <div class="input-group">
+                            <InputTextField @bind-Value="form.ThirdForm" Label="@GetFormLabel(form.PartOfSpeech, 3)" />
+                            <ValidationMessage For="@(() => form.ThirdForm)" class="validation-message" />
+                        </div>
+
+                        <div class="input-group">
+                            <InputTextField @bind-Value="form.FirstFormTranslation" Label="Переклад" />
+                            <ValidationMessage For="@(() => form.FirstFormTranslation)" class="validation-message" />
+                        </div>
+                    </div>
+
+                    @if (IrregularForms.Count > 1)
+                    {
+                        <button type="button" 
+                                class="remove-btn" 
+                                @onclick="() => RemoveForm(currentIndex)" 
+                                title="Видалити">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="form-actions">
+            <button type="button" class="btn-cancel" @onclick="CloseForm">
+                Скасувати
+            </button>
+            <button type="button" class="btn-secondary" @onclick="AddForm">
+                <i class="bi bi-plus-circle"></i> 
+                Додати рядок
+            </button>
+            <button type="submit" class="btn-create">
+                <i class="bi bi-check-lg"></i> 
+                Зберегти
+            </button>
+        </div>
+    </EditForm>
+</ShortForm>
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+    [Parameter] public int UnitId { get; set; } = 0;
+    [Parameter] public Func<Task>? OnFormsCreated { get; set; }
+
+    private ShortForm? shortForm;
+    private List<IrregularFormModel> IrregularForms { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        AddForm();
+    }
+
+    private void ResetForm()
+    {
+        IrregularForms.Clear();
+        AddForm();
+    }
+
+    private void CloseForm()
+    {
+        shortForm?.Close();
+        ResetForm();
+    }
+
+    private void AddForm()
+    {
+        var newForm = new IrregularFormModel
+        {
+            UnitId = UnitId
+        };
+        IrregularForms.Add(newForm);
+    }
+
+    private void RemoveForm(int index)
+    {
+        if (IrregularForms.Count > 1)
+        {
+            IrregularForms.RemoveAt(index);
+        }
+    }
+
+    private string GetFormLabel(string? partOfSpeech, int formNumber)
+    {
+        if (string.IsNullOrEmpty(partOfSpeech))
+        {
+            return formNumber switch
+            {
+                1 => "1-а форма *",
+                2 => "2-а форма *",
+                3 => "3-я форма",
+                _ => "Форма"
+            };
+        }
+
+        return partOfSpeech.ToLower() switch
+        {
+            "verb" => formNumber switch
+            {
+                1 => "Infinitive *",
+                2 => "Past Simple *",
+                3 => "Past Participle",
+                _ => "Форма"
+            },
+            "noun" => formNumber switch
+            {
+                1 => "Singular *",
+                2 => "Plural *",
+                3 => "Alt. Plural",
+                _ => "Форма"
+            },
+            "adjective" => formNumber switch
+            {
+                1 => "Positive *",
+                2 => "Comparative *",
+                3 => "Superlative",
+                _ => "Форма"
+            },
+            "adverb" => formNumber switch
+            {
+                1 => "Positive *",
+                2 => "Comparative *",
+                3 => "Superlative",
+                _ => "Форма"
+            },
+            _ => formNumber switch
+            {
+                1 => "1-а форма *",
+                2 => "2-а форма *",
+                3 => "3-я форма",
+                _ => "Форма"
+            }
+        };
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            var validForms = IrregularForms.Where(f => 
+                !string.IsNullOrWhiteSpace(f.FirstForm) && 
+                !string.IsNullOrWhiteSpace(f.SecondForm)).ToList();
+
+            if (!validForms.Any())
+            {
+                return;
+            }
+
+            foreach (var form in validForms)
+            {
+                await IrregularFormService.CreateAsync(form);
+            }
+
+            if (OnFormsCreated != null)
+            {
+                await OnFormsCreated.Invoke();
+            }
+
+            CloseForm();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving irregular forms: {ex.Message}");
+        }
+    }
+}
+
+<style>
+    .create-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        height: 100%;
+    }
+
+    .forms-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        flex: 1;
+        overflow-y: auto;
+        max-height: 400px;
+        padding-right: 0.5rem;
+    }
+
+    .form-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .form-row:hover {
+        background: var(--surface-hover);
+    }
+
+    .form-number {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        min-width: 1.5rem;
+        text-align: center;
+        padding-top: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .form-inputs {
+        display: grid;
+        grid-template-columns: 0.8fr 1fr 1fr 1fr 1fr;
+        gap: 1rem;
+        flex: 1;
+    }
+
+    .input-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .remove-btn {
+        background: transparent;
+        border: 1px solid var(--border-muted);
+        border-radius: 8px;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 0.5rem;
+        transition: all 0.2s;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 0.75rem;
+    }
+
+    .remove-btn:hover {
+        background: var(--danger-bg);
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+
+    .remove-btn i {
+        font-size: 0.9rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .btn-cancel,
+    .btn-secondary,
+    .btn-create {
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+.btn-cancel:hover {
+        background: var(--surface);
+        border-color: var(--text-muted);
+        color: var(--text-primary);
+    }
+
+    .btn-secondary {
+        flex: 1;
+        background: var(--surface-alt);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-muted);
+    }
+
+    .btn-secondary:hover {
+        background: var(--surface);
+        border-color: #A3BFFA;
+        color: #A3BFFA;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-create {
+        flex: 1;
+        background: linear-gradient(135deg, #A3BFFA, #B5EAD7);
+        color: white;
+        box-shadow: 0 2px 8px rgba(163, 191, 250, 0.3);
+    }
+
+    .btn-create:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.4);
+    }
+
+    .btn-create:active,
+    .btn-secondary:active,
+    .btn-cancel:active {
+        transform: translateY(0);
+    }
+
+/* Scrollbar styling */
+    .forms-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .forms-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    .forms-list::-webkit-scrollbar-thumb {
+        background: #A3BFFA;
+        border-radius: 3px;
+    }
+
+    .forms-list::-webkit-scrollbar-thumb:hover {
+        background: #8FA9E8;
+    }
+
+    @@media (max-width: 1200px) {
+        .form-inputs {
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .form-inputs {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+
+        .form-row {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .form-number {
+            padding-top: 0;
+        }
+
+        .remove-btn {
+            margin-top: 0;
+            align-self: flex-end;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+    }
+</style>

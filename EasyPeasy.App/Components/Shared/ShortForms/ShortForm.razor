@@ -1,0 +1,179 @@
+@namespace EasyPeasy.App.Components.Shared
+
+<div class="create-card">
+    @if (!isExpanded)
+    {
+            <button class="expand-btn" @onclick="ToggleExpand">
+                <i class="bi bi-plus-lg"></i>
+                <span>@Title</span>
+            </button>
+    }
+    else
+    {
+            <div class="create-form-container">
+                <div class="form-header">
+                    <h3 class="form-title">
+                        <i class="bi bi-plus-square"></i>
+                    @Title
+                    </h3>
+                    <div class="header-actions">
+                    @if (HeaderExtra is not null)
+                    {
+                        @HeaderExtra
+                    }
+                    @if (!string.IsNullOrEmpty(FullFormUrl))
+                    {
+                                <button type="button" 
+                                        class="action-btn" 
+                                        @onclick="@(() => NavigationManager.NavigateTo(FullFormUrl))" 
+                                        title="Повна форма">
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </button>
+                    }
+                        <button class="action-btn" @onclick="ToggleExpand">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-content">
+                @ChildContent
+                </div>
+            </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Створити новий елемент";
+    [Parameter] public string? FullFormUrl { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? HeaderExtra { get; set; }
+    [Parameter] public EventCallback OnFormClosed { get; set; }
+
+    private bool isExpanded = false;
+
+    private async Task ToggleExpand()
+    {
+        isExpanded = !isExpanded;
+
+        if (!isExpanded && OnFormClosed.HasDelegate)
+        {
+            await OnFormClosed.InvokeAsync();
+        }
+    }
+
+    public void Close()
+    {
+        isExpanded = false;
+        StateHasChanged();
+    }
+}
+
+<style>
+    .create-card {
+        background: var(--surface);
+        border: 2px dashed var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.2s ease;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .create-card:hover {
+        border-color: #A3BFFA;
+    }
+
+    .expand-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        width: 100%;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .expand-btn:hover {
+        color: #A3BFFA;
+    }
+
+    .expand-btn i {
+        font-size: 1.25rem;
+    }
+
+    .create-form-container {
+        width: 100%;
+    }
+
+    .form-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-title i {
+        color: #A3BFFA;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .action-btn {
+        background: var(--surface-alt);
+        border: 1px solid var(--border-muted);
+        border-radius: 8px;
+        padding: 0.5rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+    }
+
+    .action-btn:hover {
+        background: var(--surface);
+        border-color: #A3BFFA;
+        color: #A3BFFA;
+    }
+
+    .form-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    @@media (max-width: 768px) {
+        .create-card {
+            padding: 1.25rem;
+        }
+
+        .form-title {
+            font-size: 1.1rem;
+        }
+    }
+</style>

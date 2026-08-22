@@ -1,0 +1,337 @@
+@page "/courses/{CourseId:int}/units/{UnitId:int}/words/{WordId:int}"
+
+@using EasyPeasy.App.Components.Shared
+@using EasyPeasy.App.Components.Shared.Breadcrumb
+@inject SpeechPlayer Player
+
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Full" @key="WordId">
+    <div class="header-section">
+
+        <div class="title-section">
+            <div class="title-wrapper">
+                <h1 class="word-title">@Word.Word</h1>
+
+                @if (Word.Pronunciation is { Length: > 0 })
+                {
+                    <span class="audio-play-icon stored" @onclick="PlayAudio" title="Play pronunciation">
+                        <i class="bi bi-volume-up-fill"></i>
+                    </span>
+                }
+                else
+                {
+                    <span class="audio-play-icon generated" @onclick="PlayWord" title="Play pronunciation">
+                        <i class="bi bi-volume-up-fill"></i>
+                    </span>
+                }
+
+                <a href="/courses/@CourseId/units/@UnitId/words/@WordId/edit"
+                   class="btn-edit"
+                   title="Edit">
+                    <i class="bi bi-pencil"></i>
+                </a>
+            </div>
+
+            <div class="navigation-section">
+                <div class="navigation-buttons">
+                    @if (PreviousWordId.HasValue)
+                    {
+                        <a href="/courses/@CourseId/units/@UnitId/words/@PreviousWordId"
+                           class="btn-nav"
+                           title="Previous word">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <button class="btn-nav" disabled>
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                    }
+                    @if (NextWordId.HasValue)
+                    {
+                        <a href="/courses/@CourseId/units/@UnitId/words/@NextWordId"
+                           class="btn-nav"
+                           title="Next word">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <button class="btn-nav" disabled>
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    }
+                </div>
+                @if (Total > 0)
+                {
+                    <span class="navigation-position">@Position / @Total</span>
+                }
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Word.Transcription))
+        {
+            <div class="transcription">[ @Word.Transcription ]</div>
+        }
+    </div>
+
+    <!-- The rest of the markup is unchanged -->
+    <div class="content-grid">
+        @if (!string.IsNullOrEmpty(Word.Translation))
+        {
+            <div class="info-card">
+                <div class="card-icon">
+                    <i class="bi bi-translate"></i>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Translation</h3>
+                    <SelectableText>
+                        <p class="card-text">@Word.Translation</p>
+                    </SelectableText>
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Word.Note))
+        {
+            <div class="info-card">
+                <div class="card-icon">
+                    <i class="bi bi-sticky"></i>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Примітка</h3>
+                    <SelectableText>
+                        <p class="card-text">@Word.Note</p>
+                    </SelectableText>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (Word.Examples != null && Word.Examples.Any())
+    {
+        <div class="examples-section">
+            <h2 class="section-title">
+                <i class="bi bi-card-text"></i> Examples
+            </h2>
+            <div class="examples-list">
+                @foreach (var example in Word.Examples)
+                {
+                    <div class="example-card">
+                        <SelectableText>
+                            <div class="example-sentence">
+                                <i class="bi bi-quote"></i>
+                                <span>@((MarkupString)ExampleMarkdownService.RenderMarkdown(example.Sentence))</span>
+                            </div>
+                        </SelectableText>
+                        @if (!string.IsNullOrEmpty(example.Translation))
+                        {
+                            <SelectableText>
+                                <div class="example-translation">
+                                    <i class="bi bi-arrow-return-right"></i>
+                                    <span>@((MarkupString)ExampleMarkdownService.RenderMarkdown(example.Translation))</span>
+                                </div>
+                            </SelectableText>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="stats-section">
+        <h2 class="section-title">
+            <i class="bi bi-bar-chart"></i> Learning Progress
+        </h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-star"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Rating</div>
+                    <div class="stat-value">@Word.Rate / 5</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-arrow-repeat"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Reviews</div>
+                    <div class="stat-value">@Word.ReviewCount</div>
+                </div>
+            </div>
+
+            @if (Word.LastReviewDate.HasValue)
+            {
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Last Review</div>
+                        <div class="stat-value">@Word.LastReviewDate.Value.ToString("dd MMM yyyy")</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</PageShell>
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+    [Parameter] public int UnitId { get; set; }
+    [Parameter] public int WordId { get; set; }
+
+    public WordModel Word { get; set; } = new();
+    public int? PreviousWordId { get; set; }
+    public int? NextWordId { get; set; }
+    public int Position { get; set; }
+    public int Total { get; set; }
+
+    private bool IsPlaying = false;
+
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
+    private int _previousWordId = -1; // Tracks changes
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Reload data only when WordId actually changed
+        if (_previousWordId != WordId)
+        {
+            _previousWordId = WordId;
+            await LoadWordDataAsync();
+        }
+    }
+
+    private async Task LoadWordDataAsync()
+    {
+        Word = await WordService.GetByIdAsync(WordId, WordIncludes.Full) ?? new WordModel();
+        BrowserConsole.LogInfoAsync($"✅ Word : {JsonSerializer.Serialize(Word)}");
+
+        var navigationIds = await WordService.GetNavigationIdsAsync(UnitId, WordId);
+        PreviousWordId = navigationIds.PreviousId;
+        NextWordId = navigationIds.NextId;
+        Position = navigationIds.Position;
+        Total = navigationIds.Total;
+
+        breadcrumbs = BreadcrumbBuilder.Create()
+            .WithHome()
+            .WithLink("Курси", "/courses")
+            .WithLink(Word.Unit.Course.Title, $"/courses/{CourseId}")
+            .WithLink(Word.Unit.Title, $"/courses/{CourseId}/units/{UnitId}")
+            .WithActive(Word.Word)
+            .Build();
+    }
+
+    private async Task PlayAudio()
+    {
+        try
+        {
+            if (IsPlaying)
+            {
+                AudioService.Stop();
+                IsPlaying = false;
+                return;
+            }
+
+            if (Word.Pronunciation is { Length: > 0 })
+            {
+                IsPlaying = true;
+                await AudioService.PlayAsync(Word.Pronunciation);
+                IsPlaying = false;
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            IsPlaying = false;
+            BrowserConsole.LogErrorAsync("Failed to play pronunciation audio", ex);
+        }
+    }
+
+    private Task PlayWord()
+        => Player.PlayTextAsync(Word.Word, SpeechLanguage.EnglishBritish);
+}
+
+<style>
+
+.title-wrapper .audio-play-icon {
+        font-size: 1.5rem;
+    }
+
+.transcription {
+        font-size: 1.25rem;
+        color: var(--text-secondary);
+        font-style: italic;
+        margin-bottom: 1rem;
+    }
+
+.examples-section {
+        margin-bottom: 2rem;
+    }
+
+    .examples-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .example-card {
+        background: var(--surface-alt);
+        border-left: 4px solid var(--accent);
+        border-radius: 8px;
+        padding: 1.25rem;
+    }
+
+    .example-sentence {
+        font-size: 1rem;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .example-sentence i {
+        color: var(--accent);
+        margin-top: 0.25rem;
+        flex-shrink: 0;
+    }
+
+    .example-translation {
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        margin-left: 1.5rem;
+    }
+
+    .example-translation i {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+        flex-shrink: 0;
+    }
+
+@@media (max-width: 768px) {
+
+/* .title-section { */
+        /*     flex-direction: column; */
+        /*     align-items: stretch; */
+        /* } */
+
+        .title-wrapper {
+            order: 1;
+        }
+
+        .navigation-buttons {
+            order: 2;
+            justify-content: center;
+        }
+
+}
+</style>

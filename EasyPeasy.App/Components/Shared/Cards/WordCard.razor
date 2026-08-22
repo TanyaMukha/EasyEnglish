@@ -1,0 +1,236 @@
+@namespace EasyPeasy.App.Components.Shared
+@using System.Globalization
+
+@inject SpeechPlayer Player
+
+<div class="word-card" @onclick="@(() => NavigationManager.NavigateTo($"/courses/{word.CourseId}/units/{word.UnitId}/words/{word.Id}"))">
+    <div class="word-card-header">
+        <div class="word-main">
+            <div class="word-title-row">
+                <h3 class="word-text">@word.Word</h3>
+            </div>
+            @if (!string.IsNullOrEmpty(word.Transcription))
+            {
+                <span class="word-transcription">[@word.Transcription]</span>
+            }
+        </div>
+        @if (word.Pronunciation is { Length: > 0 })
+        {
+            <span class="audio-play-icon stored word-card-sound" @onclick:stopPropagation="true" @onclick="PlayAudio" title="Play pronunciation">
+                <i class="bi bi-volume-up-fill"></i>
+            </span>
+        }
+        else
+        {
+            <span class="audio-play-icon generated word-card-sound" @onclick:stopPropagation="true" @onclick="PlayWord" title="Play pronunciation">
+                <i class="bi bi-volume-up-fill"></i>
+            </span>
+        }
+    </div>
+
+    <div class="word-card-body">
+        @if (!string.IsNullOrEmpty(word.Translation))
+        {
+            <div class="word-info">
+                <i class="bi bi-translate info-icon"></i>
+                <span class="info-text">@word.Translation</span>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(word.Note))
+        {
+            <div class="word-info">
+                <i class="bi bi-sticky info-icon"></i>
+                <span class="info-text word-note">@word.Note</span>
+            </div>
+        }
+
+        <div class="word-info">
+            <i class="bi bi-card-text info-icon"></i>
+            <span class="info-text">@word.Examples.Count examples</span>
+        </div>
+    </div>
+
+    <div class="word-card-footer">
+        <div class="word-stats">
+            <span class="stat-item">
+                <i class="bi bi-star-fill"></i>
+                @word.Rate.ToString("F1", CultureInfo.InvariantCulture)
+            </span>
+            <span class="stat-item">
+                <i class="bi bi-arrow-repeat"></i>
+                @word.ReviewCount
+            </span>
+        </div>
+        @if (ShowActions)
+        {
+            <CardActionsMenu EditHref="@($"/courses/{word.CourseId}/units/{word.UnitId}/words/{word.Id}/edit")"
+                             OnDelete="@(() => OnDelete.InvokeAsync(word.Id))" />
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public WordModel word { get; set; }
+
+    /// <summary>Показувати кнопки редагування/видалення. false — для read-only контекстів (напр. головна сторінка).</summary>
+    [Parameter] public bool ShowActions { get; set; } = true;
+
+    [Parameter] public EventCallback<int> OnDelete { get; set; }
+
+    private async Task PlayAudio()
+    {
+        if (word.Pronunciation is { Length: > 0 })
+        {
+            await AudioService.PlayAsync(word.Pronunciation);
+        }
+    }
+
+    private Task PlayWord()
+        => Player.PlayTextAsync(TextBracketsRemoverService.RemoveBracketsText(word.Word), SpeechLanguage.EnglishBritish);
+}
+
+<style>
+    .word-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .word-card:hover {
+        border-color: #A3BFFA;
+        box-shadow: 0 4px 12px rgba(163, 191, 250, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .word-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .word-main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .word-title-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .word-text {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 0.25rem 0;
+        word-break: break-word;
+    }
+
+    .word-transcription {
+        font-size: 1rem;
+        color: var(--text-secondary);
+        font-style: italic;
+    }
+
+    .word-card-sound {
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .word-card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        flex: 1;
+    }
+
+    .word-info {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .info-icon {
+        color: #A3BFFA;
+        font-size: 1.1rem;
+        margin-top: 0.125rem;
+        flex-shrink: 0;
+    }
+
+    .info-text {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.5;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .word-note {
+        font-style: italic;
+        color: var(--text-muted);
+    }
+
+    .word-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border-light);
+    }
+
+    .word-badges {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .badge {
+        padding: 0.25rem 0.625rem;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-speech {
+        background: #E3F2FD;
+        color: #1976D2;
+    }
+
+    .badge-level {
+        background: #F3E5F5;
+        color: #7B1FA2;
+    }
+
+    .word-stats {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .stat-item i {
+        font-size: 0.9rem;
+        color: #A3BFFA;
+    }
+</style>

@@ -1,0 +1,218 @@
+@page "/courses/{CourseId:int}/units/{UnitId:int}/study-cards/{StudyCardId:int}/edit"
+@page "/courses/{CourseId:int}/units/{UnitId:int}/study-cards/create"
+
+@using EasyPeasy.App.Components.Shared
+@using EasyPeasy.App.Components.Shared.Breadcrumb
+@using EasyPeasy.Core.Enums
+@using EasyPeasy.Core.Presets
+
+<PageShell Breadcrumbs="breadcrumbs" Width="PageWidth.Full" @key="StudyCardId">
+    <div class="header-section">
+
+        <div class="title-section">
+            <h1 class="page-title">
+                <i class="bi @(IsEditMode ? "bi-pencil" : "bi-plus-circle")"></i>
+                @(IsEditMode ? "Edit" : "Create") Study Card
+            </h1>
+
+            @if (IsEditMode)
+            {
+                <div class="navigation-section">
+                    <div class="navigation-buttons">
+                        @if (PreviousId.HasValue)
+                        {
+                            <a href="/courses/@CourseId/units/@UnitId/study-cards/@PreviousId/edit"
+                               class="btn-nav"
+                               title="Previous card">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <button class="btn-nav" disabled>
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                        }
+                        @if (NextId.HasValue)
+                        {
+                            <a href="/courses/@CourseId/units/@UnitId/study-cards/@NextId/edit"
+                               class="btn-nav"
+                               title="Next card">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <button class="btn-nav" disabled>
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        }
+                    </div>
+                    @if (Total > 0)
+                    {
+                        <span class="navigation-position">@Position / @Total</span>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="form-container">
+        <EditForm Model="Card" OnValidSubmit="HandleValidSubmit" class="edit-form">
+            <DataAnnotationsValidator />
+
+            <div class="form-section">
+                <h2 class="section-title">
+                    <i class="bi bi-info-circle"></i>
+                    Тип картки
+                </h2>
+
+                <InputSelectField TValue="StudyCardKind" @bind-Value="Card.Kind" Label="Вид">
+                    <option value="@StudyCardKind.Term">Термін</option>
+                    <option value="@StudyCardKind.Text">Текст</option>
+                    <option value="@StudyCardKind.BlurredText">Розмиті слова</option>
+                </InputSelectField>
+            </div>
+
+            @if (Card.Kind == StudyCardKind.Term)
+            {
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <i class="bi bi-card-text"></i>
+                        Термін
+                    </h2>
+                    <InputTextField @bind-Value="Card.Title" Label="Термін" />
+                    <InputMultilineField @bind-Value="Card.Body" Label="Визначення" Rows="3" />
+                </div>
+            }
+            else if (Card.Kind == StudyCardKind.Text)
+            {
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <i class="bi bi-file-text"></i>
+                        Текст
+                    </h2>
+                    <InputTextField @bind-Value="Card.Title" Label="Заголовок" />
+                    <InputMultilineField @bind-Value="Card.Body" Label="Текст" Rows="5" />
+                    <InputMultilineField @bind-Value="Card.CodeBlock" Label="Код (необов'язково)" Rows="3" />
+                    <InputMultilineField @bind-Value="Card.Dialogue" Label="Діалог (необов'язково)" Rows="3" />
+                </div>
+            }
+            else if (Card.Kind == StudyCardKind.BlurredText)
+            {
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <i class="bi bi-eye-slash"></i>
+                        Розмиті слова
+                    </h2>
+                    <InputMultilineField @bind-Value="Card.Body" Label="Текст (позначте **слово** для розмиття)" Rows="5" />
+                    <small class="text-muted">
+                        Виділіть слова, які потрібно розмити, подвійними зірочками, наприклад:
+                        Please **look** **up** the word.
+                    </small>
+
+                    <InputSelectField TValue="BlurRevealMode" @bind-Value="RevealModeValue" Label="Режим розкриття">
+                        <option value="@BlurRevealMode.Independent">Незалежне — кожне слово окремо</option>
+                        <option value="@BlurRevealMode.Grouped">Групове — всі одразу (фразові дієслова)</option>
+                    </InputSelectField>
+                </div>
+            }
+
+            <div class="form-actions">
+                <a href="@GetCancelUrl()" class="btn-cancel">
+                    <i class="bi bi-x-lg"></i>
+                    Скасувати
+                </a>
+                <button type="submit" class="btn-submit">
+                    <i class="bi @(IsEditMode ? "bi-check-lg" : "bi-plus-lg")"></i>
+                    @(IsEditMode ? "Оновити" : "Створити")
+                </button>
+            </div>
+        </EditForm>
+    </div>
+</PageShell>
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+    [Parameter] public int UnitId { get; set; }
+    [Parameter] public int StudyCardId { get; set; }
+
+    public StudyCardModel Card { get; set; } = new();
+
+    private bool IsEditMode => StudyCardId > 0;
+
+    private int? PreviousId { get; set; }
+    private int? NextId { get; set; }
+    private int Position { get; set; }
+    private int Total { get; set; }
+
+    private List<Breadcrumb.BreadcrumbItem> breadcrumbs = new();
+    private int _loadedCardId = -1;
+
+    private BlurRevealMode RevealModeValue
+    {
+        get => Card.RevealMode ?? BlurRevealMode.Independent;
+        set => Card.RevealMode = value;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_loadedCardId == StudyCardId)
+            return;
+
+        _loadedCardId = StudyCardId;
+
+        if (IsEditMode)
+        {
+            Card = await StudyCardService.GetByIdAsync(StudyCardId, StudyCardIncludes.Full) ?? new StudyCardModel();
+
+            var navigationIds = await StudyCardService.GetNavigationIdsAsync(UnitId, StudyCardId);
+            PreviousId = navigationIds.PreviousId;
+            NextId = navigationIds.NextId;
+            Position = navigationIds.Position;
+            Total = navigationIds.Total;
+        }
+        else
+        {
+            Card = new StudyCardModel { UnitId = UnitId, Kind = StudyCardKind.Term };
+            PreviousId = null;
+            NextId = null;
+            Position = 0;
+            Total = 0;
+        }
+
+        breadcrumbs = BreadcrumbBuilder.Create()
+            .WithHome()
+            .WithLink("Курси", "/courses")
+            .WithLink(Card.Unit?.Course?.Title ?? "Курс", $"/courses/{CourseId}")
+            .WithLink(Card.Unit?.Title ?? "Unit", $"/courses/{CourseId}/units/{UnitId}")
+            .WithLink("Навчальні картки", $"/courses/{CourseId}/units/{UnitId}?tab=study-cards")
+            .WithActive(IsEditMode ? "Edit" : "Create")
+            .Build();
+    }
+
+    private string GetCancelUrl() => IsEditMode
+        ? $"/courses/{CourseId}/units/{UnitId}/study-cards/{StudyCardId}"
+        : $"/courses/{CourseId}/units/{UnitId}?tab=study-cards";
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            Card.UnitId = UnitId;
+            Card.RevealMode = Card.Kind == StudyCardKind.BlurredText
+                ? Card.RevealMode ?? BlurRevealMode.Independent
+                : null;
+
+            Card = IsEditMode
+                ? await StudyCardService.UpdateAsync(Card.Id, Card)
+                : await StudyCardService.CreateAsync(Card);
+
+            NavigationManager.NavigateTo($"/courses/{CourseId}/units/{UnitId}/study-cards/{Card.Id}");
+        }
+        catch (Exception ex)
+        {
+            BrowserConsole.LogErrorAsync("Failed to save study card", ex);
+        }
+    }
+}
