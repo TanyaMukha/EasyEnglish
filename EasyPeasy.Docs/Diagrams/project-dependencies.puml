@@ -31,8 +31,8 @@ skinparam {
 title Exact ProjectReference Graph (derived from every .csproj, incl. test projects)
 
 legend top left
-  Ground-truth graph, not a simplified narrative -- see solution-architecture.mdpuml for the
-  annotated layered view. Every arrow here is a literal <c><ProjectReference></c> element.
+  Ground-truth graph, not a simplified narrative -- see solution-architecture.puml for the
+  annotated layered view. Every arrow here is a literal ""<ProjectReference>"" element.
   Test projects (dashed border) are excluded from the runtime app but shown for completeness --
   e.g. this is where you'd notice EasyPeasy.Business.Tests needs EasyPeasy.Data for its
   real-SQLite integration fixtures even though EasyPeasy.Business itself does not.

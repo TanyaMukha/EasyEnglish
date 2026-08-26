@@ -38,19 +38,19 @@ title EasyPeasy Solution Architecture
 legend top left
   Layered architecture, bottom = fewest dependencies. Dashed arrows = "depends on" / "implements".
   <b>Key fact</b>: EasyPeasy.Business depends only on interfaces declared in EasyPeasy.Core
-  (<c>IWordService</c>, <c>IWordRepository</c>, etc.) -- it has **no** project reference to
+  (""IWordService"", ""IWordRepository"", etc.) -- it has **no** project reference to
   EasyPeasy.Data. EasyPeasy.Data implements those same interfaces concretely.
   EasyPeasy.App is the composition root: it references both Data and Business and wires the
   concrete repositories to the interfaces Business expects via DI
-  (<c>AddEasyPeasyRepositories()</c> + <c>AddEasyPeasyDataServices()</c> in MauiProgram.cs).
+  (""AddEasyPeasyRepositories()"" + ""AddEasyPeasyDataServices()"" in MauiProgram.cs).
   This is classic Dependency Inversion -- Business is testable/reusable without a database.
 end legend
 
 package "MukhaLab.* -- generic, reusable, zero EasyPeasy-specific code" as Mukha {
-  [MukhaLab.SelectQueryParameters]\ngeneric filter/sort/paging\nover IQueryable<T> as SQP
-  [MukhaLab.Database]\ngeneric BaseRepository / BaseService\n/ BaseWithGuidRepository as Db
-  [MukhaLab.LoggerExtensionDelegate]\nFastXMessage / BeginTimedScope\nlogging helpers as LogExt
-  [MukhaLab.BrowserConsoleLogger]\nILogger sink -> browser\nconsole.log via JSInterop as BrowserLog
+  [MukhaLab.SelectQueryParameters\ngeneric filter/sort/paging\nover IQueryable<T>] as SQP
+  [MukhaLab.Database\ngeneric BaseRepository / BaseService\n/ BaseWithGuidRepository] as Db
+  [MukhaLab.LoggerExtensionDelegate\nFastXMessage / BeginTimedScope\nlogging helpers] as LogExt
+  [MukhaLab.BrowserConsoleLogger\nILogger sink -> browser\nconsole.log via JSInterop] as BrowserLog
 }
 
 Db ..> SQP : ApplyQueryParameters()

@@ -28,16 +28,51 @@ New to this solution? Read in this order:
 
 ## Diagrams
 
-| File | What it shows |
-|---|---|
-| [solution-architecture.puml](Diagrams/solution-architecture.puml) | Layered architecture: `MukhaLab.*` infra → `Core` → `Data`/`Business` → `Cache` → `App`, annotated with the Dependency Inversion pattern between Business/Data/App. Start here for the big picture. |
-| [project-dependencies.puml](Diagrams/project-dependencies.puml) | The exact `ProjectReference` graph, including test projects — ground truth, not a simplified narrative. |
-| [entities.puml](Diagrams/entities.puml) | `EasyPeasy.Core` domain entities and their relationships. |
-| [database.puml](Diagrams/database.puml) | SQLite table/column layout. |
+Each diagram is kept as PlantUML source with a rendered PNG beside it, so it can be read here
+without any tooling and still edited as text.
 
-Rendering these locally requires the Visual Studio "PlantUML Editor" extension configured with
-Render Type = **Local** (Tools → Options → PlantUML → Advanced) — the default setting points at a
-dead demo server and diagrams silently fail to render. See
+### Solution architecture
+
+Layered architecture: `MukhaLab.*` infra → `Core` → `Data`/`Business` → `Cache` → `App`,
+annotated with the Dependency Inversion pattern between Business, Data and App. Start here for
+the big picture. Source: [solution-architecture.puml](Diagrams/solution-architecture.puml)
+
+![Solution architecture](Diagrams/solution-architecture.png)
+
+### Project dependencies
+
+The exact `ProjectReference` graph, including test projects — ground truth, not a simplified
+narrative. Source: [project-dependencies.puml](Diagrams/project-dependencies.puml)
+
+![Project dependencies](Diagrams/project-dependencies.png)
+
+### Entities
+
+`EasyPeasy.Core` domain entities and their relationships.
+Source: [entities.puml](Diagrams/entities.puml)
+
+![Entities](Diagrams/entities.png)
+
+### Database
+
+SQLite table and column layout. Source: [database.puml](Diagrams/database.puml)
+
+![Database schema](Diagrams/database.png)
+
+### Re-rendering
+
+After editing a `.puml`, regenerate its PNG so the two do not drift:
+
+```bash
+java -jar plantuml.jar -tpng -charset UTF-8 EasyPeasy.Docs/Diagrams/*.puml
+```
+
+PlantUML needs Java 11 or newer. The output is named after the diagram title inside the file, not
+the file name, so rename the result to match its source.
+
+Inside Visual Studio the "PlantUML Editor" extension does the same, but only with Render Type =
+**Local** (Tools → Options → PlantUML → Advanced) — the default points at a dead demo server and
+diagrams silently fail. See
 [key-decisions.md #10](Decisions/key-decisions.md#10-plantuml-rendering-local-not-the-extensions-default-azure-demo-server).
 
 ## Guides

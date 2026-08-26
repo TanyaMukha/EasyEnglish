@@ -118,7 +118,13 @@ using it, changing it, redistributing it — needs permission. See [LICENSE](LIC
 | `EasyPeasy.Docs` | architecture diagrams, developer guides, decision log |
 | `MukhaLab.*` | reusable infrastructure: database base types, loggers, query parameters |
 
-Developer documentation starts at [EasyPeasy.Docs/README.md](EasyPeasy.Docs/README.md).
+![Solution architecture](EasyPeasy.Docs/Diagrams/solution-architecture.png)
+
+Business depends only on interfaces declared in Core, and App is the composition root that wires
+Data's concrete repositories to them. The other diagrams — the exact project-reference graph, the
+domain entities and the database schema — are in
+[EasyPeasy.Docs](EasyPeasy.Docs/README.md#diagrams), which is also where the developer
+documentation starts.
 
 ## Renaming
 
