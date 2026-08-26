@@ -97,3 +97,41 @@ and phrasal verbs. Between them they use every kind of study and test card, and 
 module doubles as a worked example of the
 [entry notation](EasyPeasy.Docs/Guides/entry-notation.md). Adding one saves it exactly as an
 imported archive would, so everything in it can be edited or deleted afterwards.
+
+## Licence
+
+Copyright (c) 2026 Tetiana Almukhametova. All rights reserved.
+
+The code is public so it can be read: clone it, build it, run it, judge it. Anything beyond that —
+using it, changing it, redistributing it — needs permission. See [LICENSE](LICENSE).
+
+## Solution map
+
+| Project | Role |
+|---|---|
+| `EasyPeasy.Core` | domain model: entities, DTOs, repository/service interfaces, enums, mapping |
+| `EasyPeasy.Data` | EF Core / SQLite: `EasyPeasyDbContext`, repositories, migrations, learning queries |
+| `EasyPeasy.Business` | domain services, depending on Core's interfaces rather than on Data |
+| `EasyPeasy.Cache` | small in-memory working set (current unit, session items) |
+| `EasyPeasy.App` | the MAUI Blazor Hybrid app and the composition root |
+| `EasyPeasy.ContentTools` | console tool for authoring the course ZIP archives |
+| `EasyPeasy.Docs` | architecture diagrams, developer guides, decision log |
+| `MukhaLab.*` | reusable infrastructure: database base types, loggers, query parameters |
+
+Developer documentation starts at [EasyPeasy.Docs/README.md](EasyPeasy.Docs/README.md).
+
+## Renaming
+
+The solution was renamed from **EasyEnglish** to **EasyPeasy**. Two things deliberately kept the
+old name, because they are identity rather than naming:
+
+- **`EasyEnglish.db`** — the SQLite file in the device's app-data folder. Renaming it would leave
+  every existing database behind a fresh empty one. To rename it, the app has to move the file
+  (together with its `-wal`/`-shm` companions) on first start, or the content has to be exported
+  and re-imported as ZIP.
+- **`com.companyname.easyenglish.app`** — the `ApplicationId`. On Android and Windows this is the
+  package identity: a new id installs as a separate app with an empty sandbox, so changing it is a
+  migration rather than a rename.
+
+The repository folder itself is still named `EasyEnglish`; renaming it is a local operation, done
+with the IDE closed.

@@ -1,0 +1,67 @@
+Copyright (c) 2026 Tetiana Almukhametova
+All rights reserved.
+
+This source code is public because it is part of the author's portfolio: it is
+here to be read.
+
+
+GRANT
+
+Permission is granted to any person to view, clone, build and run this
+software, for the sole purpose of evaluating the software and the author's
+work.
+
+
+RESERVATION OF RIGHTS
+
+No other rights are granted. Without the prior written permission of the
+author, you may not:
+
+  - use this software, or any part of it, for any purpose beyond the
+    evaluation described above, including any production or commercial use;
+
+  - modify it or create derivative works from it, except as needed to build
+    and run it for that evaluation;
+
+  - redistribute, publish, sublicense or sell it, in source or binary form.
+
+To ask for permission beyond this grant, contact the author.
+
+
+COURSE CONTENT
+
+The demo courses in EasyPeasy.Core/Content are covered by this licence like
+the rest of the source. They are teaching material written for this
+repository; the real course archives the application was built for are not
+published here.
+
+
+THIRD-PARTY COMPONENTS
+
+This licence covers the source code in this repository. Packages restored by
+NuGet remain under their own licences, as do the bundled fonts and icons, each
+of which carries its own licence text next to the files it applies to:
+
+  - Open Sans 1.10 — Apache License 2.0
+    EasyPeasy.App/Resources/Fonts/OpenSans-LICENSE.txt
+
+  - Montserrat 9.000 — SIL Open Font License 1.1
+    EasyPeasy.App/wwwroot/fonts/Montserrat-OFL.txt
+
+  - Fredoka 2.001 — SIL Open Font License 1.1
+    EasyPeasy.App/wwwroot/fonts/Fredoka-OFL.txt
+
+  - Bootstrap Icons 1.13.1 — MIT License
+    EasyPeasy.App/wwwroot/bootstrap-icons/LICENSE
+
+Nothing in this licence restricts what those permit.
+
+
+NO WARRANTY
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
