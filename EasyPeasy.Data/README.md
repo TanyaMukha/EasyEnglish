@@ -16,7 +16,7 @@ DI registration extension, `AddEasyPeasyRepositories()`, is called from app star
 | `Extensions/LearningQueryExtensions.cs` | `ApplyLearningSelectionAsync` — shared "pick N items for a learning session" query logic, reused by `WordRepository`/`IrregularFormRepository`/`StudyCardRepository`/`TestCardRepository`. |
 | `Extensions/NavigationQueryExtensions.cs` | `GetCyclicNavigationAsync` — shared cyclic prev/next index math, reused by `WordRepository`/`StudyCardRepository`/`TestCardRepository`'s `GetNavigationIdsAsync`. |
 | `Repositories/*.cs` | One class per entity, each a thin `BaseRepository<T, EasyPeasyDbContext>`/`BaseWithGuidRepository<T, EasyPeasyDbContext>` subclass from `MukhaLab.Database`, adding only the domain queries declared on its `I*Repository` interface. |
-| `Migrations/` | EF Core-generated. Not hand-documented here — see the current schema in `EasyPeasy.Docs/Diagrams/database.mdpuml`/`entities.mdpuml` instead of reading migration history. |
+| `Migrations/` | EF Core-generated. Not hand-documented here — see the current schema in `EasyPeasy.Docs/Diagrams/database.puml`/`entities.puml` instead of reading migration history. |
 
 ## Schema
 
@@ -24,8 +24,8 @@ The schema is entity-first: `EasyPeasy.Core.Entities.*`'s `[Table]`/`[Column]`/`
 `[ForeignKey]` attributes are the only source of truth. There is no fluent-API configuration, no
 explicit indexes beyond what EF Core auto-creates for primary/foreign keys, and no unique
 constraints (e.g. nothing stops two rows from sharing a `RecordGuid`). For the current 8-entity
-model, see [`../EasyPeasy.Docs/Diagrams/entities.mdpuml`](../EasyPeasy.Docs/Diagrams/entities.mdpuml)
-and [`database.mdpuml`](../EasyPeasy.Docs/Diagrams/database.mdpuml).
+model, see [`../EasyPeasy.Docs/Diagrams/entities.puml`](../EasyPeasy.Docs/Diagrams/entities.puml)
+and [`database.puml`](../EasyPeasy.Docs/Diagrams/database.puml).
 
 20 migrations so far, tracking a fair amount of schema churn (a `Dictionary`→`Course` rename, a
 `WordList`→`Unit` rename, several card-kind/payload reshapes) — the migration folder is a useful

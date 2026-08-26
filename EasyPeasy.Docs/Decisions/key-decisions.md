@@ -26,7 +26,7 @@ the interfaces Business expects (`AddEasyPeasyRepositories()` then `AddEasyPeasy
 against an entirely different persistence layer without changing a line of business logic. The cost
 is one extra hop to trace when reading code: a `WordService` method that "obviously" talks to a
 database doesn't reference anything database-shaped directly, only an interface. See
-[project-dependencies.mdpuml](../Diagrams/project-dependencies.mdpuml) for the exact graph this
+[project-dependencies.puml](../Diagrams/project-dependencies.puml) for the exact graph this
 produces.
 
 ---
@@ -182,7 +182,7 @@ zero-config feel.
 
 ## 10. PlantUML rendering: Local, not the extension's default Azure demo server
 
-**Context**: PlantUML diagrams in this project (`.mdpuml` files under `EasyPeasy.Docs/Diagrams/`)
+**Context**: PlantUML diagrams in this project (`.puml` files under `EasyPeasy.Docs/Diagrams/`)
 silently failed to render in Visual Studio.
 
 **Decision**: The root cause was the "PlantUML Editor" VS extension's default Render Type pointing
@@ -190,7 +190,7 @@ at a dead Azure demo server. Fixed via Tools → Options → PlantUML → Advanc
 **Local**.
 
 **Consequences**: Anyone opening this repo for the first time and finding diagrams don't render
-should check this setting before assuming the `.mdpuml` files themselves are broken.
+should check this setting before assuming the `.puml` files themselves are broken.
 
 ---
 

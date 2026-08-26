@@ -9,8 +9,8 @@ namespace EasyPeasy.Data;
 /// annotations on the <c>EasyPeasy.Core.Entities.*</c> classes (<c>[Table]</c>, <c>[Column]</c>,
 /// <c>[MaxLength]</c>, <c>[ForeignKey]</c>) — there is no <c>OnModelCreating</c> override here, and no
 /// fluent-API configuration (indexes, unique constraints) beyond what those attributes imply. For the
-/// current schema/entity-relationship diagrams see <c>EasyPeasy.Docs/Diagrams/database.mdpuml</c>
-/// and <c>entities.mdpuml</c>.
+/// current schema/entity-relationship diagrams see <c>EasyPeasy.Docs/Diagrams/database.puml</c>
+/// and <c>entities.puml</c>.
 /// </summary>
 public class EasyPeasyDbContext : DbContext
 {

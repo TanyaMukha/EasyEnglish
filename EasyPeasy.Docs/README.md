@@ -17,7 +17,7 @@ New to this solution? Read in this order:
 
 1. **[Guides/getting-started.md](Guides/getting-started.md)** — prerequisites, clone, build, run,
    test.
-2. **[Diagrams/solution-architecture.mdpuml](Diagrams/solution-architecture.mdpuml)** — the layered
+2. **[Diagrams/solution-architecture.puml](Diagrams/solution-architecture.puml)** — the layered
    architecture, one diagram.
 3. **[Guides/solution-structure.md](Guides/solution-structure.md)** — what each project is, with
    links to its own README.
@@ -30,10 +30,10 @@ New to this solution? Read in this order:
 
 | File | What it shows |
 |---|---|
-| [solution-architecture.mdpuml](Diagrams/solution-architecture.mdpuml) | Layered architecture: `MukhaLab.*` infra → `Core` → `Data`/`Business` → `Cache` → `App`, annotated with the Dependency Inversion pattern between Business/Data/App. Start here for the big picture. |
-| [project-dependencies.mdpuml](Diagrams/project-dependencies.mdpuml) | The exact `ProjectReference` graph, including test projects — ground truth, not a simplified narrative. |
-| [entities.mdpuml](Diagrams/entities.mdpuml) | `EasyPeasy.Core` domain entities and their relationships. |
-| [database.mdpuml](Diagrams/database.mdpuml) | SQLite table/column layout. |
+| [solution-architecture.puml](Diagrams/solution-architecture.puml) | Layered architecture: `MukhaLab.*` infra → `Core` → `Data`/`Business` → `Cache` → `App`, annotated with the Dependency Inversion pattern between Business/Data/App. Start here for the big picture. |
+| [project-dependencies.puml](Diagrams/project-dependencies.puml) | The exact `ProjectReference` graph, including test projects — ground truth, not a simplified narrative. |
+| [entities.puml](Diagrams/entities.puml) | `EasyPeasy.Core` domain entities and their relationships. |
+| [database.puml](Diagrams/database.puml) | SQLite table/column layout. |
 
 Rendering these locally requires the Visual Studio "PlantUML Editor" extension configured with
 Render Type = **Local** (Tools → Options → PlantUML → Advanced) — the default setting points at a

@@ -22,8 +22,8 @@ Subject 0..1───0..* Course 1───1..* Unit ─┬─1..* Word 1──�
 ```
 
 For the full entity-relationship diagram (including columns) see
-[`EasyPeasy.Docs/Diagrams/entities.mdpuml`](../EasyPeasy.Docs/Diagrams/entities.mdpuml) and
-[`database.mdpuml`](../EasyPeasy.Docs/Diagrams/database.mdpuml).
+[`EasyPeasy.Docs/Diagrams/entities.puml`](../EasyPeasy.Docs/Diagrams/entities.puml) and
+[`database.puml`](../EasyPeasy.Docs/Diagrams/database.puml).
 
 A `Unit` is the unit of study: it owns four independent kinds of learnable content (`Word`,
 `IrregularForm`, `StudyCard`, `TestCard`), each with its own review/rating state

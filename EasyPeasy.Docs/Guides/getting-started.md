@@ -19,7 +19,7 @@ project does, see [solution-structure.md](solution-structure.md) instead.
 
   In practice the app is developed and tested on **Windows and Android only**. The iOS and
   macCatalyst targets have never been built or run, and there is no plan to.
-- **PlantUML rendering** (optional, for viewing/editing the `.mdpuml` diagrams in
+- **PlantUML rendering** (optional, for viewing/editing the `.puml` diagrams in
   [Diagrams/](../Diagrams/)): if using the Visual Studio "PlantUML Editor" extension, set
   Tools → Options → PlantUML → Advanced → Render Type = **Local** — the default hits a dead Azure
   demo server and diagrams silently fail to render.
@@ -110,4 +110,4 @@ See [testing-strategy.md](testing-strategy.md) for what's covered, what isn't, a
 - [solution-structure.md](solution-structure.md) — what each project is, with links to its own README
 - [conventions.md](conventions.md) — naming/language/DI conventions and known gotchas
 - [../Decisions/key-decisions.md](../Decisions/key-decisions.md) — why things are built the way they are
-- [../Diagrams/solution-architecture.mdpuml](../Diagrams/solution-architecture.mdpuml) — layered architecture diagram
+- [../Diagrams/solution-architecture.puml](../Diagrams/solution-architecture.puml) — layered architecture diagram

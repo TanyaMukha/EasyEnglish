@@ -3,8 +3,8 @@
 One paragraph per project. Each `EasyPeasy.*` library also has its own `README.md` with a full
 file-by-file breakdown, a Known Issues section, and (where tests exist) a Testing section — this
 page is the map, not a replacement for those. See
-[solution-architecture.mdpuml](../Diagrams/solution-architecture.mdpuml) for how these fit together
-visually, and [project-dependencies.mdpuml](../Diagrams/project-dependencies.mdpuml) for the exact
+[solution-architecture.puml](../Diagrams/solution-architecture.puml) for how these fit together
+visually, and [project-dependencies.puml](../Diagrams/project-dependencies.puml) for the exact
 `ProjectReference` graph.
 
 ## Runtime app layers (bottom to top)
@@ -73,6 +73,6 @@ Generic libraries with zero EasyPeasy-specific code — named `MukhaLab.*` rathe
 
 - **EasyPeasy.Docs** — architecture diagrams (`Diagrams/`), developer guides (`Guides/`), and the
   architectural decisions log (`Decisions/`). Not a buildable/runnable project in any meaningful
-  sense — it's a plain `net9.0` SDK project used only so the `.md`/`.mdpuml` files show up as a
+  sense — it's a plain `net9.0` SDK project used only so the `.md`/`.puml` files show up as a
   first-class node in the solution (Visual Studio's Solution Explorer, `dotnet sln list`, etc.)
   rather than living as untracked loose files outside any project.
