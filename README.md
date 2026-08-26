@@ -82,7 +82,7 @@ Run the app on Windows:
 dotnet build EasyPeasy.App/EasyPeasy.App.csproj -f net9.0-windows10.0.19041.0
 ```
 
-Run every test project (525 tests across 9 of them):
+Run every test project (551 tests across 9 of them):
 
 ```bash
 dotnet test EasyPeasy.sln
@@ -90,33 +90,10 @@ dotnet test EasyPeasy.sln
 
 Full prerequisites and troubleshooting: [EasyPeasy.Docs/Guides/getting-started.md](EasyPeasy.Docs/Guides/getting-started.md).
 
-## Solution map
-
-| Project | Role |
-|---|---|
-| `EasyPeasy.Core` | domain model: entities, DTOs, repository/service interfaces, enums, mapping |
-| `EasyPeasy.Data` | EF Core / SQLite: `EasyPeasyDbContext`, repositories, migrations, learning queries |
-| `EasyPeasy.Business` | domain services, depending on Core's interfaces rather than on Data |
-| `EasyPeasy.Cache` | small in-memory working set (current unit, session items) |
-| `EasyPeasy.App` | the MAUI Blazor Hybrid app and the composition root |
-| `EasyPeasy.ContentTools` | console tool for authoring the course ZIP archives |
-| `EasyPeasy.Docs` | architecture diagrams, developer guides, decision log |
-| `MukhaLab.*` | reusable infrastructure: database base types, loggers, query parameters |
-
-Developer documentation starts at [EasyPeasy.Docs/README.md](EasyPeasy.Docs/README.md).
-
-## Renaming
-
-The solution was renamed from **EasyEnglish** to **EasyPeasy**. Two things deliberately kept the
-old name, because they are identity rather than naming:
-
-- **`EasyEnglish.db`** — the SQLite file in the device's app-data folder. Renaming it would leave
-  every existing database behind a fresh empty one. To rename it, the app has to move the file
-  (together with its `-wal`/`-shm` companions) on first start, or the content has to be exported
-  and re-imported as ZIP.
-- **`com.companyname.easyenglish.app`** — the `ApplicationId`. On Android and Windows this is the
-  package identity: a new id installs as a separate app with an empty sandbox, so changing it is a
-  migration rather than a rename.
-
-The repository folder itself is still named `EasyEnglish`; renaming it is a local operation, done
-with the IDE closed.
+The course archives the app was built for are not in this repository — they are large, and the
+material in them is not mine to publish. So a fresh clone starts with an empty library, and the
+**Курси** page offers three ready-made courses instead: English for an interview, irregular verbs,
+and phrasal verbs. Between them they use every kind of study and test card, and the phrasal-verb
+module doubles as a worked example of the
+[entry notation](EasyPeasy.Docs/Guides/entry-notation.md). Adding one saves it exactly as an
+imported archive would, so everything in it can be edited or deleted afterwards.

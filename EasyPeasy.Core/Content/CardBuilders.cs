@@ -1,12 +1,12 @@
 using EasyPeasy.Core.Enums;
 using EasyPeasy.Core.Models;
 
-namespace EasyPeasy.ContentTools;
+namespace EasyPeasy.Core.Content;
 
 /// <summary>
 /// Factory methods for each <see cref="TestCardKind"/> — so a course-module class doesn't need to
 /// set <c>Kind</c> + the right payload type by hand every time. <c>Id</c>/<c>UnitId</c> are left at
-/// <c>0</c>: on archive import, EF assigns the FK itself via cascaded insert of the parent
+/// <c>0</c>: on import or seeding, EF assigns the FK itself via cascaded insert of the parent
 /// <c>Unit</c> (see the comment in <c>ImportCourseZip.razor</c>).
 /// </summary>
 public static class TestCardBuilder

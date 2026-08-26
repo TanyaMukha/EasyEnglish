@@ -193,6 +193,7 @@ public static class MauiProgram
         services.AddScoped<IUserContext, AnonymousUserContext>();
         services.AddScoped<CourseZipBackupService>();
         services.AddScoped<ConfirmationService>();
+        services.AddScoped<DemoContentService>();
 
         services.AddSingleton<IStorageService, LocalStorageService>();
         services.AddSingleton<StreakService>();

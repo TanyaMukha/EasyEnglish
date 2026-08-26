@@ -3,12 +3,53 @@
 @using EasyPeasy.Core.Presets
 @using System.Collections.Generic
 @using EasyPeasy.App.Components.Shared
+@using EasyPeasy.App.Services
 @using EasyPeasy.App.Components.Shared.Breadcrumb
 @using Microsoft.Extensions.Logging
 @using MukhaLab.Database
 @inject ILogger<Index> Logger
+@inject DemoContentService DemoContent
 
 <PageShell Title="Курси" Breadcrumbs="breadcrumbs" Width="PageWidth.Full">
+
+    @if (AvailableCourses is not null && !AvailableCourses.Any())
+    {
+        @* Nothing in the library at all — a first run, or a fresh clone. The real course
+           archives are not in the repository, so without this there is nothing to open. *@
+        <div class="demo-panel">
+            <h2 class="demo-title">Бібліотека порожня</h2>
+            <p class="demo-lead">
+                Додайте готовий курс, щоб побачити, як влаштовані модулі, картки й тести.
+                Усе в них можна редагувати або видалити, як і у власному курсі.
+            </p>
+
+            @if (demoError is not null)
+            {
+                <p class="demo-error">@demoError</p>
+            }
+
+            <div class="demo-grid">
+                @foreach (var demo in DemoContentService.Available)
+                {
+                    <div class="demo-card">
+                        <h3 class="demo-card-title">@demo.Title</h3>
+                        <p class="demo-card-text">@demo.Description</p>
+                        <span class="demo-card-meta">@(demo.Units?.Count ?? 0) модул@(Suffix(demo.Units?.Count ?? 0))</span>
+                        <button type="button" class="demo-card-button"
+                                disabled="@(addingTitle is not null)"
+                                @onclick="() => AddDemoAsync(demo)">
+                            @(addingTitle == demo.Title ? "Додаємо…" : "Додати")
+                        </button>
+                    </div>
+                }
+            </div>
+
+            <p class="demo-note">
+                Або створіть власний курс нижче чи
+                <a href="/import-course-zip">імпортуйте архів</a>.
+            </p>
+        </div>
+    }
 
     <div class="courses-grid">
         @foreach (var course in AvailableCourses)
@@ -94,6 +135,36 @@
         }
     }
 
+    private string? addingTitle;
+    private string? demoError;
+
+    /// <summary>Ukrainian counts "1 модуль, 2 модулі, 5 модулів".</summary>
+    private static string Suffix(int count) =>
+        (count % 100 is >= 11 and <= 14) ? "ів"
+            : (count % 10) switch { 1 => "ь", 2 or 3 or 4 => "і", _ => "ів" };
+
+    private async Task AddDemoAsync(CourseModel demo)
+    {
+        addingTitle = demo.Title;
+        demoError = null;
+
+        try
+        {
+            await DemoContent.AddAsync(demo);
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            demoError = $"Не вдалося додати курс: {ex.Message}";
+            BrowserConsole.LogErrorAsync("Failed to add a demo course", ex);
+        }
+        finally
+        {
+            addingTitle = null;
+            StateHasChanged();
+        }
+    }
+
     private async Task RefreshCourses()
     {
         await LoadData();
@@ -109,6 +180,80 @@
         box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
         display: inline-block;
         vertical-align: middle;
+    }
+
+    .demo-panel {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+    }
+
+    .demo-title {
+        margin: 0 0 .5rem;
+        font-size: 1.35rem;
+    }
+
+    .demo-lead {
+        margin: 0 0 1.25rem;
+        opacity: .8;
+    }
+
+    .demo-error {
+        margin: 0 0 1rem;
+        color: #b3261e;
+    }
+
+    .demo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 1rem;
+    }
+
+    .demo-card {
+        display: flex;
+        flex-direction: column;
+        gap: .5rem;
+        padding: 1rem;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+    }
+
+    .demo-card-title {
+        margin: 0;
+        font-size: 1.05rem;
+    }
+
+    .demo-card-text {
+        margin: 0;
+        flex-grow: 1;
+        font-size: .9rem;
+        opacity: .8;
+    }
+
+    .demo-card-meta {
+        font-size: .8rem;
+        opacity: .6;
+    }
+
+    .demo-card-button {
+        padding: .5rem .75rem;
+        border: 1px solid currentColor;
+        border-radius: 8px;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+    }
+
+    .demo-card-button:disabled {
+        opacity: .5;
+        cursor: default;
+    }
+
+    .demo-note {
+        margin: 1.25rem 0 0;
+        font-size: .9rem;
+        opacity: .7;
     }
 
     .courses-grid {
